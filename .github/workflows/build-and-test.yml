@@ -159,7 +159,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2.21.0
+        uses: EnricoMi/publish-unit-test-result-action@v2.22.0
         id: test-results
         if: always()
         with:
@@ -175,7 +175,7 @@ jobs:
           output: trivy-results.sarif
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-results.sarif
 
