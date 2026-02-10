@@ -4,6 +4,16 @@
     <BuildType Name="Release" />
     <BuildType Name="Test" />
   </Configurations>
-  <Folder Name="/src/" />
-  <Folder Name="/tests/" />
+  <Folder Name="/src/">
+    <Project Path="src/ApiService/ApiService.csproj" />
+    <Project Path="src/AppHost/AppHost.csproj" />
+    <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" />
+    <Project Path="src/Web/Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ApiService.Tests.Integration/ApiService.Tests.Integration.csproj" />
+    <Project Path="tests/AppHost.Tests.Integration/AppHost.Tests.Integration.csproj" />
+    <Project Path="tests/IssueTracker.Tests.Architecture/IssueTracker.Tests.Architecture.csproj" />
+    <Project Path="tests/Web.Tests.Unit/Web.Tests.Unit.csproj" />
+  </Folder>
 </Solution>
