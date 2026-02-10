@@ -78,21 +78,21 @@ jobs:
           echo "MajorMinorPatch: ${{ steps.gitversion.outputs.majorMinorPatch }}"
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore IssueTrackerApp.snlx
 
       - name: Check code style
-        run: dotnet format --verify-no-changes
+        run: dotnet format IssueTrackerApp.snlx --verify-no-changes
         continue-on-error: true
 
       - name: Analyze code
-        run: dotnet build --no-restore /p:EnforceCodeStyleInBuild=true
+        run: dotnet build IssueTrackerApp.snlx --no-restore /p:EnforceCodeStyleInBuild=true
         continue-on-error: true
 
       - name: Run StyleCop analysis
-        run: dotnet build --no-restore /p:StyleCopTreatErrorsAsWarnings=false || true
+        run: dotnet build IssueTrackerApp.snlx --no-restore /p:StyleCopTreatErrorsAsWarnings=false || true
 
       - name: Build solution
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build IssueTrackerApp.snlx --configuration Release --no-restore
 
       - name: Run Tests
         id: run-tests
