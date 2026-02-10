@@ -81,18 +81,18 @@ jobs:
         run: dotnet restore
 
       - name: Check code style
-        run: dotnet format IssueTrackerApp.snlx --verify-no-changes
+        run: dotnet format IssueTrackerApp.slnx --verify-no-changes
         continue-on-error: true
 
       - name: Analyze code
-        run: dotnet build IssueTrackerApp.snlx --no-restore /p:EnforceCodeStyleInBuild=true
+        run: dotnet  --no-restore /p:EnforceCodeStyleInBuild=true
         continue-on-error: true
 
       - name: Run StyleCop analysis
-        run: dotnet build IssueTrackerApp.snlx --no-restore /p:StyleCopTreatErrorsAsWarnings=false || true
+        run: dotnet build --no-restore /p:StyleCopTreatErrorsAsWarnings=false || true
 
       - name: Build solution
-        run: dotnet build IssueTrackerApp.snlx --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
 
       - name: Run Tests
         id: run-tests
