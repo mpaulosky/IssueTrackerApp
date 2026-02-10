@@ -1,0 +1,91 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiService", "src\ApiService\ApiService.csproj", "{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppHost", "src\AppHost\AppHost.csproj", "{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceDefaults", "src\ServiceDefaults\ServiceDefaults.csproj", "{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "src\Web\Web.csproj", "{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{SRC-FOLDER}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{TESTS-FOLDER}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiService.Tests.Integration", "tests\ApiService.Tests.Integration\ApiService.Tests.Integration.csproj", "{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppHost.Tests.Integration", "tests\AppHost.Tests.Integration\AppHost.Tests.Integration.csproj", "{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IssueTracker.Tests.Architecture", "tests\IssueTracker.Tests.Architecture\IssueTracker.Tests.Architecture.csproj", "{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web.Tests.Unit", "tests\Web.Tests.Unit\Web.Tests.Unit.csproj", "{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Test|Any CPU = Test|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B}.Test|Any CPU.Build.0 = Test|Any CPU
+		{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C}.Test|Any CPU.Build.0 = Test|Any CPU
+		{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D}.Test|Any CPU.Build.0 = Test|Any CPU
+		{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E}.Test|Any CPU.Build.0 = Test|Any CPU
+		{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F}.Test|Any CPU.Build.0 = Test|Any CPU
+		{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G}.Test|Any CPU.Build.0 = Test|Any CPU
+		{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H}.Test|Any CPU.Build.0 = Test|Any CPU
+		{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I}.Test|Any CPU.Build.0 = Test|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6F8A2B1D-5E4C-4A1B-8F2E-9C3D4E5F6A7B} = {SRC-FOLDER}
+		{7G9B3C2E-6F5D-5B2C-9G3F-0D4E5F6G7B8C} = {SRC-FOLDER}
+		{8H0C4D3F-7G6E-6C3D-0H4G-1E5F6G7H8C9D} = {SRC-FOLDER}
+		{9I1D5E4G-8H7F-7D4E-1I5H-2F6G7H8I9D0E} = {SRC-FOLDER}
+		{0J2E6F5H-9I8G-8E5F-2J6I-3G7H8I9J0E1F} = {TESTS-FOLDER}
+		{1K3F7G6I-0J9H-9F6G-3K7J-4H8I9J0K1F2G} = {TESTS-FOLDER}
+		{2L4G8H7J-1K0I-0G7H-4L8K-5I9J0K1L2G3H} = {TESTS-FOLDER}
+		{3M5H9I8K-2L1J-1H8I-5M9L-6J0K1L2M3H4I} = {TESTS-FOLDER}
+	EndGlobalSection
+EndGlobal
