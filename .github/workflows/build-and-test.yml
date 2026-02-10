@@ -78,7 +78,7 @@ jobs:
           echo "MajorMinorPatch: ${{ steps.gitversion.outputs.majorMinorPatch }}"
 
       - name: Restore dependencies
-        run: dotnet restore IssueTrackerApp.snlx
+        run: dotnet restore
 
       - name: Check code style
         run: dotnet format IssueTrackerApp.snlx --verify-no-changes
