@@ -1,9 +1,4 @@
 <Solution>
-  <Configurations>
-    <BuildType Name="Debug" />
-    <BuildType Name="Release" />
-    <BuildType Name="Test" />
-  </Configurations>
   <Folder Name="/src/">
     <Project Path="src/ApiService/ApiService.csproj" />
     <Project Path="src/AppHost/AppHost.csproj" />
