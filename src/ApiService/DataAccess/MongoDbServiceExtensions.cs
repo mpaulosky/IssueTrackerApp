@@ -39,10 +39,6 @@ public static class MongoDbServiceExtensions
 			throw new InvalidOperationException("MongoDB connection string not found.");
 		}
 
-		// Support both "MongoDb:Database" and "MongoDb:DatabaseName" keys for compatibility with tests and config sources
-		string databaseName = configuration["MongoDb:Database"] ?? configuration["MongoDb:DatabaseName"] ??
-													Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME") ?? "articlesdb";
-
 		// Register IMongoClient and IMongoDatabase manually
 		services.AddSingleton<IMongoClient>(_ => new MongoClient(connectionString));
 
