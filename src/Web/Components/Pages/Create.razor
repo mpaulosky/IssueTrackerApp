@@ -1,0 +1,55 @@
+﻿@page "/Create"
+
+@attribute [Authorize]
+
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavManager
+@inject IIssueService IssueService
+@inject ICategoryService CategoryService
+@inject IStatusService StatusService
+@inject IUserService UserService
+
+<h1 class="page-heading text-light text-uppercase mb-4">Create An Issue</h1>
+
+<div class="row justify-content-center create-form">
+	<div class="col-xl-8 col-lg-10 form-layout">
+		<div class="close-button-section">
+			<button id="close-page" class="btn btn-close" @onclick="ClosePage"></button>
+		</div>
+		@if (_categories is not null)
+		{
+			<EditForm Model="_issue" OnValidSubmit="CreateIssue">
+				<DataAnnotationsValidator/>
+				<ValidationSummary/>
+				<div class="input-section">
+					<label class="form-label fw-bold text-uppercase" for="issue-title">Issue Title</label>
+					<div class="input-description">Focus on the topic or technology you want to learn about.</div>
+					<InputText class="form-control" id="issue-title" @bind-Value="_issue.Title"/>
+				</div>
+				<div class="input-section">
+					<label class="form-label fw-bold text-uppercase" for="description">Issue Description</label>
+					<div class="input-description">Briefly describe your suggestion.</div>
+					<InputTextArea class="form-control" id="description" @bind-Value="_issue.Description"/>
+				</div>
+				<div class="input-section">
+					<label class="form-label fw-bold text-uppercase" for="category">Category</label>
+					<div class="input-description">Choose one category.</div>
+					<div class="col-lg-8">
+						<MyInputRadioGroup id="category" @bind-Value="_issue.CategoryId">
+							@foreach (var c in _categories)
+							{
+								<div class="radio-item-group">
+									<InputRadio Value="@c.Id" id="@c.Id"/>
+									<label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
+								</div>
+							}
+						</MyInputRadioGroup>
+					</div>
+				</div>
+				<div class="center-children">
+					<button id="submit" class="btn btn-main btn-lg text-uppercase" type="submit">Create Issue</button>
+				</div>
+			</EditForm>
+		}
+	</div>
+</div>

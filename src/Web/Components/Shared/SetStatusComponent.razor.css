@@ -1,0 +1,55 @@
+﻿/* SetStatusComponent.razor.css */
+
+.status-layout {
+	background-color: white;
+	border-radius: 15px;
+	padding: 1rem;
+	box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
+}
+
+.flex-container {
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
+}
+
+.admin-set-statuses {
+	flex-wrap: wrap;
+}
+
+.btn-status {
+	text-transform: uppercase;
+	color: darkgray;
+	font-family: "Montserrat", sans-serif;
+	font-weight: 700;
+	font-size: 0.8rem;
+	justify-content: center;
+}
+
+.btn-status-status {
+	color: black;
+}
+
+.btn-status-answered:hover {
+	color: #b5d43a;
+}
+
+.btn-status-inwork:hover {
+	color: #fd7e14;
+}
+
+.btn-status-watching:hover {
+	color: #e9354c;
+}
+
+.btn-status-dismissed:hover {
+	color: #b9c30b;
+}
+
+.btn-status-confirm {
+	color: green;
+}
+
+.btn-status-reject {
+	color: #e9354c;
+}

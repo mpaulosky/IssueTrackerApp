@@ -1,0 +1,66 @@
+﻿@page "/Categories"
+
+@attribute [Authorize(Policy = "Admin")]
+
+@inject NavigationManager NavManager
+@inject ICategoryService CategoryService
+
+<PageTitle>Categories</PageTitle>
+
+<h1 class="page-heading text-uppercase mb-4">Categories</h1>
+
+<div class="row justify-content-center create-form">
+	<div class="form-layout col-xl-9 col-lg-11">
+		<div class="close-button-section">
+			<button id="close-page" class="btn btn-close" @onclick="ClosePage"></button>
+		</div>
+		<div class="">
+			@if (_categories is not null)
+			{
+				<RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Class="mt-2 mb-4" Text="Add New Category" Click="@InsertRow" Disabled=@(_categoryToInsert != null || _categoryToUpdate != null)/>
+				<RadzenDataGrid @ref="_categoriesGrid" AllowAlternatingRows="true" AllowFiltering="false" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single" Data="@_categories" TItem="CategoryModel" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+					<Columns>
+						<RadzenDataGridColumn TItem="CategoryModel" Property="CategoryName" Title="Category Name" Width="120px">
+<Template Context="category">
+	<span class="rz-cell-data">@category.CategoryName</span>
+</Template>
+							<EditTemplate Context="category">
+								<RadzenTextBox @bind-Value="category.CategoryName" Style="width: 100%; display: block;" Name="CategoryName"/>
+								<RadzenRequiredValidator Text="Category Name is required" Component="CategoryName" Popup="true"/>
+								<RadzenLengthValidator Component="CategoryName" Min="3" Text="Category Name should be at least 3 characters" Popup=true Style="position: absolute"/>
+								<RadzenLengthValidator Component="CategoryName" Max="75" Text="Category Name should be at most 10 characters" Popup=true Style="position: absolute"/>
+							</EditTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn TItem="CategoryModel" Property="CategoryDescription" Title="Description" Width="200px">
+<Template Context="category">
+	<span class="rz-cell-data">@category.CategoryDescription</span>
+</Template>
+							<EditTemplate Context="category">
+								<RadzenTextBox @bind-Value="category.CategoryDescription" Style="width: 100%; display: block;" Name="CategoryDescription"/>
+								<RadzenRequiredValidator Text="Category Description is required" Component="CategoryDescription" Popup="true"/>
+								<RadzenLengthValidator Component="CategoryDescription" Min="3" Text="Category Description should be at least 3 characters" Popup=true Style="position: absolute"/>
+								<RadzenLengthValidator Component="CategoryDescription" Max="200" Text="Category Description should be at most 10 characters" Popup=true Style="position: absolute"/>
+							</EditTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn TItem="CategoryModel" Context="category" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+							<Template Context="category">
+								<RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(_ => EditRow(category))" @onclick:stopPropagation="true">
+								</RadzenButton>
+								<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(_ => DeleteRow(category))" @onclick:stopPropagation="true">
+								</RadzenButton>
+							</Template>
+							<EditTemplate Context="category">
+								<RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(_ => SaveRow(category))">
+								</RadzenButton>
+								<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(_ => CancelEdit(category))">
+								</RadzenButton>
+								<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(_ => DeleteRow(category))">
+								</RadzenButton>
+							</EditTemplate>
+						</RadzenDataGridColumn>
+					</Columns>
+				</RadzenDataGrid>
+			}
+		</div>
+	</div>
+</div>

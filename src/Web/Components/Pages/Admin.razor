@@ -1,0 +1,83 @@
+﻿@page "/Admin"
+
+@attribute [Authorize(Policy = "Admin")]
+
+@inject NavigationManager NavManager
+@inject IIssueService IssueService
+
+<PageTitle>Admin Page</PageTitle>
+
+<h1 class="page-heading text-uppercase mb-4">Pending Issues</h1>
+
+<div class="row">
+	<div class="issue-count col-8 text-light mt-2">@_issues?.Count Issues</div>
+	<div class="col-4 close-button-section">
+		<button id="close-page" class="btn btn-close" @onclick="ClosePage"></button>
+	</div>
+</div>
+
+@if (_issues is not null)
+{
+	foreach (var s in _issues)
+	{
+		<div class="row issue">
+			<div class="col-lg-2 col-md-3 col-sm-4">
+				<button id="approve-issue" class="btn btn-approve" @onclick="() => ApproveIssue(s)">Approve</button>
+				<button id="reject-issue" class="btn btn-reject" @onclick="() => RejectIssue(s)">Reject</button>
+			</div>
+			<div class="col-lg-10 col-md-9 col-sm-8">
+				<div>
+					@if (_currentEditingTitle == s.Id)
+					{
+						<EditForm class="approval-edit-form" Model="@_editedTitle" OnSubmit="() => SaveTitle(s)">
+							<InputText class="form-control approval-edit-field" id="title-text" @bind-Value="_editedTitle"/>
+							<button id="submit-edit" class="btn" type="submit">
+								<span class="oi oi-check issue-edit-approve"></span>
+							</button>
+							<button id="reject-edit" type="button" class="btn" @onclick="() => _currentEditingTitle = string.Empty">
+								<span class="oi oi-x issue-edit-reject"></span>
+							</button>
+						</EditForm>
+					}
+					else
+					{
+						@s.Title
+						<span id="edit-title" class="oi oi-pencil issue-edit-icon" @onclick="() => EditTitle(s)"></span>
+					}
+				</div>
+				<div>
+					@if (_currentEditingDescription == s.Id)
+					{
+						<EditForm class="approval-edit-form" Model="@_editedDescription" OnSubmit="() => SaveDescription(s)">
+							<InputText class="form-control approval-edit-field" id="description-text" @bind-Value="_editedDescription"/>
+							<button id="submit-description" class="btn" type="submit">
+								<span class="oi oi-check issue-edit-approve"></span>
+							</button>
+							<button id="reject-description" type="button" class="btn"
+							        @onclick="() => _currentEditingDescription = string.Empty">
+								<span class="oi oi-x issue-edit-reject"></span>
+							</button>
+						</EditForm>
+					}
+					else
+					{
+						@s.Description
+						<span id="edit-description" class="oi oi-pencil issue-edit-icon" @onclick="() => EditDescription(s)"></span>
+					}
+				</div>
+				<div>
+					<div class="text-author">
+						Author: @s.Author.DisplayName
+					</div>
+				</div>
+				<div>
+					<div class="issue-entry-bottom">
+						<div class="text-category">
+							Category: @s.Category.CategoryName
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}

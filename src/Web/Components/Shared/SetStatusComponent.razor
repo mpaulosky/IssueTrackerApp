@@ -1,0 +1,42 @@
+﻿@inject AuthenticationStateProvider AuthProvider
+@inject IIssueService IssueService
+@inject IStatusService StatusService
+
+<AuthorizeView Policy="Admin">
+
+	<div class="issue-container">
+		<div class="status-layout flex-container">
+			<button class="btn btn-status btn-status-status fw-bold">Set Status</button>
+
+			@if (string.IsNullOrWhiteSpace(_settingStatus))
+			{
+				<button id="answered" @onclick="@(() => _settingStatus = "answered")"
+				        class="btn btn-status btn-status-answered">
+					answered
+				</button>
+				<button id="inwork" @onclick="@(() => _settingStatus = "inwork")"
+				        class="btn btn-status btn-status-inwork">
+					in work
+				</button>
+				<button id="watching" @onclick="@(() => _settingStatus = "watching")"
+				        class="btn btn-status btn-status-watching">
+					watching
+				</button>
+				<button id="dismissed" @onclick="@(() => _settingStatus = "dismissed")"
+				        class="btn btn-status btn-status-dismissed">
+					dismissed
+				</button>
+			}
+			else
+			{
+				<button id="confirm-status-change" class="btn btn-status-confirm" @onclick="CompleteSetStatus">
+					confirm
+				</button>
+				<button id="cancle-status-change" class="btn btn-status-reject" @onclick="() => _settingStatus = null">
+					cancel
+				</button>
+			}
+		</div>
+	</div>
+
+</AuthorizeView>

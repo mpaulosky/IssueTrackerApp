@@ -1,0 +1,66 @@
+﻿@page "/Statuses"
+
+@attribute [Authorize(Policy = "Admin")]
+
+@inject NavigationManager NavManager
+@inject IStatusService StatusService
+
+<PageTitle>Statuses</PageTitle>
+
+<h1 class="page-heading text-uppercase mb-4">Statuses</h1>
+
+<div class="row justify-content-center create-form">
+	<div class="form-layout col-xl-9 col-lg-11">
+		<div class="close-button-section">
+			<button id="close-page" class="btn btn-close" @onclick="ClosePage"></button>
+		</div>
+		<div class="">
+			@if (_statuses is not null)
+			{
+				<RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Class="mt-2 mb-4" Text="Add New Status" Click="@InsertRow" Disabled=@(_statusToInsert != null || _statusToUpdate != null)/>
+				<RadzenDataGrid @ref="_statusesGrid" AllowAlternatingRows="true" AllowFiltering="false" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single" Data="@_statuses" TItem="StatusModel" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+					<Columns>
+						<RadzenDataGridColumn TItem="StatusModel" Property="StatusName" Title="Status Name" Width="120px">
+<Template Context="status">
+	<span class="rz-cell-data">@status.StatusName</span>
+</Template>
+							<EditTemplate Context="status">
+								<RadzenTextBox @bind-Value="status.StatusName" Style="width: 100%; display: block;" Name="StatusName"/>
+								<RadzenRequiredValidator Text="Status Name is required" Component="StatusName" Popup="true"/>
+								<RadzenLengthValidator Component="StatusName" Min="3" Text="Status Name should be at least 3 characters" Popup=true Style="position: absolute"/>
+								<RadzenLengthValidator Component="StatusName" Max="75" Text="Status Name should be at most 10 characters" Popup=true Style="position: absolute"/>
+							</EditTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn TItem="StatusModel" Property="StatusDescription" Title="Description" Width="200px">
+<Template Context="status">
+	<span class="rz-cell-data">@status.StatusDescription</span>
+</Template>
+							<EditTemplate Context="status">
+								<RadzenTextBox @bind-Value="status.StatusDescription" Style="width: 100%; display: block;" Name="StatusDescription"/>
+								<RadzenRequiredValidator Text="Status Description is required" Component="StatusDescription" Popup="true"/>
+								<RadzenLengthValidator Component="StatusDescription" Min="3" Text="Status Description should be at least 3 characters" Popup=true Style="position: absolute"/>
+								<RadzenLengthValidator Component="StatusDescription" Max="200" Text="Status Description should be at most 10 characters" Popup=true Style="position: absolute"/>
+							</EditTemplate>
+						</RadzenDataGridColumn>
+						<RadzenDataGridColumn TItem="StatusModel" Context="status" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+							<Template Context="status">
+								<RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(_ => EditRow(status))" @onclick:stopPropagation="true">
+								</RadzenButton>
+								<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(_ => DeleteRow(status))" @onclick:stopPropagation="true">
+								</RadzenButton>
+							</Template>
+							<EditTemplate Context="status">
+								<RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(_ => SaveRow(status))">
+								</RadzenButton>
+								<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(_ => CancelEdit(status))">
+								</RadzenButton>
+								<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(_ => DeleteRow(status))">
+								</RadzenButton>
+							</EditTemplate>
+						</RadzenDataGridColumn>
+					</Columns>
+				</RadzenDataGrid>
+			}
+		</div>
+	</div>
+</div>

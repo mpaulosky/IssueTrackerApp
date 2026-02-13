@@ -1,0 +1,9 @@
+﻿/* Stripe effect */
+
+#grid-categories ::deep tbody tr {
+	background-color: rgba(0, 0, 0, 0.04);
+}
+
+#grid-categories ::deep tbody tr:nth-child(even) {
+	background: rgba(255, 255, 255, 0.4);
+}
