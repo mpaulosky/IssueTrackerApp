@@ -75,25 +75,25 @@ public partial class Index
 				_loggedInUser.ObjectIdentifier = objectId;
 			}
 
-			if (firstName?.Equals(_loggedInUser.FirstName) == false)
+			if (!(firstName?.Equals(_loggedInUser.FirstName) ?? true))
 			{
 				isDirty = true;
 				_loggedInUser.FirstName = firstName;
 			}
 
-			if (lastName?.Equals(_loggedInUser.LastName) == false)
+			if (!(lastName?.Equals(_loggedInUser.LastName) ?? true))
 			{
 				isDirty = true;
 				_loggedInUser.LastName = lastName;
 			}
 
-			if (displayName?.Equals(_loggedInUser.DisplayName) == false)
+			if (!(displayName?.Equals(_loggedInUser.DisplayName) ?? true))
 			{
 				isDirty = true;
 				_loggedInUser.DisplayName = displayName;
 			}
 
-			if (email?.Equals(_loggedInUser.EmailAddress) == false)
+			if (!(email?.Equals(_loggedInUser.EmailAddress) ?? true))
 			{
 				isDirty = true;
 				_loggedInUser.EmailAddress = email;
