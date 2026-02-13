@@ -1,0 +1,42 @@
+﻿/* CommentCreateComponent.razor.css */
+
+.comment-item-container {
+    display: grid;
+    grid-template-columns: 45px 1fr 45px;
+    border-radius: 20px;
+    margin: 20px 0;
+    box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
+}
+
+.comment-entry-text {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    background-color: #ffffff;
+}
+
+.comment-vote {
+    border-bottom-left-radius: 15px;
+    border-top-left-radius: 15px;
+}
+
+.comment-answer-status {
+    border-bottom-right-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.comment-answer-status-unanswered,
+.comment-vote-none {
+    background-color: #f9c30b;
+    border: 1px solid #f9c30b;
+}
+
+.comment-text-title {
+    flex-grow: 1;
+    padding-top: 10px;
+}
+
+.comment-text-description {
+    flex-grow: 1;
+    padding-top: 10px;
+}

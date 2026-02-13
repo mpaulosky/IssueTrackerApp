@@ -1,0 +1,103 @@
+﻿@page "/Profile"
+
+@attribute [Authorize]
+
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavManager
+@inject IIssueService IssueService
+@inject ICommentService CommentService
+@inject IUserService UserService
+
+<PageTitle>Profile Page</PageTitle>
+
+<h1 class="page-heading text-light text-uppercase mb-4">@_loggedInUser?.DisplayName Profile</h1>
+
+<div class="form-layout mb-3">
+	<div class="close-button-section">
+		<button id="close-page" class="btn btn-close" @onclick="ClosePage"></button>
+	</div>
+	<div class="form-layout mb-3">
+		<h2 class="my-issue-heading">@_loggedInUser?.DisplayName Account</h2>
+		<p class="my-issue-text">
+			<a href="MicrosoftIdentity/Account/EditProfile">Edit My Profile</a>
+		</p>
+	</div>
+</div>
+
+@if (_approved?.Count > 0)
+{
+	<div class="form-layout mb-3">
+		<h2 class="my-issue-heading">Approved Issues</h2>
+		<p class="my-issue-text">These are your issues that are currently available for comment.</p>
+
+		@foreach (var item in _approved)
+		{
+			<div class="issue-container">
+				<IssueComponent Item="@item" LoggedInUser="@_loggedInUser"/>
+			</div>
+		}
+
+	</div>
+}
+
+@if (_pending?.Count > 0)
+{
+	<div class="form-layout mb-3">
+		<h2 class="my-issue-heading">Pending Issues</h2>
+		<p class="my-issue-text">These are your issues that are currently under review by admin.</p>
+
+		@foreach (var item in _pending)
+		{
+			<div class="issue-container">
+				<IssueComponent Item="@item" LoggedInUser="@_loggedInUser"/>
+			</div>
+		}
+
+	</div>
+}
+
+@if (_rejected?.Count > 0)
+{
+	<div class="form-layout mb-3">
+		<h2 class="my-issue-heading">Rejected Issues</h2>
+		<p>These are your issues that were rejected by the admin for being out of the scope of this application.</p>
+
+		@foreach (var item in _rejected)
+		{
+			<div class="issue-container">
+				<IssueComponent Item="@item" LoggedInUser="@_loggedInUser"/>
+			</div>
+		}
+
+	</div>
+}
+
+@if (_archived?.Count > 0)
+{
+	<div class="form-layout mb-3">
+		<h2 class="my-issue-heading">Archived Issues</h2>
+		<p>These are your issues that are archived for future review.</p>
+
+		@foreach (var item in _archived)
+		{
+			<div class="issue-container">
+				<IssueComponent Item="@item" LoggedInUser="@_loggedInUser"/>
+			</div>
+		}
+
+
+	</div>
+}
+
+@if (_comments?.Count > 0)
+{
+	<div class="form-layout mb-3">
+		<h2 class="my-issue-heading">Comments</h2>
+		<p class="my-issue-text">These are your comments that are currently active.</p>
+
+		@foreach (var comment in _comments)
+		{
+			<CommentComponent Item="@comment" LoggedInUser="@_loggedInUser"/>
+		}
+	</div>
+}

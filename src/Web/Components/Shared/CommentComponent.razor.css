@@ -1,0 +1,189 @@
+﻿/* CommentComponent.razor.css */
+
+.comment-item-container {
+    display: grid;
+    grid-template-columns: 80px 1fr 45px;
+    border-radius: 20px;
+    margin: 20px 0;
+    box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
+}
+
+.comment-vote {
+    border-bottom-left-radius: 15px;
+    border-top-left-radius: 15px;
+}
+
+.comment-entry-category-text {
+    text-transform: uppercase;
+    text-orientation: mixed;
+    color: white;
+    padding: 5px;
+    text-align: center;
+    line-height: 1.75;
+    font-weight: bold;
+    font-size: 0.8rem;
+    letter-spacing: 1.2px;
+}
+
+.comment-entry-status,
+.comment-entry-category {
+    display: flex;
+    padding: 1rem 1rem 1rem 0.2rem;
+}
+
+.comment-answer-status {
+    border-bottom-right-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.setanswer-link {
+    cursor: pointer;
+}
+
+.comment-text-status {
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    color: white;
+    padding: 5px;
+    text-align: center;
+    line-height: 1.75;
+    font-weight: bold;
+    font-size: 0.8rem;
+    letter-spacing: 1.2px;
+}
+
+.comment-answer-status-answered {
+    background-color: green;
+    border: 1px green solid;
+}
+
+.comment-answer-status-unanswered {
+    background-color: #f9c30b;
+    border: 1px solid #f9c30b;
+}
+
+.comment-entry-text {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    background-color: #ffffff;
+}
+
+.comment-text-title {
+    flex-grow: 1;
+    padding-top: 10px;
+}
+
+.comment-text-description {
+    flex-grow: 1;
+    padding-top: 10px;
+}
+
+
+.comment-text-created,
+.comment-text-archive,
+.comment-text-author {
+    text-transform: uppercase;
+    color: darkgray;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    padding-top: 0.5rem;
+}
+
+.comment-text-created {
+    justify-content: left;
+}
+
+.comment-text-archive {
+    justify-content: center;
+}
+
+.comment-text-author {
+    justify-content: right;
+}
+
+.comment-btn-archive,
+.comment-btn-archive-confirm,
+.comment-btn-archive-reject,
+.comment-btn-comment {
+    text-transform: uppercase;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.comment-btn-archive {
+    color: darkgray;
+}
+
+.comment-btn-archive-confirm {
+    color: green;
+    flex: 1;
+}
+
+.comment-btn-archive-reject {
+    color: #e9354c;
+    flex: 1;
+}
+
+.comment-no-votes,
+.comment-voted,
+.comment-not-voted {
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.comment-no-votes {
+    background-color: #dddddd;
+    color: #ffffff;
+}
+
+.comment-voted {
+    background-color: #39bad8;
+}
+
+.comment-not-voted {
+    background-color: #ffffff;
+    color: #39bad8;
+}
+
+.comment-detail-upvote {
+    font-size: 2.7rem;
+}
+
+
+.comment-entry-bottom {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px;
+}
+
+.comment-text-status {
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    color: white;
+    padding: 5px;
+    text-align: center;
+    line-height: 1.75;
+    font-weight: bold;
+    font-size: 0.8rem;
+    letter-spacing: 1.2px;
+}

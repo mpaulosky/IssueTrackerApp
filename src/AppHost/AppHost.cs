@@ -1,16 +1,18 @@
+using AppHost;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-var cache = builder.AddRedis("cache");
+// Configure resources
+var redisCache = builder.AddRedisServices();
+var mongoDb = builder.AddMongoDbServices();
 
-var apiService = builder.AddProject<Projects.IssueTracker_ApiService>("apiservice")
-    .WithHttpHealthCheck("/health");
-
-builder.AddProject<Projects.IssueTracker_Web>("webfrontend")
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("/health")
-    .WithReference(cache)
-    .WaitFor(cache)
-    .WithReference(apiService)
-    .WaitFor(apiService);
+// Web project with health check and resource dependencies
+builder.AddProject<Projects.Web>("web")
+		// Ensure the app binds to HTTP on port5057 to match Playwright tests
+		.WithEnvironment("ASPNETCORE_URLS", "http://localhost:5057")
+		.WithExternalHttpEndpoints()
+		.WithHttpHealthCheck("/health")
+		.WithReference(redisCache).WaitFor(redisCache)
+		.WithReference(mongoDb).WaitFor(mongoDb);
 
 builder.Build().Run();

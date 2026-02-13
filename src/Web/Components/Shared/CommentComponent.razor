@@ -1,0 +1,78 @@
+﻿@inject NavigationManager NavManager
+@inject AuthenticationStateProvider AuthProvider
+@inject ICommentService CommentService
+
+<div class="comment-item-container">
+	<div class="comment-vote @GetVoteCssClass(Item)">
+		<div id="vote" @onclick="() => VoteUp(Item)">
+			<div>@GetUpVoteTopText(Item)</div>
+			<span class="oi oi-caret-top comment-detail-upvote"></span>
+			<div>@GetUpVoteBottomText(Item)</div>
+		</div>
+	</div>
+	<div class="comment-entry-text">
+		<div class="comment-text-title">
+			@Item.Title
+		</div>
+		<div class="comment-text-description">
+			@Item.Description
+		</div>
+		<div class="comment-entry-bottom">
+
+			<div class="comment-text-created">@Item.DateCreated.ToString("MM.dd.yyyy")</div>
+
+			@if (_archivingComment is null)
+			{
+				<AuthorizeView Policy="Admin">
+					<div class="comment-text-archive">
+						<button id="archive" @onclick="() => _archivingComment = Item" class="btn comment-btn-archive">
+							archive
+						</button>
+					</div>
+				</AuthorizeView>
+			}
+			else
+			{
+				<div class="comment-text-archive">
+					<button id="confirm" class="btn comment-btn-archive comment-btn-archive-confirm" @onclick="ArchiveComment">
+						confirm
+					</button>
+					<button id="reject" class="btn comment-btn-archive comment-btn-archive-reject" @onclick="() => _archivingComment = null">
+						cancel
+					</button>
+				</div>
+			}
+
+			<div class="comment-text-author">@Item.Author.DisplayName</div>
+
+		</div>
+	</div>
+	<div class="comment-answer-status @GetAnswerStatusCssClass(Item)">
+		@if (Item.IsAnswer)
+		{
+			<div id="answered" class="comment-text-status">
+				<span class="oi oi-check"></span>
+				<span>Answer</span>
+			</div>
+		}
+		else
+		{
+			<AuthorizeView Policy="Admin">
+				<NotAuthorized>
+					@if (CanMarkAnswer())
+					{
+						<div id="answer-owner" class="comment-text-status setanswer-link" @onclick="@(() => SetAnswer(Item))">
+							<span>set as answer</span>
+						</div>
+					}
+				</NotAuthorized>
+				<Authorized>
+					<div id="answer-admin" class="comment-text-status setanswer-link" @onclick="@(() => SetAnswer(Item))">
+						<span>set as answer</span>
+					</div>
+				</Authorized>
+			</AuthorizeView>
+		}
+	</div>
+
+</div>

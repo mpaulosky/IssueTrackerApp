@@ -1,0 +1,28 @@
+﻿@inject NavigationManager NavManager
+@inject ICommentService CommentService
+
+<div class="comment-item-container">
+	<div class="comment-vote comment-vote-none">
+	</div>
+	<div class="comment-entry-text">
+		<EditForm Model="_comment" OnValidSubmit="CreateComment">
+			<DataAnnotationsValidator />
+			<ValidationSummary />
+			<div class="input-section">
+				<label class="form-label fw-bold text-uppercase" for="title">Title of the Comment</label>
+				<div class="input-description">Brief title of the Comment.</div>
+				<InputTextArea class="form-control" id="title" @bind-Value="_comment.Title" />
+			</div>
+			<div class="input-section">
+				<label class="form-label fw-bold text-uppercase" for="desc">Comment On the Issue</label>
+				<div class="input-description">Give, in full your comments.</div>
+				<InputTextArea class="form-control" id="desc" @bind-Value="_comment.Description" />
+			</div>
+			<div class="center-children">
+				<button id="submit-comment" class="btn btn-main btn-lg text-uppercase" type="submit">Create Comment</button>
+			</div>
+		</EditForm>
+	</div>
+	<div class="comment-answer-status comment-answer-status-unanswered">
+	</div>
+</div>

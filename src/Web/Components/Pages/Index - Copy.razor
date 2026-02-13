@@ -1,0 +1,121 @@
+@page "/"
+
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavManager
+@inject IUserService UserService
+@inject IIssueService IssueService
+@inject ICategoryService CategoryService
+@inject IStatusService StatusService
+@inject ISessionStorageService SessionStorage
+
+<PageTitle>Issue Tracker</PageTitle>
+
+<h1 class="page-heading text-uppercase mb-4">Issues</h1>
+
+<div class="issue-container">
+	<button @onclick="LoadCreateIssuePage" class="btn btn-outline-light btn-lg text-uppercase">
+		New
+		Issue
+	</button>
+</div>
+
+<div class="row">
+	<div class="issues-count col-md-4 text-light mt-2">@_issues?.Count Issues</div>
+	<div class="col-md-4 col-xl-5 btn-group">
+		<button id="sort-by-new" class="btn btn-order @SortedByNewCssClass(true)" @onclick="() => OrderByNew(true)">
+			New
+		</button>
+		<button id="sort-by-popular" class="btn btn-order @SortedByNewCssClass(false)" @onclick="() => OrderByNew(false)">
+			Popular
+		</button>
+	</div>
+	<div class="col-md-4 col-xl-3 search-box">
+		<input type="text" placeholder="Search" aria-label="Search box" class="form-control rounded-control" @oninput="txt => OnSearchInput((string)txt.Value!)"/>
+	</div>
+	<div class="col-12 d-block d-md-none">
+		@if (_categories is not null)
+		{
+			@if (_showCategories)
+			{
+				<div class="categories">
+					<span class="text-uppercase fw-bold">Category</span>
+					<div class="@GetSelectedCategoryCssClass()" @onclick="() => OnCategoryClick()">All</div>
+					@foreach (var c in _categories!)
+					{
+						<div class="@GetSelectedCategoryCssClass(c.CategoryName)" @onclick="() => OnCategoryClick(c.CategoryName)">
+							@c.CategoryName
+						</div>
+					}
+				</div>
+			}
+		}
+		else
+		{
+			<div class="categories" @onclick="() => _showCategories = true">
+				<span class="selected-category">@_selectedCategory</span>
+			</div>
+		}
+
+		@if (_statuses is not null)
+		{
+			@if (_showStatuses)
+			{
+				<div class="statuses">
+					<span class="text-uppercase fw-bold">Status</span>
+					<div class="@GetSelectedStatusCssClass()" @onclick="() => OnStatusClick()">All</div>
+					@foreach (var s in _statuses)
+					{
+						<div class="@GetSelectedStatusCssClass(s.StatusName)" @onclick="() => OnStatusClick(s.StatusName)">
+							@s.StatusName
+						</div>
+					}
+				</div>
+			}
+		}
+		else
+		{
+			<div class="statuses" @onclick="() => _showStatuses = true">
+				<span class="selected-status">@_selectedStatus</span>
+			</div>
+		}
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-8 col-xl-9">
+		<Virtualize Context="item" Items="@_issues" OverscanCount="10">
+
+			<IssueComponent Item="item" LoggedInUser="@_loggedInUser"/>
+
+		</Virtualize>
+	</div>
+
+	<div class="col-md-4 col-xl-3 d-none d-md-block">
+		@if (_categories is not null)
+		{
+			<div class="categories">
+				<span class="text-uppercase fw-bold">Category</span>
+				<div class="@GetSelectedCategoryCssClass()" @onclick="() => OnCategoryClick()">All</div>
+				@foreach (var c in _categories)
+				{
+					<div class="@GetSelectedCategoryCssClass(c.CategoryName)" @onclick="() => OnCategoryClick(c.CategoryName)">
+						@c.CategoryName
+					</div>
+				}
+			</div>
+		}
+		@if (_statuses is not null)
+		{
+			<div class="statuses">
+				<span class="text-uppercase fw-bold">Status</span>
+				<div class="@GetSelectedStatusCssClass()" @onclick="() => OnStatusClick()">All</div>
+				@foreach (var s in _statuses)
+				{
+					<div class="@GetSelectedStatusCssClass(s.StatusName)" @onclick="() => OnStatusClick(s.StatusName)">
+						@s.StatusName
+					</div>
+				}
+			</div>
+		}
+	</div>
+</div>
