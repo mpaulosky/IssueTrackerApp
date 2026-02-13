@@ -21,7 +21,7 @@
 
 			<div class="comment-text-created">@Item.DateCreated.ToString("MM.dd.yyyy")</div>
 
-			@if (_archivingComment is null || _archivingComment.Id != Item.Id)
+			@if (_archivingComment is null)
 			{
 				<AuthorizeView Policy="Admin">
 					<div class="comment-text-archive">
