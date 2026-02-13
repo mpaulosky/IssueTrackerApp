@@ -4,7 +4,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<OutputType>Exe</OutputType>
-		<RootNamespace>Web</RootNamespace>
+		<RootNamespace>Shared</RootNamespace>
 		<TargetFramework>net10.0</TargetFramework>
 		<IsTestProject>true</IsTestProject>
 		<!--
