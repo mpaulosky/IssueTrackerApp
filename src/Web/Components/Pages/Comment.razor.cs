@@ -12,14 +12,20 @@ namespace IssueTracker.UI.Pages;
 /// <summary>
 ///   Comment page class.
 /// </summary>
-/// <seealso cref="Microsoft.AspNetCore.Mvc.RazorPages.PageModel" />
-public partial class Comment
+/// <seealso cref="Microsoft.AspNetCore.Components.ComponentBase" />
+public partial class Comment : ComponentBase
 {
+	[Inject] private AuthenticationStateProvider AuthProvider { get; set; } = default!;
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private IIssueService IssueService { get; set; } = default!;
+	[Inject] private ICommentService CommentService { get; set; } = default!;
+	[Inject] private IUserService UserService { get; set; } = default!;
+
 	private CreateCommentDto _comment = new();
 
-	private IssueModel? _issue;
+	private global::Shared.Models.Issue? _issue;
 
-	private UserModel? _loggedInUser;
+	private global::Shared.Models.User? _loggedInUser;
 
 	[Parameter] public string? Id { get; set; }
 
@@ -38,10 +44,10 @@ public partial class Comment
 	/// </summary>
 	private async Task CreateComment()
 	{
-		CommentModel comment = new()
+		Shared.Models.Comment comment = new()
 		{
-			Issue = new BasicIssueModel(_issue!),
-			Author = new BasicUserModel(_loggedInUser!),
+			Issue = new IssueDto(_issue!),
+			Author = new UserDto(_loggedInUser!),
 			Title = _comment.Title!,
 			Description = _comment.Description!
 		};
@@ -56,8 +62,8 @@ public partial class Comment
 	/// <summary>
 	///   OpenCommentForm method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
-	private void OpenCommentForm(IssueModel issue)
+	/// <param name="issue">Issue</param>
+	private void OpenCommentForm(global::Shared.Models.Issue issue)
 	{
 		if (_loggedInUser is not null)
 		{

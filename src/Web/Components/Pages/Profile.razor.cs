@@ -12,18 +12,24 @@ namespace IssueTracker.UI.Pages;
 /// <summary>
 ///   Profile page class
 /// </summary>
-/// <seealso cref="Microsoft.AspNetCore.Mvc.RazorPages.PageModel" />
+/// <seealso cref="Microsoft.AspNetCore.Components.ComponentBase" />
 [UsedImplicitly]
-public partial class Profile
+public partial class Profile : ComponentBase
 {
-	private List<IssueModel>? _approved;
-	private List<IssueModel>? _archived;
-	private List<CommentModel>? _comments;
-	private List<IssueModel>? _issues;
+	[Inject] private AuthenticationStateProvider AuthProvider { get; set; } = default!;
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private IUserService UserService { get; set; } = default!;
+	[Inject] private ICommentService CommentService { get; set; } = default!;
+	[Inject] private IIssueService IssueService { get; set; } = default!;
 
-	private UserModel? _loggedInUser;
-	private List<IssueModel>? _pending;
-	private List<IssueModel>? _rejected;
+	private List<global::Shared.Models.Issue>? _approved;
+	private List<global::Shared.Models.Issue>? _archived;
+	private List<Shared.Models.Comment>? _comments;
+	private List<global::Shared.Models.Issue>? _issues;
+
+	private global::Shared.Models.User? _loggedInUser;
+	private List<global::Shared.Models.Issue>? _pending;
+	private List<global::Shared.Models.Issue>? _rejected;
 
 	/// <summary>
 	///   OnInitializedAsync event
@@ -34,7 +40,7 @@ public partial class Profile
 
 		_comments = await CommentService.GetCommentsByUser(_loggedInUser!.Id);
 
-		List<IssueModel> results = await IssueService.GetIssuesByUser(_loggedInUser.Id);
+		List<global::Shared.Models.Issue> results = await IssueService.GetIssuesByUser(_loggedInUser.Id);
 
 		if (results.Count != 0)
 		{

@@ -14,18 +14,21 @@ namespace Web.Components.Shared;
 /// </summary>
 public partial class CommentCreateComponent
 {
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private ICommentService CommentService { get; set; } = default!;
+
 	private CreateCommentDto _comment = new();
 
-	[Parameter] public IssueModel Issue { get; set; } = new();
+	[Parameter] public global::Shared.Models.Issue Issue { get; set; } = new();
 
-	[Parameter] public UserModel LoggedInUser { get; set; } = new();
+	[Parameter] public global::Shared.Models.User LoggedInUser { get; set; } = new();
 
 	private async Task CreateComment()
 	{
-		CommentModel comment = new()
+		global::Shared.Models.Comment comment = new()
 		{
-			Issue = new BasicIssueModel(Issue),
-			Author = new BasicUserModel(LoggedInUser),
+			Issue = new IssueDto(Issue),
+			Author = new UserDto(LoggedInUser),
 			Title = _comment.Title!,
 			Description = _comment.Description!
 		};

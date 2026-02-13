@@ -12,21 +12,29 @@ namespace IssueTracker.UI.Pages;
 /// <summary>
 ///   Index page class
 /// </summary>
-/// <seealso cref="Microsoft.AspNetCore.Mvc.RazorPages.PageModel" />
+/// <seealso cref="Microsoft.AspNetCore.Components.ComponentBase" />
 [UsedImplicitly]
-public partial class Index
+public partial class Index : ComponentBase
 {
-	private List<CategoryModel>? _categories;
-	private bool _isSortedByNew = true;
-	private List<IssueModel>? _issues = new();
+	[Inject] private AuthenticationStateProvider AuthProvider { get; set; } = default!;
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private ISessionStorageService SessionStorage { get; set; } = default!;
+	[Inject] private ICategoryService CategoryService { get; set; } = default!;
+	[Inject] private IStatusService StatusService { get; set; } = default!;
+	[Inject] private IIssueService IssueService { get; set; } = default!;
+	[Inject] private IUserService UserService { get; set; } = default!;
 
-	private UserModel? _loggedInUser;
+	private List<Category>? _categories;
+	private bool _isSortedByNew = true;
+	private List<global::Shared.Models.Issue>? _issues = new();
+
+	private global::Shared.Models.User? _loggedInUser;
 	private string? _searchText = string.Empty;
 	private string? _selectedCategory = "All";
 	private string? _selectedStatus = "All";
 	private bool _showCategories;
 	private bool _showStatuses;
-	private List<StatusModel>? _statuses;
+	private List<global::Shared.Models.Status>? _statuses;
 
 	/// <summary>
 	///   OnInitializedAsync event
@@ -168,7 +176,7 @@ public partial class Index
 	/// </summary>
 	private async Task FilterIssues()
 	{
-		List<IssueModel> output = await IssueService.GetApprovedIssues();
+		List<global::Shared.Models.Issue> output = await IssueService.GetApprovedIssues();
 
 		if (_selectedCategory != "All")
 		{

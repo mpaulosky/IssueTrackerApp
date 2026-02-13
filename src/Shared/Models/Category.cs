@@ -1,6 +1,6 @@
 // ============================================
 // Copyright (c) 2023. All rights reserved.
-// File Name :     CategoryModel.cs
+// File Name :     Category.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueTracker
@@ -15,7 +15,7 @@ using Shared.Abstractions;
 namespace Shared.Models;
 
 /// <summary>
-///   CategoryModel class
+///   Category class
 /// </summary>
 [Serializable]
 public class Category : Entity

@@ -11,12 +11,16 @@ namespace Web.Components.Shared;
 
 public partial class SetStatusComponent : ComponentBase
 {
+	[Inject] private AuthenticationStateProvider AuthProvider { get; set; } = default!;
+	[Inject] private IIssueService IssueService { get; set; } = default!;
+	[Inject] private IStatusService StatusService { get; set; } = default!;
+
 	private string? _settingStatus;
-	private List<StatusModel> _statuses = new();
+	private List<global::Shared.Models.Status> _statuses = new();
 
-	[Parameter] public IssueModel Issue { get; set; } = new();
+	[Parameter] public global::Shared.Models.Issue Issue { get; set; } = new();
 
-	[Parameter] public EventCallback<IssueModel> IssueChanged { get; set; }
+	[Parameter] public EventCallback<global::Shared.Models.Issue> IssueChanged { get; set; }
 
 	/// <summary>
 	///   OnInitializedAsync method
@@ -33,13 +37,13 @@ public partial class SetStatusComponent : ComponentBase
 	{
 		Issue.IssueStatus = _settingStatus switch
 		{
-			"answered" => new BasicStatusModel(_statuses.First(s =>
+			"answered" => new StatusDto(_statuses.First(s =>
 				string.Equals(s.StatusName, _settingStatus, StringComparison.CurrentCultureIgnoreCase))),
-			"inwork" => new BasicStatusModel(_statuses.First(s =>
+			"inwork" => new StatusDto(_statuses.First(s =>
 				string.Equals(s.StatusName, _settingStatus, StringComparison.CurrentCultureIgnoreCase))),
-			"watching" => new BasicStatusModel(_statuses.First(s =>
+			"watching" => new StatusDto(_statuses.First(s =>
 				string.Equals(s.StatusName, _settingStatus, StringComparison.CurrentCultureIgnoreCase))),
-			"dismissed" => new BasicStatusModel(_statuses.First(s =>
+			"dismissed" => new StatusDto(_statuses.First(s =>
 				string.Equals(s.StatusName, _settingStatus, StringComparison.CurrentCultureIgnoreCase))),
 			_ => Issue.IssueStatus
 		};

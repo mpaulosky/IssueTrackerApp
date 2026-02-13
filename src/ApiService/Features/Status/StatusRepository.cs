@@ -12,16 +12,15 @@ namespace ApiService.Features.Status;
 /// <summary>
 ///   StatusRepository class
 /// </summary>
-public class StatusRepository(IMongoDbContextFactory context) : IStatusRepository
+public class StatusRepository(IMongoDbContextFactory contextFactory) : IStatusRepository
 {
-	private readonly IMongoCollection<StatusModel> _collection =
-		context.GetCollection<StatusModel>(GetCollectionName(nameof(StatusModel)));
+	private readonly IMongoCollection<Shared.Models.Status> _collection = contextFactory.CreateDbContext().Statuses;
 
 	/// <summary>
 	///   ArchiveStatus method
 	/// </summary>
-	/// <param name="status">StatusModel</param>
-	public async Task ArchiveAsync(StatusModel status)
+	/// <param name="status">Status</param>
+	public async Task ArchiveAsync(Shared.Models.Status status)
 	{
 		// Archive the category
 		status.Archived = true;
@@ -32,8 +31,8 @@ public class StatusRepository(IMongoDbContextFactory context) : IStatusRepositor
 	/// <summary>
 	///   CreateStatus method
 	/// </summary>
-	/// <param name="status">StatusModel</param>
-	public async Task CreateAsync(StatusModel status)
+	/// <param name="status">Status</param>
+	public async Task CreateAsync(Shared.Models.Status status)
 	{
 		await _collection.InsertOneAsync(status);
 	}
@@ -42,14 +41,14 @@ public class StatusRepository(IMongoDbContextFactory context) : IStatusRepositor
 	///   GetStatus method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <returns>Task of StatusModel</returns>
-	public async Task<StatusModel> GetAsync(string itemId)
+	/// <returns>Task of Status</returns>
+	public async Task<Shared.Models.Status> GetAsync(string itemId)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<StatusModel>? filter = Builders<StatusModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Status>? filter = Builders<Shared.Models.Status>.Filter.Eq("_id", objectId);
 
-		StatusModel? result = (await _collection.FindAsync(filter)).FirstOrDefault();
+		Shared.Models.Status? result = (await _collection.FindAsync(filter)).FirstOrDefault();
 
 		return result;
 	}
@@ -57,12 +56,12 @@ public class StatusRepository(IMongoDbContextFactory context) : IStatusRepositor
 	/// <summary>
 	///   GetStatuses method
 	/// </summary>
-	/// <returns>Task of IEnumerable StatusModel</returns>
-	public async Task<IEnumerable<StatusModel>> GetAllAsync()
+	/// <returns>Task of IEnumerable Status</returns>
+	public async Task<IEnumerable<Shared.Models.Status>> GetAllAsync()
 	{
-		FilterDefinition<StatusModel>? filter = Builders<StatusModel>.Filter.Empty;
+		FilterDefinition<Shared.Models.Status>? filter = Builders<Shared.Models.Status>.Filter.Empty;
 
-		List<StatusModel>? result = (await _collection.FindAsync(filter)).ToList();
+		List<Shared.Models.Status>? result = (await _collection.FindAsync(filter)).ToList();
 
 		return result;
 	}
@@ -71,12 +70,12 @@ public class StatusRepository(IMongoDbContextFactory context) : IStatusRepositor
 	///   UpdateStatus method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <param name="status">StatusModel</param>
-	public async Task UpdateAsync(string itemId, StatusModel status)
+	/// <param name="status">Status</param>
+	public async Task UpdateAsync(string itemId, Shared.Models.Status status)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<StatusModel>? filter = Builders<StatusModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Status>? filter = Builders<Shared.Models.Status>.Filter.Eq("_id", objectId);
 
 		await _collection.ReplaceOneAsync(filter, status);
 	}

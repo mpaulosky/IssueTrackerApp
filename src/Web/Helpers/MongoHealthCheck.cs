@@ -14,15 +14,30 @@ using MongoDB.Driver;
 
 namespace Web.Helpers;
 
+/// <summary>
+///   Provides health check functionality for MongoDB database connections.
+/// </summary>
 public class MongoHealthCheck : IHealthCheck
 {
 	private readonly IMongoDbContextFactory _factory;
 
+	/// <summary>
+	///   Initializes a new instance of the <see cref="MongoHealthCheck" /> class.
+	/// </summary>
+	/// <param name="factory">The MongoDB context factory.</param>
 	public MongoHealthCheck(IMongoDbContextFactory factory)
 	{
 		_factory = factory;
 	}
 
+	/// <summary>
+	///   Runs the health check asynchronously.
+	/// </summary>
+	/// <param name="context">The health check context.</param>
+	/// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+	/// <returns>
+	///   A task representing the asynchronous operation. The task result contains the health check result.
+	/// </returns>
 	public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
 		CancellationToken cancellationToken = default)
 	{
@@ -33,6 +48,12 @@ public class MongoHealthCheck : IHealthCheck
 			: HealthCheckResult.Unhealthy("MongoDB health check failure");
 	}
 
+	/// <summary>
+	///   Checks the MongoDB connection.
+	/// </summary>
+	/// <returns>
+	///   <see langword="true" /> if the MongoDB connection is successful; otherwise, <see langword="false" />.
+	/// </returns>
 	private async Task<bool> CheckMongoDbConnection()
 	{
 		try

@@ -10,49 +10,37 @@
 namespace ApiService.DataAccess;
 
 /// <summary>
-///   A factory for <see cref="MongoDbContext" /> that can create instances
-///   with proper configuration.
+///   Provides a factory for creating <see cref="MongoDbContext" /> instances with proper configuration.
 /// </summary>
 public sealed class MongoDbContextFactory : IMongoDbContextFactory
 {
+	private readonly IMongoDatabase _database;
 
+	/// <summary>
+	///   Initializes a new instance of the <see cref="MongoDbContextFactory" /> class.
+	/// </summary>
+	/// <param name="mongoClient">The MongoDB client.</param>
+	/// <param name="databaseName">The database name.</param>
+	public MongoDbContextFactory(IMongoClient mongoClient, string databaseName)
+	{
+		MongoClient client = (MongoClient)mongoClient;
+		_database = client.GetDatabase(databaseName);
+	}
+
+	/// <summary>
+	///   Gets the MongoDB database instance.
+	/// </summary>
+	/// <value>
+	///   The MongoDB database instance.
+	/// </value>
+	public IMongoDatabase Database => _database;
+
+	/// <summary>
+	///   Creates a new instance of <see cref="IMongoDbContext" />.
+	/// </summary>
+	/// <returns>A new <see cref="IMongoDbContext" /> instance.</returns>
 	public IMongoDbContext CreateDbContext()
 	{
-		// Build a minimal configuration that mirrors how the app resolves the connection string.
-		IConfigurationBuilder builder = new ConfigurationBuilder()
-				.SetBasePath(Directory.GetCurrentDirectory())
-				.AddJsonFile("appsettings.json", true)
-				.AddJsonFile("appsettings.Development.json", true)
-				.AddEnvironmentVariables();
-
-		IConfigurationRoot configuration = builder.Build();
-
-		string? connectionString = configuration["DefaultConnection"]
-															?? configuration.GetConnectionString("DefaultConnection")
-															?? configuration["ConnectionStrings:DefaultConnection"]
-															?? Environment.GetEnvironmentVariable("DefaultConnection");
-
-		if (string.IsNullOrWhiteSpace(connectionString))
-		{
-			// For development, use a default connection string
-			connectionString = "mongodb://localhost:27017";
-		}
-
-		string? databaseName = configuration["DatabaseName"]
-													?? configuration["ConnectionStrings:DatabaseName"]
-													?? Environment.GetEnvironmentVariable("DatabaseName")
-													?? "ArticleSiteDb";
-
-		// Create MongoDB client from connection string
-		MongoClient mongoClient = new(connectionString);
-
-		return new MongoDbContext(mongoClient, databaseName);
+		return new MongoDbContext(_database.Client, _database.DatabaseNamespace.DatabaseName);
 	}
-
-	public IMongoDbContext CreateDbContext(string[] args)
-	{
-		// For compatibility with tools that may pass args, delegate to the parameterless method
-		return CreateDbContext();
-	}
-
 }

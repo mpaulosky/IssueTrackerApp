@@ -2,9 +2,6 @@
 
 @attribute [Authorize(Policy = "Admin")]
 
-@inject NavigationManager NavManager
-@inject ICategoryService CategoryService
-
 <PageTitle>Categories</PageTitle>
 
 <h1 class="page-heading text-uppercase mb-4">Categories</h1>
@@ -18,31 +15,31 @@
 			@if (_categories is not null)
 			{
 				<RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Class="mt-2 mb-4" Text="Add New Category" Click="@InsertRow" Disabled=@(_categoryToInsert != null || _categoryToUpdate != null)/>
-				<RadzenDataGrid @ref="_categoriesGrid" AllowAlternatingRows="true" AllowFiltering="false" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single" Data="@_categories" TItem="CategoryModel" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+				<RadzenDataGrid @ref="_categoriesGrid" AllowAlternatingRows="true" AllowFiltering="false" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single" Data="@_categories" TItem="Category" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
 					<Columns>
-						<RadzenDataGridColumn TItem="CategoryModel" Property="CategoryName" Title="Category Name" Width="120px">
+						<RadzenDataGridColumn TItem="Category" Property="CategoryName" Title="Category Name" Width="120px">
 <Template Context="category">
 	<span class="rz-cell-data">@category.CategoryName</span>
 </Template>
 							<EditTemplate Context="category">
-								<RadzenTextBox @bind-Value="category.CategoryName" Style="width: 100%; display: block;" Name="CategoryName"/>
+							<RadzenTextBox @bind-value="category.CategoryName" Style="width: 100%; display: block;" Name="CategoryName"/>
 								<RadzenRequiredValidator Text="Category Name is required" Component="CategoryName" Popup="true"/>
 								<RadzenLengthValidator Component="CategoryName" Min="3" Text="Category Name should be at least 3 characters" Popup=true Style="position: absolute"/>
 								<RadzenLengthValidator Component="CategoryName" Max="75" Text="Category Name should be at most 10 characters" Popup=true Style="position: absolute"/>
 							</EditTemplate>
 						</RadzenDataGridColumn>
-						<RadzenDataGridColumn TItem="CategoryModel" Property="CategoryDescription" Title="Description" Width="200px">
+						<RadzenDataGridColumn TItem="Category" Property="CategoryDescription" Title="Description" Width="200px">
 <Template Context="category">
 	<span class="rz-cell-data">@category.CategoryDescription</span>
 </Template>
 							<EditTemplate Context="category">
-								<RadzenTextBox @bind-Value="category.CategoryDescription" Style="width: 100%; display: block;" Name="CategoryDescription"/>
+							<RadzenTextBox @bind-value="category.CategoryDescription" Style="width: 100%; display: block;" Name="CategoryDescription"/>
 								<RadzenRequiredValidator Text="Category Description is required" Component="CategoryDescription" Popup="true"/>
 								<RadzenLengthValidator Component="CategoryDescription" Min="3" Text="Category Description should be at least 3 characters" Popup=true Style="position: absolute"/>
 								<RadzenLengthValidator Component="CategoryDescription" Max="200" Text="Category Description should be at most 10 characters" Popup=true Style="position: absolute"/>
 							</EditTemplate>
 						</RadzenDataGridColumn>
-						<RadzenDataGridColumn TItem="CategoryModel" Context="category" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
+						<RadzenDataGridColumn TItem="Category" Context="category" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Width="156px">
 							<Template Context="category">
 								<RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(_ => EditRow(category))" @onclick:stopPropagation="true">
 								</RadzenButton>

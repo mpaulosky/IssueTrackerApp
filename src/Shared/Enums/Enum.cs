@@ -10,33 +10,53 @@
 namespace Shared.Enums;
 
 /// <summary>
-///   Roles enum
+///   Defines user roles.
 /// </summary>
 public enum Roles
 {
-
+	/// <summary>
+	///   Administrator role with full system access.
+	/// </summary>
 	Admin = 0,
 
+	/// <summary>
+	///   Author role with content creation privileges.
+	/// </summary>
 	Author = 10
-
 }
 
 /// <summary>
-///   Categories enum
+///   Defines blog article categories.
 /// </summary>
 public enum CategoryNames
 {
-
+	/// <summary>
+	///   ASP.NET Core category.
+	/// </summary>
 	AspNetCore = 0,
 
+	/// <summary>
+	///   Blazor Server category.
+	/// </summary>
 	BlazorServer = 1,
 
+	/// <summary>
+	///   Blazor WebAssembly category.
+	/// </summary>
 	BlazorWasm = 2,
 
+	/// <summary>
+	///   Entity Framework Core category.
+	/// </summary>
 	EntityFrameworkCore = 3,
 
+	/// <summary>
+	///   .NET MAUI category.
+	/// </summary>
 	NetMaui = 4,
 
+	/// <summary>
+	///   Other category for miscellaneous topics.
+	/// </summary>
 	Other = 5
-
 }

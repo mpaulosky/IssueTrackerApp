@@ -10,30 +10,26 @@
 namespace Shared.Helpers;
 
 /// <summary>
-///   CollectionNames class
+///   Provides helper methods for resolving MongoDB collection names.
 /// </summary>
 public static class CollectionNames
 {
-
 	/// <summary>
-	///   GetCollectionName method
+	///   Gets the MongoDB collection name for the specified entity type.
 	/// </summary>
-	/// <param name="entityName">string</param>
-	/// <returns>Result string collection name</returns>
-	public static Result<string> GetCollectionName(string? entityName)
+	/// <param name="entityName">The entity type name.</param>
+	/// <returns>The MongoDB collection name.</returns>
+	/// <exception cref="ArgumentException">Thrown when an invalid entity name is provided.</exception>
+	public static string GetCollectionName(string? entityName)
 	{
-
-		switch (entityName)
+		return entityName switch
 		{
-
-			case "Article": return Result.Ok("articles");
-
-			case "Category": return Result.Ok("categories");
-
-			default: return Result<string>.Fail("Invalid entity name provided.");
-
-		}
-
+			"Category" => "categories",
+			"Comment" => "comments",
+			"Issue" => "issues",
+			"Status" => "statuses",
+			"User" => "users",
+			_ => throw new ArgumentException($"Invalid entity name provided: {entityName}", nameof(entityName))
+		};
 	}
-
 }

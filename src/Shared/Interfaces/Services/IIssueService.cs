@@ -9,21 +9,61 @@
 
 namespace Shared.Interfaces.Services;
 
+/// <summary>
+///   Provides methods for managing issues.
+/// </summary>
 public interface IIssueService
 {
-	Task ArchiveIssue(IssueModel issue);
+	/// <summary>
+	///   Archives the specified issue.
+	/// </summary>
+	/// <param name="issue">The issue to archive.</param>
+	/// <returns>A task representing the asynchronous archive operation.</returns>
+	Task ArchiveIssue(Shared.Models.Issue issue);
 
-	Task CreateIssue(IssueModel issue);
+	/// <summary>
+	///   Creates a new issue.
+	/// </summary>
+	/// <param name="issue">The issue to create.</param>
+	/// <returns>A task representing the asynchronous create operation.</returns>
+	Task CreateIssue(Shared.Models.Issue issue);
 
-	Task<IssueModel> GetIssue(string? issueId);
+	/// <summary>
+	///   Gets an issue by its identifier.
+	/// </summary>
+	/// <param name="issueId">The issue identifier.</param>
+	/// <returns>A task representing the asynchronous operation. The task result contains the issue.</returns>
+	Task<Shared.Models.Issue> GetIssue(string? issueId);
 
-	Task<List<IssueModel>> GetIssues();
+	/// <summary>
+	///   Gets all issues.
+	/// </summary>
+	/// <returns>A task representing the asynchronous operation. The task result contains a list of issues.</returns>
+	Task<List<Shared.Models.Issue>> GetIssues();
 
-	Task<List<IssueModel>> GetIssuesByUser(string userId);
+	/// <summary>
+	///   Gets all issues created by the specified user.
+	/// </summary>
+	/// <param name="userId">The user identifier.</param>
+	/// <returns>A task representing the asynchronous operation. The task result contains a list of issues.</returns>
+	Task<List<Shared.Models.Issue>> GetIssuesByUser(string userId);
 
-	Task<List<IssueModel>> GetApprovedIssues();
+	/// <summary>
+	///   Gets all approved issues.
+	/// </summary>
+	/// <returns>A task representing the asynchronous operation. The task result contains a list of approved issues.</returns>
+	Task<List<Shared.Models.Issue>> GetApprovedIssues();
 
-	Task<List<IssueModel>> GetIssuesWaitingForApproval();
+	/// <summary>
+	///   Gets all issues waiting for approval.
+	/// </summary>
+	/// <returns>A task representing the asynchronous operation. The task result contains a list of issues waiting for approval.</returns>
+	Task<List<Shared.Models.Issue>> GetIssuesWaitingForApproval();
 
-	Task UpdateIssue(IssueModel issue);
+	/// <summary>
+	///   Updates the specified issue.
+	/// </summary>
+	/// <param name="issue">The issue to update.</param>
+	/// <returns>A task representing the asynchronous update operation.</returns>
+	Task UpdateIssue(Shared.Models.Issue issue);
 }

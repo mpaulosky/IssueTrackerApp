@@ -1,6 +1,4 @@
-﻿@inject NavigationManager NavManager
-@inject AuthenticationStateProvider AuthProvider
-@inject ICommentService CommentService
+﻿@using Microsoft.AspNetCore.Components.Authorization
 
 <div class="comment-item-container">
 	<div class="comment-vote @GetVoteCssClass(Item)">

@@ -21,10 +21,10 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	/// <summary>
 	///   ArchiveIssue method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
+	/// <param name="issue">Issue</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task ArchiveIssue(IssueModel issue)
+	public Task ArchiveIssue(Shared.Models.Issue issue)
 	{
 		ArgumentNullException.ThrowIfNull(issue);
 
@@ -36,9 +36,9 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	/// <summary>
 	///   CreateIssue method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
+	/// <param name="issue">Issue</param>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task CreateIssue(IssueModel issue)
+	public async Task CreateIssue(Shared.Models.Issue issue)
 	{
 		ArgumentNullException.ThrowIfNull(issue);
 
@@ -49,13 +49,13 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	///   GetIssue method
 	/// </summary>
 	/// <param name="issueId">string</param>
-	/// <returns>Task of IssueModel</returns>
+	/// <returns>Task of Issue</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public async Task<IssueModel> GetIssue(string? issueId)
+	public async Task<Shared.Models.Issue> GetIssue(string? issueId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(issueId);
 
-		IssueModel results = await repository.GetAsync(issueId);
+		Shared.Models.Issue results = await repository.GetAsync(issueId);
 
 		return results;
 	}
@@ -63,17 +63,17 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	/// <summary>
 	///   GetIssues method
 	/// </summary>
-	/// <returns>Task of List IssueModels</returns>
-	public async Task<List<IssueModel>> GetIssues()
+	/// <returns>Task of List Issues</returns>
+	public async Task<List<Shared.Models.Issue>> GetIssues()
 	{
-		List<IssueModel>? output = cache.Get<List<IssueModel>>(CacheName);
+		List<Shared.Models.Issue>? output = cache.Get<List<Shared.Models.Issue>>(CacheName);
 
 		if (output is not null)
 		{
 			return output;
 		}
 
-		IEnumerable<IssueModel> results = await repository.GetAllAsync();
+		IEnumerable<Shared.Models.Issue> results = await repository.GetAllAsync();
 
 		output = results.ToList();
 
@@ -86,20 +86,20 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	///   GetIssuesByUser method
 	/// </summary>
 	/// <param name="userId">string</param>
-	/// <returns>Task of List IssueModels</returns>
+	/// <returns>Task of List Issues</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public async Task<List<IssueModel>> GetIssuesByUser(string userId)
+	public async Task<List<Shared.Models.Issue>> GetIssuesByUser(string userId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(userId);
 
-		List<IssueModel>? output = cache.Get<List<IssueModel>>(userId);
+		List<Shared.Models.Issue>? output = cache.Get<List<Shared.Models.Issue>>(userId);
 
 		if (output is not null)
 		{
 			return output;
 		}
 
-		IEnumerable<IssueModel> results = await repository.GetByUserAsync(userId);
+		IEnumerable<Shared.Models.Issue> results = await repository.GetByUserAsync(userId);
 
 		output = results.ToList();
 
@@ -111,10 +111,10 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	/// <summary>
 	///   GetIssuesWaitingForApproval method
 	/// </summary>
-	/// <returns>Task of List IssueModels</returns>
-	public async Task<List<IssueModel>> GetIssuesWaitingForApproval()
+	/// <returns>Task of List Issues</returns>
+	public async Task<List<Shared.Models.Issue>> GetIssuesWaitingForApproval()
 	{
-		IEnumerable<IssueModel> results = await repository.GetWaitingForApprovalAsync();
+		IEnumerable<Shared.Models.Issue> results = await repository.GetWaitingForApprovalAsync();
 
 		return results.ToList();
 	}
@@ -122,10 +122,10 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	/// <summary>
 	///   GetApprovedIssues method
 	/// </summary>
-	/// <returns>Task of List IssueModels</returns>
-	public async Task<List<IssueModel>> GetApprovedIssues()
+	/// <returns>Task of List Issues</returns>
+	public async Task<List<Shared.Models.Issue>> GetApprovedIssues()
 	{
-		IEnumerable<IssueModel> results = await repository.GetApprovedAsync();
+		IEnumerable<Shared.Models.Issue> results = await repository.GetApprovedAsync();
 
 		return results.ToList();
 	}
@@ -133,9 +133,9 @@ public class IssueService(IIssueRepository repository, IMemoryCache cache) : IIs
 	/// <summary>
 	///   UpdateIssue
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
+	/// <param name="issue">Issue</param>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task UpdateIssue(IssueModel issue)
+	public async Task UpdateIssue(Shared.Models.Issue issue)
 	{
 		ArgumentNullException.ThrowIfNull(issue);
 

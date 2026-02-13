@@ -12,15 +12,22 @@ namespace IssueTracker.UI.Pages;
 /// <summary>
 ///   Details class
 /// </summary>
-/// <seealso cref="Microsoft.AspNetCore.Mvc.RazorPages.PageModel" />
+/// <seealso cref="Microsoft.AspNetCore.Components.ComponentBase" />
 [UsedImplicitly]
-public partial class Details
+public partial class Details : ComponentBase
 {
-	private List<CommentModel>? _comments = new();
+	[Inject] private AuthenticationStateProvider AuthProvider { get; set; } = default!;
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private IIssueService IssueService { get; set; } = default!;
+	[Inject] private IUserService UserService { get; set; } = default!;
+	[Inject] private IStatusService StatusService { get; set; } = default!;
+	[Inject] private ICommentService CommentService { get; set; } = default!;
 
-	private IssueModel? _issue = new();
+	private List<Shared.Models.Comment>? _comments = new();
 
-	private UserModel? _loggedInUser = new();
+	private global::Shared.Models.Issue? _issue = new();
+
+	private global::Shared.Models.User? _loggedInUser = new();
 
 	[Parameter] public string? Id { get; set; }
 
@@ -34,7 +41,7 @@ public partial class Details
 		ArgumentNullException.ThrowIfNull(Id);
 
 		_issue = await IssueService.GetIssue(Id);
-		BasicIssueModel issue = new(_issue);
+		IssueDto issue = new(_issue);
 		_comments = await CommentService.GetCommentsByIssue(issue);
 		await StatusService.GetStatuses();
 	}
@@ -42,8 +49,8 @@ public partial class Details
 	/// <summary>
 	///   OpenCommentForm method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
-	private void OpenCommentForm(IssueModel issue)
+	/// <param name="issue">Issue</param>
+	private void OpenCommentForm(global::Shared.Models.Issue issue)
 	{
 		if (_loggedInUser is not null)
 		{

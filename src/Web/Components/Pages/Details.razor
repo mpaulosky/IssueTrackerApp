@@ -2,13 +2,6 @@
 
 @attribute [Authorize]
 
-@inject AuthenticationStateProvider AuthProvider
-@inject NavigationManager NavManager
-@inject IIssueService IssueService
-@inject IUserService UserService
-@inject IStatusService StatusService
-@inject ICommentService CommentService
-
 <PageTitle>Details Page</PageTitle>
 
 <h1 class="page-heading text-light text-uppercase mb-4">Issue Details</h1>
@@ -30,7 +23,7 @@
 	{
 		<IssueComponent Item="@_issue" LoggedInUser="@_loggedInUser"/>
 
-		<SetStatusComponent @bind-Issue="_issue"/>
+		<SetStatusComponent @bind-value="_issue"/>
 
 		@if (_comments is not null && _comments.Any())
 		{

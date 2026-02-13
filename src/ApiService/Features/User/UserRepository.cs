@@ -12,20 +12,19 @@ namespace ApiService.Features.User;
 /// <summary>
 ///   UserRepository class
 /// </summary>
-public class UserRepository(IMongoDbContextFactory context) : IUserRepository
+public class UserRepository(IMongoDbContextFactory contextFactory) : IUserRepository
 {
-	private readonly IMongoCollection<UserModel> _collection =
-		context.GetCollection<UserModel>(GetCollectionName(nameof(UserModel)));
+	private readonly IMongoCollection<Shared.Models.User> _collection = contextFactory.CreateDbContext().Users;
 
 	/// <summary>
 	///   Archive User method
 	/// </summary>
-	/// <param name="user">UserModel</param>
+	/// <param name="user">User</param>
 	/// <returns>Task</returns>
-	public async Task ArchiveAsync(UserModel user)
+	public async Task ArchiveAsync(Shared.Models.User user)
 	{
-		// Archive the category
-		user.Archived = true;
+		// TODO: User model doesn't have Archived property yet
+		// user.Archived = true;
 
 		await UpdateAsync(user.Id, user);
 	}
@@ -33,8 +32,8 @@ public class UserRepository(IMongoDbContextFactory context) : IUserRepository
 	/// <summary>
 	///   CreateUser method
 	/// </summary>
-	/// <param name="user">UserModel</param>
-	public async Task CreateAsync(UserModel user)
+	/// <param name="user">User</param>
+	public async Task CreateAsync(Shared.Models.User user)
 	{
 		await _collection.InsertOneAsync(user);
 	}
@@ -43,14 +42,14 @@ public class UserRepository(IMongoDbContextFactory context) : IUserRepository
 	///   GetUser method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <returns>Task of UserModel</returns>
-	public async Task<UserModel> GetAsync(string itemId)
+	/// <returns>Task of User</returns>
+	public async Task<Shared.Models.User> GetAsync(string itemId)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<UserModel>? filter = Builders<UserModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.User>? filter = Builders<Shared.Models.User>.Filter.Eq("_id", objectId);
 
-		UserModel? result = (await _collection.FindAsync(filter)).FirstOrDefault();
+		Shared.Models.User? result = (await _collection.FindAsync(filter)).FirstOrDefault();
 
 		return result;
 	}
@@ -58,12 +57,12 @@ public class UserRepository(IMongoDbContextFactory context) : IUserRepository
 	/// <summary>
 	///   GetUsers method
 	/// </summary>
-	/// <returns>Task of IEnumerable UserModel</returns>
-	public async Task<IEnumerable<UserModel>> GetAllAsync()
+	/// <returns>Task of IEnumerable User</returns>
+	public async Task<IEnumerable<Shared.Models.User>> GetAllAsync()
 	{
-		FilterDefinition<UserModel>? filter = Builders<UserModel>.Filter.Empty;
+		FilterDefinition<Shared.Models.User>? filter = Builders<Shared.Models.User>.Filter.Empty;
 
-		List<UserModel>? result = (await _collection.FindAsync(filter)).ToList();
+		List<Shared.Models.User>? result = (await _collection.FindAsync(filter)).ToList();
 
 		return result;
 	}
@@ -72,12 +71,12 @@ public class UserRepository(IMongoDbContextFactory context) : IUserRepository
 	///   UpdateUser method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <param name="user">UserModel</param>
-	public async Task UpdateAsync(string itemId, UserModel user)
+	/// <param name="user">User</param>
+	public async Task UpdateAsync(string itemId, Shared.Models.User user)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<UserModel>? filter = Builders<UserModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.User>? filter = Builders<Shared.Models.User>.Filter.Eq("_id", objectId);
 
 		await _collection.ReplaceOneAsync(filter!, user);
 	}
@@ -86,12 +85,12 @@ public class UserRepository(IMongoDbContextFactory context) : IUserRepository
 	///   GetUserFromAuthentication method
 	/// </summary>
 	/// <param name="userObjectIdentifierId">string</param>
-	/// <returns>Task of UserModel</returns>
-	public async Task<UserModel> GetFromAuthenticationAsync(string userObjectIdentifierId)
+	/// <returns>Task of User</returns>
+	public async Task<Shared.Models.User> GetFromAuthenticationAsync(string userObjectIdentifierId)
 	{
-		FilterDefinition<UserModel>? filter = Builders<UserModel>.Filter.Eq("object_identifier", userObjectIdentifierId);
+		FilterDefinition<Shared.Models.User>? filter = Builders<Shared.Models.User>.Filter.Eq("object_identifier", userObjectIdentifierId);
 
-		UserModel? result = (await _collection.FindAsync(filter)).FirstOrDefault();
+		Shared.Models.User? result = (await _collection.FindAsync(filter)).FirstOrDefault();
 
 		return result;
 	}

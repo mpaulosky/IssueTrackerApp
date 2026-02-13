@@ -11,18 +11,18 @@ namespace Web.Components.Shared;
 
 public partial class IssueComponent
 {
-	private IssueModel? _archivingIssue;
+	private global::Shared.Models.Issue? _archivingIssue;
 
-	[Parameter] public IssueModel Item { get; set; } = new();
+	[Parameter] public global::Shared.Models.Issue Item { get; set; } = new();
 
-	[Parameter] public UserModel LoggedInUser { get; set; } = new();
+	[Parameter] public global::Shared.Models.User LoggedInUser { get; set; } = new();
 
 	/// <summary>
 	///   GetIssueCategoryCssClass
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
+	/// <param name="issue">Issue</param>
 	/// <returns>string css class</returns>
-	private static string GetIssueCategoryCssClass(IssueModel issue)
+	private static string GetIssueCategoryCssClass(global::Shared.Models.Issue issue)
 	{
 		string output = issue.Category.CategoryName switch
 		{
@@ -40,9 +40,9 @@ public partial class IssueComponent
 	/// <summary>
 	///   GetIssueStatusCssClass method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
+	/// <param name="issue">Issue</param>
 	/// <returns>string css class</returns>
-	private static string GetIssueStatusCssClass(IssueModel issue)
+	private static string GetIssueStatusCssClass(global::Shared.Models.Issue issue)
 	{
 		string output = issue.IssueStatus.StatusName switch
 		{
@@ -59,8 +59,8 @@ public partial class IssueComponent
 	/// <summary>
 	///   OpenDetailsPage method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
-	private void OpenDetailsPage(IssueModel issue)
+	/// <param name="issue">Issue</param>
+	private void OpenDetailsPage(global::Shared.Models.Issue issue)
 	{
 		NavManager.NavigateTo($"/Details/{issue.Id}");
 	}
@@ -70,7 +70,7 @@ public partial class IssueComponent
 	/// </summary>
 	private async Task ArchiveIssue()
 	{
-		_archivingIssue!.ArchivedBy = new BasicUserModel(LoggedInUser);
+		_archivingIssue!.ArchivedBy = new UserDto(LoggedInUser);
 		_archivingIssue!.Archived = true;
 		await IssueService.UpdateIssue(_archivingIssue);
 		_archivingIssue = null;

@@ -31,10 +31,10 @@ public class StatusService(IStatusRepository repository, IMemoryCache cache) : I
 	/// <summary>
 	///   ArchiveStatus method
 	/// </summary>
-	/// <param name="status">StatusModel</param>
+	/// <param name="status">Status</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task ArchiveStatus(StatusModel status)
+	public Task ArchiveStatus(Shared.Models.Status status)
 	{
 		ArgumentNullException.ThrowIfNull(status);
 
@@ -46,10 +46,10 @@ public class StatusService(IStatusRepository repository, IMemoryCache cache) : I
 	/// <summary>
 	///   CreateStatus method
 	/// </summary>
-	/// <param name="status">StatusModel</param>
+	/// <param name="status">Status</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task CreateStatus(StatusModel status)
+	public Task CreateStatus(Shared.Models.Status status)
 	{
 		ArgumentNullException.ThrowIfNull(status);
 
@@ -60,14 +60,14 @@ public class StatusService(IStatusRepository repository, IMemoryCache cache) : I
 	///   GetStatus method
 	/// </summary>
 	/// <param name="statusId">string</param>
-	/// <returns>Task StatusModel</returns>
+	/// <returns>Task Status</returns>
 	/// <exception cref="ArgumentNullException"></exception>
 	/// <exception cref="ArgumentException"></exception>
-	public async Task<StatusModel> GetStatus(string statusId)
+	public async Task<Shared.Models.Status> GetStatus(string statusId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(statusId);
 
-		StatusModel result = await repository.GetAsync(statusId);
+		Shared.Models.Status result = await repository.GetAsync(statusId);
 
 		return result;
 	}
@@ -75,17 +75,17 @@ public class StatusService(IStatusRepository repository, IMemoryCache cache) : I
 	/// <summary>
 	///   GetStatuses method
 	/// </summary>
-	/// <returns>Task of List StatusModels</returns>
-	public async Task<List<StatusModel>> GetStatuses()
+	/// <returns>Task of List Status</returns>
+	public async Task<List<Shared.Models.Status>> GetStatuses()
 	{
-		List<StatusModel>? output = cache.Get<List<StatusModel>>(CacheName);
+		List<Shared.Models.Status>? output = cache.Get<List<Shared.Models.Status>>(CacheName);
 
 		if (output is not null)
 		{
 			return output;
 		}
 
-		IEnumerable<StatusModel> results = await repository.GetAllAsync();
+		IEnumerable<Shared.Models.Status> results = await repository.GetAllAsync();
 
 		output = results.ToList();
 
@@ -97,10 +97,10 @@ public class StatusService(IStatusRepository repository, IMemoryCache cache) : I
 	/// <summary>
 	///   UpdateStatus method
 	/// </summary>
-	/// <param name="status">StatusModel</param>
+	/// <param name="status">Status</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task UpdateStatus(StatusModel status)
+	public Task UpdateStatus(Shared.Models.Status status)
 	{
 		ArgumentNullException.ThrowIfNull(status);
 
@@ -110,10 +110,10 @@ public class StatusService(IStatusRepository repository, IMemoryCache cache) : I
 	/// <summary>
 	///   DeleteStatus method
 	/// </summary>
-	/// <param name="status">StatusModel</param>
+	/// <param name="status">Status</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task DeleteStatus(StatusModel status)
+	public Task DeleteStatus(Shared.Models.Status status)
 	{
 		ArgumentNullException.ThrowIfNull(status);
 

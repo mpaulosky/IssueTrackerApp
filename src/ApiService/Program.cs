@@ -43,7 +43,19 @@ app.MapDefaultEndpoints();
 
 app.Run();
 
+/// <summary>
+///   Represents a weather forecast.
+/// </summary>
+/// <param name="Date">The forecast date.</param>
+/// <param name="TemperatureC">The temperature in Celsius.</param>
+/// <param name="Summary">A summary description of the weather.</param>
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
+    /// <summary>
+    ///   Gets the temperature in Fahrenheit.
+    /// </summary>
+    /// <value>
+    ///   The temperature in Fahrenheit, calculated from the Celsius temperature.
+    /// </value>
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }

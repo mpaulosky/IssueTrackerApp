@@ -21,10 +21,10 @@ public class CommentService(ICommentRepository repository, IMemoryCache cache) :
 	/// <summary>
 	///   ArchiveComment method
 	/// </summary>
-	/// <param name="comment">CommentModel</param>
+	/// <param name="comment">Comment</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task ArchiveComment(CommentModel comment)
+	public Task ArchiveComment(Shared.Models.Comment comment)
 	{
 		ArgumentNullException.ThrowIfNull(comment);
 
@@ -36,9 +36,9 @@ public class CommentService(ICommentRepository repository, IMemoryCache cache) :
 	/// <summary>
 	///   CreateComment method
 	/// </summary>
-	/// <param name="comment">CommentModel</param>
+	/// <param name="comment">Comment</param>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task CreateComment(CommentModel comment)
+	public async Task CreateComment(Shared.Models.Comment comment)
 	{
 		ArgumentNullException.ThrowIfNull(comment);
 
@@ -49,13 +49,13 @@ public class CommentService(ICommentRepository repository, IMemoryCache cache) :
 	///   GetComment method
 	/// </summary>
 	/// <param name="commentId">string</param>
-	/// <returns>Task of CommentModel</returns>
+	/// <returns>Task of Comment</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task<CommentModel> GetComment(string commentId)
+	public async Task<Shared.Models.Comment> GetComment(string commentId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(commentId);
 
-		CommentModel result = await repository.GetAsync(commentId);
+		Shared.Models.Comment result = await repository.GetAsync(commentId);
 
 		return result;
 	}
@@ -63,17 +63,17 @@ public class CommentService(ICommentRepository repository, IMemoryCache cache) :
 	/// <summary>
 	///   GetComments method
 	/// </summary>
-	/// <returns>Task of List CommentModels</returns>
-	public async Task<List<CommentModel>> GetComments()
+	/// <returns>Task of List Comments</returns>
+	public async Task<List<Shared.Models.Comment>> GetComments()
 	{
-		List<CommentModel>? output = cache.Get<List<CommentModel>>(CacheName);
+		List<Shared.Models.Comment>? output = cache.Get<List<Shared.Models.Comment>>(CacheName);
 
 		if (output is not null)
 		{
 			return output;
 		}
 
-		IEnumerable<CommentModel>? results = await repository.GetAllAsync();
+		IEnumerable<Shared.Models.Comment>? results = await repository.GetAllAsync();
 
 		output = results!.Where(x => !x.Archived).ToList();
 
@@ -86,13 +86,13 @@ public class CommentService(ICommentRepository repository, IMemoryCache cache) :
 	///   GetCommentsByUser method
 	/// </summary>
 	/// <param name="userId">string</param>
-	/// <returns>Task of List CommentModels</returns>
+	/// <returns>Task of List Comments</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task<List<CommentModel>> GetCommentsByUser(string userId)
+	public async Task<List<Shared.Models.Comment>> GetCommentsByUser(string userId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(userId);
 
-		IEnumerable<CommentModel> results = await repository.GetByUserAsync(userId);
+		IEnumerable<Shared.Models.Comment> results = await repository.GetByUserAsync(userId);
 
 		return results.ToList();
 	}
@@ -100,14 +100,14 @@ public class CommentService(ICommentRepository repository, IMemoryCache cache) :
 	/// <summary>
 	///   GetCommentsByIssue method
 	/// </summary>
-	/// <param name="issue">BasicIssueModel</param>
-	/// <returns>Task of List CommentModels</returns>
+	/// <param name="issue">IssueDto</param>
+	/// <returns>Task of List Comments</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task<List<CommentModel>> GetCommentsByIssue(BasicIssueModel issue)
+	public async Task<List<Shared.Models.Comment>> GetCommentsByIssue(IssueDto issue)
 	{
 		ArgumentNullException.ThrowIfNull(issue);
 
-		IEnumerable<CommentModel> results = await repository.GetByIssueAsync(issue);
+		IEnumerable<Shared.Models.Comment> results = await repository.GetByIssueAsync(issue);
 
 		return results.ToList();
 	}
@@ -115,9 +115,9 @@ public class CommentService(ICommentRepository repository, IMemoryCache cache) :
 	/// <summary>
 	///   UpdateComment method
 	/// </summary>
-	/// <param name="comment">CommentModel</param>
+	/// <param name="comment">Comment</param>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task UpdateComment(CommentModel comment)
+	public async Task UpdateComment(Shared.Models.Comment comment)
 	{
 		ArgumentNullException.ThrowIfNull(comment);
 

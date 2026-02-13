@@ -7,17 +7,19 @@
 // Project Name :  IssueTracker.Services
 // =============================================
 
+using Shared.Models;
+
 namespace Shared.Interfaces.Repository;
 
 public interface ICategoryRepository
 {
-	Task ArchiveAsync(CategoryModel category);
+	Task ArchiveAsync(Category category);
 
-	Task CreateAsync(CategoryModel category);
+	Task CreateAsync(Category category);
 
-	Task<CategoryModel> GetAsync(string? itemId);
+	Task<Category> GetAsync(string? itemId);
 
-	Task<IEnumerable<CategoryModel>> GetAllAsync();
+	Task<IEnumerable<Category>> GetAllAsync();
 
-	Task UpdateAsync(string? itemId, CategoryModel category);
+	Task UpdateAsync(string? itemId, Category category);
 }

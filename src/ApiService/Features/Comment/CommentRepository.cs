@@ -12,17 +12,16 @@ namespace ApiService.Features.Comment;
 /// <summary>
 ///   CommentRepository class
 /// </summary>
-public class CommentRepository(IMongoDbContextFactory context) : ICommentRepository
+public class CommentRepository(IMongoDbContextFactory contextFactory) : ICommentRepository
 {
-	private readonly IMongoCollection<CommentModel> _commentCollection =
-		context.GetCollection<CommentModel>(GetCollectionName(nameof(CommentModel)));
+	private readonly IMongoCollection<Shared.Models.Comment> _collection = contextFactory.CreateDbContext().Comments;
 
 	/// <summary>
 	///   Archive the comment by setting the Archived property to true
 	/// </summary>
 	/// <param name="comment"></param>
 	/// <returns>Task</returns>
-	public async Task ArchiveAsync(CommentModel comment)
+	public async Task ArchiveAsync(Shared.Models.Comment comment)
 	{
 		ArgumentNullException.ThrowIfNull(comment, nameof(comment));
 
@@ -35,29 +34,29 @@ public class CommentRepository(IMongoDbContextFactory context) : ICommentReposit
 	/// <summary>
 	///   CreateComment method
 	/// </summary>
-	/// <param name="comment">CommentModel</param>
+	/// <param name="comment">Comment</param>
 	/// <exception cref="Exception"></exception>
-	public async Task CreateAsync(CommentModel comment)
+	public async Task CreateAsync(Shared.Models.Comment comment)
 	{
 		ArgumentNullException.ThrowIfNull(comment, nameof(comment));
 
-		await _commentCollection.InsertOneAsync(comment);
+		await _collection.InsertOneAsync(comment);
 	}
 
 	/// <summary>
 	///   GetComment method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <returns>Task of CommentModel</returns>
-	public async Task<CommentModel> GetAsync(string itemId)
+	/// <returns>Task of Comment</returns>
+	public async Task<Shared.Models.Comment> GetAsync(string itemId)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(itemId, nameof(itemId));
 
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<CommentModel>? filter = Builders<CommentModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Comment>? filter = Builders<Shared.Models.Comment>.Filter.Eq("_id", objectId);
 
-		CommentModel? result = (await _commentCollection.FindAsync(filter)).FirstOrDefault();
+		Shared.Models.Comment? result = (await _collection.FindAsync(filter)).FirstOrDefault();
 
 		return result;
 	}
@@ -65,12 +64,12 @@ public class CommentRepository(IMongoDbContextFactory context) : ICommentReposit
 	/// <summary>
 	///   GetComments method
 	/// </summary>
-	/// <returns>Task of IEnumerable CommentModel</returns>
-	public async Task<IEnumerable<CommentModel>?> GetAllAsync()
+	/// <returns>Task of IEnumerable Comment</returns>
+	public async Task<IEnumerable<Shared.Models.Comment>?> GetAllAsync()
 	{
-		FilterDefinition<CommentModel>? filter = Builders<CommentModel>.Filter.Empty;
+		FilterDefinition<Shared.Models.Comment>? filter = Builders<Shared.Models.Comment>.Filter.Empty;
 
-		List<CommentModel>? results = (await _commentCollection.FindAsync(filter)).ToList();
+		List<Shared.Models.Comment>? results = (await _collection.FindAsync(filter)).ToList();
 
 		return results;
 	}
@@ -78,13 +77,13 @@ public class CommentRepository(IMongoDbContextFactory context) : ICommentReposit
 	/// <summary>
 	///   GetCommentsByIssue method
 	/// </summary>
-	/// <param name="issue">BasicIssueModel</param>
-	/// <returns>Task of IEnumerable CommentModel</returns>
-	public async Task<IEnumerable<CommentModel>> GetByIssueAsync(BasicIssueModel issue)
+	/// <param name="issue">IssueDto</param>
+	/// <returns>Task of IEnumerable Comment</returns>
+	public async Task<IEnumerable<Shared.Models.Comment>> GetByIssueAsync(IssueDto issue)
 	{
 		ArgumentNullException.ThrowIfNull(issue, nameof(issue));
 
-		List<CommentModel>? results = (await _commentCollection
+		List<Shared.Models.Comment>? results = (await _collection
 				.FindAsync(s => s.Issue.Id == issue.Id))
 			.ToList();
 
@@ -95,12 +94,13 @@ public class CommentRepository(IMongoDbContextFactory context) : ICommentReposit
 	///   GetCommentsByUser method
 	/// </summary>
 	/// <param name="userId">string</param>
-	/// <returns>Task of IEnumerable CommentModel</returns>
-	public async Task<IEnumerable<CommentModel>> GetByUserAsync(string userId)
+	/// <returns>Task of IEnumerable Comment</returns>
+	public async Task<IEnumerable<Shared.Models.Comment>> GetByUserAsync(string userId)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(userId, nameof(userId));
 
-		List<CommentModel>? results = (await _commentCollection.FindAsync(s => s.Author.Id == userId)).ToList();
+		ObjectId userObjectId = ObjectId.Parse(userId);
+		List<Shared.Models.Comment>? results = (await _collection.FindAsync(s => s.Author.Id == userObjectId)).ToList();
 
 		return results;
 	}
@@ -109,14 +109,14 @@ public class CommentRepository(IMongoDbContextFactory context) : ICommentReposit
 	///   UpdateComment method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <param name="comment">CommentModel</param>
-	public async Task UpdateAsync(string itemId, CommentModel comment)
+	/// <param name="comment">Comment</param>
+	public async Task UpdateAsync(string itemId, Shared.Models.Comment comment)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<CommentModel>? filter = Builders<CommentModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Comment>? filter = Builders<Shared.Models.Comment>.Filter.Eq("_id", objectId);
 
-		await _commentCollection.ReplaceOneAsync(filter, comment);
+		await _collection.ReplaceOneAsync(filter, comment);
 	}
 
 	/// <summary>
@@ -129,9 +129,9 @@ public class CommentRepository(IMongoDbContextFactory context) : ICommentReposit
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<CommentModel>? filterComment = Builders<CommentModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Comment>? filterComment = Builders<Shared.Models.Comment>.Filter.Eq("_id", objectId);
 
-		CommentModel? comment = (await _commentCollection.FindAsync(filterComment)).FirstOrDefault();
+		Shared.Models.Comment? comment = (await _collection.FindAsync(filterComment)).FirstOrDefault();
 
 		bool isUpVote = comment.UserVotes.Add(userId);
 
@@ -140,6 +140,6 @@ public class CommentRepository(IMongoDbContextFactory context) : ICommentReposit
 			comment.UserVotes.Remove(userId);
 		}
 
-		await _commentCollection.ReplaceOneAsync(s => s.Id == itemId, comment);
+		await _collection.ReplaceOneAsync(s => s.Id == itemId, comment);
 	}
 }

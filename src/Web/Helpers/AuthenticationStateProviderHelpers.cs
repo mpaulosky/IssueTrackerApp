@@ -21,8 +21,8 @@ public static class AuthenticationStateProviderHelpers
 	/// </summary>
 	/// <param name="provider">The AuthenticationState provider.</param>
 	/// <param name="userData">The user service.</param>
-	/// <returns>Task of Type UserModel</returns>
-	public static async Task<UserModel> GetUserFromAuth(
+	/// <returns>Task of Type User</returns>
+	public static async Task<global::Shared.Models.User> GetUserFromAuth(
 		this AuthenticationStateProvider provider,
 		IUserService userData)
 	{
