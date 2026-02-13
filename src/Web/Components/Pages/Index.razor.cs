@@ -75,25 +75,25 @@ public partial class Index
 				_loggedInUser.ObjectIdentifier = objectId;
 			}
 
-			if (!(firstName?.Equals(_loggedInUser.FirstName) ?? true))
+			if (firstName?.Equals(_loggedInUser.FirstName) is false)
 			{
 				isDirty = true;
 				_loggedInUser.FirstName = firstName;
 			}
 
-			if (!(lastName?.Equals(_loggedInUser.LastName) ?? true))
+			if (lastName?.Equals(_loggedInUser.LastName) is false)
 			{
 				isDirty = true;
 				_loggedInUser.LastName = lastName;
 			}
 
-			if (!(displayName?.Equals(_loggedInUser.DisplayName) ?? true))
+			if (displayName?.Equals(_loggedInUser.DisplayName) is false)
 			{
 				isDirty = true;
 				_loggedInUser.DisplayName = displayName;
 			}
 
-			if (!(email?.Equals(_loggedInUser.EmailAddress) ?? true))
+			if (email?.Equals(_loggedInUser.EmailAddress) is false)
 			{
 				isDirty = true;
 				_loggedInUser.EmailAddress = email;
