@@ -15,13 +15,15 @@ namespace IssueTracker.UI.Pages;
 ///   Statuses partial class
 /// </summary>
 [UsedImplicitly]
-public partial class Statuses
+public partial class Statuses : ComponentBase
 {
-	private List<StatusModel>? _statuses = new();
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private IStatusService StatusService { get; set; } = default!;
+	private List<global::Shared.Models.Status>? _statuses = new();
 
-	private RadzenDataGrid<StatusModel> _statusesGrid = new();
-	private StatusModel? _statusToInsert;
-	private StatusModel? _statusToUpdate;
+	private RadzenDataGrid<global::Shared.Models.Status> _statusesGrid = new();
+	private global::Shared.Models.Status? _statusToInsert;
+	private global::Shared.Models.Status? _statusToUpdate;
 
 	/// <summary>
 	///   OnInitializedAsync event.
@@ -31,26 +33,26 @@ public partial class Statuses
 		_statuses = await StatusService.GetStatuses();
 	}
 
-	private async Task EditRow(StatusModel status)
+	private async Task EditRow(global::Shared.Models.Status status)
 	{
 		_statusToUpdate = status;
 
 		await _statusesGrid.EditRow(_statusToUpdate);
 	}
 
-	private async void OnUpdateRow(StatusModel status)
+	private async void OnUpdateRow(global::Shared.Models.Status status)
 	{
 		_statusToUpdate = null;
 
 		await StatusService.UpdateStatus(status);
 	}
 
-	private async Task SaveRow(StatusModel status)
+	private async Task SaveRow(global::Shared.Models.Status status)
 	{
 		await _statusesGrid.UpdateRow(status);
 	}
 
-	private void CancelEdit(StatusModel status)
+	private void CancelEdit(global::Shared.Models.Status status)
 	{
 		if (status == _statusToInsert)
 		{
@@ -65,7 +67,7 @@ public partial class Statuses
 		_statusesGrid.CancelEditRow(status);
 	}
 
-	private async Task DeleteRow(StatusModel status)
+	private async Task DeleteRow(global::Shared.Models.Status status)
 	{
 		if (_statuses!.Contains(status))
 		{
@@ -81,12 +83,12 @@ public partial class Statuses
 
 	private async Task InsertRow()
 	{
-		_statusToInsert = new StatusModel();
+		_statusToInsert = new global::Shared.Models.Status();
 
 		await _statusesGrid.InsertRow(_statusToInsert);
 	}
 
-	private async void OnCreateRow(StatusModel status)
+	private async void OnCreateRow(global::Shared.Models.Status status)
 	{
 		if (status == _statusToInsert)
 		{

@@ -1,20 +1,23 @@
 <Project Sdk="Aspire.AppHost.Sdk/13.1.0">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <UserSecretsId>fbc1aae7-37a9-4b21-8f84-512e2b96ab8c</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UserSecretsId>fbc1aae7-37a9-4b21-8f84-512e2b96ab8c</UserSecretsId>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ApiService\ApiService.csproj" />
-    <ProjectReference Include="..\Web\Web.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\ApiService\ApiService.csproj"/>
+		<ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" IsAspireProjectResource="false"/>
+		<ProjectReference Include="..\Shared\Shared.csproj" IsAspireProjectResource="false"/>
+		<ProjectReference Include="..\Web\Web.csproj"/>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Redis" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.MongoDB"/>
+		<PackageReference Include="Aspire.Hosting.Redis"/>
+	</ItemGroup>
 
 </Project>

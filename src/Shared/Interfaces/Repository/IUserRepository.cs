@@ -11,15 +11,15 @@ namespace Shared.Interfaces.Repository;
 
 public interface IUserRepository
 {
-	Task ArchiveAsync(UserModel user);
+	Task ArchiveAsync(Shared.Models.User user);
 
-	Task CreateAsync(UserModel user);
+	Task CreateAsync(Shared.Models.User user);
 
-	Task<UserModel> GetAsync(string itemId);
+	Task<Shared.Models.User> GetAsync(string itemId);
 
-	Task<UserModel> GetFromAuthenticationAsync(string userObjectIdentifierId);
+	Task<Shared.Models.User> GetFromAuthenticationAsync(string userObjectIdentifierId);
 
-	Task<IEnumerable<UserModel>> GetAllAsync();
+	Task<IEnumerable<Shared.Models.User>> GetAllAsync();
 
-	Task UpdateAsync(string itemId, UserModel user);
+	Task UpdateAsync(string itemId, Shared.Models.User user);
 }

@@ -12,17 +12,16 @@ namespace ApiService.Features.Issue;
 /// <summary>
 ///   IssueRepository class
 /// </summary>
-public class IssueRepository(IMongoDbContextFactory context) : IIssueRepository
+public class IssueRepository(IMongoDbContextFactory contextFactory) : IIssueRepository
 {
-	private readonly IMongoCollection<IssueModel> _issueCollection =
-		context.GetCollection<IssueModel>(GetCollectionName(nameof(IssueModel)));
+	private readonly IMongoCollection<Shared.Models.Issue> _collection = contextFactory.CreateDbContext().Issues;
 
 	/// <summary>
 	///   Archive Issue method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
+	/// <param name="issue">Issue</param>
 	/// <returns>Task</returns>
-	public async Task ArchiveAsync(IssueModel issue)
+	public async Task ArchiveAsync(Shared.Models.Issue issue)
 	{
 		// Archive the category
 		issue.Archived = true;
@@ -33,25 +32,25 @@ public class IssueRepository(IMongoDbContextFactory context) : IIssueRepository
 	/// <summary>
 	///   CreateIssue method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
+	/// <param name="issue">Issue</param>
 	/// <exception cref="Exception"></exception>
-	public async Task CreateAsync(IssueModel issue)
+	public async Task CreateAsync(Shared.Models.Issue issue)
 	{
-		await _issueCollection.InsertOneAsync(issue);
+		await _collection.InsertOneAsync(issue);
 	}
 
 	/// <summary>
 	///   GetIssue method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <returns>Task of IssueModel</returns>
-	public async Task<IssueModel> GetAsync(string itemId)
+	/// <returns>Task of Issue</returns>
+	public async Task<Shared.Models.Issue> GetAsync(string itemId)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<IssueModel>? filter = Builders<IssueModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Issue>? filter = Builders<Shared.Models.Issue>.Filter.Eq("_id", objectId);
 
-		IssueModel? result = (await _issueCollection.FindAsync(filter)).FirstOrDefault();
+		Shared.Models.Issue? result = (await _collection.FindAsync(filter)).FirstOrDefault();
 
 		return result;
 	}
@@ -59,12 +58,12 @@ public class IssueRepository(IMongoDbContextFactory context) : IIssueRepository
 	/// <summary>
 	///   GetIssues method
 	/// </summary>
-	/// <returns>Task of IEnumerable IssueModel</returns>
-	public async Task<IEnumerable<IssueModel>> GetAllAsync()
+	/// <returns>Task of IEnumerable Issue</returns>
+	public async Task<IEnumerable<Shared.Models.Issue>> GetAllAsync()
 	{
-		FilterDefinition<IssueModel>? filter = Builders<IssueModel>.Filter.Empty;
+		FilterDefinition<Shared.Models.Issue>? filter = Builders<Shared.Models.Issue>.Filter.Empty;
 
-		List<IssueModel>? results = (await _issueCollection.FindAsync(filter)).ToList();
+		List<Shared.Models.Issue>? results = (await _collection.FindAsync(filter)).ToList();
 
 		return results;
 	}
@@ -72,12 +71,12 @@ public class IssueRepository(IMongoDbContextFactory context) : IIssueRepository
 	/// <summary>
 	///   GetIssuesWaitingForApproval method
 	/// </summary>
-	/// <returns>Task of IEnumerable IssueModel</returns>
-	public async Task<IEnumerable<IssueModel>> GetWaitingForApprovalAsync()
+	/// <returns>Task of IEnumerable Issue</returns>
+	public async Task<IEnumerable<Shared.Models.Issue>> GetWaitingForApprovalAsync()
 	{
-		IEnumerable<IssueModel> output = await GetAllAsync();
+		IEnumerable<Shared.Models.Issue> output = await GetAllAsync();
 
-		List<IssueModel> results = output.Where(x => !(x is { ApprovedForRelease: true }) && !x.Rejected).ToList();
+		List<Shared.Models.Issue> results = output.Where(x => !(x is { ApprovedForRelease: true }) && !x.Rejected).ToList();
 
 		return results;
 	}
@@ -85,12 +84,12 @@ public class IssueRepository(IMongoDbContextFactory context) : IIssueRepository
 	/// <summary>
 	///   GetApprovedIssues method
 	/// </summary>
-	/// <returns>Task of IEnumerable IssueModel</returns>
-	public async Task<IEnumerable<IssueModel>> GetApprovedAsync()
+	/// <returns>Task of IEnumerable Issue</returns>
+	public async Task<IEnumerable<Shared.Models.Issue>> GetApprovedAsync()
 	{
-		IEnumerable<IssueModel> output = await GetAllAsync();
+		IEnumerable<Shared.Models.Issue> output = await GetAllAsync();
 
-		List<IssueModel> results = output.Where(x => x is { ApprovedForRelease: true, Rejected: false }).ToList();
+		List<Shared.Models.Issue> results = output.Where(x => x is { ApprovedForRelease: true, Rejected: false }).ToList();
 
 		return results;
 	}
@@ -99,10 +98,11 @@ public class IssueRepository(IMongoDbContextFactory context) : IIssueRepository
 	///   GetUserIssues method
 	/// </summary>
 	/// <param name="userId">string</param>
-	/// <returns>Task of IEnumerable IssueModel</returns>
-	public async Task<IEnumerable<IssueModel>> GetByUserAsync(string userId)
+	/// <returns>Task of IEnumerable Issue</returns>
+	public async Task<IEnumerable<Shared.Models.Issue>> GetByUserAsync(string userId)
 	{
-		List<IssueModel>? results = (await _issueCollection.FindAsync(s => s.Author.Id == userId)).ToList();
+		ObjectId userObjectId = new(userId);
+		List<Shared.Models.Issue>? results = (await _collection.FindAsync(s => s.Author.Id == userObjectId)).ToList();
 
 		return results;
 	}
@@ -111,13 +111,13 @@ public class IssueRepository(IMongoDbContextFactory context) : IIssueRepository
 	///   UpdateIssue method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <param name="issue">IssueModel</param>
-	public async Task UpdateAsync(string itemId, IssueModel issue)
+	/// <param name="issue">Issue</param>
+	public async Task UpdateAsync(string itemId, Shared.Models.Issue issue)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<IssueModel>? filter = Builders<IssueModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Issue>? filter = Builders<Shared.Models.Issue>.Filter.Eq("_id", objectId);
 
-		await _issueCollection.ReplaceOneAsync(filter, issue);
+		await _collection.ReplaceOneAsync(filter, issue);
 	}
 }

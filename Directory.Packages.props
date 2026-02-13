@@ -53,5 +53,6 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="Aspire.Hosting.MongoDB" Version="13.1.1" />
   </ItemGroup>
 </Project>

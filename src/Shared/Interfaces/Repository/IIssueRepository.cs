@@ -11,19 +11,19 @@ namespace Shared.Interfaces.Repository;
 
 public interface IIssueRepository
 {
-	Task ArchiveAsync(IssueModel issue);
+	Task ArchiveAsync(Shared.Models.Issue issue);
 
-	Task CreateAsync(IssueModel issue);
+	Task CreateAsync(Shared.Models.Issue issue);
 
-	Task<IssueModel> GetAsync(string itemId);
+	Task<Shared.Models.Issue> GetAsync(string itemId);
 
-	Task<IEnumerable<IssueModel>> GetAllAsync();
+	Task<IEnumerable<Shared.Models.Issue>> GetAllAsync();
 
-	Task<IEnumerable<IssueModel>> GetApprovedAsync();
+	Task<IEnumerable<Shared.Models.Issue>> GetApprovedAsync();
 
-	Task<IEnumerable<IssueModel>> GetByUserAsync(string userId);
+	Task<IEnumerable<Shared.Models.Issue>> GetByUserAsync(string userId);
 
-	Task<IEnumerable<IssueModel>> GetWaitingForApprovalAsync();
+	Task<IEnumerable<Shared.Models.Issue>> GetWaitingForApprovalAsync();
 
-	Task UpdateAsync(string itemId, IssueModel issue);
+	Task UpdateAsync(string itemId, Shared.Models.Issue issue);
 }

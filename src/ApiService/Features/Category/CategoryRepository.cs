@@ -12,29 +12,28 @@ namespace ApiService.Features.Category;
 /// <summary>
 ///   CategoryRepository class
 /// </summary>
-public class CategoryRepository(IMongoDbContextFactory context) : ICategoryRepository
+public class CategoryRepository(IMongoDbContextFactory contextFactory) : ICategoryRepository
 {
-	private readonly IMongoCollection<CategoryModel> _collection =
-		context.GetCollection<CategoryModel>(GetCollectionName(nameof(CategoryModel)));
+	private readonly IMongoCollection<Shared.Models.Category> _collection = contextFactory.CreateDbContext().Categories;
 
 	/// <summary>
 	///   Archive Category method
 	/// </summary>
 	/// <param name="category"></param>
 	/// <returns></returns>
-	public async Task ArchiveAsync(CategoryModel category)
+	public async Task ArchiveAsync(Shared.Models.Category category)
 	{
 		// Archive the category
 		category.Archived = true;
 
-		await UpdateAsync(category.Id, category);
+		await UpdateAsync(category.Id.ToString(), category);
 	}
 
 	/// <summary>
 	///   Create Category method
 	/// </summary>
-	/// <param name="category">CategoryModel</param>
-	public async Task CreateAsync(CategoryModel category)
+	/// <param name="category">Category</param>
+	public async Task CreateAsync(Shared.Models.Category category)
 	{
 		await _collection.InsertOneAsync(category);
 	}
@@ -43,14 +42,14 @@ public class CategoryRepository(IMongoDbContextFactory context) : ICategoryRepos
 	///   Get Category method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <returns>Task of CategoryModel</returns>
-	public async Task<CategoryModel> GetAsync(string? itemId)
+	/// <returns>Task of Category</returns>
+	public async Task<Shared.Models.Category> GetAsync(string? itemId)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<CategoryModel>? filter = Builders<CategoryModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Category>? filter = Builders<Shared.Models.Category>.Filter.Eq("_id", objectId);
 
-		CategoryModel? result = (await _collection.FindAsync(filter)).FirstOrDefault();
+		Shared.Models.Category? result = (await _collection.FindAsync(filter)).FirstOrDefault();
 
 		return result;
 	}
@@ -58,12 +57,12 @@ public class CategoryRepository(IMongoDbContextFactory context) : ICategoryRepos
 	/// <summary>
 	///   Get Categories method
 	/// </summary>
-	/// <returns>Task of IEnumerable CategoryModel</returns>
-	public async Task<IEnumerable<CategoryModel>> GetAllAsync()
+	/// <returns>Task of IEnumerable Category</returns>
+	public async Task<IEnumerable<Shared.Models.Category>> GetAllAsync()
 	{
-		FilterDefinition<CategoryModel>? filter = Builders<CategoryModel>.Filter.Empty;
+		FilterDefinition<Shared.Models.Category>? filter = Builders<Shared.Models.Category>.Filter.Empty;
 
-		List<CategoryModel>? result = (await _collection.FindAsync(filter)).ToList();
+		List<Shared.Models.Category>? result = (await _collection.FindAsync(filter)).ToList();
 
 		return result;
 	}
@@ -72,12 +71,12 @@ public class CategoryRepository(IMongoDbContextFactory context) : ICategoryRepos
 	///   Update Category method
 	/// </summary>
 	/// <param name="itemId">string</param>
-	/// <param name="category">CategoryModel</param>
-	public async Task UpdateAsync(string? itemId, CategoryModel category)
+	/// <param name="category">Category</param>
+	public async Task UpdateAsync(string? itemId, Shared.Models.Category category)
 	{
 		ObjectId objectId = new(itemId);
 
-		FilterDefinition<CategoryModel>? filter = Builders<CategoryModel>.Filter.Eq("_id", objectId);
+		FilterDefinition<Shared.Models.Category>? filter = Builders<Shared.Models.Category>.Filter.Eq("_id", objectId);
 
 		await _collection.ReplaceOneAsync(filter, category);
 	}

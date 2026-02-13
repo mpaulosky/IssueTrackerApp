@@ -1,6 +1,6 @@
 // ============================================
 // Copyright (c) 2023. All rights reserved.
-// File Name :     UserModel.cs
+// File Name :     User.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueTrackerApp
@@ -15,6 +15,7 @@ namespace Shared.Models;
 [Serializable]
 public class User
 {
+
 	/// <summary>
 	///   Gets or sets the identifier.
 	/// </summary>

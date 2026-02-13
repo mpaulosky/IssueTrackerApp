@@ -3,13 +3,15 @@
 // File Name :     IMongoDbContext.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
-// Solution Name : ArticlesSite
-// Project Name :  Web
+// Solution Name : IssueTrackerApp
+// Project Name :  Shared
 // =======================================================
+
+using MongoDB.Driver;
 
 using Shared.Models;
 
-namespace ApiService.DataAccess;
+namespace Shared.Interfaces.Data;
 
 /// <summary>
 ///   Interface for MongoDB context using a native driver

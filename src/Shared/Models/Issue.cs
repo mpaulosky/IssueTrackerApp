@@ -1,6 +1,6 @@
 // ============================================
 // Copyright (c) 2023. All rights reserved.
-// File Name :     IssueModel.cs
+// File Name :     Issue.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueTracker
@@ -10,25 +10,17 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
+using Shared.Abstractions;
 using Shared.Models.DTOs;
 
 namespace Shared.Models;
 
 /// <summary>
-///   IssueModel class
+///   Issue class
 /// </summary>
 [Serializable]
-public class Issue
+public class Issue : Entity
 {
-	/// <summary>
-	///   Gets or sets the identifier.
-	/// </summary>
-	/// <value>
-	///   The identifier.
-	/// </value>
-	[BsonId]
-	[BsonRepresentation(BsonType.ObjectId)]
-	public string Id { get; set; } = string.Empty;
 
 	/// <summary>
 	///   Gets or sets the title.
@@ -51,22 +43,12 @@ public class Issue
 	public string Description { get; set; } = string.Empty;
 
 	/// <summary>
-	///   Gets or sets the date created.
-	/// </summary>
-	/// <value>
-	///   The date created.
-	/// </value>
-	[BsonElement("date_created")]
-	[BsonRepresentation(BsonType.DateTime)]
-	public DateTime DateCreated { get; init; } = DateTime.UtcNow;
-
-	/// <summary>
 	///   Gets or sets the category.
 	/// </summary>
 	/// <value>
 	///   The category.
 	/// </value>
-	public BasicCategoryModel Category { get; set; } = new();
+	public CategoryDto Category { get; set; } = CategoryDto.Empty;
 
 	/// <summary>
 	///   Gets or sets the author.
@@ -74,7 +56,7 @@ public class Issue
 	/// <value>
 	///   The author.
 	/// </value>
-	public BasicUserModel Author { get; set; } = new();
+	public UserDto Author { get; set; } = UserDto.Empty;
 
 	/// <summary>
 	///   Gets or sets the issue status.
@@ -82,25 +64,7 @@ public class Issue
 	/// <value>
 	///   The issue status.
 	/// </value>
-	public BasicStatusModel IssueStatus { get; set; } = new();
-
-	/// <summary>
-	///   Gets or sets a value indicating whether this <see cref="Issue" /> is archived.
-	/// </summary>
-	/// <value>
-	///   <c>true</c> if archived; otherwise, <c>false</c>.
-	/// </value>
-	[BsonElement("archived")]
-	[BsonRepresentation(BsonType.Boolean)]
-	public bool Archived { get; set; }
-
-	/// <summary>
-	///   Gets or sets who archived the record.
-	/// </summary>
-	/// <value>
-	///   Who archived the record.
-	/// </value>
-	public BasicUserModel ArchivedBy { get; set; } = new();
+	public StatusDto IssueStatus { get; set; } = StatusDto.Empty;
 
 	/// <summary>
 	///   Gets or sets a value indicating whether [approved for release].

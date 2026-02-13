@@ -19,20 +19,19 @@ public static class CollectionNames
 	///   GetCollectionName method
 	/// </summary>
 	/// <param name="entityName">string</param>
-	/// <returns>Result string collection name</returns>
-	public static Result<string> GetCollectionName(string? entityName)
+	/// <returns>string collection name</returns>
+	public static string GetCollectionName(string? entityName)
 	{
 
-		switch (entityName)
+		return entityName switch
 		{
-
-			case "Article": return Result.Ok("articles");
-
-			case "Category": return Result.Ok("categories");
-
-			default: return Result<string>.Fail("Invalid entity name provided.");
-
-		}
+			"Category" => "categories",
+			"Comment" => "comments",
+			"Issue" => "issues",
+			"Status" => "statuses",
+			"User" => "users",
+			_ => throw new ArgumentException($"Invalid entity name provided: {entityName}", nameof(entityName))
+		};
 
 	}
 

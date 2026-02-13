@@ -11,19 +11,19 @@ namespace Shared.Interfaces.Services;
 
 public interface IIssueService
 {
-	Task ArchiveIssue(IssueModel issue);
+	Task ArchiveIssue(Shared.Models.Issue issue);
 
-	Task CreateIssue(IssueModel issue);
+	Task CreateIssue(Shared.Models.Issue issue);
 
-	Task<IssueModel> GetIssue(string? issueId);
+	Task<Shared.Models.Issue> GetIssue(string? issueId);
 
-	Task<List<IssueModel>> GetIssues();
+	Task<List<Shared.Models.Issue>> GetIssues();
 
-	Task<List<IssueModel>> GetIssuesByUser(string userId);
+	Task<List<Shared.Models.Issue>> GetIssuesByUser(string userId);
 
-	Task<List<IssueModel>> GetApprovedIssues();
+	Task<List<Shared.Models.Issue>> GetApprovedIssues();
 
-	Task<List<IssueModel>> GetIssuesWaitingForApproval();
+	Task<List<Shared.Models.Issue>> GetIssuesWaitingForApproval();
 
-	Task UpdateIssue(IssueModel issue);
+	Task UpdateIssue(Shared.Models.Issue issue);
 }

@@ -15,13 +15,16 @@ namespace IssueTracker.UI.Pages;
 ///   Categories partial class
 /// </summary>
 [UsedImplicitly]
-public partial class Categories
+public partial class Categories : ComponentBase
 {
-	private List<CategoryModel>? _categories = new();
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private ICategoryService CategoryService { get; set; } = default!;
 
-	private RadzenDataGrid<CategoryModel>? _categoriesGrid;
-	private CategoryModel? _categoryToInsert;
-	private CategoryModel? _categoryToUpdate;
+	private List<Category>? _categories = new();
+
+	private RadzenDataGrid<Category>? _categoriesGrid;
+	private Category? _categoryToInsert;
+	private Category? _categoryToUpdate;
 
 	/// <summary>
 	///   OnInitializedAsync event.
@@ -31,26 +34,26 @@ public partial class Categories
 		_categories = await CategoryService.GetCategories();
 	}
 
-	private async Task EditRow(CategoryModel category)
+	private async Task EditRow(Category category)
 	{
 		_categoryToUpdate = category;
 
 		await _categoriesGrid!.EditRow(_categoryToUpdate);
 	}
 
-	private async void OnUpdateRow(CategoryModel category)
+	private async void OnUpdateRow(Category category)
 	{
 		_categoryToUpdate = null;
 
 		await CategoryService.UpdateCategory(category);
 	}
 
-	private async Task SaveRow(CategoryModel category)
+	private async Task SaveRow(Category category)
 	{
 		await _categoriesGrid!.UpdateRow(category);
 	}
 
-	private void CancelEdit(CategoryModel category)
+	private void CancelEdit(Category category)
 	{
 		if (category == _categoryToInsert)
 		{
@@ -65,7 +68,7 @@ public partial class Categories
 		_categoriesGrid!.CancelEditRow(category);
 	}
 
-	private async Task DeleteRow(CategoryModel category)
+	private async Task DeleteRow(Category category)
 	{
 		if (_categories!.Contains(category))
 		{
@@ -81,12 +84,12 @@ public partial class Categories
 
 	private async Task InsertRow()
 	{
-		_categoryToInsert = new CategoryModel();
+		_categoryToInsert = new Category();
 
 		await _categoriesGrid!.InsertRow(_categoryToInsert);
 	}
 
-	private async void OnCreateRow(CategoryModel category)
+	private async void OnCreateRow(Category category)
 	{
 		if (category == _categoryToInsert)
 		{

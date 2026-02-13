@@ -11,15 +11,15 @@ namespace Shared.Interfaces.Services;
 
 public interface IUserService
 {
-	Task ArchiveUser(UserModel user);
+	Task ArchiveUser(Shared.Models.User user);
 
-	Task CreateUser(UserModel user);
+	Task CreateUser(Shared.Models.User user);
 
-	Task<UserModel> GetUser(string? userId);
+	Task<Shared.Models.User> GetUser(string? userId);
 
-	Task<UserModel> GetUserFromAuthentication(string? userObjectIdentifierId);
+	Task<Shared.Models.User> GetUserFromAuthentication(string? userObjectIdentifierId);
 
-	Task<List<UserModel>> GetUsers();
+	Task<List<Shared.Models.User>> GetUsers();
 
-	Task UpdateUser(UserModel user);
+	Task UpdateUser(Shared.Models.User user);
 }

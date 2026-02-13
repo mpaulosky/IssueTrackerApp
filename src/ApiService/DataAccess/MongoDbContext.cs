@@ -25,10 +25,22 @@ public class MongoDbContext : IMongoDbContext
 		_database = mongoClient.GetDatabase(databaseName);
 	}
 
-	public IMongoCollection<Article> Articles => _database.GetCollection<Article>("Articles");
+	public IMongoCollection<Issue> Issues => _database.GetCollection<Issue>("issues");
 
-	public IMongoCollection<Category> Categories => _database.GetCollection<Category>("Categories");
+	public IMongoCollection<Category> Categories => _database.GetCollection<Category>("categories");
+
+	public IMongoCollection<Comment> Comments => _database.GetCollection<Comment>("comments");
+
+	public IMongoCollection<Status> Statuses => _database.GetCollection<Status>("statuses");
+
+	public IMongoCollection<User> Users => _database.GetCollection<User>("users");
 
 	public IMongoDatabase Database => _database;
+
+	public void Dispose()
+	{
+		// MongoDB client manages connection pooling, no explicit disposal needed
+		GC.SuppressFinalize(this);
+	}
 
 }

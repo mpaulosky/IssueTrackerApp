@@ -1,6 +1,6 @@
 // ============================================
 // Copyright (c) 2023. All rights reserved.
-// File Name :     StatusModel.cs
+// File Name :     Status.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueTracker
@@ -10,23 +10,17 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
+using Shared.Abstractions;
+using Shared.Models.DTOs;
+
 namespace Shared.Models;
 
 /// <summary>
-///   StatusModel class
+///   Status class
 /// </summary>
 [Serializable]
-public class Status
+public class Status : Entity
 {
-	/// <summary>
-	///   Gets or sets the identifier.
-	/// </summary>
-	/// <value>
-	///   The identifier.
-	/// </value>
-	[BsonId]
-	[BsonRepresentation(BsonType.ObjectId)]
-	public string Id { get; set; } = string.Empty;
 
 	/// <summary>
 	///   Gets or sets the name of the status.
@@ -48,21 +42,4 @@ public class Status
 	[BsonRepresentation(BsonType.String)]
 	public string StatusDescription { get; set; } = string.Empty;
 
-	/// <summary>
-	///   Gets or sets a value indicating whether this <see cref="Status" /> is archived.
-	/// </summary>
-	/// <value>
-	///   <c>true</c> if archived; otherwise, <c>false</c>.
-	/// </value>
-	[BsonElement("archived")]
-	[BsonRepresentation(BsonType.Boolean)]
-	public bool Archived { get; set; }
-
-	/// <summary>
-	///   Gets or sets who archived the record.
-	/// </summary>
-	/// <value>
-	///   Who archived the record.
-	/// </value>
-	public BasicUserModel ArchivedBy { get; set; } = new();
 }

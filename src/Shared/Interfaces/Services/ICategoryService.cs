@@ -7,17 +7,19 @@
 // Project Name :  IssueTracker.Services
 // =============================================
 
+using Shared.Models;
+
 namespace Shared.Interfaces.Services;
 
 public interface ICategoryService
 {
-	Task ArchiveCategory(CategoryModel category);
+	Task ArchiveCategory(Category category);
 
-	Task CreateCategory(CategoryModel category);
+	Task CreateCategory(Category category);
 
-	Task<CategoryModel> GetCategory(string? categoryId);
+	Task<Category> GetCategory(string? categoryId);
 
-	Task<List<CategoryModel>> GetCategories();
+	Task<List<Category>> GetCategories();
 
-	Task UpdateCategory(CategoryModel category);
+	Task UpdateCategory(Category category);
 }

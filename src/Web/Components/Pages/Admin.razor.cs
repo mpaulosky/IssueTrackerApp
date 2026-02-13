@@ -12,15 +12,18 @@ namespace IssueTracker.UI.Pages;
 /// <summary>
 ///   Admin page class
 /// </summary>
-/// <seealso cref="Microsoft.AspNetCore.Mvc.RazorPages.PageModel" />
+/// <seealso cref="Microsoft.AspNetCore.Components.ComponentBase" />
 [UsedImplicitly]
-public partial class Admin
+public partial class Admin : ComponentBase
 {
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private IIssueService IssueService { get; set; } = default!;
+
 	private string _currentEditingDescription = "";
 	private string _currentEditingTitle = "";
 	private string _editedDescription = "";
 	private string _editedTitle = "";
-	private List<IssueModel>? _issues;
+	private List<global::Shared.Models.Issue>? _issues;
 
 	/// <summary>
 	///   OnInitializedAsync event
@@ -33,8 +36,8 @@ public partial class Admin
 	/// <summary>
 	///   ApproveIssue method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
-	private async Task ApproveIssue(IssueModel issue)
+	/// <param name="issue">Issue</param>
+	private async Task ApproveIssue(global::Shared.Models.Issue issue)
 	{
 		issue.ApprovedForRelease = true;
 
@@ -46,8 +49,8 @@ public partial class Admin
 	/// <summary>
 	///   RejectIssue method
 	/// </summary>
-	/// <param name="issue">IssueModel</param>
-	private async Task RejectIssue(IssueModel issue)
+	/// <param name="issue">Issue</param>
+	private async Task RejectIssue(global::Shared.Models.Issue issue)
 	{
 		issue.Rejected = true;
 
@@ -59,8 +62,8 @@ public partial class Admin
 	/// <summary>
 	///   EditTitle method
 	/// </summary>
-	/// <param name="model">IssueModel</param>
-	private void EditTitle(IssueModel model)
+	/// <param name="model">Issue</param>
+	private void EditTitle(global::Shared.Models.Issue model)
 	{
 		_editedTitle = model.Title;
 		_currentEditingTitle = model.Id;
@@ -70,8 +73,8 @@ public partial class Admin
 	/// <summary>
 	///   SaveTitle method
 	/// </summary>
-	/// <param name="model">IssueModel</param>
-	private async Task SaveTitle(IssueModel model)
+	/// <param name="model">Issue</param>
+	private async Task SaveTitle(global::Shared.Models.Issue model)
 	{
 		_currentEditingTitle = string.Empty;
 		model.Title = _editedTitle;
@@ -81,8 +84,8 @@ public partial class Admin
 	/// <summary>
 	///   EditDescription method
 	/// </summary>
-	/// <param name="model">IssueModel</param>
-	private void EditDescription(IssueModel model)
+	/// <param name="model">Issue</param>
+	private void EditDescription(global::Shared.Models.Issue model)
 	{
 		_editedDescription = model.Description;
 		_currentEditingTitle = "";
@@ -92,8 +95,8 @@ public partial class Admin
 	/// <summary>
 	///   SaveDescription method
 	/// </summary>
-	/// <param name="model">IssueModel</param>
-	private async Task SaveDescription(IssueModel model)
+	/// <param name="model">Issue</param>
+	private async Task SaveDescription(global::Shared.Models.Issue model)
 	{
 		_currentEditingDescription = string.Empty;
 		model.Description = _editedDescription;

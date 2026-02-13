@@ -7,23 +7,26 @@
 // Project Name :  IssueTracker.Services
 // =============================================
 
+using Shared.Models;
+using Shared.Models.DTOs;
+
 namespace Shared.Interfaces.Repository;
 
 public interface ICommentRepository
 {
-	Task ArchiveAsync(CommentModel comment);
+	Task ArchiveAsync(Comment comment);
 
-	Task CreateAsync(CommentModel comment);
+	Task CreateAsync(Comment comment);
 
-	Task<CommentModel> GetAsync(string itemId);
+	Task<Comment> GetAsync(string itemId);
 
-	Task<IEnumerable<CommentModel>?> GetAllAsync();
+	Task<IEnumerable<Comment>?> GetAllAsync();
 
-	Task<IEnumerable<CommentModel>> GetByUserAsync(string userId);
+	Task<IEnumerable<Comment>> GetByUserAsync(string userId);
 
-	Task<IEnumerable<CommentModel>> GetByIssueAsync(BasicIssueModel issue);
+	Task<IEnumerable<Comment>> GetByIssueAsync(IssueDto issue);
 
-	Task UpdateAsync(string itemId, CommentModel comment);
+	Task UpdateAsync(string itemId, Comment comment);
 
 	Task UpVoteAsync(string itemId, string userId);
 }

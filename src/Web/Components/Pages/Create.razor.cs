@@ -12,14 +12,21 @@ namespace IssueTracker.UI.Pages;
 /// <summary>
 ///   Create class
 /// </summary>
-/// <seealso cref="Microsoft.AspNetCore.Mvc.RazorPages.PageModel" />
+/// <seealso cref="Microsoft.AspNetCore.Components.ComponentBase" />
 [UsedImplicitly]
-public partial class Create
+public partial class Create : ComponentBase
 {
-	private List<CategoryModel>? _categories;
+	[Inject] private AuthenticationStateProvider AuthProvider { get; set; } = default!;
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private IIssueService IssueService { get; set; } = default!;
+	[Inject] private ICategoryService CategoryService { get; set; } = default!;
+	[Inject] private IStatusService StatusService { get; set; } = default!;
+	[Inject] private IUserService UserService { get; set; } = default!;
+
+	private List<Category>? _categories;
 	private CreateIssueDto _issue = new();
-	private UserModel? _loggedInUser;
-	private List<StatusModel>? _statuses;
+	private global::Shared.Models.User? _loggedInUser;
+	private List<global::Shared.Models.Status>? _statuses;
 
 	/// <summary>
 	///   OnInitializedAsync method
@@ -36,15 +43,16 @@ public partial class Create
 	/// </summary>
 	private async Task CreateIssue()
 	{
-		CategoryModel? category = _categories!.FirstOrDefault(c => c.Id == _issue.CategoryId);
-		StatusModel? status = _statuses!.FirstOrDefault(c => c.StatusName == "Watching");
-		IssueModel s = new()
+		ObjectId categoryId = ObjectId.Parse(_issue.CategoryId!);
+		Category? category = _categories!.FirstOrDefault(c => c.Id == categoryId);
+		global::Shared.Models.Status? status = _statuses!.FirstOrDefault(c => c.StatusName == "Watching");
+		global::Shared.Models.Issue s = new()
 		{
 			Title = _issue.Title!,
 			Description = _issue.Description!,
-			Author = new BasicUserModel(_loggedInUser!),
-			Category = new BasicCategoryModel(category!),
-			IssueStatus = new BasicStatusModel(status!)
+			Author = new UserDto(_loggedInUser!),
+			Category = new CategoryDto(category!),
+			IssueStatus = new StatusDto(status!)
 		};
 
 		await IssueService.CreateIssue(s);

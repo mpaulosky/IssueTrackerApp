@@ -21,10 +21,10 @@ public class CategoryService(ICategoryRepository repository, IMemoryCache cache)
 	/// <summary>
 	///   CreateCategory method
 	/// </summary>
-	/// <param name="category">CategoryModel</param>
+	/// <param name="category">Category</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task CreateCategory(CategoryModel category)
+	public Task CreateCategory(Shared.Models.Category category)
 	{
 		ArgumentNullException.ThrowIfNull(category);
 
@@ -36,10 +36,10 @@ public class CategoryService(ICategoryRepository repository, IMemoryCache cache)
 	/// <summary>
 	///   ArchiveCategory method
 	/// </summary>
-	/// <param name="category">CategoryModel</param>
+	/// <param name="category">Category</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task ArchiveCategory(CategoryModel category)
+	public Task ArchiveCategory(Shared.Models.Category category)
 	{
 		ArgumentNullException.ThrowIfNull(category);
 
@@ -52,13 +52,13 @@ public class CategoryService(ICategoryRepository repository, IMemoryCache cache)
 	///   GetCategory method
 	/// </summary>
 	/// <param name="categoryId">string</param>
-	/// <returns>Task of CategoryModel</returns>
+	/// <returns>Task of Category</returns>
 	/// <exception cref="ArgumentException">ThrowIfNullOrEmpty(categoryId)</exception>
-	public async Task<CategoryModel> GetCategory(string? categoryId)
+	public async Task<Shared.Models.Category> GetCategory(string? categoryId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(categoryId);
 
-		CategoryModel result = await repository.GetAsync(categoryId);
+		Shared.Models.Category result = await repository.GetAsync(categoryId);
 
 		return result;
 	}
@@ -66,17 +66,17 @@ public class CategoryService(ICategoryRepository repository, IMemoryCache cache)
 	/// <summary>
 	///   GetCategories method
 	/// </summary>
-	/// <returns>Task of List CategoryModel</returns>
-	public async Task<List<CategoryModel>> GetCategories()
+	/// <returns>Task of List Category</returns>
+	public async Task<List<Shared.Models.Category>> GetCategories()
 	{
-		List<CategoryModel>? output = cache.Get<List<CategoryModel>>(CacheName);
+		List<Shared.Models.Category>? output = cache.Get<List<Shared.Models.Category>>(CacheName);
 
 		if (output is not null)
 		{
 			return output;
 		}
 
-		IEnumerable<CategoryModel> results = await repository.GetAllAsync();
+		IEnumerable<Shared.Models.Category> results = await repository.GetAllAsync();
 
 		output = results.ToList();
 
@@ -88,15 +88,15 @@ public class CategoryService(ICategoryRepository repository, IMemoryCache cache)
 	/// <summary>
 	///   UpdateCategory method
 	/// </summary>
-	/// <param name="category">CategoryModel</param>
+	/// <param name="category">Category</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task UpdateCategory(CategoryModel category)
+	public Task UpdateCategory(Shared.Models.Category category)
 	{
 		ArgumentNullException.ThrowIfNull(category);
 
 		cache.Remove(CacheName);
 
-		return repository.UpdateAsync(category.Id, category);
+		return repository.UpdateAsync(category.Id.ToString(), category);
 	}
 }

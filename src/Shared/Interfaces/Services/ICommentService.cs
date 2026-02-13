@@ -7,23 +7,26 @@
 // Project Name :  IssueTracker.Services
 // =============================================
 
+using Shared.Models;
+using Shared.Models.DTOs;
+
 namespace Shared.Interfaces.Services;
 
 public interface ICommentService
 {
-	Task ArchiveComment(CommentModel comment);
+	Task ArchiveComment(Comment comment);
 
-	Task CreateComment(CommentModel comment);
+	Task CreateComment(Comment comment);
 
-	Task<CommentModel> GetComment(string commentId);
+	Task<Comment> GetComment(string commentId);
 
-	Task<List<CommentModel>> GetComments();
+	Task<List<Comment>> GetComments();
 
-	Task<List<CommentModel>> GetCommentsByUser(string userId);
+	Task<List<Comment>> GetCommentsByUser(string userId);
 
-	Task<List<CommentModel>> GetCommentsByIssue(BasicIssueModel issue);
+	Task<List<Comment>> GetCommentsByIssue(IssueDto issue);
 
-	Task UpdateComment(CommentModel comment);
+	Task UpdateComment(Comment comment);
 
 	Task UpVoteComment(string commentId, string userId);
 }

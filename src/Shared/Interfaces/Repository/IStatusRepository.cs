@@ -11,13 +11,13 @@ namespace Shared.Interfaces.Repository;
 
 public interface IStatusRepository
 {
-	Task ArchiveAsync(StatusModel status);
+	Task ArchiveAsync(Shared.Models.Status status);
 
-	Task CreateAsync(StatusModel status);
+	Task CreateAsync(Shared.Models.Status status);
 
-	Task<StatusModel> GetAsync(string itemId);
+	Task<Shared.Models.Status> GetAsync(string itemId);
 
-	Task<IEnumerable<StatusModel>> GetAllAsync();
+	Task<IEnumerable<Shared.Models.Status>> GetAllAsync();
 
-	Task UpdateAsync(string itemId, StatusModel status);
+	Task UpdateAsync(string itemId, Shared.Models.Status status);
 }

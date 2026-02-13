@@ -30,10 +30,10 @@ public class UserService(IUserRepository repository) : IUserService
 	/// <summary>
 	///   ArchiveUser method
 	/// </summary>
-	/// <param name="user">UserModel</param>
+	/// <param name="user">User</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task ArchiveUser(UserModel user)
+	public Task ArchiveUser(Shared.Models.User user)
 	{
 		ArgumentNullException.ThrowIfNull(user);
 
@@ -43,10 +43,10 @@ public class UserService(IUserRepository repository) : IUserService
 	/// <summary>
 	///   CreateUser method
 	/// </summary>
-	/// <param name="user">UserModel</param>
+	/// <param name="user">User</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task CreateUser(UserModel user)
+	public Task CreateUser(Shared.Models.User user)
 	{
 		ArgumentNullException.ThrowIfNull(user);
 
@@ -57,13 +57,13 @@ public class UserService(IUserRepository repository) : IUserService
 	///   GetUser method
 	/// </summary>
 	/// <param name="userId">string</param>
-	/// <returns>Task of UserModel</returns>
+	/// <returns>Task of User</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task<UserModel> GetUser(string? userId)
+	public async Task<Shared.Models.User> GetUser(string? userId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(userId);
 
-		UserModel results = await repository.GetAsync(userId);
+		Shared.Models.User results = await repository.GetAsync(userId);
 
 		return results;
 	}
@@ -71,10 +71,10 @@ public class UserService(IUserRepository repository) : IUserService
 	/// <summary>
 	///   GetUsers method
 	/// </summary>
-	/// <returns>Task if List UserModel</returns>
-	public async Task<List<UserModel>> GetUsers()
+	/// <returns>Task if List User</returns>
+	public async Task<List<Shared.Models.User>> GetUsers()
 	{
-		IEnumerable<UserModel> results = await repository.GetAllAsync();
+		IEnumerable<Shared.Models.User> results = await repository.GetAllAsync();
 
 		return results.ToList();
 	}
@@ -83,13 +83,13 @@ public class UserService(IUserRepository repository) : IUserService
 	///   GetUserFromAuthentication method
 	/// </summary>
 	/// <param name="userObjectIdentifierId">string</param>
-	/// <returns>Task of UserModel</returns>
+	/// <returns>Task of User</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public async Task<UserModel> GetUserFromAuthentication(string? userObjectIdentifierId)
+	public async Task<Shared.Models.User> GetUserFromAuthentication(string? userObjectIdentifierId)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(userObjectIdentifierId);
 
-		UserModel results = await repository.GetFromAuthenticationAsync(userObjectIdentifierId);
+		Shared.Models.User results = await repository.GetFromAuthenticationAsync(userObjectIdentifierId);
 
 		return results;
 	}
@@ -97,10 +97,10 @@ public class UserService(IUserRepository repository) : IUserService
 	/// <summary>
 	///   UpdateUser method
 	/// </summary>
-	/// <param name="user">UserModel</param>
+	/// <param name="user">User</param>
 	/// <returns>Task</returns>
 	/// <exception cref="ArgumentNullException"></exception>
-	public Task UpdateUser(UserModel user)
+	public Task UpdateUser(Shared.Models.User user)
 	{
 		ArgumentNullException.ThrowIfNull(user);
 

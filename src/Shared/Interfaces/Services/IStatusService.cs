@@ -11,13 +11,13 @@ namespace Shared.Interfaces.Services;
 
 public interface IStatusService
 {
-	Task ArchiveStatus(StatusModel status);
+	Task ArchiveStatus(Shared.Models.Status status);
 
-	Task CreateStatus(StatusModel status);
+	Task CreateStatus(Shared.Models.Status status);
 
-	Task<StatusModel> GetStatus(string statusId);
+	Task<Shared.Models.Status> GetStatus(string statusId);
 
-	Task<List<StatusModel>> GetStatuses();
+	Task<List<Shared.Models.Status>> GetStatuses();
 
-	Task UpdateStatus(StatusModel status);
+	Task UpdateStatus(Shared.Models.Status status);
 }

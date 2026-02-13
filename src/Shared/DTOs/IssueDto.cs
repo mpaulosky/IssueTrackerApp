@@ -1,29 +1,29 @@
 // ============================================
-// Copyright (c) 2023. All rights reserved.
+// Copyright (c) 2025. All rights reserved.
 // File Name :     IssueDto.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
-// Solution Name : IssueTracker
-// Project Name :  IssueTracker.CoreBusiness
+// Solution Name : IssueTrackerApp
+// Project Name :  Shared
 // =============================================
 
 namespace Shared.Models.DTOs;
 
 /// <summary>
-///   IssueDto class
+///   IssueDto record for simplified issue representation
 /// </summary>
 [Serializable]
-public class IssueDto
+public record IssueDto
 {
 	/// <summary>
-	///   Initializes a new instance of the <see cref="IssueDto" /> class.
+	///   Initializes a new instance of the <see cref="IssueDto" /> record.
 	/// </summary>
 	public IssueDto()
 	{
 	}
 
 	/// <summary>
-	///   Initializes a new instance of the <see cref="IssueDto" /> class.
+	///   Initializes a new instance of the <see cref="IssueDto" /> record.
 	/// </summary>
 	/// <param name="issue">The issue.</param>
 	public IssueDto(Issue issue)
@@ -31,22 +31,19 @@ public class IssueDto
 		Id = issue.Id;
 		Title = issue.Title;
 		Description = issue.Description;
-		DateCreated = issue.DateCreated;
-		Category = new CategoryDto(issue.Category);
-		Status = new StatusDto(issue.IssueStatus);
-		Author = new UserDto(issue.Author);
+		Author = issue.Author;
 	}
 
 	/// <summary>
-	///   Gets or sets the identifier.
+	///   Gets or initializes the identifier.
 	/// </summary>
 	/// <value>
 	///   The identifier.
 	/// </value>
-	public string Id { get; init; } = string.Empty;
+	public ObjectId Id { get; init; } = ObjectId.Empty;
 
 	/// <summary>
-	///   Gets or sets the title.
+	///   Gets or initializes the title.
 	/// </summary>
 	/// <value>
 	///   The title.
@@ -54,7 +51,7 @@ public class IssueDto
 	public string Title { get; init; } = string.Empty;
 
 	/// <summary>
-	///   Gets or sets the description.
+	///   Gets or initializes the description.
 	/// </summary>
 	/// <value>
 	///   The description.
@@ -62,35 +59,15 @@ public class IssueDto
 	public string Description { get; init; } = string.Empty;
 
 	/// <summary>
-	///   Gets or sets the date created.
-	/// </summary>
-	/// <value>
-	///   The date created.
-	/// </value>
-	public DateTime DateCreated { get; init; } = DateTime.UtcNow;
-
-
-	/// <summary>
-	///   Gets or sets the author.
+	///   Gets or initializes the author.
 	/// </summary>
 	/// <value>
 	///   The author.
 	/// </value>
-	public UserDto Author { get; set; } = new();
+	public UserDto Author { get; init; } = new();
 
 	/// <summary>
-	///   Gets or sets the category.
+	///   Create an Empty IssueDto instance for default values
 	/// </summary>
-	/// <value>
-	///   The category.
-	/// </value>
-	public CategoryDto Category { get; init; } = new();
-
-	/// <summary>
-	///   Gets or sets the status.
-	/// </summary>
-	/// <value>
-	///   The status.
-	/// </value>
-	public StatusDto Status { get; init; } = new();
+	public static IssueDto Empty => new() { Id = ObjectId.Empty, Title = string.Empty, Description = string.Empty, Author = UserDto.Empty };
 }

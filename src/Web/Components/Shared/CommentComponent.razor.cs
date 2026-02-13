@@ -14,9 +14,13 @@ namespace Web.Components.Shared;
 /// </summary>
 public partial class CommentComponent
 {
-	private CommentModel? _archivingComment;
-	[Parameter] public CommentModel Item { get; set; } = new();
-	[Parameter] public UserModel LoggedInUser { get; set; } = new();
+	[Inject] private NavigationManager NavManager { get; set; } = default!;
+	[Inject] private AuthenticationStateProvider AuthProvider { get; set; } = default!;
+	[Inject] private ICommentService CommentService { get; set; } = default!;
+
+	private global::Shared.Models.Comment? _archivingComment;
+	[Parameter] public global::Shared.Models.Comment Item { get; set; } = new();
+	[Parameter] public global::Shared.Models.User LoggedInUser { get; set; } = new();
 
 	/// <summary>
 	///   Check if the logged in user is able to mark the comment as an answer.
@@ -24,21 +28,32 @@ public partial class CommentComponent
 	/// <returns>True if the user can mark the comment as an answer, otherwise false.</returns>
 	private bool CanMarkAnswer()
 	{
-		return Item.Issue!.Author.Id == LoggedInUser.Id;
+		ObjectId loggedInUserId = ObjectId.Empty;
+		if (!string.IsNullOrEmpty(LoggedInUser?.Id))
+		{
+			loggedInUserId = ObjectId.Parse(LoggedInUser.Id);
+		}
+		return Item.Issue!.Author.Id == loggedInUserId;
 	}
 
 	/// <summary>
 	///   VoteUp method
 	/// </summary>
 	/// <param name="comment">The comment to vote up.</param>
-	public async Task VoteUp(CommentModel comment)
+	public async Task VoteUp(global::Shared.Models.Comment comment)
 	{
-		if (comment.Author.Id == LoggedInUser.Id)
+		ObjectId loggedInUserId = ObjectId.Empty;
+		if (!string.IsNullOrEmpty(LoggedInUser?.Id))
+		{
+			loggedInUserId = ObjectId.Parse(LoggedInUser.Id);
+		}
+
+		if (comment.Author.Id == loggedInUserId)
 		{
 			return; // Can't vote on your own comments
 		}
 
-		if (!comment.UserVotes.Add(LoggedInUser.Id))
+		if (!comment.UserVotes.Add(LoggedInUser!.Id))
 		{
 			comment.UserVotes.Remove(LoggedInUser.Id);
 		}
@@ -51,14 +66,20 @@ public partial class CommentComponent
 	/// </summary>
 	/// <param name="comment">The comment to get the vote up information for.</param>
 	/// <returns>The text to display for the top part of the vote up button.</returns>
-	public string GetUpVoteTopText(CommentModel comment)
+	public string GetUpVoteTopText(global::Shared.Models.Comment comment)
 	{
 		if (comment.UserVotes.Count > 0)
 		{
 			return comment.UserVotes.Count.ToString("00");
 		}
 
-		return comment.Author.Id == LoggedInUser.Id ? "Awaiting" : "Click To";
+		ObjectId loggedInUserId = ObjectId.Empty;
+		if (!string.IsNullOrEmpty(LoggedInUser?.Id))
+		{
+			loggedInUserId = ObjectId.Parse(LoggedInUser.Id);
+		}
+
+		return comment.Author.Id == loggedInUserId ? "Awaiting" : "Click To";
 	}
 
 	/// <summary>
@@ -66,7 +87,7 @@ public partial class CommentComponent
 	/// </summary>
 	/// <param name="comment">The comment to get the vote up information for.</param>
 	/// <returns>The text to display for the bottom part of the vote up button.</returns>
-	public string GetUpVoteBottomText(CommentModel comment)
+	public string GetUpVoteBottomText(global::Shared.Models.Comment comment)
 	{
 		return comment.UserVotes.Count > 1 ? "UpVotes" : "UpVote";
 	}
@@ -76,7 +97,7 @@ public partial class CommentComponent
 	/// </summary>
 	/// <param name="comment">The comment to get the vote up information for.</param>
 	/// <returns>The css class to apply to the vote up button.</returns>
-	public string GetVoteCssClass(CommentModel comment)
+	public string GetVoteCssClass(global::Shared.Models.Comment comment)
 	{
 		if (comment.UserVotes.Count == 0)
 		{
@@ -92,7 +113,7 @@ public partial class CommentComponent
 	/// <returns>A task representing the asynchronous archiving operation.</returns>
 	private async Task ArchiveComment()
 	{
-		_archivingComment!.ArchivedBy = new BasicUserModel(LoggedInUser);
+		_archivingComment!.ArchivedBy = new UserDto(LoggedInUser);
 		_archivingComment!.Archived = true;
 		await CommentService.UpdateComment(_archivingComment);
 		_archivingComment = null;
@@ -103,10 +124,10 @@ public partial class CommentComponent
 	/// </summary>
 	/// <param name="comment">The comment to set as the answer.</param>
 	/// <returns>A task representing the asynchronous set answer operation.</returns>
-	private async Task SetAnswer(CommentModel comment)
+	private async Task SetAnswer(global::Shared.Models.Comment comment)
 	{
 		comment.IsAnswer = true;
-		comment.AnswerSelectedBy = new BasicUserModel(LoggedInUser);
+		comment.AnswerSelectedBy = new UserDto(LoggedInUser);
 		await CommentService.UpdateComment(comment);
 	}
 
@@ -115,7 +136,7 @@ public partial class CommentComponent
 	/// </summary>
 	/// <param name="comment">The comment to get the answer status css class for.</param>
 	/// <returns>The css class to apply to the answer status display for the comment.</returns>
-	private static string GetAnswerStatusCssClass(CommentModel comment)
+	private static string GetAnswerStatusCssClass(global::Shared.Models.Comment comment)
 	{
 		return comment.IsAnswer ? "comment-answer-status-answered" : "comment-answer-status-unanswered";
 	}
