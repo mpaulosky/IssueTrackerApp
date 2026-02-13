@@ -75,41 +75,25 @@ public partial class Index
 				_loggedInUser.ObjectIdentifier = objectId;
 			}
 
-<<<<<<< copilot/sub-pr-2-again
-			if (firstName?.Equals(_loggedInUser.FirstName) != true)
-=======
 			if (firstName?.Equals(_loggedInUser.FirstName) is false)
->>>>>>> wip
 			{
 				isDirty = true;
 				_loggedInUser.FirstName = firstName;
 			}
 
-<<<<<<< copilot/sub-pr-2-again
-			if (lastName?.Equals(_loggedInUser.LastName) != true)
-=======
 			if (lastName?.Equals(_loggedInUser.LastName) is false)
->>>>>>> wip
 			{
 				isDirty = true;
 				_loggedInUser.LastName = lastName;
 			}
 
-<<<<<<< copilot/sub-pr-2-again
-			if (displayName?.Equals(_loggedInUser.DisplayName) != true)
-=======
 			if (displayName?.Equals(_loggedInUser.DisplayName) is false)
->>>>>>> wip
 			{
 				isDirty = true;
 				_loggedInUser.DisplayName = displayName;
 			}
 
-<<<<<<< copilot/sub-pr-2-again
-			if (email?.Equals(_loggedInUser.EmailAddress) != true)
-=======
 			if (email?.Equals(_loggedInUser.EmailAddress) is false)
->>>>>>> wip
 			{
 				isDirty = true;
 				_loggedInUser.EmailAddress = email;
