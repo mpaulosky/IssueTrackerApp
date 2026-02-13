@@ -15,6 +15,9 @@ using Shared.Models.DTOs;
 
 namespace Shared.Models;
 
+/// <summary>
+///   Represents a comment on an issue.
+/// </summary>
 [Serializable]
 public class Comment : Entity
 {
