@@ -6,14 +6,109 @@
 @source "../Components/**/*.cs";
 @source "../wwwroot/**/*.html";
 
-/* Prepare dark mode for Phase 2 */
+/* Dark mode configuration */
 @variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   Color Scheme Custom Properties
+   Defines primary color palette for theming
+   ============================================ */
+
+/* Default: Blue theme (light mode) */
+:root {
+	--color-primary-50: oklch(97% 0.01 250);
+	--color-primary-100: oklch(93% 0.03 250);
+	--color-primary-200: oklch(87% 0.06 250);
+	--color-primary-300: oklch(78% 0.10 250);
+	--color-primary-400: oklch(68% 0.15 250);
+	--color-primary-500: oklch(58% 0.19 250);
+	--color-primary-600: oklch(50% 0.18 250);
+	--color-primary-700: oklch(43% 0.15 250);
+	--color-primary-800: oklch(37% 0.12 250);
+	--color-primary-900: oklch(32% 0.09 250);
+	--color-primary-950: oklch(24% 0.06 250);
+	--color-primary: var(--color-primary-600);
+}
+
+/* Red theme (light mode) */
+[data-theme="red"] {
+	--color-primary-50: oklch(97% 0.01 25);
+	--color-primary-100: oklch(93% 0.03 25);
+	--color-primary-200: oklch(87% 0.08 25);
+	--color-primary-300: oklch(78% 0.14 25);
+	--color-primary-400: oklch(68% 0.19 25);
+	--color-primary-500: oklch(58% 0.22 25);
+	--color-primary-600: oklch(50% 0.20 25);
+	--color-primary-700: oklch(43% 0.17 25);
+	--color-primary-800: oklch(37% 0.14 25);
+	--color-primary-900: oklch(32% 0.10 25);
+	--color-primary-950: oklch(24% 0.07 25);
+	--color-primary: var(--color-primary-600);
+}
+
+/* Green theme (light mode) */
+[data-theme="green"] {
+	--color-primary-50: oklch(97% 0.01 145);
+	--color-primary-100: oklch(93% 0.03 145);
+	--color-primary-200: oklch(87% 0.07 145);
+	--color-primary-300: oklch(78% 0.12 145);
+	--color-primary-400: oklch(68% 0.16 145);
+	--color-primary-500: oklch(58% 0.18 145);
+	--color-primary-600: oklch(50% 0.16 145);
+	--color-primary-700: oklch(43% 0.13 145);
+	--color-primary-800: oklch(37% 0.10 145);
+	--color-primary-900: oklch(32% 0.08 145);
+	--color-primary-950: oklch(24% 0.05 145);
+	--color-primary: var(--color-primary-600);
+}
+
+/* Yellow/Amber theme (light mode) */
+[data-theme="yellow"] {
+	--color-primary-50: oklch(97% 0.02 85);
+	--color-primary-100: oklch(93% 0.05 85);
+	--color-primary-200: oklch(87% 0.10 85);
+	--color-primary-300: oklch(80% 0.15 85);
+	--color-primary-400: oklch(73% 0.18 85);
+	--color-primary-500: oklch(65% 0.19 85);
+	--color-primary-600: oklch(55% 0.18 85);
+	--color-primary-700: oklch(47% 0.15 85);
+	--color-primary-800: oklch(40% 0.12 85);
+	--color-primary-900: oklch(34% 0.09 85);
+	--color-primary-950: oklch(26% 0.06 85);
+	--color-primary: var(--color-primary-600);
+}
+
+/* Dark mode adjustments - use lighter shades as primary */
+.dark {
+	--color-primary: var(--color-primary-400);
+}
+
+/* Tailwind custom theme extension using CSS variables */
+@theme {
+	--color-primary-50: var(--color-primary-50);
+	--color-primary-100: var(--color-primary-100);
+	--color-primary-200: var(--color-primary-200);
+	--color-primary-300: var(--color-primary-300);
+	--color-primary-400: var(--color-primary-400);
+	--color-primary-500: var(--color-primary-500);
+	--color-primary-600: var(--color-primary-600);
+	--color-primary-700: var(--color-primary-700);
+	--color-primary-800: var(--color-primary-800);
+	--color-primary-900: var(--color-primary-900);
+	--color-primary-950: var(--color-primary-950);
+}
 
 /* Custom Application Styles */
 @layer base {
 	/* Focus styles */
 	h1:focus {
 		outline: none;
+	}
+
+	/* Dark mode base styles */
+	.dark body {
+		background-color: #111827; /* gray-900 */
+		color: #f3f4f6; /* gray-100 */
 	}
 }
 
