@@ -363,4 +363,99 @@
 - Background services should use IServiceProvider.CreateScope() for scoped dependencies
 - SignalR NotificationService and email NotificationHandlers serve different purposes (real-time vs async)
 
+### Issue #34 - Analytics Backend (2026-03-12)
+
+**Analytics DTOs:**
+- Created 6 DTOs in `src/Domain/DTOs/Analytics/`:
+  - `IssuesByStatusDto` - Status name and count
+  - `IssuesByCategoryDto` - Category name and count
+  - `IssuesOverTimeDto` - Date, created count, closed count
+  - `ResolutionTimeDto` - Category and average resolution hours
+  - `TopContributorDto` - User ID, name, issues closed, comments count
+  - `AnalyticsSummaryDto` - Comprehensive dashboard summary (totals + all metrics)
+- All DTOs use records with JsonConstructor and JsonPropertyName attributes
+- Namespace: `Domain.DTOs.Analytics` (matches existing pattern)
+
+**MediatR Query Handlers:**
+- Created 7 queries in `src/Domain/Features/Analytics/Queries/`:
+  - `GetIssuesByStatusQuery` - Group issues by status with counts
+  - `GetIssuesByCategoryQuery` - Group issues by category with counts
+  - `GetIssuesOverTimeQuery` - Time series of created/closed issues by date
+  - `GetResolutionTimesQuery` - Average resolution time by category (closed issues only)
+  - `GetTopContributorsQuery` - Top N contributors by issues closed + comments (default 10)
+  - `GetAnalyticsSummaryQuery` - Comprehensive summary (executes all queries in parallel)
+  - `ExportAnalyticsQuery` - CSV export of all issues with metadata
+- All queries support optional StartDate/EndDate filtering
+- Use LINQ queries with EF Core (MongoDB.EntityFrameworkCore provider)
+- Follow Result<T> pattern with proper error handling and logging
+
+**Analytics Service:**
+- Created `IAnalyticsService` interface in `src/Web/Services/`
+- Implemented `AnalyticsService` with IMemoryCache integration:
+  - 5-minute cache expiration for all queries except exports
+  - Cache keys include date range parameters
+  - Facade pattern wrapping MediatR queries
+  - Provides clean API for frontend consumption
+- Registered as scoped service in Program.cs
+
+**CSV Export:**
+- Created `CsvExportHelper` in `src/Web/Helpers/`:
+  - Generic ExportToCsv<T> method using reflection
+  - Proper CSV escaping (double quotes, commas, newlines)
+  - Returns UTF-8 byte array for file download
+- ExportAnalyticsQuery handler generates CSV inline with custom formatting:
+  - Headers: ID, Title, Status, Category, Author, Created, Modified, ResolutionHours
+  - Includes resolution time calculation (N/A if not closed)
+
+**Technical Implementation:**
+- MongoDB.EntityFrameworkCore LINQ queries (no raw aggregation pipelines needed)
+- Grouping, filtering, and aggregation using standard LINQ
+- Closed issues identified by: `Status.StatusName == "Closed" || Archived`
+- Resolution time: `DateModified - DateCreated` for closed issues
+- Top contributors: Combined metric (issues closed + comments count)
+- Time series: Issues grouped by date (Date property of DateCreated/DateModified)
+
+**Key Patterns:**
+- CQRS with MediatR for all analytics queries
+- Repository pattern (IRepository<Issue>, IRepository<Comment>)
+- Result<T> pattern for error handling throughout
+- Service facade with caching for performance
+- Date range filtering on all queries
+- Admin-only access ready (patterns in place, frontend integration needed)
+
+**Configuration:**
+- Service registered in Program.cs: `builder.Services.AddScoped<IAnalyticsService, AnalyticsService>()`
+- Uses existing IMemoryCache (no additional configuration needed)
+- No new NuGet packages required (uses existing dependencies)
+
+**Frontend Integration Notes:**
+- Frontend components (Analytics.razor, Charts, DateRangePicker, SummaryCard) were created by another squad member
+- Frontend has compilation errors (Chart components, DateRangePicker, _Imports namespace issues)
+- Backend is complete and independent of frontend errors
+- _Imports.razor namespace corrected: `Domain.DTOs.Analytics` (not `IssueTrackerApp.Domain.DTOs.Analytics`)
+
+**Commit Details:**
+- Branch: `squad/34-analytics-dashboard`
+- Commit: "feat(analytics): Add analytics backend with MongoDB aggregations"
+- 17 files changed, 1109 insertions
+- Push successful, PR #42 created as draft
+- PR URL: https://github.com/mpaulosky/IssueTrackerApp/pull/42
+
+**Query Performance Considerations:**
+- Caching reduces database load (5-minute TTL)
+- LINQ queries translate to efficient MongoDB queries
+- Date range filtering applied at database level
+- Summary query executes sub-queries in parallel with Task.WhenAll
+- Export query does NOT use caching (generates fresh CSV each time)
+
+**Lessons Learned:**
+- Domain DTOs namespace is `Domain.DTOs.Analytics` (not `IssueTrackerApp.Domain.DTOs.Analytics`)
+- MongoDB.EntityFrameworkCore uses standard EF Core LINQ (no need for BsonDocument aggregation pipelines)
+- IRepository<T>.FindAsync accepts Expression<Func<T, bool>> predicate for filtering
+- LINQ GroupBy and aggregations work seamlessly with MongoDB EF provider
+- ExportAnalyticsQuery handler generates CSV directly (no need for separate CsvExportHelper in query)
+- Frontend team members may use incorrect namespaces - always check and fix
+- Chart components (.razor files) with uninitialized fields cause CS0649 warnings (frontend issue)
+- Backend components can build successfully even when Web project has frontend errors
+
 ---
