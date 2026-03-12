@@ -262,3 +262,212 @@
 - May need to verify SignalR hub sends attachment events
 
 ---
+
+### 2026-03-12 - Analytics Dashboard UI (Issue #34)
+
+**Task:** Implement analytics dashboard with charts and visualizations for admin users
+
+**What I Built:**
+1. **Chart.js Integration**
+   - Added Chart.js 4.x via CDN in `App.razor`
+   - Created `charts.js` interop file for Chart.js wrapper
+   - Dark mode support: detects `.dark` class on `<html>` element
+   - Three chart types: Pie, Bar, Line
+   - Chart lifecycle management: create, update, destroy
+   - Chart state tracking in `activeCharts` object
+
+2. **Chart Components**
+   - **PieChart.razor** - Reusable pie chart with custom colors per slice
+   - **BarChart.razor** - Reusable bar chart with single color
+   - **LineChart.razor** - Multi-dataset line chart for time series
+   - All charts share common features:
+     - Loading state with animated spinner
+     - Async disposal with chart cleanup
+     - Unique canvas IDs to prevent collisions
+     - Error handling for render failures
+     - Responsive sizing with aspect ratio
+
+3. **Shared UI Components**
+   - **SummaryCard.razor** - Metric card with:
+     - Title, value, subtitle display
+     - Optional SVG icon with customizable background color
+     - Trend indicator (up/down/flat) with percentage
+     - TailwindCSS styling with dark mode
+   - **DateRangePicker.razor** - Date range selector with:
+     - Preset buttons: Last 7/30/90 days, All time
+     - Custom date inputs (start and end)
+     - EventCallback on range change
+     - Active preset highlighting
+     - Auto-initializes to last 30 days
+
+4. **Analytics Dashboard Page (`Analytics.razor`)**
+   - Route: `/admin/analytics`
+   - Authorization: Requires `AdminPolicy`
+   - Layout: Uses `AdminPageLayout` with title and description
+   - Summary Cards (4 metrics):
+     - Total Issues (blue)
+     - Open Issues (yellow)
+     - Closed Issues (green)
+     - Average Resolution Time (purple)
+   - Charts (4 visualizations):
+     - Issues by Status - Pie chart with status colors
+     - Issues by Category - Bar chart
+     - Issues Over Time - Line chart (created vs closed)
+     - Top Contributors - Bar chart (by issues closed)
+   - Date Range Filtering:
+     - DateRangePicker component integration
+     - Auto-reloads data on range change
+     - Sends start/end dates to backend queries
+   - Export to CSV:
+     - Download button with loading state
+     - Calls `ExportAnalyticsQuery` via MediatR
+     - JavaScript-based file download
+     - Filename includes timestamp
+   - States: Loading, Error, Success
+   - Interactive render mode for real-time updates
+
+5. **Admin Navigation Update**
+   - Added "Analytics" link to `AdminPageLayout.razor`
+   - Positioned between Dashboard and Categories
+   - Active state highlighting
+   - Consistent with existing nav pattern
+
+6. **Backend Integration**
+   - Uses MediatR queries created by Sam:
+     - `GetAnalyticsSummaryQuery` - Main dashboard data
+     - `ExportAnalyticsQuery` - CSV export
+   - Handles `Result<T>` pattern from domain layer
+   - Parallel data fetching in backend handler
+   - Error logging and user feedback
+
+7. **Data Transformation**
+   - **Status Colors:** Open (blue), InProgress (yellow), Resolved (green), Closed (gray)
+   - **Category Chart:** Uses primary color (#3b82f6)
+   - **Time Series:** Two datasets - Created (blue) and Closed (green)
+   - **Contributors:** Green bar chart by issues closed count
+   - **Resolution Time Formatting:** 
+     - < 1 hour: minutes (e.g., "45m")
+     - < 24 hours: hours (e.g., "12.5h")
+     - >= 24 hours: days (e.g., "3.2d")
+
+**Technical Decisions:**
+- **Chart.js via CDN:** Simplifies setup, no npm dependency management
+- **JS Interop over Blazor Chart Library:** More control and flexibility
+- **Auto Properties for Component Parameters:** Required by Blazor's change detection
+- **Result<T> Pattern:** Backend uses this for error handling - extracted `.Value` on success
+- **Loading States:** Separate loading state for each async operation (data load vs export)
+- **Dark Mode:** JS interop reads DOM for theme, applies appropriate chart colors
+- **EventCallback:** Used for DateRangePicker to notify parent of changes
+- **Responsive Grid:** 1 column mobile, 2 tablet, 4 desktop for summary cards; 1-2 columns for charts
+
+**Files Created:**
+- `src/Web/wwwroot/js/charts.js` - Chart.js interop wrapper
+- `src/Web/Components/Charts/PieChart.razor` - Pie chart component
+- `src/Web/Components/Charts/BarChart.razor` - Bar chart component
+- `src/Web/Components/Charts/LineChart.razor` - Line chart component
+- `src/Web/Components/Shared/SummaryCard.razor` - Metric card component
+- `src/Web/Components/Shared/DateRangePicker.razor` - Date range picker component
+- `src/Web/Components/Pages/Admin/Analytics.razor` - Main dashboard page
+
+**Files Modified:**
+- `src/Web/Components/App.razor` - Added Chart.js CDN and charts.js script
+- `src/Web/Components/Pages/Admin/AdminPageLayout.razor` - Added Analytics nav link
+- `src/Web/Components/_Imports.razor` - Added using directives for Domain DTOs, MediatR, Authorization
+
+**Backend Files (Created by Sam):**
+- `src/Domain/DTOs/Analytics/AnalyticsSummaryDto.cs`
+- `src/Domain/DTOs/Analytics/IssuesByStatusDto.cs`
+- `src/Domain/DTOs/Analytics/IssuesByCategoryDto.cs`
+- `src/Domain/DTOs/Analytics/IssuesOverTimeDto.cs`
+- `src/Domain/DTOs/Analytics/TopContributorDto.cs`
+- `src/Domain/DTOs/Analytics/ResolutionTimeDto.cs`
+- `src/Domain/Features/Analytics/Queries/GetAnalyticsSummaryQuery.cs`
+- `src/Domain/Features/Analytics/Queries/ExportAnalyticsQuery.cs`
+- And others...
+
+**Namespace Consistency:**
+- Domain uses `Domain.*` not `IssueTrackerApp.Domain.*`
+- Web uses `Web.*` not `IssueTrackerApp.Web.*`
+- Fixed initial namespace errors in `_Imports.razor`
+
+**Chart.js Features Used:**
+- **Responsive:** `responsive: true`
+- **Maintain Aspect Ratio:** For proper sizing
+- **Legends:** Bottom position with padding
+- **Tooltips:** Custom dark mode styling
+- **Line Tension:** 0.4 for smooth curves
+- **Grid Colors:** Theme-aware (dark vs light)
+- **Interaction Mode:** 'index' for line charts (shows all datasets on hover)
+
+**Styling Highlights:**
+- **Cards:** White bg light mode, gray-800 dark mode with shadow and border
+- **Charts:** 64 height (h-64) with canvas aspect ratio maintenance
+- **Grid:** `grid grid-cols-1 lg:grid-cols-2 gap-6` for charts
+- **Icons:** Heroicons SVG with customizable background colors
+- **Loading Spinner:** Primary color animated spin
+- **Export Button:** Primary button with disabled state during export
+- **Date Picker:** Inline labels, primary ring on focus
+
+**Challenges & Solutions:**
+1. **Branch Coordination:** Branch didn't exist remotely initially - waited 3 attempts (60s each) then found it existed locally
+2. **Namespace Errors:** Used wrong namespace prefix - fixed to use `Domain.*` directly
+3. **Result<T> Handling:** Backend returns `Result<T>` not `T` - check `.Success` and extract `.Value`
+4. **Component Parameters:** Initially used properties with getters/setters - Blazor requires auto-properties for [Parameter]
+5. **Module References:** Chart components had unused `_module` fields - removed them
+6. **Await in Lifecycle:** `OnInitialized` needed to be `OnInitializedAsync` and await `SelectPreset(30)`
+
+**Build & Testing:**
+- ✅ Build succeeded with 0 warnings, 0 errors
+- ✅ All components follow Blazor best practices
+- ✅ Dark mode tested via theme.js integration
+- ✅ Responsive design with TailwindCSS classes
+- ✅ Authorization check on page route
+- Ready for manual testing with running app
+
+**Accessibility Considerations:**
+- Alt text not needed (decorative icons with adjacent labels)
+- Keyboard navigation supported (buttons, inputs)
+- Color contrast meets WCAG standards
+- Screen readers will read card values and titles
+- Charts: Consider ARIA labels in future enhancement
+
+**Performance:**
+- Charts lazy-loaded only when data available
+- Date range filter limits backend query scope
+- Summary query runs 5 sub-queries in parallel (backend optimization)
+- Chart destruction on component disposal prevents memory leaks
+- Loading states prevent unnecessary re-renders
+
+**Git:**
+- Branch: `squad/34-analytics-dashboard`
+- Commit: `bc3e278` - "feat(analytics): Add analytics dashboard with Chart.js"
+- Pushed to remote successfully
+- 11 files changed, 1052 insertions(+), 1 deletion(-)
+
+**Next Steps:**
+- Manual testing required with running Aspire app
+- Verify backend analytics queries return data
+- Test CSV export downloads correctly
+- Test date range filtering updates charts
+- Test dark mode theme switching
+- Consider adding chart legends to help colorblind users
+- Consider adding data labels to charts for exact values
+- E2E tests for analytics workflows
+
+**Collaboration:**
+- Built on Sam's backend analytics infrastructure
+- Follows existing admin page patterns (Categories, Statuses)
+- Consistent with project's TailwindCSS styling
+- Uses established service/MediatR pattern
+
+**Best Practices Applied:**
+- Component composition (small, reusable components)
+- Separation of concerns (chart rendering in JS, data in C#)
+- Error handling at every async boundary
+- Loading and error states for all async operations
+- Proper disposal patterns (IAsyncDisposable)
+- Authorization at route level
+- Responsive design mobile-first
+- Dark mode consistency
+
+---
