@@ -13,3 +13,11 @@ global using MongoDB.Bson.Serialization.Attributes;
 
 // Entity Framework Core
 global using Microsoft.EntityFrameworkCore;
+
+// Microsoft Extensions
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Options;
+
+// Domain
+global using Domain.Abstractions;
