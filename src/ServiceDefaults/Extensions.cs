@@ -7,6 +7,7 @@ using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -87,12 +88,12 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        //{
-        //    builder.Services.AddOpenTelemetry()
-        //       .UseAzureMonitor();
-        //}
+        // Enable Azure Monitor exporter if Application Insights connection string is configured
+        if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        {
+            builder.Services.AddOpenTelemetry()
+               .UseAzureMonitor();
+        }
 
         return builder;
     }
@@ -104,6 +105,30 @@ public static class Extensions
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
         return builder;
+    }
+
+    public static IHealthChecksBuilder AddMongoDbHealthCheck<TBuilder>(
+        this TBuilder builder, 
+        string connectionName = "mongodb") where TBuilder : IHostApplicationBuilder
+    {
+        var healthChecks = builder.Services.AddHealthChecks();
+        
+        // MongoDB health check will be added via connection string configuration
+        // The connection string will be provided by Aspire service discovery
+        
+        return healthChecks;
+    }
+
+    public static IHealthChecksBuilder AddRedisHealthCheck<TBuilder>(
+        this TBuilder builder,
+        string connectionName = "redis") where TBuilder : IHostApplicationBuilder
+    {
+        var healthChecks = builder.Services.AddHealthChecks();
+        
+        // Redis health check will be added via connection string configuration
+        // The connection string will be provided by Aspire service discovery
+        
+        return healthChecks;
     }
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)

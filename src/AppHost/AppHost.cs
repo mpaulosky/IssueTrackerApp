@@ -6,13 +6,15 @@ var mongodb = builder.AddMongoDB("mongodb")
 	.AddDatabase("issuetracker-db");
 
 // Add Redis container
-var redis = builder.AddRedis("redis");
+var redis = builder.AddRedis("redis")
+	.WithRedisCommander();
 
-// Add Web project
+// Add Web project with service discovery and health checks
 builder.AddProject<Projects.Web>("web")
 	.WithReference(mongodb)
 	.WithReference(redis)
 	.WaitFor(mongodb)
-	.WaitFor(redis);
+	.WaitFor(redis)
+	.WithHttpHealthCheck("/health");
 
 builder.Build().Run();
