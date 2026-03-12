@@ -35,6 +35,10 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<Domain.Abstractions.INotificationService, NotificationService>();
 
+// Add real-time notification services
+builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<SignalRClientService>();
+
 // Add data seeder
 builder.Services.AddDataSeeder();
 
