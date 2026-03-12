@@ -1,0 +1,83 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     BarChart.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+<div class="relative w-full h-full">
+	@if (IsLoading)
+	{
+		<div class="flex items-center justify-center h-64">
+			<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+		</div>
+	}
+	else
+	{
+		<canvas id="@ChartId"></canvas>
+	}
+</div>
+
+@code {
+	/// <summary>
+	/// Unique identifier for the chart canvas element.
+	/// </summary>
+	[Parameter]
+	public string ChartId { get; set; } = Guid.NewGuid().ToString();
+
+	/// <summary>
+	/// The labels for each bar.
+	/// </summary>
+	[Parameter]
+	public List<string> Labels { get; set; } = [];
+
+	/// <summary>
+	/// The data values for each bar.
+	/// </summary>
+	[Parameter]
+	public List<int> Data { get; set; } = [];
+
+	/// <summary>
+	/// The color for the bars.
+	/// </summary>
+	[Parameter]
+	public string Color { get; set; } = "#3b82f6";
+
+	/// <summary>
+	/// Indicates whether the chart is currently loading.
+	/// </summary>
+	[Parameter]
+	public bool IsLoading { get; set; }
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!IsLoading && Labels.Count > 0 && Data.Count > 0)
+		{
+			try
+			{
+				await JSRuntime.InvokeVoidAsync("chartInterop.renderBarChart", ChartId, Labels, Data, Color);
+			}
+			catch (Exception)
+			{
+				// Chart rendering failed - component will handle gracefully
+			}
+		}
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		try
+		{
+			await JSRuntime.InvokeVoidAsync("chartInterop.destroyChart", ChartId);
+		}
+		catch
+		{
+			// Ignore disposal errors
+		}
+	}
+}

@@ -1,0 +1,114 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     DateRangePicker.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+<div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+	<div class="flex flex-wrap gap-2">
+		<button @onclick="() => SelectPreset(7)"
+		        class="@GetPresetButtonClass(7)">
+			Last 7 days
+		</button>
+		<button @onclick="() => SelectPreset(30)"
+		        class="@GetPresetButtonClass(30)">
+			Last 30 days
+		</button>
+		<button @onclick="() => SelectPreset(90)"
+		        class="@GetPresetButtonClass(90)">
+			Last 90 days
+		</button>
+		<button @onclick="() => SelectPreset(null)"
+		        class="@GetPresetButtonClass(null)">
+			All time
+		</button>
+	</div>
+
+	<div class="flex gap-2 items-center">
+		<div>
+			<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+				From
+			</label>
+			<input type="date"
+			       @bind="StartDate"
+			       @bind:event="oninput"
+			       @onchange="OnDateChanged"
+			       class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+		</div>
+		<div>
+			<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+				To
+			</label>
+			<input type="date"
+			       @bind="EndDate"
+			       @bind:event="oninput"
+			       @onchange="OnDateChanged"
+			       class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+		</div>
+	</div>
+</div>
+
+@code {
+	private int? _selectedPreset;
+
+	/// <summary>
+	/// The start date of the range.
+	/// </summary>
+	[Parameter]
+	public DateTime? StartDate { get; set; }
+
+	/// <summary>
+	/// The end date of the range.
+	/// </summary>
+	[Parameter]
+	public DateTime? EndDate { get; set; }
+
+	/// <summary>
+	/// Callback when the date range changes.
+	/// </summary>
+	[Parameter]
+	public EventCallback<(DateTime? Start, DateTime? End)> OnRangeChanged { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!StartDate.HasValue && !EndDate.HasValue)
+		{
+			await SelectPreset(30);
+		}
+	}
+
+	private async Task SelectPreset(int? days)
+	{
+		_selectedPreset = days;
+
+		if (days.HasValue)
+		{
+			EndDate = DateTime.UtcNow.Date;
+			StartDate = EndDate.Value.AddDays(-days.Value);
+		}
+		else
+		{
+			StartDate = null;
+			EndDate = null;
+		}
+
+		await OnRangeChanged.InvokeAsync((StartDate, EndDate));
+	}
+
+	private async Task OnDateChanged()
+	{
+		_selectedPreset = null;
+		await OnRangeChanged.InvokeAsync((StartDate, EndDate));
+	}
+
+	private string GetPresetButtonClass(int? days)
+	{
+		var isActive = _selectedPreset == days;
+		return isActive
+			? "px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+			: "px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2";
+	}
+}
