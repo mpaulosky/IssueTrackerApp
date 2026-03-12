@@ -50,7 +50,7 @@ public sealed class DeleteAttachmentCommandHandler : IRequestHandler<DeleteAttac
 		if (attachmentResult.Failure || attachmentResult.Value == null)
 		{
 			_logger.LogWarning("Attachment {AttachmentId} not found", request.AttachmentId);
-			return Result.Fail<bool>("Attachment not found", "NOT_FOUND");
+			return Result.Fail<bool>("Attachment not found", ResultErrorCode.NotFound);
 		}
 
 		var attachment = attachmentResult.Value;
@@ -63,7 +63,7 @@ public sealed class DeleteAttachmentCommandHandler : IRequestHandler<DeleteAttac
 				request.UserId,
 				request.AttachmentId,
 				attachment.UploadedBy.Id);
-			return Result.Fail<bool>("Unauthorized to delete this attachment", "UNAUTHORIZED");
+			return Result.Fail<bool>("Unauthorized to delete this attachment", ResultErrorCode.Validation);
 		}
 
 		try

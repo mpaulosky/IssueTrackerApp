@@ -21,3 +21,8 @@ global using Microsoft.Extensions.Options;
 
 // Domain
 global using Domain.Abstractions;
+global using Domain.Models;
+global using Domain.DTOs;
+
+// Entity Framework Metadata
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
