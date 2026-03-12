@@ -1,0 +1,312 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Edit.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@page "/issues/{Id}/edit"
+@using Microsoft.AspNetCore.Authorization
+@using Web.Auth
+@using Web.Services
+@using Domain.DTOs
+
+@inject IIssueService IssueService
+@inject ILookupService LookupService
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
+@attribute [StreamRendering]
+
+<PageTitle>Edit Issue - IssueTracker</PageTitle>
+
+<div class="max-w-2xl mx-auto">
+	@if (_isLoading)
+	{
+		<div class="flex justify-center py-12">
+			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+			</svg>
+		</div>
+	}
+	else if (_issue is null)
+	{
+		<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+			<div class="flex">
+				<div class="flex-shrink-0">
+					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+					</svg>
+				</div>
+				<div class="ml-3">
+					<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+					<p class="mt-1 text-sm text-red-700 dark:text-red-300">@(_errorMessage ?? "Issue not found")</p>
+				</div>
+			</div>
+		</div>
+		<div class="mt-4">
+			<a href="/issues" class="text-primary-600 dark:text-primary-400 hover:underline">
+				← Back to Issues
+			</a>
+		</div>
+	}
+	else
+	{
+		<!-- Header -->
+		<div class="mb-6">
+			<nav class="flex" aria-label="Breadcrumb">
+				<ol class="flex items-center space-x-2">
+					<li>
+						<a href="/issues" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+							Issues
+						</a>
+					</li>
+					<li class="flex items-center">
+						<svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+						</svg>
+						<a href="/issues/@Id" class="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 truncate max-w-[150px]">
+							@_issue.Title
+						</a>
+					</li>
+					<li class="flex items-center">
+						<svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+						</svg>
+						<span class="ml-2 text-gray-500 dark:text-gray-400">Edit</span>
+					</li>
+				</ol>
+			</nav>
+			<h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Edit Issue</h1>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+				Update the issue details below.
+			</p>
+		</div>
+
+		@if (!string.IsNullOrEmpty(_errorMessage))
+		{
+			<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4 mb-6">
+				<div class="flex">
+					<div class="flex-shrink-0">
+						<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+						</svg>
+					</div>
+					<div class="ml-3">
+						<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+						<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+					</div>
+				</div>
+			</div>
+		}
+
+		<EditForm Model="@_model" OnValidSubmit="HandleSubmit" class="space-y-6">
+			<DataAnnotationsValidator />
+
+			<div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+				<div class="px-4 py-5 sm:p-6 space-y-6">
+					<!-- Title -->
+					<div>
+						<label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+							Title <span class="text-red-500">*</span>
+						</label>
+						<div class="mt-1">
+							<InputText id="title"
+							           @bind-Value="_model.Title"
+							           class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+							           placeholder="Enter a descriptive title" />
+						</div>
+						<ValidationMessage For="@(() => _model.Title)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+					</div>
+
+					<!-- Description -->
+					<div>
+						<label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+							Description <span class="text-red-500">*</span>
+						</label>
+						<div class="mt-1">
+							<InputTextArea id="description"
+							               @bind-Value="_model.Description"
+							               rows="6"
+							               class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+							               placeholder="Describe the issue in detail..." />
+						</div>
+						<ValidationMessage For="@(() => _model.Description)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+					</div>
+
+					<!-- Category -->
+					<div>
+						<label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+							Category <span class="text-red-500">*</span>
+						</label>
+						<div class="mt-1">
+							<InputSelect id="category"
+							             @bind-Value="_model.CategoryId"
+							             class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+								<option value="">Select a category</option>
+								@if (_categories is not null)
+								{
+									@foreach (var category in _categories)
+									{
+										<option value="@category.Id.ToString()">@category.CategoryName</option>
+									}
+								}
+							</InputSelect>
+						</div>
+						<ValidationMessage For="@(() => _model.CategoryId)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+					</div>
+				</div>
+
+				<!-- Form Actions -->
+				<div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 flex justify-end space-x-3">
+					<a href="/issues/@Id"
+					   class="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+						Cancel
+					</a>
+					<button type="submit"
+					        disabled="@_isSubmitting"
+					        class="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+						@if (_isSubmitting)
+						{
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+							<span>Saving...</span>
+						}
+						else
+						{
+							<span>Save Changes</span>
+						}
+					</button>
+				</div>
+			</div>
+		</EditForm>
+	}
+</div>
+
+@code {
+	[Parameter]
+	public string Id { get; set; } = default!;
+
+	private IssueDto? _issue;
+	private IEnumerable<CategoryDto>? _categories;
+	private EditIssueModel _model = new();
+
+	private bool _isLoading = true;
+	private bool _isSubmitting;
+	private string? _errorMessage;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadDataAsync();
+	}
+
+	private async Task LoadDataAsync()
+	{
+		_isLoading = true;
+		_errorMessage = null;
+
+		try
+		{
+			var issueTask = IssueService.GetIssueByIdAsync(Id);
+			var categoryTask = LookupService.GetCategoriesAsync();
+
+			await Task.WhenAll(issueTask, categoryTask);
+
+			var issueResult = await issueTask;
+			var categoryResult = await categoryTask;
+
+			if (issueResult.Success && issueResult.Value is not null)
+			{
+				_issue = issueResult.Value;
+				_model = new EditIssueModel
+				{
+					Title = _issue.Title,
+					Description = _issue.Description,
+					CategoryId = _issue.Category.Id.ToString()
+				};
+			}
+			else
+			{
+				_errorMessage = issueResult.Error ?? "Issue not found";
+			}
+
+			if (categoryResult.Success)
+			{
+				_categories = categoryResult.Value;
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+
+	private async Task HandleSubmit()
+	{
+		if (_isSubmitting || _issue is null)
+		{
+			return;
+		}
+
+		_isSubmitting = true;
+		_errorMessage = null;
+
+		try
+		{
+			var selectedCategory = _categories?.FirstOrDefault(
+				c => c.Id.ToString() == _model.CategoryId);
+
+			if (selectedCategory is null)
+			{
+				_errorMessage = "Please select a valid category";
+				return;
+			}
+
+			var result = await IssueService.UpdateIssueAsync(
+				Id,
+				_model.Title!,
+				_model.Description!,
+				selectedCategory);
+
+			if (result.Success)
+			{
+				NavigationManager.NavigateTo($"/issues/{Id}");
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to update issue";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isSubmitting = false;
+		}
+	}
+
+	private sealed class EditIssueModel
+	{
+		[System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Title is required")]
+		[System.ComponentModel.DataAnnotations.StringLength(200, MinimumLength = 5, ErrorMessage = "Title must be between 5 and 200 characters")]
+		public string? Title { get; set; }
+
+		[System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Description is required")]
+		[System.ComponentModel.DataAnnotations.StringLength(5000, MinimumLength = 10, ErrorMessage = "Description must be between 10 and 5000 characters")]
+		public string? Description { get; set; }
+
+		[System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Category is required")]
+		public string? CategoryId { get; set; }
+	}
+}

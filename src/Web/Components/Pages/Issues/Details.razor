@@ -1,0 +1,359 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Details.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@page "/issues/{Id}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Web.Auth
+@using Web.Services
+@using Domain.DTOs
+@using Web.Components.Shared
+
+@inject IIssueService IssueService
+@inject ILookupService LookupService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
+@attribute [StreamRendering]
+
+<PageTitle>@(_issue?.Title ?? "Issue Details") - IssueTracker</PageTitle>
+
+<div class="max-w-4xl mx-auto">
+	@if (_isLoading)
+	{
+		<div class="flex justify-center py-12">
+			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+			</svg>
+		</div>
+	}
+	else if (!string.IsNullOrEmpty(_errorMessage))
+	{
+		<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+			<div class="flex">
+				<div class="flex-shrink-0">
+					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+					</svg>
+				</div>
+				<div class="ml-3">
+					<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+					<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+				</div>
+			</div>
+		</div>
+		<div class="mt-4">
+			<a href="/issues" class="text-primary-600 dark:text-primary-400 hover:underline">
+				← Back to Issues
+			</a>
+		</div>
+	}
+	else if (_issue is not null)
+	{
+		<!-- Header -->
+		<div class="mb-6">
+			<nav class="flex" aria-label="Breadcrumb">
+				<ol class="flex items-center space-x-2">
+					<li>
+						<a href="/issues" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+							Issues
+						</a>
+					</li>
+					<li class="flex items-center">
+						<svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+						</svg>
+						<span class="ml-2 text-gray-500 dark:text-gray-400 truncate max-w-[200px]">@_issue.Title</span>
+					</li>
+				</ol>
+			</nav>
+		</div>
+
+		@if (!string.IsNullOrEmpty(_successMessage))
+		{
+			<div class="rounded-md bg-green-50 dark:bg-green-900/50 p-4 mb-6">
+				<div class="flex">
+					<div class="flex-shrink-0">
+						<svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+						</svg>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm text-green-800 dark:text-green-200">@_successMessage</p>
+					</div>
+				</div>
+			</div>
+		}
+
+		<div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+			<!-- Issue Header -->
+			<div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+				<div class="flex items-start justify-between">
+					<div class="flex-1 min-w-0">
+						<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+							@_issue.Title
+						</h1>
+						<div class="mt-2 flex items-center space-x-3">
+							<StatusBadge Status="@_issue.Status" />
+							<CategoryBadge Category="@_issue.Category" />
+						</div>
+					</div>
+					<div class="ml-4 flex-shrink-0 flex space-x-2">
+						<a href="/issues/@Id/edit"
+						   class="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+							<svg class="-ml-0.5 mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+								<path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+							</svg>
+							Edit
+						</a>
+						<button type="button"
+						        @onclick="ShowDeleteModal"
+						        class="inline-flex items-center rounded-md border border-transparent bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+							<svg class="-ml-0.5 mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+							</svg>
+							Delete
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Issue Details -->
+			<div class="px-4 py-5 sm:px-6">
+				<dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+					<!-- Status Change -->
+					<div class="sm:col-span-1">
+						<dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Change Status</dt>
+						<dd class="mt-1">
+							<select class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+							        value="@_issue.Status.Id.ToString()"
+							        @onchange="OnStatusChange"
+							        disabled="@_isChangingStatus">
+								@if (_statuses is not null)
+								{
+									@foreach (var status in _statuses)
+									{
+										<option value="@status.Id.ToString()">@status.StatusName</option>
+									}
+								}
+							</select>
+						</dd>
+					</div>
+
+					<!-- Author -->
+					<div class="sm:col-span-1">
+						<dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Author</dt>
+						<dd class="mt-1 text-sm text-gray-900 dark:text-white flex items-center">
+							<svg class="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+								<path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
+							</svg>
+							@(_issue.Author?.Name ?? "Unknown")
+						</dd>
+					</div>
+
+					<!-- Created Date -->
+					<div class="sm:col-span-1">
+						<dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Created</dt>
+						<dd class="mt-1 text-sm text-gray-900 dark:text-white">
+							@_issue.DateCreated.ToString("MMMM d, yyyy 'at' h:mm tt")
+						</dd>
+					</div>
+
+					<!-- Modified Date -->
+					<div class="sm:col-span-1">
+						<dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Modified</dt>
+						<dd class="mt-1 text-sm text-gray-900 dark:text-white">
+							@(_issue.DateModified?.ToString("MMMM d, yyyy 'at' h:mm tt") ?? "Never")
+						</dd>
+					</div>
+
+					<!-- Description -->
+					<div class="sm:col-span-2">
+						<dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Description</dt>
+						<dd class="mt-1 text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
+							@_issue.Description
+						</dd>
+					</div>
+				</dl>
+			</div>
+
+			<!-- Back Link -->
+			<div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6">
+				<a href="/issues" class="text-primary-600 dark:text-primary-400 hover:underline text-sm font-medium">
+					← Back to Issues
+				</a>
+			</div>
+		</div>
+	}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<DeleteConfirmationModal @bind-IsVisible="_showDeleteModal"
+                         Title="Delete Issue"
+                         Message="Are you sure you want to delete this issue? This action cannot be undone."
+                         ItemTitle="@_issue?.Title"
+                         IsDeleting="@_isDeleting"
+                         OnConfirm="HandleDelete"
+                         OnCancel="HideDeleteModal" />
+
+@code {
+	[Parameter]
+	public string Id { get; set; } = default!;
+
+	private IssueDto? _issue;
+	private IEnumerable<StatusDto>? _statuses;
+
+	private bool _isLoading = true;
+	private bool _isChangingStatus;
+	private bool _showDeleteModal;
+	private bool _isDeleting;
+	private string? _errorMessage;
+	private string? _successMessage;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadDataAsync();
+	}
+
+	private async Task LoadDataAsync()
+	{
+		_isLoading = true;
+		_errorMessage = null;
+
+		try
+		{
+			var issueTask = IssueService.GetIssueByIdAsync(Id);
+			var statusTask = LookupService.GetStatusesAsync();
+
+			await Task.WhenAll(issueTask, statusTask);
+
+			var issueResult = await issueTask;
+			var statusResult = await statusTask;
+
+			if (issueResult.Success)
+			{
+				_issue = issueResult.Value;
+			}
+			else
+			{
+				_errorMessage = issueResult.Error ?? "Issue not found";
+			}
+
+			if (statusResult.Success)
+			{
+				_statuses = statusResult.Value;
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+
+	private async Task OnStatusChange(ChangeEventArgs e)
+	{
+		if (_isChangingStatus || _issue is null || _statuses is null)
+		{
+			return;
+		}
+
+		var selectedStatusId = e.Value?.ToString();
+		var selectedStatus = _statuses.FirstOrDefault(s => s.Id.ToString() == selectedStatusId);
+
+		if (selectedStatus is null || selectedStatus.Id == _issue.Status.Id)
+		{
+			return;
+		}
+
+		_isChangingStatus = true;
+		_errorMessage = null;
+		_successMessage = null;
+
+		try
+		{
+			var result = await IssueService.ChangeIssueStatusAsync(Id, selectedStatus);
+
+			if (result.Success && result.Value is not null)
+			{
+				_issue = result.Value;
+				_successMessage = $"Status changed to {selectedStatus.StatusName}";
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to change status";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isChangingStatus = false;
+		}
+	}
+
+	private void ShowDeleteModal()
+	{
+		_showDeleteModal = true;
+	}
+
+	private void HideDeleteModal()
+	{
+		_showDeleteModal = false;
+	}
+
+	private async Task HandleDelete()
+	{
+		if (_isDeleting || _issue is null)
+		{
+			return;
+		}
+
+		_isDeleting = true;
+
+		try
+		{
+			var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+			var user = authState.User;
+
+			var currentUser = new UserDto(
+				user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "",
+				user.Identity?.Name ?? "Unknown",
+				user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "");
+
+			var result = await IssueService.DeleteIssueAsync(Id, currentUser);
+
+			if (result.Success)
+			{
+				NavigationManager.NavigateTo("/issues");
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to delete issue";
+				_showDeleteModal = false;
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+			_showDeleteModal = false;
+		}
+		finally
+		{
+			_isDeleting = false;
+		}
+	}
+}
