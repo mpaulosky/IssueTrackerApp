@@ -1,0 +1,497 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     CommentsSection.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using Web.Auth
+@using Web.Services
+@using Domain.DTOs
+@using Web.Components.Shared
+
+@inject ICommentService CommentService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="mt-8">
+	<h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Comments</h2>
+
+	@if (_isLoading)
+	{
+		<div class="flex justify-center py-8">
+			<svg class="animate-spin h-6 w-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+			</svg>
+		</div>
+	}
+	else
+	{
+		@if (!string.IsNullOrEmpty(_errorMessage))
+		{
+			<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4 mb-4">
+				<div class="flex">
+					<div class="flex-shrink-0">
+						<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+						</svg>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+					</div>
+				</div>
+			</div>
+		}
+
+		@if (!string.IsNullOrEmpty(_successMessage))
+		{
+			<div class="rounded-md bg-green-50 dark:bg-green-900/50 p-4 mb-4">
+				<div class="flex">
+					<div class="flex-shrink-0">
+						<svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+						</svg>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm text-green-800 dark:text-green-200">@_successMessage</p>
+					</div>
+				</div>
+			</div>
+		}
+
+		<!-- Add Comment Form -->
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+			<h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Add a comment</h3>
+			<EditForm Model="_newComment" OnValidSubmit="HandleAddComment">
+				<DataAnnotationsValidator />
+				<div class="space-y-3">
+					<div>
+						<label for="comment-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+						<InputText id="comment-title"
+						           @bind-Value="_newComment.Title"
+						           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+						           placeholder="Brief summary of your comment" />
+						<ValidationMessage For="@(() => _newComment.Title)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+					</div>
+					<div>
+						<label for="comment-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
+						<InputTextArea id="comment-content"
+						               @bind-Value="_newComment.Description"
+						               rows="3"
+						               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+						               placeholder="Write your comment here..." />
+						<ValidationMessage For="@(() => _newComment.Description)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+					</div>
+					<div class="flex justify-end">
+						<button type="submit"
+						        disabled="@_isSubmitting"
+						        class="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+							@if (_isSubmitting)
+							{
+								<svg class="animate-spin -ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+								<span>Adding...</span>
+							}
+							else
+							{
+								<svg class="-ml-0.5 mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+									<path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" />
+								</svg>
+								<span>Add Comment</span>
+							}
+						</button>
+					</div>
+				</div>
+			</EditForm>
+		</div>
+
+		<!-- Comments List -->
+		@if (_comments is null || _comments.Count == 0)
+		{
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+				<svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+				</svg>
+				<h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No comments yet</h3>
+				<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Be the first to add a comment to this issue.</p>
+			</div>
+		}
+		else
+		{
+			<div class="space-y-4">
+				@foreach (var comment in _comments)
+				{
+					<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 @(comment.IsAnswer ? "ring-2 ring-green-500" : "")">
+						<div class="flex items-start space-x-3">
+							<div class="flex-shrink-0">
+								<!-- Avatar placeholder -->
+								<div class="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-medium">
+									@(string.IsNullOrEmpty(comment.Author?.Name) ? "?" : comment.Author.Name[0].ToString().ToUpper())
+								</div>
+							</div>
+							<div class="flex-1 min-w-0">
+								<div class="flex items-center justify-between">
+									<div>
+										<p class="text-sm font-medium text-gray-900 dark:text-white">
+											@(comment.Author?.Name ?? "Unknown")
+										</p>
+										<p class="text-xs text-gray-500 dark:text-gray-400">
+											@comment.DateCreated.ToString("MMM d, yyyy 'at' h:mm tt")
+											@if (comment.DateModified.HasValue)
+											{
+												<span class="italic">(edited)</span>
+											}
+										</p>
+									</div>
+									@if (comment.IsAnswer)
+									{
+										<span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-200">
+											<svg class="-ml-0.5 mr-1 h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+											</svg>
+											Answer
+										</span>
+									}
+								</div>
+								<h4 class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-200">@comment.Title</h4>
+								@if (_editingCommentId == comment.Id.ToString())
+								{
+									<!-- Edit form -->
+									<div class="mt-2 space-y-3">
+										<div>
+											<InputText @bind-Value="_editTitle"
+											           class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+											           placeholder="Title" />
+										</div>
+										<div>
+											<InputTextArea @bind-Value="_editDescription"
+											               rows="3"
+											               class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+											               placeholder="Content" />
+										</div>
+										<div class="flex justify-end space-x-2">
+											<button type="button"
+											        @onclick="CancelEdit"
+											        class="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600">
+												Cancel
+											</button>
+											<button type="button"
+											        @onclick="() => HandleUpdateComment(comment.Id.ToString())"
+											        disabled="@_isSubmitting"
+											        class="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 disabled:opacity-50">
+												@if (_isSubmitting)
+												{
+													<span>Saving...</span>
+												}
+												else
+												{
+													<span>Save</span>
+												}
+											</button>
+										</div>
+									</div>
+								}
+								else
+								{
+									<div class="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+										@comment.Description
+									</div>
+								}
+
+								<!-- Action buttons -->
+								@if (_editingCommentId != comment.Id.ToString() && CanModifyComment(comment))
+								{
+									<div class="mt-3 flex items-center space-x-3">
+										@if (IsCommentOwner(comment))
+										{
+											<button type="button"
+											        @onclick="() => StartEdit(comment)"
+											        class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+												<svg class="inline h-3.5 w-3.5 mr-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+													<path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+												</svg>
+												Edit
+											</button>
+										}
+										<button type="button"
+										        @onclick="() => ShowDeleteConfirmation(comment)"
+										        class="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+											<svg class="inline h-3.5 w-3.5 mr-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+											</svg>
+											Delete
+										</button>
+									</div>
+								}
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		}
+	}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<DeleteConfirmationModal @bind-IsVisible="_showDeleteModal"
+                         Title="Delete Comment"
+                         Message="Are you sure you want to delete this comment? This action cannot be undone."
+                         ItemTitle="@_commentToDelete?.Title"
+                         IsDeleting="@_isDeleting"
+                         OnConfirm="HandleDeleteComment"
+                         OnCancel="HideDeleteModal" />
+
+@code {
+	[Parameter]
+	public required string IssueId { get; set; }
+
+	[CascadingParameter]
+	private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+	private IReadOnlyList<CommentDto>? _comments;
+	private NewCommentModel _newComment = new();
+	private UserDto? _currentUser;
+	private bool _isAdmin;
+
+	private bool _isLoading = true;
+	private bool _isSubmitting;
+	private bool _isDeleting;
+	private string? _errorMessage;
+	private string? _successMessage;
+
+	// Edit state
+	private string? _editingCommentId;
+	private string _editTitle = string.Empty;
+	private string _editDescription = string.Empty;
+
+	// Delete confirmation state
+	private bool _showDeleteModal;
+	private CommentDto? _commentToDelete;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadCurrentUserAsync();
+		await LoadCommentsAsync();
+	}
+
+	private async Task LoadCurrentUserAsync()
+	{
+		if (AuthenticationStateTask is not null)
+		{
+			var authState = await AuthenticationStateTask;
+			var user = authState.User;
+
+			if (user.Identity?.IsAuthenticated == true)
+			{
+				_currentUser = new UserDto(
+					user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "",
+					user.Identity.Name ?? "Unknown",
+					user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "");
+
+				_isAdmin = user.IsInRole(AuthorizationRoles.Admin);
+			}
+		}
+	}
+
+	private async Task LoadCommentsAsync()
+	{
+		_isLoading = true;
+		_errorMessage = null;
+
+		try
+		{
+			var result = await CommentService.GetCommentsAsync(IssueId);
+
+			if (result.Success)
+			{
+				_comments = result.Value;
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to load comments";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+
+	private async Task HandleAddComment()
+	{
+		if (_isSubmitting || _currentUser is null)
+		{
+			return;
+		}
+
+		_isSubmitting = true;
+		_errorMessage = null;
+		_successMessage = null;
+
+		try
+		{
+			var result = await CommentService.AddCommentAsync(
+				IssueId,
+				_newComment.Title,
+				_newComment.Description,
+				_currentUser);
+
+			if (result.Success)
+			{
+				_newComment = new NewCommentModel();
+				_successMessage = "Comment added successfully";
+				await LoadCommentsAsync();
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to add comment";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isSubmitting = false;
+		}
+	}
+
+	private void StartEdit(CommentDto comment)
+	{
+		_editingCommentId = comment.Id.ToString();
+		_editTitle = comment.Title;
+		_editDescription = comment.Description;
+	}
+
+	private void CancelEdit()
+	{
+		_editingCommentId = null;
+		_editTitle = string.Empty;
+		_editDescription = string.Empty;
+	}
+
+	private async Task HandleUpdateComment(string commentId)
+	{
+		if (_isSubmitting || _currentUser is null)
+		{
+			return;
+		}
+
+		_isSubmitting = true;
+		_errorMessage = null;
+		_successMessage = null;
+
+		try
+		{
+			var result = await CommentService.UpdateCommentAsync(
+				commentId,
+				_editTitle,
+				_editDescription,
+				_currentUser.Id);
+
+			if (result.Success)
+			{
+				CancelEdit();
+				_successMessage = "Comment updated successfully";
+				await LoadCommentsAsync();
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to update comment";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isSubmitting = false;
+		}
+	}
+
+	private void ShowDeleteConfirmation(CommentDto comment)
+	{
+		_commentToDelete = comment;
+		_showDeleteModal = true;
+	}
+
+	private void HideDeleteModal()
+	{
+		_showDeleteModal = false;
+		_commentToDelete = null;
+	}
+
+	private async Task HandleDeleteComment()
+	{
+		if (_isDeleting || _currentUser is null || _commentToDelete is null)
+		{
+			return;
+		}
+
+		_isDeleting = true;
+		_errorMessage = null;
+		_successMessage = null;
+
+		try
+		{
+			var result = await CommentService.DeleteCommentAsync(
+				_commentToDelete.Id.ToString(),
+				_currentUser.Id,
+				_isAdmin,
+				_currentUser);
+
+			if (result.Success)
+			{
+				_successMessage = "Comment deleted successfully";
+				HideDeleteModal();
+				await LoadCommentsAsync();
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to delete comment";
+				HideDeleteModal();
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+			HideDeleteModal();
+		}
+		finally
+		{
+			_isDeleting = false;
+		}
+	}
+
+	private bool IsCommentOwner(CommentDto comment)
+	{
+		return _currentUser is not null && comment.Author?.Id == _currentUser.Id;
+	}
+
+	private bool CanModifyComment(CommentDto comment)
+	{
+		return IsCommentOwner(comment) || _isAdmin;
+	}
+
+	private sealed class NewCommentModel
+	{
+		[System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Title is required")]
+		[System.ComponentModel.DataAnnotations.StringLength(200, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 200 characters")]
+		public string Title { get; set; } = string.Empty;
+
+		[System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Content is required")]
+		[System.ComponentModel.DataAnnotations.StringLength(5000, MinimumLength = 3, ErrorMessage = "Content must be between 3 and 5000 characters")]
+		public string Description { get; set; } = string.Empty;
+	}
+}
