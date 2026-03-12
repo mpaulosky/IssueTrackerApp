@@ -1,5 +1,5 @@
 name: Squad Docs — Build & Deploy
-# dotnet project — configure documentation build commands below
+# .NET project — builds docfx documentation and deploys to GitHub Pages
 
 on:
   workflow_dispatch:
@@ -14,14 +14,50 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-      - name: Build docs
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Install docfx
+        run: dotnet tool install -g docfx
+
+      - name: Build documentation
         run: |
-          # TODO: Add your documentation build commands here
-          # This workflow is optional — remove or customize it for your project
-          echo "No docs build commands configured — update or remove squad-docs.yml"
+          if [ -f "docs/docfx.json" ]; then
+            docfx docs/docfx.json
+            echo "✅ Documentation built successfully"
+          else
+            echo "::warning::docs/docfx.json not found — creating minimal docs"
+            mkdir -p docs/_site
+            echo "<html><body><h1>IssueTrackerApp Documentation</h1><p>Documentation coming soon.</p></body></html>" > docs/_site/index.html
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
