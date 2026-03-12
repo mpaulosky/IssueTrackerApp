@@ -66,7 +66,7 @@ jobs:
         run: dotnet restore
 
       - name: Build solution
-        run: dotnet build IssueManager.sln --configuration Release --no-restore
+        run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore
 
       - name: Cache build artifacts
         uses: actions/cache@v5
