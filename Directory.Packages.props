@@ -11,6 +11,9 @@
     <PackageVersion Include="MongoDB.Bson" Version="3.6.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.6.0" />
     <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="10.0.0" />
+    <!-- Azure Storage -->
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.25.0" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.2.0" />
     <!-- MediatR -->
     <PackageVersion Include="MediatR" Version="12.4.1" />
     <!-- FluentValidation -->

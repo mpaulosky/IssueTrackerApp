@@ -64,6 +64,16 @@ public sealed class SignalRClientService : IAsyncDisposable
 	public event Action<string>? OnCommentAdded;
 
 	/// <summary>
+	/// Event fired when an attachment is added to an issue.
+	/// </summary>
+	public event Action<string>? OnAttachmentAdded;
+
+	/// <summary>
+	/// Event fired when an attachment is deleted from an issue.
+	/// </summary>
+	public event Action<string>? OnAttachmentDeleted;
+
+	/// <summary>
 	/// Starts the SignalR connection.
 	/// </summary>
 	public async Task StartAsync()
@@ -169,6 +179,20 @@ public sealed class SignalRClientService : IAsyncDisposable
 			_logger.LogInformation("Comment added to issue {IssueId} by {Author}", issueId, author);
 			_toastService.ShowInfo($"New comment by {author}");
 			OnCommentAdded?.Invoke(issueId);
+		});
+
+		_hubConnection.On<string, string, string>("AttachmentAdded", (issueId, attachmentId, fileName) =>
+		{
+			_logger.LogInformation("Attachment added to issue {IssueId}: {FileName}", issueId, fileName);
+			_toastService.ShowInfo($"New attachment: {fileName}");
+			OnAttachmentAdded?.Invoke(issueId);
+		});
+
+		_hubConnection.On<string, string>("AttachmentDeleted", (issueId, attachmentId) =>
+		{
+			_logger.LogInformation("Attachment deleted from issue {IssueId}: {AttachmentId}", issueId, attachmentId);
+			_toastService.ShowInfo("Attachment deleted");
+			OnAttachmentDeleted?.Invoke(issueId);
 		});
 	}
 

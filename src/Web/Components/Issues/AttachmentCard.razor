@@ -1,0 +1,117 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     AttachmentCard.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@using Domain.DTOs
+
+<div class="group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
+	<!-- Image Preview or Document Icon -->
+	<div class="aspect-square bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+		@if (Attachment.IsImage && !string.IsNullOrEmpty(Attachment.ThumbnailUrl))
+		{
+			<img src="@Attachment.ThumbnailUrl"
+			     alt="@Attachment.FileName"
+			     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+		}
+		else if (Attachment.IsImage)
+		{
+			<img src="@Attachment.BlobUrl"
+			     alt="@Attachment.FileName"
+			     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+		}
+		else if (Attachment.ContentType == "application/pdf")
+		{
+			<!-- PDF Icon -->
+			<div class="flex flex-col items-center">
+				<svg class="h-16 w-16 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+					<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+					<path d="M14 2v6h6M10 13h4M10 17h4M10 9h4" />
+				</svg>
+				<span class="mt-2 text-xs font-semibold text-gray-600 dark:text-gray-400">PDF</span>
+			</div>
+		}
+		else if (Attachment.ContentType == "text/markdown")
+		{
+			<!-- Markdown Icon -->
+			<div class="flex flex-col items-center">
+				<svg class="h-16 w-16 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+					<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+					<path d="M14 2v6h6" />
+				</svg>
+				<span class="mt-2 text-xs font-semibold text-gray-600 dark:text-gray-400">MD</span>
+			</div>
+		}
+		else
+		{
+			<!-- Generic Document Icon -->
+			<div class="flex flex-col items-center">
+				<svg class="h-16 w-16 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+					<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+					<path d="M14 2v6h6" />
+				</svg>
+				<span class="mt-2 text-xs font-semibold text-gray-600 dark:text-gray-400">TXT</span>
+			</div>
+		}
+	</div>
+
+	<!-- File Info -->
+	<div class="p-3">
+		<p class="text-sm font-medium text-gray-900 dark:text-white truncate" title="@Attachment.FileName">
+			@Attachment.FileName
+		</p>
+		<div class="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+			<span>@Attachment.FileSizeFormatted</span>
+			<span>@Attachment.UploadedAt.ToString("MMM d, yyyy")</span>
+		</div>
+		<p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
+			by @Attachment.UploadedBy.Name
+		</p>
+	</div>
+
+	<!-- Hover Actions -->
+	<div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center space-x-2">
+		<!-- Download Button -->
+		<a href="@Attachment.BlobUrl"
+		   download="@Attachment.FileName"
+		   class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+		   title="Download">
+			<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+				<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+			</svg>
+		</a>
+
+		<!-- Delete Button (if allowed) -->
+		@if (CanDelete)
+		{
+			<button type="button"
+			        @onclick="HandleDelete"
+			        class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+			        title="Delete">
+				<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+					<path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+				</svg>
+			</button>
+		}
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public AttachmentDto Attachment { get; set; } = default!;
+
+	[Parameter]
+	public bool CanDelete { get; set; }
+
+	[Parameter]
+	public EventCallback<string> OnDelete { get; set; }
+
+	private async Task HandleDelete()
+	{
+		await OnDelete.InvokeAsync(Attachment.Id);
+	}
+}
