@@ -31,6 +31,7 @@ builder.Services.AddScoped<IIssueService, IssueService>();
 builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Add data seeder
 builder.Services.AddDataSeeder();

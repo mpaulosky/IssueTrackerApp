@@ -1,0 +1,335 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Dashboard.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Web.Auth
+@using Web.Services
+@using Domain.DTOs
+@using Web.Components.Shared
+
+@inject IDashboardService DashboardService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
+@attribute [StreamRendering]
+
+<PageTitle>Dashboard - IssueTracker</PageTitle>
+
+<div class="space-y-6">
+	<!-- Welcome Section -->
+	<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+		<div class="sm:flex sm:items-center sm:justify-between">
+			<div>
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+					Welcome back, @_userName!
+				</h1>
+				<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+					@DateTime.Now.ToString("dddd, MMMM d, yyyy 'at' h:mm tt")
+				</p>
+			</div>
+			<div class="mt-4 sm:mt-0 flex-shrink-0">
+				<svg class="h-12 w-12 text-primary-600 dark:text-primary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	@if (_isLoading)
+	{
+		<div class="flex justify-center py-12">
+			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+			</svg>
+		</div>
+	}
+	else if (!string.IsNullOrEmpty(_errorMessage))
+	{
+		<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+			<div class="flex">
+				<div class="flex-shrink-0">
+					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+					</svg>
+				</div>
+				<div class="ml-3">
+					<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error loading dashboard</h3>
+					<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+				</div>
+			</div>
+		</div>
+	}
+	else
+	{
+		<!-- Stats Cards -->
+		<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+			<!-- Total Issues -->
+			<div class="bg-white dark:bg-gray-800 overflow-hidden rounded-lg shadow">
+				<div class="p-5">
+					<div class="flex items-center">
+						<div class="flex-shrink-0">
+							<div class="rounded-md bg-blue-500 p-3">
+								<svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+								</svg>
+							</div>
+						</div>
+						<div class="ml-5 w-0 flex-1">
+							<dl>
+								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Issues</dt>
+								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.TotalIssues</dd>
+							</dl>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Open Issues -->
+			<div class="bg-white dark:bg-gray-800 overflow-hidden rounded-lg shadow">
+				<div class="p-5">
+					<div class="flex items-center">
+						<div class="flex-shrink-0">
+							<div class="rounded-md bg-yellow-500 p-3">
+								<svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+								</svg>
+							</div>
+						</div>
+						<div class="ml-5 w-0 flex-1">
+							<dl>
+								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Open Issues</dt>
+								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.OpenIssues</dd>
+							</dl>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Resolved Issues -->
+			<div class="bg-white dark:bg-gray-800 overflow-hidden rounded-lg shadow">
+				<div class="p-5">
+					<div class="flex items-center">
+						<div class="flex-shrink-0">
+							<div class="rounded-md bg-green-500 p-3">
+								<svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+								</svg>
+							</div>
+						</div>
+						<div class="ml-5 w-0 flex-1">
+							<dl>
+								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Resolved Issues</dt>
+								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.ResolvedIssues</dd>
+							</dl>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- This Week -->
+			<div class="bg-white dark:bg-gray-800 overflow-hidden rounded-lg shadow">
+				<div class="p-5">
+					<div class="flex items-center">
+						<div class="flex-shrink-0">
+							<div class="rounded-md bg-purple-500 p-3">
+								<svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+								</svg>
+							</div>
+						</div>
+						<div class="ml-5 w-0 flex-1">
+							<dl>
+								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">This Week</dt>
+								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.ThisWeekIssues</dd>
+							</dl>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+			<!-- My Recent Issues -->
+			<div class="lg:col-span-2">
+				<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+					<div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+						<div class="flex items-center justify-between">
+							<h2 class="text-lg font-medium text-gray-900 dark:text-white">My Recent Issues</h2>
+							<a href="/issues?author=@_userId" 
+							   class="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+								View All →
+							</a>
+						</div>
+					</div>
+					<div class="overflow-hidden">
+						@if (_dashboard?.RecentIssues is null || !_dashboard.RecentIssues.Any())
+						{
+							<div class="px-4 py-8 text-center">
+								<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+								</svg>
+								<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No issues yet. Create your first issue!</p>
+							</div>
+						}
+						else
+						{
+							<ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+								@foreach (var issue in _dashboard.RecentIssues)
+								{
+									<li>
+										<a href="/issues/@issue.Id" class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+											<div class="px-4 py-4 sm:px-6">
+												<div class="flex items-center justify-between">
+													<p class="text-sm font-medium text-primary-600 dark:text-primary-400 truncate max-w-xs">
+														@issue.Title
+													</p>
+													<div class="ml-2 flex-shrink-0 flex items-center space-x-2">
+														<StatusBadge Status="@issue.Status" />
+														<CategoryBadge Category="@issue.Category" />
+													</div>
+												</div>
+												<div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+													<time datetime="@issue.DateCreated.ToString("yyyy-MM-dd")">
+														@issue.DateCreated.ToString("MMM d, yyyy")
+													</time>
+												</div>
+											</div>
+										</a>
+									</li>
+								}
+							</ul>
+						}
+					</div>
+				</div>
+			</div>
+
+			<!-- Quick Actions Panel -->
+			<div class="lg:col-span-1">
+				<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+					<div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+						<h2 class="text-lg font-medium text-gray-900 dark:text-white">Quick Actions</h2>
+					</div>
+					<div class="p-4 space-y-3">
+						<a href="/issues/create"
+						   class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 transition-colors">
+							<svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+								<path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+							</svg>
+							Create New Issue
+						</a>
+						<a href="/issues"
+						   class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 transition-colors">
+							<svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+							</svg>
+							View All Issues
+						</a>
+						<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy">
+							<Authorized>
+								<a href="/admin"
+								   class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 transition-colors">
+									<svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+										<path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm2.25 8.5a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5zm0 3a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z" clip-rule="evenodd" />
+									</svg>
+									Admin Dashboard
+								</a>
+							</Authorized>
+						</AuthorizeView>
+					</div>
+				</div>
+
+				<!-- Summary Card -->
+				<div class="mt-6 bg-gradient-to-br from-primary-500 to-primary-700 dark:from-primary-600 dark:to-primary-800 shadow rounded-lg">
+					<div class="p-6">
+						<h3 class="text-lg font-medium text-white">Issue Summary</h3>
+						<p class="mt-2 text-sm text-primary-100">
+							@if (_dashboard?.TotalIssues > 0)
+							{
+								var openPercentage = _dashboard.TotalIssues > 0 
+									? (_dashboard.OpenIssues * 100 / _dashboard.TotalIssues) 
+									: 0;
+								<span>You have <strong>@_dashboard.OpenIssues</strong> open issues (@openPercentage% of total).</span>
+							}
+							else
+							{
+								<span>You haven't created any issues yet. Get started by creating your first issue!</span>
+							}
+						</p>
+						@if (_dashboard?.ThisWeekIssues > 0)
+						{
+							<p class="mt-2 text-sm text-primary-100">
+								<strong>@_dashboard.ThisWeekIssues</strong> issue(s) created this week.
+							</p>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+</div>
+
+@code {
+	private UserDashboardDto? _dashboard;
+	private string? _userId;
+	private string _userName = "User";
+
+	private bool _isLoading = true;
+	private string? _errorMessage;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+
+		_userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		_userName = user.Identity?.Name ?? user.FindFirst(ClaimTypes.Name)?.Value ?? "User";
+
+		if (string.IsNullOrEmpty(_userId))
+		{
+			_errorMessage = "Unable to identify current user.";
+			_isLoading = false;
+			return;
+		}
+
+		await LoadDashboardAsync();
+	}
+
+	private async Task LoadDashboardAsync()
+	{
+		_isLoading = true;
+		_errorMessage = null;
+
+		try
+		{
+			var result = await DashboardService.GetUserDashboardAsync(_userId!);
+
+			if (result.Success && result.Value is not null)
+			{
+				_dashboard = result.Value;
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to load dashboard data";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+}
