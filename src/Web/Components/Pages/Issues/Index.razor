@@ -9,17 +9,23 @@
 
 @page "/issues"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.WebUtilities
 @using Web.Auth
 @using Web.Services
 @using Domain.DTOs
 @using Web.Components.Shared
+@using Web.Components.Issues
 @implements IDisposable
 
 @inject IIssueService IssueService
 @inject ILookupService LookupService
 @inject NavigationManager NavigationManager
 @inject SignalRClientService SignalRClient
+@inject BulkSelectionState BulkSelectionState
+@inject IBulkOperationService BulkOperationService
+@inject ToastService ToastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 @attribute [StreamRendering]
@@ -27,6 +33,16 @@
 <PageTitle>Issues - IssueTracker</PageTitle>
 
 <div class="space-y-6">
+	<!-- Bulk Action Toolbar -->
+	<BulkActionToolbar
+		Statuses="@_statuses"
+		Categories="@_categories"
+		IsAdmin="@_isAdmin"
+		OnChangeStatus="HandleBulkStatusChange"
+		OnChangeCategory="HandleBulkCategoryChange"
+		OnDelete="HandleBulkDelete"
+		OnExport="HandleBulkExport" />
+
 	<!-- Header -->
 	<div class="sm:flex sm:items-center sm:justify-between">
 		<div>
@@ -117,46 +133,62 @@
 	else
 	{
 		<div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+			<!-- Table header with Select All checkbox -->
+			<div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+				<div class="flex items-center gap-4">
+					<IssueMultiSelect ShowSelectAll="true" AllIssueIds="@_issues?.Select(i => i.Id.ToString())" />
+					<span class="text-xs text-gray-500 dark:text-gray-400">
+						Select issues for bulk actions
+					</span>
+				</div>
+			</div>
 			<ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-				@foreach (var issue in _issues)
+				@foreach (var issue in _issues ?? [])
 				{
 					<li>
-						<a href="/issues/@issue.Id" class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-							<div class="px-4 py-4 sm:px-6">
-								<div class="flex items-center justify-between">
-									<div class="flex items-center space-x-3 min-w-0">
-										<p class="text-sm font-medium text-primary-600 dark:text-primary-400 truncate">
-											@issue.Title
-										</p>
-										<StatusBadge Status="@issue.Status" />
-										<CategoryBadge Category="@issue.Category" />
-									</div>
-									<div class="ml-2 flex-shrink-0">
-										<svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-											<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-										</svg>
-									</div>
-								</div>
-								<div class="mt-2 sm:flex sm:justify-between">
-									<div class="sm:flex space-x-6">
-										<p class="flex items-center text-sm text-gray-500 dark:text-gray-400">
-											<svg class="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-												<path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
-											</svg>
-											@(issue.Author?.Name ?? "Unknown")
-										</p>
-									</div>
-									<div class="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
-										<svg class="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-											<path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" />
-										</svg>
-										<time datetime="@issue.DateCreated.ToString("yyyy-MM-dd")">
-											@issue.DateCreated.ToString("MMM d, yyyy")
-										</time>
-									</div>
-								</div>
+						<div class="flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<!-- Checkbox column -->
+							<div class="pl-4 py-4">
+								<IssueMultiSelect IssueId="@issue.Id.ToString()" />
 							</div>
-						</a>
+							<!-- Issue content -->
+							<a href="/issues/@issue.Id" class="flex-1 block">
+								<div class="px-4 py-4 sm:px-6">
+									<div class="flex items-center justify-between">
+										<div class="flex items-center space-x-3 min-w-0">
+											<p class="text-sm font-medium text-primary-600 dark:text-primary-400 truncate">
+												@issue.Title
+											</p>
+											<StatusBadge Status="@issue.Status" />
+											<CategoryBadge Category="@issue.Category" />
+										</div>
+										<div class="ml-2 flex-shrink-0">
+											<svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+											</svg>
+										</div>
+									</div>
+									<div class="mt-2 sm:flex sm:justify-between">
+										<div class="sm:flex space-x-6">
+											<p class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+												<svg class="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+													<path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
+												</svg>
+												@(issue.Author?.Name ?? "Unknown")
+											</p>
+										</div>
+										<div class="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
+											<svg class="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" />
+											</svg>
+											<time datetime="@issue.DateCreated.ToString("yyyy-MM-dd")">
+												@issue.DateCreated.ToString("MMM d, yyyy")
+											</time>
+										</div>
+									</div>
+								</div>
+							</a>
+						</div>
 					</li>
 				}
 			</ul>
@@ -169,6 +201,36 @@
 		            OnPageChange="OnPageChange" />
 	}
 </div>
+
+<!-- Bulk Confirmation Modal -->
+<BulkConfirmationModal
+	@bind-IsVisible="_showConfirmationModal"
+	Title="@_confirmationTitle"
+	Message="@_confirmationMessage"
+	AffectedCount="@BulkSelectionState.SelectedCount"
+	ActionType="@_confirmationActionType"
+	ConfirmButtonText="@_confirmationButtonText"
+	IsProcessing="@_isProcessingBulk"
+	OnConfirm="ExecuteBulkOperation"
+	OnCancel="CancelBulkOperation" />
+
+<!-- Bulk Progress Indicator -->
+<BulkProgressIndicator
+	IsVisible="@_showProgressIndicator"
+	Title="@_progressTitle"
+	Progress="@_bulkProgress"
+	IsComplete="@_bulkOperationComplete"
+	CanCancel="@(!_bulkOperationComplete)"
+	OnCancel="CancelBulkOperation"
+	OnClosed="CloseProgressIndicator" />
+
+<!-- Undo Toast -->
+<UndoToast
+	@bind-IsVisible="_showUndoToast"
+	Message="@_undoMessage"
+	UndoToken="@_lastUndoToken"
+	OnUndo="HandleUndo"
+	OnDismissed="ClearUndoState" />
 
 @code {
 	private IReadOnlyList<IssueDto>? _issues;
@@ -191,6 +253,28 @@
 	private long _totalItems;
 	private const int PAGE_SIZE = 10;
 
+	// Bulk operation state
+	private bool _isAdmin;
+	private bool _showConfirmationModal;
+	private string _confirmationTitle = "";
+	private string _confirmationMessage = "";
+	private string _confirmationButtonText = "Confirm";
+	private BulkConfirmationModal.BulkActionType _confirmationActionType;
+	private bool _isProcessingBulk;
+	private bool _showProgressIndicator;
+	private string _progressTitle = "";
+	private BulkOperationProgress? _bulkProgress;
+	private bool _bulkOperationComplete;
+	private bool _showUndoToast;
+	private string _undoMessage = "";
+	private string? _lastUndoToken;
+	private CancellationTokenSource? _bulkOperationCts;
+
+	// Pending bulk operation details
+	private StatusDto? _pendingStatusChange;
+	private CategoryDto? _pendingCategoryChange;
+	private Func<Task>? _pendingBulkOperation;
+
 	private bool HasActiveFilters =>
 		!string.IsNullOrWhiteSpace(_searchText) ||
 		!string.IsNullOrWhiteSpace(_statusFilter) ||
@@ -203,10 +287,17 @@
 		ParseQueryParameters();
 		await LoadLookupsAsync();
 		await LoadIssuesAsync();
+		await CheckAdminStatus();
 		
 		// Subscribe to SignalR events for auto-refresh
 		SignalRClient.OnIssueCreated += HandleIssueCreated;
 		SignalRClient.OnIssueUpdated += HandleIssueUpdated;
+	}
+
+	private async Task CheckAdminStatus()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		_isAdmin = authState.User.IsInRole("Admin");
 	}
 
 	private void HandleIssueCreated(string issueId)
@@ -422,9 +513,238 @@
 		await LoadIssuesAsync();
 	}
 
+	// Bulk operation handlers
+	private void HandleBulkStatusChange(StatusDto status)
+	{
+		_pendingStatusChange = status;
+		_pendingBulkOperation = ExecuteBulkStatusChange;
+		_confirmationTitle = "Change Status";
+		_confirmationMessage = $"Are you sure you want to change the status of the selected issues to '{status.StatusName}'?";
+		_confirmationButtonText = "Change Status";
+		_confirmationActionType = BulkConfirmationModal.BulkActionType.StatusChange;
+		_showConfirmationModal = true;
+	}
+
+	private void HandleBulkCategoryChange(CategoryDto category)
+	{
+		_pendingCategoryChange = category;
+		_pendingBulkOperation = ExecuteBulkCategoryChange;
+		_confirmationTitle = "Change Category";
+		_confirmationMessage = $"Are you sure you want to change the category of the selected issues to '{category.CategoryName}'?";
+		_confirmationButtonText = "Change Category";
+		_confirmationActionType = BulkConfirmationModal.BulkActionType.CategoryChange;
+		_showConfirmationModal = true;
+	}
+
+	private void HandleBulkDelete()
+	{
+		_pendingBulkOperation = ExecuteBulkDelete;
+		_confirmationTitle = "Delete Issues";
+		_confirmationMessage = "Are you sure you want to delete the selected issues? This action cannot be undone.";
+		_confirmationButtonText = "Delete";
+		_confirmationActionType = BulkConfirmationModal.BulkActionType.Delete;
+		_showConfirmationModal = true;
+	}
+
+	private async Task HandleBulkExport()
+	{
+		// Export selected issues to CSV
+		var selectedIds = BulkSelectionState.SelectedIssueIds.ToList();
+		if (selectedIds.Count == 0)
+		{
+			return;
+		}
+
+		// For now, show a toast indicating export feature
+		ToastService.ShowInfo($"Exporting {selectedIds.Count} issues... (Feature coming soon)");
+	}
+
+	private async Task ExecuteBulkOperation()
+	{
+		if (_pendingBulkOperation is null)
+		{
+			return;
+		}
+
+		_isProcessingBulk = true;
+		_showConfirmationModal = false;
+		_showProgressIndicator = true;
+		_bulkOperationComplete = false;
+		_bulkOperationCts = new CancellationTokenSource();
+
+		try
+		{
+			await _pendingBulkOperation();
+		}
+		finally
+		{
+			_isProcessingBulk = false;
+			_pendingBulkOperation = null;
+		}
+	}
+
+	private async Task ExecuteBulkStatusChange()
+	{
+		if (_pendingStatusChange is null)
+		{
+			return;
+		}
+
+		_progressTitle = $"Changing status to '{_pendingStatusChange.StatusName}'";
+		var selectedIds = BulkSelectionState.SelectedIssueIds.ToList();
+
+		var progress = new Progress<BulkOperationProgress>(p =>
+		{
+			_bulkProgress = p;
+			InvokeAsync(StateHasChanged);
+		});
+
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var requestedBy = authState.User.FindFirst("sub")?.Value ?? "";
+
+		var result = await BulkOperationService.BulkUpdateStatusAsync(
+			selectedIds,
+			_pendingStatusChange,
+			requestedBy,
+			progress,
+			_bulkOperationCts?.Token ?? CancellationToken.None);
+
+		await HandleBulkOperationComplete(result, "status changed");
+		_pendingStatusChange = null;
+	}
+
+	private async Task ExecuteBulkCategoryChange()
+	{
+		if (_pendingCategoryChange is null)
+		{
+			return;
+		}
+
+		_progressTitle = $"Changing category to '{_pendingCategoryChange.CategoryName}'";
+		var selectedIds = BulkSelectionState.SelectedIssueIds.ToList();
+
+		var progress = new Progress<BulkOperationProgress>(p =>
+		{
+			_bulkProgress = p;
+			InvokeAsync(StateHasChanged);
+		});
+
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var requestedBy = authState.User.FindFirst("sub")?.Value ?? "";
+
+		var result = await BulkOperationService.BulkUpdateCategoryAsync(
+			selectedIds,
+			_pendingCategoryChange,
+			requestedBy,
+			progress,
+			_bulkOperationCts?.Token ?? CancellationToken.None);
+
+		await HandleBulkOperationComplete(result, "category changed");
+		_pendingCategoryChange = null;
+	}
+
+	private async Task ExecuteBulkDelete()
+	{
+		_progressTitle = "Deleting issues";
+		var selectedIds = BulkSelectionState.SelectedIssueIds.ToList();
+
+		// Get current user for archive tracking
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var userId = authState.User.FindFirst("sub")?.Value ?? "";
+		var userName = authState.User.Identity?.Name ?? "Unknown";
+		var userEmail = authState.User.FindFirst("email")?.Value ?? "";
+		var user = new UserDto(userId, userName, userEmail);
+
+		var progress = new Progress<BulkOperationProgress>(p =>
+		{
+			_bulkProgress = p;
+			InvokeAsync(StateHasChanged);
+		});
+
+		var result = await BulkOperationService.BulkDeleteAsync(
+			selectedIds,
+			user,
+			userId,
+			progress,
+			_bulkOperationCts?.Token ?? CancellationToken.None);
+
+		await HandleBulkOperationComplete(result, "deleted");
+	}
+
+	private async Task HandleBulkOperationComplete(Domain.Abstractions.Result<BulkOperationResult> result, string action)
+	{
+		_bulkOperationComplete = true;
+
+		if (result.Success && result.Value is not null)
+		{
+			var opResult = result.Value;
+			_undoMessage = $"{opResult.SuccessCount} issue(s) {action} successfully";
+			_lastUndoToken = opResult.UndoToken;
+
+			if (opResult.FailureCount > 0)
+			{
+				ToastService.ShowWarning($"{opResult.FailureCount} issue(s) failed to update");
+			}
+		}
+		else
+		{
+			ToastService.ShowError(result.Error ?? "Bulk operation failed");
+		}
+
+		// Clear selection and reload
+		BulkSelectionState.ClearSelection();
+		await LoadIssuesAsync();
+	}
+
+	private void CancelBulkOperation()
+	{
+		_bulkOperationCts?.Cancel();
+		_showConfirmationModal = false;
+		_pendingBulkOperation = null;
+		_pendingStatusChange = null;
+		_pendingCategoryChange = null;
+	}
+
+	private void CloseProgressIndicator()
+	{
+		_showProgressIndicator = false;
+		_bulkProgress = null;
+		_bulkOperationComplete = false;
+
+		// Show undo toast after closing progress
+		if (!string.IsNullOrEmpty(_lastUndoToken))
+		{
+			_showUndoToast = true;
+		}
+	}
+
+	private async Task HandleUndo(string undoToken)
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var requestedBy = authState.User.FindFirst("sub")?.Value ?? "";
+		var result = await BulkOperationService.UndoLastOperationAsync(undoToken, requestedBy);
+		if (result.Success)
+		{
+			ToastService.ShowSuccess("Operation undone successfully");
+			await LoadIssuesAsync();
+		}
+		else
+		{
+			ToastService.ShowError("Failed to undo operation");
+		}
+	}
+
+	private void ClearUndoState()
+	{
+		_showUndoToast = false;
+		_lastUndoToken = null;
+		_undoMessage = "";
+	}
+
 	public void Dispose()
 	{
 		SignalRClient.OnIssueCreated -= HandleIssueCreated;
 		SignalRClient.OnIssueUpdated -= HandleIssueUpdated;
+		_bulkOperationCts?.Dispose();
 	}
 }

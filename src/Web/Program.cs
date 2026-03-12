@@ -73,6 +73,24 @@ else
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<SignalRClientService>();
 
+// Add memory cache for undo service
+builder.Services.AddMemoryCache();
+
+// Add bulk operations services
+builder.Services.AddScoped<BulkSelectionState>();
+builder.Services.AddSingleton<InMemoryBulkOperationQueue>();
+builder.Services.AddSingleton<Domain.Features.Issues.Commands.Bulk.IBulkOperationQueue>(sp =>
+	sp.GetRequiredService<InMemoryBulkOperationQueue>());
+builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.IUndoService, InMemoryUndoService>();
+builder.Services.AddScoped<IBulkOperationService, BulkOperationService>();
+builder.Services.AddHostedService<BulkOperationBackgroundService>();
+
+// Register bulk operation handlers for background processing
+builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkUpdateStatusCommandHandler>();
+builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkUpdateCategoryCommandHandler>();
+builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkAssignCommandHandler>();
+builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkDeleteCommandHandler>();
+
 // Add data seeder
 builder.Services.AddDataSeeder();
 

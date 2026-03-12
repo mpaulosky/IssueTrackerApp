@@ -1,0 +1,177 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     UndoToast.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@implements IDisposable
+
+@* Toast notification with undo functionality and countdown timer *@
+
+@if (IsVisible)
+{
+	<div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 animate-slide-in-up">
+		<div class="bg-gray-900 dark:bg-gray-800 text-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-4 min-w-[300px] max-w-md">
+			<!-- Success icon -->
+			<div class="flex-shrink-0">
+				<svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+				</svg>
+			</div>
+
+			<!-- Message -->
+			<div class="flex-1">
+				<p class="text-sm font-medium">@Message</p>
+			</div>
+
+			<!-- Undo button with countdown -->
+			@if (!string.IsNullOrEmpty(UndoToken))
+			{
+				<button type="button"
+					class="flex-shrink-0 inline-flex items-center px-3 py-1 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-md transition-colors"
+					@onclick="OnUndoClick">
+					<span>Undo</span>
+					<span class="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-white/20 rounded-full">
+						@_remainingSeconds
+					</span>
+				</button>
+			}
+
+			<!-- Close button -->
+			<button type="button"
+				class="flex-shrink-0 text-gray-400 hover:text-white transition-colors"
+				@onclick="Dismiss">
+				<span class="sr-only">Dismiss</span>
+				<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+				</svg>
+			</button>
+		</div>
+		
+		<!-- Progress bar for countdown -->
+		@if (!string.IsNullOrEmpty(UndoToken))
+		{
+			<div class="h-1 bg-gray-700 rounded-b-lg overflow-hidden -mt-1">
+				<div class="h-full bg-green-400 transition-all duration-1000 ease-linear"
+					style="width: @(_remainingSeconds * 100 / CountdownSeconds)%">
+				</div>
+			</div>
+		}
+	</div>
+}
+
+@code {
+	private System.Timers.Timer? _timer;
+	private int _remainingSeconds;
+
+	/// <summary>
+	/// Whether the toast is visible.
+	/// </summary>
+	[Parameter]
+	public bool IsVisible { get; set; }
+
+	/// <summary>
+	/// Event callback when visibility changes.
+	/// </summary>
+	[Parameter]
+	public EventCallback<bool> IsVisibleChanged { get; set; }
+
+	/// <summary>
+	/// The message to display.
+	/// </summary>
+	[Parameter]
+	public string Message { get; set; } = "Operation completed successfully";
+
+	/// <summary>
+	/// The undo token from the bulk operation (null if undo not available).
+	/// </summary>
+	[Parameter]
+	public string? UndoToken { get; set; }
+
+	/// <summary>
+	/// The number of seconds for the countdown.
+	/// </summary>
+	[Parameter]
+	public int CountdownSeconds { get; set; } = 5;
+
+	/// <summary>
+	/// Event callback when undo is clicked.
+	/// </summary>
+	[Parameter]
+	public EventCallback<string> OnUndo { get; set; }
+
+	/// <summary>
+	/// Event callback when toast is dismissed (either by countdown or manual close).
+	/// </summary>
+	[Parameter]
+	public EventCallback OnDismissed { get; set; }
+
+	protected override void OnParametersSet()
+	{
+		if (IsVisible && _timer is null)
+		{
+			StartCountdown();
+		}
+		else if (!IsVisible && _timer is not null)
+		{
+			StopCountdown();
+		}
+	}
+
+	private void StartCountdown()
+	{
+		_remainingSeconds = CountdownSeconds;
+		_timer = new System.Timers.Timer(1000);
+		_timer.Elapsed += OnTimerElapsed;
+		_timer.Start();
+	}
+
+	private void StopCountdown()
+	{
+		_timer?.Stop();
+		_timer?.Dispose();
+		_timer = null;
+	}
+
+	private void OnTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+	{
+		_remainingSeconds--;
+		
+		if (_remainingSeconds <= 0)
+		{
+			InvokeAsync(async () =>
+			{
+				await Dismiss();
+			});
+		}
+		else
+		{
+			InvokeAsync(StateHasChanged);
+		}
+	}
+
+	private async Task OnUndoClick()
+	{
+		if (!string.IsNullOrEmpty(UndoToken))
+		{
+			StopCountdown();
+			await OnUndo.InvokeAsync(UndoToken);
+			await Dismiss();
+		}
+	}
+
+	private async Task Dismiss()
+	{
+		StopCountdown();
+		await IsVisibleChanged.InvokeAsync(false);
+		await OnDismissed.InvokeAsync();
+	}
+
+	public void Dispose()
+	{
+		StopCountdown();
+	}
+}

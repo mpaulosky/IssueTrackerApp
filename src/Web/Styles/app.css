@@ -129,6 +129,38 @@
 		animation: slide-in-right 0.3s ease-out;
 	}
 
+	/* Slide in from top (for bulk action toolbar) */
+	@keyframes slide-in-down {
+		from {
+			transform: translateY(-100%);
+			opacity: 0;
+		}
+		to {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
+
+	.animate-slide-in-down {
+		animation: slide-in-down 0.3s ease-out;
+	}
+
+	/* Slide in from bottom (for undo toast) */
+	@keyframes slide-in-up {
+		from {
+			transform: translateX(-50%) translateY(100%);
+			opacity: 0;
+		}
+		to {
+			transform: translateX(-50%) translateY(0);
+			opacity: 1;
+		}
+	}
+
+	.animate-slide-in-up {
+		animation: slide-in-up 0.3s ease-out;
+	}
+
 	/* Blazor validation styles */
 	.valid.modified:not([type=checkbox]) {
 		outline: 1px solid #26b050;

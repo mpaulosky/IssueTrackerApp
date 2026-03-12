@@ -1,0 +1,196 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     BulkConfirmationModal.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@* Modal dialog for confirming destructive bulk operations *@
+
+@if (IsVisible)
+{
+	<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+		<div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+			<!-- Background overlay -->
+			<div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
+				aria-hidden="true"
+				@onclick="OnCancelClick"></div>
+
+			<!-- Center modal -->
+			<span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+			<!-- Modal panel -->
+			<div class="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+				<div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+					<div class="sm:flex sm:items-start">
+						<div class="@GetIconBackgroundClasses() mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+							@if (ActionType == BulkActionType.Delete)
+							{
+								<!-- Trash icon for delete -->
+								<svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+								</svg>
+							}
+							else
+							{
+								<!-- Warning icon for other destructive actions -->
+								<svg class="h-6 w-6 text-yellow-600 dark:text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+								</svg>
+							}
+						</div>
+						<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+							<h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+								@Title
+							</h3>
+							<div class="mt-2">
+								<p class="text-sm text-gray-500 dark:text-gray-400">
+									@Message
+								</p>
+								<div class="mt-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+									<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+										<span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-primary-600 rounded-full mr-2">
+											@AffectedCount
+										</span>
+										issue@(AffectedCount != 1 ? "s" : "") will be affected
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+					<button type="button"
+						class="@GetConfirmButtonClasses()"
+						disabled="@IsProcessing"
+						@onclick="OnConfirmClick">
+						@if (IsProcessing)
+						{
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+							<span>Processing...</span>
+						}
+						else
+						{
+							<span>@ConfirmButtonText</span>
+						}
+					</button>
+					<button type="button"
+						class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+						disabled="@IsProcessing"
+						@onclick="OnCancelClick">
+						Cancel
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	/// <summary>
+	/// Whether the modal is visible.
+	/// </summary>
+	[Parameter]
+	public bool IsVisible { get; set; }
+
+	/// <summary>
+	/// Event callback when visibility changes.
+	/// </summary>
+	[Parameter]
+	public EventCallback<bool> IsVisibleChanged { get; set; }
+
+	/// <summary>
+	/// The modal title.
+	/// </summary>
+	[Parameter]
+	public string Title { get; set; } = "Confirm Bulk Action";
+
+	/// <summary>
+	/// The confirmation message.
+	/// </summary>
+	[Parameter]
+	public string Message { get; set; } = "Are you sure you want to perform this action?";
+
+	/// <summary>
+	/// The number of items affected by this action.
+	/// </summary>
+	[Parameter]
+	public int AffectedCount { get; set; }
+
+	/// <summary>
+	/// The type of bulk action being performed.
+	/// </summary>
+	[Parameter]
+	public BulkActionType ActionType { get; set; } = BulkActionType.StatusChange;
+
+	/// <summary>
+	/// Text for the confirm button.
+	/// </summary>
+	[Parameter]
+	public string ConfirmButtonText { get; set; } = "Confirm";
+
+	/// <summary>
+	/// Whether an operation is in progress.
+	/// </summary>
+	[Parameter]
+	public bool IsProcessing { get; set; }
+
+	/// <summary>
+	/// Event callback when confirm is clicked.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnConfirm { get; set; }
+
+	/// <summary>
+	/// Event callback when cancel is clicked.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnCancel { get; set; }
+
+	private async Task OnConfirmClick()
+	{
+		await OnConfirm.InvokeAsync();
+	}
+
+	private async Task OnCancelClick()
+	{
+		await IsVisibleChanged.InvokeAsync(false);
+		await OnCancel.InvokeAsync();
+	}
+
+	private string GetIconBackgroundClasses()
+	{
+		return ActionType switch
+		{
+			BulkActionType.Delete => "bg-red-100 dark:bg-red-900",
+			_ => "bg-yellow-100 dark:bg-yellow-900"
+		};
+	}
+
+	private string GetConfirmButtonClasses()
+	{
+		var baseClasses = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed";
+
+		return ActionType switch
+		{
+			BulkActionType.Delete => $"{baseClasses} bg-red-600 hover:bg-red-700 focus:ring-red-500",
+			_ => $"{baseClasses} bg-primary-600 hover:bg-primary-700 focus:ring-primary-500"
+		};
+	}
+}
+
+@* Enum must be defined in a code-behind or separate file for real use *@
+@code {
+	public enum BulkActionType
+	{
+		StatusChange,
+		CategoryChange,
+		Delete,
+		Export
+	}
+}

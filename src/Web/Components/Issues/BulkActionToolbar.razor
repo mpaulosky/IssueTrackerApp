@@ -1,0 +1,297 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     BulkActionToolbar.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@using Web.Services
+@using Domain.DTOs
+@implements IDisposable
+@inject BulkSelectionState SelectionState
+
+@* Bulk action toolbar that appears when issues are selected *@
+
+@if (SelectionState.HasSelection)
+{
+	<div class="sticky top-0 z-40 bg-primary-600 dark:bg-primary-700 shadow-lg rounded-lg mb-4 animate-slide-in-down">
+		<div class="px-4 py-3 sm:px-6">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+				<!-- Selection count and clear button -->
+				<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2">
+						<span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-primary-600 bg-white rounded-full">
+							@SelectionState.SelectedCount
+						</span>
+						<span class="text-sm font-medium text-white">
+							issue@(SelectionState.SelectedCount != 1 ? "s" : "") selected
+						</span>
+					</div>
+					<button type="button"
+						class="text-primary-200 hover:text-white transition-colors text-sm underline"
+						@onclick="ClearSelection">
+						Clear selection
+					</button>
+				</div>
+
+				<!-- Action buttons - desktop -->
+				<div class="hidden sm:flex items-center gap-2">
+					@* Change Status dropdown *@
+					<div class="relative">
+						<button type="button"
+							class="@GetButtonClasses()"
+							@onclick="() => ToggleDropdown(nameof(_showStatusDropdown))">
+							<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							Status
+							<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+							</svg>
+						</button>
+						@if (_showStatusDropdown)
+						{
+							<div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+								<div class="py-1">
+									@if (Statuses is not null)
+									{
+										@foreach (var status in Statuses)
+										{
+											<button type="button"
+												class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+												@onclick="() => OnStatusSelected(status)">
+												@status.StatusName
+											</button>
+										}
+									}
+								</div>
+							</div>
+						}
+					</div>
+
+					@* Change Category dropdown *@
+					<div class="relative">
+						<button type="button"
+							class="@GetButtonClasses()"
+							@onclick="() => ToggleDropdown(nameof(_showCategoryDropdown))">
+							<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+							</svg>
+							Category
+							<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+							</svg>
+						</button>
+						@if (_showCategoryDropdown)
+						{
+							<div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+								<div class="py-1">
+									@if (Categories is not null)
+									{
+										@foreach (var category in Categories)
+										{
+											<button type="button"
+												class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+												@onclick="() => OnCategorySelected(category)">
+												@category.CategoryName
+											</button>
+										}
+									}
+								</div>
+							</div>
+						}
+					</div>
+
+					@* Export button *@
+					<button type="button"
+						class="@GetButtonClasses()"
+						@onclick="OnExportClicked">
+						<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+						</svg>
+						Export
+					</button>
+
+					@* Delete button - admin only *@
+					@if (IsAdmin)
+					{
+						<button type="button"
+							class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors"
+							@onclick="OnDeleteClicked">
+							<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+							</svg>
+							Delete
+						</button>
+					}
+				</div>
+
+				<!-- Mobile dropdown menu -->
+				<div class="sm:hidden relative">
+					<button type="button"
+						class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-white/10 text-white hover:bg-white/20 transition-colors"
+						@onclick="() => _showMobileMenu = !_showMobileMenu">
+						Actions
+						<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+						</svg>
+					</button>
+					@if (_showMobileMenu)
+					{
+						<div class="absolute right-0 left-0 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+							<div class="py-1">
+								<button type="button"
+									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+									@onclick="() => { _showMobileMenu = false; _showStatusDropdown = true; }">
+									Change Status
+								</button>
+								<button type="button"
+									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+									@onclick="() => { _showMobileMenu = false; _showCategoryDropdown = true; }">
+									Change Category
+								</button>
+								<button type="button"
+									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+									@onclick="OnExportClicked">
+									Export
+								</button>
+								@if (IsAdmin)
+								{
+									<button type="button"
+										class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+										@onclick="OnDeleteClicked">
+										Delete Selected
+									</button>
+								}
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	/// <summary>
+	/// Available statuses for bulk status change.
+	/// </summary>
+	[Parameter]
+	public IEnumerable<StatusDto>? Statuses { get; set; }
+
+	/// <summary>
+	/// Available categories for bulk category change.
+	/// </summary>
+	[Parameter]
+	public IEnumerable<CategoryDto>? Categories { get; set; }
+
+	/// <summary>
+	/// Whether the current user is an admin (can delete).
+	/// </summary>
+	[Parameter]
+	public bool IsAdmin { get; set; }
+
+	/// <summary>
+	/// Event callback when status change is requested.
+	/// </summary>
+	[Parameter]
+	public EventCallback<StatusDto> OnChangeStatus { get; set; }
+
+	/// <summary>
+	/// Event callback when category change is requested.
+	/// </summary>
+	[Parameter]
+	public EventCallback<CategoryDto> OnChangeCategory { get; set; }
+
+	/// <summary>
+	/// Event callback when delete is requested.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnDelete { get; set; }
+
+	/// <summary>
+	/// Event callback when export is requested.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnExport { get; set; }
+
+	private bool _showStatusDropdown;
+	private bool _showCategoryDropdown;
+	private bool _showMobileMenu;
+
+	protected override void OnInitialized()
+	{
+		SelectionState.OnSelectionChanged += HandleSelectionChanged;
+	}
+
+	private void ClearSelection()
+	{
+		SelectionState.ClearSelection();
+		CloseAllDropdowns();
+	}
+
+	private void ToggleDropdown(string dropdown)
+	{
+		switch (dropdown)
+		{
+			case nameof(_showStatusDropdown):
+				_showStatusDropdown = !_showStatusDropdown;
+				_showCategoryDropdown = false;
+				_showMobileMenu = false;
+				break;
+			case nameof(_showCategoryDropdown):
+				_showCategoryDropdown = !_showCategoryDropdown;
+				_showStatusDropdown = false;
+				_showMobileMenu = false;
+				break;
+		}
+	}
+
+	private void CloseAllDropdowns()
+	{
+		_showStatusDropdown = false;
+		_showCategoryDropdown = false;
+		_showMobileMenu = false;
+	}
+
+	private async Task OnStatusSelected(StatusDto status)
+	{
+		CloseAllDropdowns();
+		await OnChangeStatus.InvokeAsync(status);
+	}
+
+	private async Task OnCategorySelected(CategoryDto category)
+	{
+		CloseAllDropdowns();
+		await OnChangeCategory.InvokeAsync(category);
+	}
+
+	private async Task OnDeleteClicked()
+	{
+		CloseAllDropdowns();
+		await OnDelete.InvokeAsync();
+	}
+
+	private async Task OnExportClicked()
+	{
+		CloseAllDropdowns();
+		await OnExport.InvokeAsync();
+	}
+
+	private void HandleSelectionChanged()
+	{
+		InvokeAsync(StateHasChanged);
+	}
+
+	private static string GetButtonClasses()
+	{
+		return "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-white/10 text-white hover:bg-white/20 transition-colors";
+	}
+
+	public void Dispose()
+	{
+		SelectionState.OnSelectionChanged -= HandleSelectionChanged;
+	}
+}
