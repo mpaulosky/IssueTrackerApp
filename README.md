@@ -25,10 +25,18 @@ IssueTrackerApp is a full-stack web application for managing issues and tracking
 
 ### Core Functionality
 
-- **Issue Management**: Create, update, track, and categorize issues
-- **Commenting System**: Add comments to issues with embedded user information
+- **Issue Management**: Full CRUD operations (create, read, update, delete) for issues with validation
+- **Commenting System**: Add, edit, and delete comments on issues with embedded user information
 - **Status Tracking**: Track issues through configurable status workflows
 - **Category Organization**: Organize issues by customizable categories
+- **User Dashboard**: Personal analytics with stats cards, recent issues, and quick actions
+- **Search & Filtering**: Debounced search, multi-filter support, pagination, and bookmarkable URLs
+
+### Administration
+
+- **Category Management**: Admin pages to create, edit, and archive categories
+- **Status Management**: Admin pages to create, edit, and archive statuses
+- **Admin Dashboard**: Centralized administration panel
 
 ### Security
 
@@ -199,6 +207,7 @@ IssueTrackerApp supports dark mode and multiple color schemes. See [docs/THEMING
 ## Documentation
 
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Solution architecture overview
+- [FEATURES.md](docs/FEATURES.md) - Detailed feature documentation
 - [THEMING.md](docs/THEMING.md) - Theming and customization guide
 - [LIBRARIES.md](docs/LIBRARIES.md) - NuGet and npm package references
 - [CONTRIBUTING.md](docs/CONTRIBUTING.md) - Contribution guidelines

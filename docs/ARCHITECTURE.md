@@ -383,3 +383,160 @@ public class Comment
 - **Event Sourcing**: Consider for audit trail requirements
 - **GraphQL**: Evaluate for complex query scenarios
 - **Microservices**: Potential split as application grows
+
+---
+
+## CQRS Implementation
+
+The application uses MediatR to implement the Command Query Responsibility Segregation (CQRS) pattern. Each feature is organized in vertical slices under `Domain/Features/`.
+
+### Feature Structure
+
+```
+Domain/Features/
+├── Issues/
+│   ├── Commands/
+│   │   ├── CreateIssueCommand.cs
+│   │   ├── UpdateIssueCommand.cs
+│   │   ├── DeleteIssueCommand.cs
+│   │   └── ChangeIssueStatusCommand.cs
+│   ├── Queries/
+│   │   ├── GetIssueByIdQuery.cs
+│   │   ├── GetIssuesQuery.cs
+│   │   └── SearchIssuesQuery.cs
+│   └── Validators/
+│       ├── CreateIssueCommandValidator.cs
+│       └── UpdateIssueCommandValidator.cs
+├── Comments/
+│   ├── Commands/
+│   │   ├── AddCommentCommand.cs
+│   │   ├── UpdateCommentCommand.cs
+│   │   └── DeleteCommentCommand.cs
+│   ├── Queries/
+│   │   └── GetIssueCommentsQuery.cs
+│   └── Validators/
+│       ├── AddCommentCommandValidator.cs
+│       └── UpdateCommentCommandValidator.cs
+├── Categories/
+│   ├── Commands/
+│   │   ├── CreateCategoryCommand.cs
+│   │   ├── UpdateCategoryCommand.cs
+│   │   └── ArchiveCategoryCommand.cs
+│   ├── Queries/
+│   │   ├── GetCategoryByIdQuery.cs
+│   │   └── GetCategoriesQuery.cs
+│   └── Validators/
+│       ├── CreateCategoryCommandValidator.cs
+│       └── UpdateCategoryCommandValidator.cs
+├── Statuses/
+│   ├── Commands/
+│   │   ├── CreateStatusCommand.cs
+│   │   ├── UpdateStatusCommand.cs
+│   │   └── ArchiveStatusCommand.cs
+│   ├── Queries/
+│   │   ├── GetStatusByIdQuery.cs
+│   │   └── GetStatusesQuery.cs
+│   └── Validators/
+│       ├── CreateStatusCommandValidator.cs
+│       └── UpdateStatusCommandValidator.cs
+└── Dashboard/
+    └── Queries/
+        └── GetUserDashboardQuery.cs
+```
+
+### Command/Query Pattern
+
+Commands modify state and return `Result<T>` for success/failure handling:
+
+```csharp
+public record AddCommentCommand(
+    string IssueId,
+    string Title,
+    string Description,
+    UserDto Author) : IRequest<Result<CommentDto>>;
+```
+
+Queries return data without side effects:
+
+```csharp
+public record GetIssueCommentsQuery(string IssueId) : IRequest<Result<IEnumerable<CommentDto>>>;
+```
+
+---
+
+## Search Query Implementation
+
+The `SearchIssuesQuery` provides comprehensive search functionality with multiple filter options.
+
+### Search Request Model
+
+```csharp
+public record IssueSearchRequest
+{
+    public string? SearchText { get; init; }      // Full-text search on title/description
+    public string? StatusFilter { get; init; }    // Filter by status name
+    public string? CategoryFilter { get; init; }  // Filter by category name
+    public string? AuthorId { get; init; }        // Filter by author
+    public DateOnly? DateFrom { get; init; }      // Date range start
+    public DateOnly? DateTo { get; init; }        // Date range end
+    public bool IncludeArchived { get; init; }    // Include archived issues
+    public int Page { get; init; } = 1;           // Pagination page
+    public int PageSize { get; init; } = 20;      // Items per page
+}
+```
+
+### Filter Pipeline
+
+The search handler applies filters in sequence:
+1. Archive filter (exclude archived by default)
+2. Text search (title and description, case-insensitive)
+3. Status filter (exact match)
+4. Category filter (exact match)
+5. Author filter (by user ID)
+6. Date range filter (created date)
+7. Pagination (offset-based)
+
+### URL Parameter Persistence
+
+Search state is synchronized with URL query parameters, enabling:
+- Bookmarkable search results
+- Browser back/forward navigation
+- Shareable filtered views
+
+---
+
+## PagedResult Pattern
+
+The `PagedResult<T>` record provides standardized pagination metadata for API responses.
+
+### Structure
+
+```csharp
+public record PagedResult<T>
+{
+    public IReadOnlyList<T> Items { get; init; }
+    public int TotalCount { get; init; }
+    public int Page { get; init; }
+    public int PageSize { get; init; }
+    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public bool HasPreviousPage => Page > 1;
+    public bool HasNextPage => Page < TotalPages;
+}
+```
+
+### Usage Example
+
+```csharp
+var result = PagedResult<IssueDto>.Create(
+    items: pagedIssues,
+    totalCount: totalCount,
+    page: request.Page,
+    pageSize: request.PageSize);
+```
+
+### Benefits
+
+- Consistent pagination across all list endpoints
+- Self-contained metadata for UI pagination controls
+- Factory method for easy instantiation
+- Computed properties for navigation logic
