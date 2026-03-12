@@ -1,0 +1,101 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     AdminPageLayout.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+	<!-- Admin Navigation Bar -->
+	<nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex justify-between h-16">
+				<div class="flex">
+					<div class="flex-shrink-0 flex items-center">
+						<a href="/admin" class="text-xl font-bold text-primary-600 dark:text-primary-400">
+							Admin Portal
+						</a>
+					</div>
+					<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+						<NavLink href="/admin" Match="NavLinkMatch.All"
+						         class="@GetNavLinkClass("/admin")">
+							Dashboard
+						</NavLink>
+						<NavLink href="/admin/categories"
+						         class="@GetNavLinkClass("/admin/categories")">
+							Categories
+						</NavLink>
+						<NavLink href="/admin/statuses"
+						         class="@GetNavLinkClass("/admin/statuses")">
+							Statuses
+						</NavLink>
+					</div>
+				</div>
+				<div class="flex items-center">
+					<a href="/"
+					   class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+						<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+						</svg>
+						Back to App
+					</a>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Page Content -->
+	<main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+		@if (!string.IsNullOrEmpty(Title))
+		{
+			<div class="mb-6">
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">@Title</h1>
+				@if (!string.IsNullOrEmpty(Description))
+				{
+					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">@Description</p>
+				}
+			</div>
+		}
+
+		@ChildContent
+	</main>
+</div>
+
+@code {
+	/// <summary>
+	///   The page title.
+	/// </summary>
+	[Parameter]
+	public string? Title { get; set; }
+
+	/// <summary>
+	///   The page description.
+	/// </summary>
+	[Parameter]
+	public string? Description { get; set; }
+
+	/// <summary>
+	///   The child content to render.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? ChildContent { get; set; }
+
+	[Inject]
+	private NavigationManager NavigationManager { get; set; } = default!;
+
+	private string GetNavLinkClass(string href)
+	{
+		var currentUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+		var currentPath = "/" + currentUri.Split('?')[0];
+
+		var isActive = href == "/admin"
+			? currentPath == "/admin"
+			: currentPath.StartsWith(href, StringComparison.OrdinalIgnoreCase);
+
+		return isActive
+			? "border-primary-500 text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+			: "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium";
+	}
+}
