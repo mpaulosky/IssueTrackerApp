@@ -1,0 +1,119 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     SearchInput.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@implements IDisposable
+
+<div class="relative">
+	<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+		<svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+			<path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+		</svg>
+	</div>
+	<input type="text"
+	       id="@Id"
+	       placeholder="@Placeholder"
+	       value="@Value"
+	       @oninput="OnInputChanged"
+	       class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white pl-10 pr-10 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder-gray-400 dark:placeholder-gray-500"
+	       aria-label="@AriaLabel" />
+	@if (!string.IsNullOrEmpty(Value))
+	{
+		<button type="button"
+		        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+		        @onclick="ClearSearch"
+		        aria-label="Clear search">
+			<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+				<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+			</svg>
+		</button>
+	}
+</div>
+
+@code {
+	private System.Timers.Timer? _debounceTimer;
+
+	/// <summary>
+	///   The current search value.
+	/// </summary>
+	[Parameter]
+	public string? Value { get; set; }
+
+	/// <summary>
+	///   Event callback when the search value changes (debounced).
+	/// </summary>
+	[Parameter]
+	public EventCallback<string?> ValueChanged { get; set; }
+
+	/// <summary>
+	///   Event callback when search is triggered.
+	/// </summary>
+	[Parameter]
+	public EventCallback<string?> OnSearch { get; set; }
+
+	/// <summary>
+	///   The placeholder text for the input.
+	/// </summary>
+	[Parameter]
+	public string Placeholder { get; set; } = "Search...";
+
+	/// <summary>
+	///   The debounce delay in milliseconds. Default is 300ms.
+	/// </summary>
+	[Parameter]
+	public int DebounceMs { get; set; } = 300;
+
+	/// <summary>
+	///   The ID for the input element.
+	/// </summary>
+	[Parameter]
+	public string Id { get; set; } = "search-input";
+
+	/// <summary>
+	///   The aria-label for accessibility.
+	/// </summary>
+	[Parameter]
+	public string AriaLabel { get; set; } = "Search";
+
+	protected override void OnInitialized()
+	{
+		_debounceTimer = new System.Timers.Timer(DebounceMs);
+		_debounceTimer.Elapsed += OnDebounceElapsed;
+		_debounceTimer.AutoReset = false;
+	}
+
+	private void OnInputChanged(ChangeEventArgs e)
+	{
+		Value = e.Value?.ToString();
+		_debounceTimer?.Stop();
+		_debounceTimer?.Start();
+	}
+
+	private async void OnDebounceElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+	{
+		await InvokeAsync(async () =>
+		{
+			await ValueChanged.InvokeAsync(Value);
+			await OnSearch.InvokeAsync(Value);
+		});
+	}
+
+	private async Task ClearSearch()
+	{
+		Value = null;
+		_debounceTimer?.Stop();
+		await ValueChanged.InvokeAsync(null);
+		await OnSearch.InvokeAsync(null);
+	}
+
+	public void Dispose()
+	{
+		_debounceTimer?.Stop();
+		_debounceTimer?.Dispose();
+	}
+}
