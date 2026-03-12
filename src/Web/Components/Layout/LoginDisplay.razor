@@ -5,7 +5,10 @@
 	<Authorized>
 		<div class="user-info">
 			<span class="user-name">Hello, @context.User.Identity?.Name!</span>
-			<a href="/account/logout" class="btn-logout">Log out</a>
+			<form method="post" action="/account/logout" class="logout-form">
+				<AntiforgeryToken />
+				<button type="submit" class="btn-logout">Log out</button>
+			</form>
 		</div>
 	</Authorized>
 	<NotAuthorized>
