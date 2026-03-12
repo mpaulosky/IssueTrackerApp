@@ -255,8 +255,8 @@
 		// Subscribe to SignalR events
 		SignalRClient.OnIssueUpdated += HandleIssueUpdated;
 		SignalRClient.OnCommentAdded += HandleCommentAdded;
-		SignalRClient.OnAttachmentAdded += HandleAttachmentAdded;
-		SignalRClient.OnAttachmentDeleted += HandleAttachmentDeleted;
+		SignalRClient.OnAttachmentAdded += HandleAttachmentAddedSignalR;
+		SignalRClient.OnAttachmentDeleted += HandleAttachmentDeletedSignalR;
 		
 		// Join this specific issue group for targeted notifications
 		await SignalRClient.JoinIssueGroupAsync(Id);
@@ -544,12 +544,34 @@
 		}
 	}
 
+	private void HandleAttachmentAddedSignalR(string issueId)
+	{
+		HandleAttachmentAdded(issueId);
+	}
+
+	private void HandleAttachmentDeletedSignalR(string issueId)
+	{
+		if (issueId == Id)
+		{
+			// Reload attachments when an attachment is deleted
+			InvokeAsync(async () =>
+			{
+				var attachmentsResult = await AttachmentService.GetIssueAttachmentsAsync(Id);
+				if (attachmentsResult.Success)
+				{
+					_attachments = attachmentsResult.Value;
+				}
+				StateHasChanged();
+			});
+		}
+	}
+
 	public async ValueTask DisposeAsync()
 	{
 		SignalRClient.OnIssueUpdated -= HandleIssueUpdated;
 		SignalRClient.OnCommentAdded -= HandleCommentAdded;
-		SignalRClient.OnAttachmentAdded -= HandleAttachmentAdded;
-		SignalRClient.OnAttachmentDeleted -= HandleAttachmentDeleted;
+		SignalRClient.OnAttachmentAdded -= HandleAttachmentAddedSignalR;
+		SignalRClient.OnAttachmentDeleted -= HandleAttachmentDeletedSignalR;
 		
 		// Leave the issue group when navigating away
 		await SignalRClient.LeaveIssueGroupAsync(Id);

@@ -104,7 +104,7 @@
 
 	private bool CanDeleteAttachment(AttachmentDto attachment)
 	{
-		return IsAdmin || attachment.UploadedBy.ObjectId == CurrentUserId;
+		return IsAdmin || attachment.UploadedBy.Id == CurrentUserId;
 	}
 
 	private void HandleDeleteAttachment(string attachmentId)
