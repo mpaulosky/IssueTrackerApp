@@ -10,6 +10,7 @@
 using Domain.Abstractions;
 using Domain.DTOs;
 using Domain.Features.Issues.Commands;
+using Domain.Features.Issues.Commands.Bulk;
 using Domain.Features.Issues.Queries;
 using MediatR;
 
@@ -78,6 +79,65 @@ public interface IIssueService
 	Task<Result<PagedResult<IssueDto>>> SearchIssuesAsync(
 		IssueSearchRequest request,
 		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Bulk updates the status of multiple issues.
+	/// </summary>
+	Task<Result<BulkOperationResult>> BulkUpdateStatusAsync(
+		List<string> issueIds,
+		StatusDto newStatus,
+		string requestedBy,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Bulk updates the category of multiple issues.
+	/// </summary>
+	Task<Result<BulkOperationResult>> BulkUpdateCategoryAsync(
+		List<string> issueIds,
+		CategoryDto newCategory,
+		string requestedBy,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Bulk assigns multiple issues to a user.
+	/// </summary>
+	Task<Result<BulkOperationResult>> BulkAssignAsync(
+		List<string> issueIds,
+		UserDto assignee,
+		string requestedBy,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Bulk deletes (archives) multiple issues.
+	/// </summary>
+	Task<Result<BulkOperationResult>> BulkDeleteAsync(
+		List<string> issueIds,
+		UserDto deletedBy,
+		string requestedBy,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Bulk exports multiple issues to CSV.
+	/// </summary>
+	Task<Result<BulkExportResult>> BulkExportAsync(
+		List<string> issueIds,
+		string requestedBy,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Undoes a previous bulk operation.
+	/// </summary>
+	Task<Result<BulkOperationResult>> UndoLastBulkOperationAsync(
+		string undoToken,
+		string requestedBy,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Gets the status of a background bulk operation.
+	/// </summary>
+	Task<BulkOperationStatus?> GetBulkOperationStatusAsync(
+		string operationId,
+		CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -87,11 +147,16 @@ public sealed class IssueService : IIssueService
 {
 	private readonly IMediator _mediator;
 	private readonly Domain.Abstractions.INotificationService _notificationService;
+	private readonly IBulkOperationQueue _bulkQueue;
 
-	public IssueService(IMediator mediator, Domain.Abstractions.INotificationService notificationService)
+	public IssueService(
+		IMediator mediator,
+		Domain.Abstractions.INotificationService notificationService,
+		IBulkOperationQueue bulkQueue)
 	{
 		_mediator = mediator;
 		_notificationService = notificationService;
+		_bulkQueue = bulkQueue;
 	}
 
 	public async Task<Result<PaginatedResponse<IssueDto>>> GetIssuesAsync(
@@ -182,5 +247,70 @@ public sealed class IssueService : IIssueService
 	{
 		var query = new SearchIssuesQuery(request);
 		return await _mediator.Send(query, cancellationToken);
+	}
+
+	public async Task<Result<BulkOperationResult>> BulkUpdateStatusAsync(
+		List<string> issueIds,
+		StatusDto newStatus,
+		string requestedBy,
+		CancellationToken cancellationToken = default)
+	{
+		var command = new BulkUpdateStatusCommand(issueIds, newStatus, requestedBy);
+		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<Result<BulkOperationResult>> BulkUpdateCategoryAsync(
+		List<string> issueIds,
+		CategoryDto newCategory,
+		string requestedBy,
+		CancellationToken cancellationToken = default)
+	{
+		var command = new BulkUpdateCategoryCommand(issueIds, newCategory, requestedBy);
+		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<Result<BulkOperationResult>> BulkAssignAsync(
+		List<string> issueIds,
+		UserDto assignee,
+		string requestedBy,
+		CancellationToken cancellationToken = default)
+	{
+		var command = new BulkAssignCommand(issueIds, assignee, requestedBy);
+		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<Result<BulkOperationResult>> BulkDeleteAsync(
+		List<string> issueIds,
+		UserDto deletedBy,
+		string requestedBy,
+		CancellationToken cancellationToken = default)
+	{
+		var command = new BulkDeleteCommand(issueIds, deletedBy, requestedBy);
+		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<Result<BulkExportResult>> BulkExportAsync(
+		List<string> issueIds,
+		string requestedBy,
+		CancellationToken cancellationToken = default)
+	{
+		var command = new BulkExportCommand(issueIds, requestedBy);
+		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<Result<BulkOperationResult>> UndoLastBulkOperationAsync(
+		string undoToken,
+		string requestedBy,
+		CancellationToken cancellationToken = default)
+	{
+		var command = new UndoBulkOperationCommand(undoToken, requestedBy);
+		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<BulkOperationStatus?> GetBulkOperationStatusAsync(
+		string operationId,
+		CancellationToken cancellationToken = default)
+	{
+		return await _bulkQueue.GetStatusAsync(operationId, cancellationToken);
 	}
 }

@@ -1,0 +1,131 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     IssueMultiSelect.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@using Web.Services
+@implements IDisposable
+@inject BulkSelectionState SelectionState
+
+@* This component provides multi-select checkbox functionality for issues *@
+
+<div class="flex items-center">
+	@if (ShowSelectAll)
+	{
+		<div class="flex items-center gap-2">
+			<input type="checkbox"
+				id="select-all-checkbox"
+				class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:bg-gray-700 dark:checked:bg-primary-600 cursor-pointer"
+				checked="@_isAllSelected"
+				@onchange="OnSelectAllChanged" />
+			<label for="select-all-checkbox" class="sr-only">Select all issues</label>
+		</div>
+	}
+	else
+	{
+		<input type="checkbox"
+			id="@($"issue-checkbox-{IssueId}")"
+			class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:bg-gray-700 dark:checked:bg-primary-600 cursor-pointer"
+			checked="@_isSelected"
+			@onchange="OnCheckboxChanged" />
+		<label for="@($"issue-checkbox-{IssueId}")" class="sr-only">Select issue @IssueId</label>
+	}
+</div>
+
+@code {
+	/// <summary>
+	/// The ID of the issue this checkbox is for.
+	/// Not used when ShowSelectAll is true.
+	/// </summary>
+	[Parameter]
+	public string? IssueId { get; set; }
+
+	/// <summary>
+	/// Whether this checkbox is the "Select All" header checkbox.
+	/// </summary>
+	[Parameter]
+	public bool ShowSelectAll { get; set; }
+
+	/// <summary>
+	/// All issue IDs on the current page (required for Select All functionality).
+	/// </summary>
+	[Parameter]
+	public IEnumerable<string>? AllIssueIds { get; set; }
+
+	private bool _isSelected;
+	private bool _isAllSelected;
+
+	protected override void OnInitialized()
+	{
+		SelectionState.OnSelectionChanged += HandleSelectionChanged;
+		UpdateSelectionState();
+	}
+
+	protected override void OnParametersSet()
+	{
+		UpdateSelectionState();
+	}
+
+	private void UpdateSelectionState()
+	{
+		if (ShowSelectAll && AllIssueIds is not null)
+		{
+			_isAllSelected = SelectionState.AreAllSelected(AllIssueIds);
+		}
+		else if (!string.IsNullOrEmpty(IssueId))
+		{
+			_isSelected = SelectionState.IsSelected(IssueId);
+		}
+	}
+
+	private void OnCheckboxChanged(ChangeEventArgs e)
+	{
+		if (string.IsNullOrEmpty(IssueId))
+		{
+			return;
+		}
+
+		var isChecked = (bool)(e.Value ?? false);
+		if (isChecked)
+		{
+			SelectionState.SelectIssue(IssueId);
+		}
+		else
+		{
+			SelectionState.DeselectIssue(IssueId);
+		}
+	}
+
+	private void OnSelectAllChanged(ChangeEventArgs e)
+	{
+		if (AllIssueIds is null)
+		{
+			return;
+		}
+
+		var isChecked = (bool)(e.Value ?? false);
+		if (isChecked)
+		{
+			SelectionState.SelectAll(AllIssueIds);
+		}
+		else
+		{
+			SelectionState.ClearSelection();
+		}
+	}
+
+	private void HandleSelectionChanged()
+	{
+		UpdateSelectionState();
+		InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		SelectionState.OnSelectionChanged -= HandleSelectionChanged;
+	}
+}
