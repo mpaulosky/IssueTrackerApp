@@ -2,131 +2,229 @@
 
 A modern issue tracking application built with .NET Aspire, Blazor, and MongoDB.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![xUnit Tests](https://img.shields.io/badge/Tests-xUnit-blueviolet?logo=github)](https://github.com/mpaulosky/IssueTrackerApp/actions/workflows/squad-ci.yml)
+
+[![CI/CD](https://github.com/mpaulosky/IssueTrackerApp/actions/workflows/squad-ci.yml/badge.svg)](https://github.com/mpaulosky/IssueTrackerApp/actions/workflows/squad-ci.yml)
+[![Test Suite](https://github.com/mpaulosky/IssueTrackerApp/actions/workflows/squad-test.yml/badge.svg)](https://github.com/mpaulosky/IssueTrackerApp/actions/workflows/squad-test.yml)
+
+[![CodeCov Coverage](https://codecov.io/gh/mpaulosky/IssueTrackerApp/branch/main/graph/badge.svg)](https://codecov.io/gh/mpaulosky/IssueTrackerApp)
+[![Coverage Trend](https://img.shields.io/badge/Coverage-Trend-blue?logo=codecov)](https://codecov.io/gh/mpaulosky/IssueTrackerApp/commits/main)
+
+[![Open Issues](https://img.shields.io/github/issues/mpaulosky/IssueTrackerApp?color=0366d6)](https://github.com/mpaulosky/IssueTrackerApp/issues?q=is%3Aopen+is%3Aissue)
+[![Closed Issues](https://img.shields.io/github/issues-closed/mpaulosky/IssueTrackerApp?color=6f42c1)](https://github.com/mpaulosky/IssueTrackerApp/issues?q=is%3Aclosed+is%3Aissue)
+[![Open PRs](https://img.shields.io/github/issues-pr/mpaulosky/IssueTrackerApp?color=28a745)](https://github.com/mpaulosky/IssueTrackerApp/pulls?q=is%3Aopen+is%3Apr)
+[![Closed PRs](https://img.shields.io/github/issues-pr-closed/mpaulosky/IssueTrackerApp?color=6f42c1)](https://github.com/mpaulosky/IssueTrackerApp/pulls?q=is%3Aclosed+is%3Apr)
 
 ## Overview
 
 IssueTrackerApp is a full-stack web application for managing issues and tracking project progress. It demonstrates modern .NET development practices using the latest technologies and architectural patterns.
 
+## Features
+
+### Core Functionality
+
+- **Issue Management**: Create, update, track, and categorize issues
+- **Commenting System**: Add comments to issues with embedded user information
+- **Status Tracking**: Track issues through configurable status workflows
+- **Category Organization**: Organize issues by customizable categories
+
+### Security
+
+- **Auth0 Authentication**: Secure login with Authorization Code + PKCE flow
+- **Role-Based Authorization**: Admin and User policies for fine-grained access control
+- **Security Hardening**: Protection against open redirect and CSRF attacks
+
+### User Interface
+
+- **Dark Mode**: System-aware dark mode with manual override (light/dark/system)
+- **Color Schemes**: 4 built-in themes (Blue, Red, Green, Yellow)
+- **Responsive Design**: TailwindCSS v4 for modern, responsive UI
+- **Theme Persistence**: User preferences saved to localStorage
+
 ## Technology Stack
 
+### Backend
+
 - **.NET 10** with **C# 14**
-- **Blazor Interactive Server Rendering** for responsive UI
 - **.NET Aspire** for orchestration and service management
-- **MongoDB Atlas** for data persistence
+- **MongoDB Atlas** with **MongoDB.EntityFrameworkCore** for data persistence
 - **Redis** for distributed caching
-- **Auth0** for authentication and authorization
 - **MediatR** for CQRS pattern implementation
 - **FluentValidation** for robust data validation
-- **OpenTelemetry** for observability and monitoring
-- **xUnit** and **bUnit** for comprehensive testing
+
+### Frontend
+
+- **Blazor Interactive Server Rendering** for responsive UI
+- **TailwindCSS v4** with `@tailwindcss/cli` for styling
+- **MSBuild Integration** for automatic CSS compilation
+
+### Observability
+
+- **OpenTelemetry** for distributed tracing and metrics
+- **Azure Application Insights** integration
+- **Health Checks** for MongoDB and Redis connectivity
+
+### DevOps
+
+- **14 GitHub Workflows** for CI/CD automation
+- **DocFX** for API documentation generation
+- **CodeCov** for test coverage reporting
 
 ## Project Structure
 
 ```
 IssueTrackerApp/
-├── AppHost/                      # .NET Aspire orchestration
-├── ServiceDefaults/              # Cross-cutting concerns (OpenTelemetry, health checks)
 ├── src/
+│   ├── AppHost/                  # .NET Aspire orchestration
+│   ├── ServiceDefaults/          # Cross-cutting concerns (OpenTelemetry, health checks)
 │   ├── Web/                      # Blazor Interactive Server application
+│   │   ├── Components/Theme/     # ThemeProvider, ThemeToggle components
+│   │   ├── Styles/               # TailwindCSS source files
+│   │   └── Auth/                 # Authentication endpoints
 │   ├── Domain/                   # Business logic and entities
-│   ├── Persistence.MongoDb/      # Data access layer with MongoDB
-│   └── ...
+│   │   ├── Models/               # Issue, Category, Status, Comment, User
+│   │   ├── DTOs/                 # Data transfer objects
+│   │   └── Abstractions/         # Result<T> pattern, IRepository<T>
+│   └── Persistence.MongoDb/      # Data access layer with MongoDB EF Core
 ├── tests/                        # Unit, integration, and E2E tests
 ├── docs/                         # Documentation
 └── Directory.Packages.props      # Centralized package versioning
 ```
-
-## Key Features
-
-- **Distributed Caching**: Redis integration for high-performance data caching
-- **Health Checks**: Built-in health endpoints for MongoDB and Redis
-- **Observability**: OpenTelemetry integration with Azure Application Insights
-- **Authentication**: Secure Auth0 integration with role-based access control
-- **CQRS Pattern**: MediatR-based command/query separation
-- **Comprehensive Testing**: Unit tests, integration tests, and Blazor component tests
 
 ## Getting Started
 
 ### Prerequisites
 
 - .NET 10 SDK or later
-- MongoDB Atlas cluster
+- Node.js 18+ (for TailwindCSS compilation)
+- MongoDB Atlas cluster (or local MongoDB)
 - Redis instance (for caching)
 - Auth0 tenant configuration
 
-### Development
+### Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/mpaulosky/IssueTrackerApp.git
    cd IssueTrackerApp
    ```
 
-2. **Restore dependencies**
+2. **Restore .NET dependencies**
+
    ```bash
    dotnet restore
    ```
 
-3. **Build the solution**
+3. **Install npm dependencies** (for TailwindCSS)
+
+   ```bash
+   cd src/Web
+   npm install
+   cd ../..
+   ```
+
+4. **Build the solution** (includes CSS compilation via MSBuild)
+
    ```bash
    dotnet build
    ```
 
-4. **Run tests**
+5. **Run tests**
+
    ```bash
    dotnet test
    ```
 
-5. **Run the application** (via Aspire AppHost)
+6. **Run the application** (via Aspire AppHost)
+
    ```bash
    cd src/AppHost
    dotnet run
    ```
 
+### TailwindCSS Development
+
+For active CSS development with hot reload:
+
+```bash
+cd src/Web
+npm run css:watch
+```
+
+This watches for changes in Razor components and automatically recompiles CSS.
+
 ### Configuration
 
-Configuration is managed through user secrets and environment variables:
+#### User Secrets Setup
 
-- **MongoDB connection**: Configure via `services.AddAspireMongoDBDriver()`
-- **Redis connection**: Configure via `services.AddAspireStackExchangeRedisClient()`
-- **Auth0**: Configure client credentials in user secrets or environment
-- **OpenTelemetry**: Configured in ServiceDefaults for automatic instrumentation
+```bash
+cd src/Web
+dotnet user-secrets init
+dotnet user-secrets set "Auth0:Domain" "your-tenant.auth0.com"
+dotnet user-secrets set "Auth0:ClientId" "your-client-id"
+dotnet user-secrets set "Auth0:ClientSecret" "your-client-secret"
+```
+
+#### Auth0 Configuration
+
+1. Create an Auth0 Application (Regular Web Application)
+2. Configure Allowed Callback URLs: `https://localhost:7xxx/callback`
+3. Configure Allowed Logout URLs: `https://localhost:7xxx/`
+4. Enable Authorization Code Flow with PKCE
+5. Create roles: `Admin`, `User`
+
+#### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `Auth0__Domain` | Auth0 tenant domain |
+| `Auth0__ClientId` | Auth0 application client ID |
+| `Auth0__ClientSecret` | Auth0 application client secret |
+| `ConnectionStrings__mongodb` | MongoDB connection string |
+| `ConnectionStrings__redis` | Redis connection string |
+
+## Theming
+
+IssueTrackerApp supports dark mode and multiple color schemes. See [docs/THEMING.md](docs/THEMING.md) for details.
+
+### Quick Start
+
+- **Toggle Theme**: Click the theme toggle button in the header
+- **Change Color**: Select from Blue, Red, Green, or Yellow schemes
+- **System Mode**: Follows your OS dark/light preference
 
 ## Documentation
 
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Solution architecture overview
+- [THEMING.md](docs/THEMING.md) - Theming and customization guide
+- [LIBRARIES.md](docs/LIBRARIES.md) - NuGet and npm package references
 - [CONTRIBUTING.md](docs/CONTRIBUTING.md) - Contribution guidelines
-- [LIBRARIES.md](docs/LIBRARIES.md) - NuGet package references
 - [SECURITY.md](docs/SECURITY.md) - Security guidelines
 - [CODE_OF_CONDUCT.md](docs/CODE_OF_CONDUCT.md) - Community standards
 
 ## Architecture
 
-### ServiceDefaults
+### Domain Layer
 
-The `ServiceDefaults` project provides shared infrastructure concerns:
+- **Result&lt;T&gt; Pattern**: Explicit success/failure handling with `ResultErrorCode` enum
+- **Models**: `Issue`, `Category`, `Status`, `Comment`, `User` (embedded document)
+- **DTOs**: Strongly-typed data transfer objects for API boundaries
+- **Repository Interface**: Generic `IRepository<T>` for data access abstraction
 
-- **OpenTelemetry Integration**: Automatic instrumentation for ASP.NET Core, HTTP, and runtime metrics
-- **Health Checks**: Endpoints for MongoDB and Redis connectivity verification
-- **Resilience**: HTTP resilience policies for reliable communication
-- **Service Discovery**: Built-in service discovery for Aspire-managed services
+### Persistence Layer
 
-### Data Persistence
+- **IssueTrackerDbContext**: MongoDB EF Core context with configuration
+- **Entity Configurations**: Fluent API configuration for MongoDB mapping
+- **Change Tracking**: Automatic persistence with async operations
 
-MongoDB integration via Entity Framework Core:
+### Web Layer
 
-- Type-safe queries with LINQ
-- Change tracking and automatic persistence
-- Async/await throughout for non-blocking operations
-- Health checks for connection verification
-
-### Caching Strategy
-
-Redis provides distributed caching for:
-
-- Frequently accessed data
-- Session state management
-- Cache invalidation across instances
+- **Authentication Endpoints**: `/login`, `/logout` with security hardening
+- **Theme Components**: `ThemeProvider` cascading parameter, `ThemeToggle` UI
+- **JavaScript Interop**: `themeManager` for localStorage persistence
 
 ## Testing
 
@@ -136,6 +234,7 @@ The project includes multiple testing layers:
 - **Integration Tests**: Full application testing with TestContainers
 - **Blazor Component Tests**: bUnit for UI component verification
 - **E2E Tests**: Playwright for browser-based testing
+- **Architecture Tests**: Verify project dependencies and conventions
 
 ## API Documentation
 
