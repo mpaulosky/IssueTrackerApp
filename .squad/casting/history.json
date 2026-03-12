@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "assignments": [
+    {
+      "assignment_id": "issuemanager-2026-02-24",
+      "universe": "Lord of the Rings",
+      "project": "IssueManager",
+      "created_at": "2026-02-24T00:00:00Z",
+      "agents": ["Aragorn", "Legolas", "Sam", "Gimli", "Boromir", "Frodo"],
+      "note": "Legacy named — all agents pre-dated casting system migration"
+    }
+  ]
+}
