@@ -49,8 +49,11 @@ builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
 
-// Initialize MongoDB database
-await app.Services.InitializeMongoDbAsync();
+// Initialize MongoDB database (skip in Testing environment)
+if (!app.Environment.IsEnvironment("Testing"))
+{
+	await app.Services.InitializeMongoDbAsync();
+}
 
 // Map health check endpoints (development only by default)
 app.MapDefaultEndpoints();
@@ -78,14 +81,22 @@ app.MapRazorComponents<App>()
 // Map Auth0 login/logout endpoints
 app.MapGet("/account/login", async (HttpContext context, string returnUrl = "/") =>
 {
+	// Validate returnUrl is local to prevent open redirect attacks
+	// See: https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
+	var validReturnUrl = !string.IsNullOrEmpty(returnUrl) && IsLocalUrl(returnUrl)
+		? returnUrl
+		: "/";
+
 	var authenticationProperties = new AuthenticationProperties
 	{
-		RedirectUri = returnUrl
+		RedirectUri = validReturnUrl
 	};
 	await context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
 }).AllowAnonymous();
 
-app.MapGet("/account/logout", async (HttpContext context) =>
+// Use POST for logout to prevent CSRF attacks
+// Antiforgery validation is handled by UseAntiforgery() middleware for form submissions
+app.MapPost("/account/logout", async (HttpContext context) =>
 {
 	var authenticationProperties = new AuthenticationProperties
 	{
@@ -94,6 +105,26 @@ app.MapGet("/account/logout", async (HttpContext context) =>
 	await context.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
 	await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 }).RequireAuthorization();
+
+// Helper method to validate local URLs (prevents open redirect)
+static bool IsLocalUrl(string url)
+{
+	if (string.IsNullOrEmpty(url))
+	{
+		return false;
+	}
+
+	// Reject URLs with protocol schemes (http://, https://, //, etc.)
+	if (url.StartsWith("//", StringComparison.Ordinal) ||
+	    url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+	    url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+	{
+		return false;
+	}
+
+	// Accept relative URLs that start with /
+	return url.StartsWith("/", StringComparison.Ordinal) && !url.StartsWith("//", StringComparison.Ordinal);
+}
 
 app.Run();
 
