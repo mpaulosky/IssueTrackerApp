@@ -1,0 +1,19 @@
+@page "/admin"
+@using Microsoft.AspNetCore.Authorization
+@using Web.Auth
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminPolicy)]
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<h1>Admin Dashboard</h1>
+
+<p>This page is only accessible to users with the Admin role.</p>
+
+<div class="admin-info">
+	<h2>Admin Features</h2>
+	<ul>
+		<li>Manage users</li>
+		<li>View all issues</li>
+		<li>System configuration</li>
+	</ul>
+</div>

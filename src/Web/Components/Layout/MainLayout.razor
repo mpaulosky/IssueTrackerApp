@@ -1,6 +1,16 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+<div class="page">
+	<header class="header">
+		<div class="header-content">
+			<h1 class="app-title">IssueTracker</h1>
+			<LoginDisplay />
+		</div>
+	</header>
+	<main class="main-content">
+		@Body
+	</main>
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
