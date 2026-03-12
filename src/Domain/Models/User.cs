@@ -10,13 +10,15 @@
 namespace Domain.Models;
 
 /// <summary>
-///   User class
+///   User class - represents user info embedded in other entities.
+///   Note: Users are NOT stored in MongoDB. User data comes from Auth0.
+///   This class is used for embedding user references (Author, ArchivedBy, etc.)
 /// </summary>
 [Serializable]
 public class User
 {
 	/// <summary>
-	///   Gets or sets the identifier.
+	///   Gets or sets the identifier (Auth0 user ID).
 	/// </summary>
 	/// <value>
 	///   The identifier.

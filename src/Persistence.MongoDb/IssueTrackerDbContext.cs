@@ -47,10 +47,7 @@ public sealed class IssueTrackerDbContext : DbContext
 	/// </summary>
 	public DbSet<Comment> Comments => Set<Comment>();
 
-	/// <summary>
-	///   Gets or sets the Users collection.
-	/// </summary>
-	public DbSet<User> Users => Set<User>();
+	// Note: Users are not stored in MongoDB - they come from Auth0
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	{
@@ -74,7 +71,7 @@ public sealed class IssueTrackerDbContext : DbContext
 		modelBuilder.Entity<Category>().HasKey(e => e.Id);
 		modelBuilder.Entity<Status>().HasKey(e => e.Id);
 		modelBuilder.Entity<Comment>().HasKey(e => e.Id);
-		modelBuilder.Entity<User>().HasKey(e => e.Id);
+		// Note: User entity is not persisted - comes from Auth0
 	}
 
 	/// <summary>
