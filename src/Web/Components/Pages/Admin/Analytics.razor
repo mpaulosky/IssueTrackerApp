@@ -1,0 +1,356 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Analytics.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@page "/admin/analytics"
+@attribute [Authorize(Policy = "AdminPolicy")]
+@layout AdminPageLayout
+@rendermode InteractiveServer
+
+@inject IMediator Mediator
+@inject IJSRuntime JSRuntime
+@inject ILogger<Analytics> Logger
+
+<PageTitle>Analytics - IssueTrackerApp</PageTitle>
+
+<AdminPageLayout Title="Analytics Dashboard" Description="View comprehensive analytics and insights about your issues">
+
+	<!-- Date Range Picker -->
+	<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
+		<DateRangePicker StartDate="_startDate"
+		                 EndDate="_endDate"
+		                 OnRangeChanged="OnDateRangeChanged" />
+	</div>
+
+	@if (_isLoading)
+	{
+		<!-- Loading State -->
+		<div class="space-y-6">
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+				@for (int i = 0; i < 4; i++)
+				{
+					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+						<div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
+						<div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+					</div>
+				}
+			</div>
+		</div>
+	}
+	else if (_analyticsData == null)
+	{
+		<!-- Error State -->
+		<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+			<p class="text-red-800 dark:text-red-200">Failed to load analytics data. Please try again later.</p>
+		</div>
+	}
+	else
+	{
+		<!-- Summary Cards -->
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+			<SummaryCard Title="Total Issues"
+			             Value="@_analyticsData.TotalIssues.ToString()"
+			             Icon="@TotalIssuesIcon"
+			             IconBackgroundClass="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400" />
+
+			<SummaryCard Title="Open Issues"
+			             Value="@_analyticsData.OpenIssues.ToString()"
+			             Icon="@OpenIssuesIcon"
+			             IconBackgroundClass="bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400" />
+
+			<SummaryCard Title="Closed Issues"
+			             Value="@_analyticsData.ClosedIssues.ToString()"
+			             Icon="@ClosedIssuesIcon"
+			             IconBackgroundClass="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400" />
+
+			<SummaryCard Title="Avg Resolution Time"
+			             Value="@FormatResolutionTime(_analyticsData.AverageResolutionHours)"
+			             Subtitle="hours"
+			             Icon="@TimeIcon"
+			             IconBackgroundClass="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400" />
+		</div>
+
+		<!-- Charts Grid -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<!-- Issues by Status - Pie Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Issues by Status</h3>
+				<div class="h-64">
+					<PieChart ChartId="statusChart"
+					          Labels="@_statusLabels"
+					          Data="@_statusData"
+					          Colors="@_statusColors"
+					          IsLoading="_isLoading" />
+				</div>
+			</div>
+
+			<!-- Issues by Category - Bar Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Issues by Category</h3>
+				<div class="h-64">
+					<BarChart ChartId="categoryChart"
+					          Labels="@_categoryLabels"
+					          Data="@_categoryData"
+					          Color="#3b82f6"
+					          IsLoading="_isLoading" />
+				</div>
+			</div>
+
+			<!-- Issues Over Time - Line Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 lg:col-span-2">
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Issues Over Time</h3>
+				<div class="h-64">
+					<LineChart ChartId="timeChart"
+					           Labels="@_timeLabels"
+					           Datasets="@_timeDatasets"
+					           IsLoading="_isLoading" />
+				</div>
+			</div>
+
+			<!-- Top Contributors - Bar Chart -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 lg:col-span-2">
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Contributors</h3>
+				<div class="h-64">
+					<BarChart ChartId="contributorsChart"
+					          Labels="@_contributorLabels"
+					          Data="@_contributorData"
+					          Color="#10b981"
+					          IsLoading="_isLoading" />
+				</div>
+			</div>
+		</div>
+
+		<!-- Export Button -->
+		<div class="mt-6 flex justify-end">
+			<button @onclick="ExportToCsv"
+			        disabled="@_isExporting"
+			        class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+				@if (_isExporting)
+				{
+					<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+					</svg>
+					<span>Exporting...</span>
+				}
+				else
+				{
+					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+					</svg>
+					<span>Export to CSV</span>
+				}
+			</button>
+		</div>
+	}
+
+</AdminPageLayout>
+
+@code {
+	private AnalyticsSummaryDto? _analyticsData;
+	private bool _isLoading = true;
+	private bool _isExporting;
+	private DateTime? _startDate;
+	private DateTime? _endDate;
+
+	// Chart data
+	private List<string> _statusLabels = [];
+	private List<int> _statusData = [];
+	private List<string> _statusColors = [];
+
+	private List<string> _categoryLabels = [];
+	private List<int> _categoryData = [];
+
+	private List<string> _timeLabels = [];
+	private List<LineChart.LineChartDataset> _timeDatasets = [];
+
+	private List<string> _contributorLabels = [];
+	private List<int> _contributorData = [];
+
+	// Icons
+	private const string TotalIssuesIcon = """
+		<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+			<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+			<path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+		</svg>
+		""";
+
+	private const string OpenIssuesIcon = """
+		<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+			<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+		</svg>
+		""";
+
+	private const string ClosedIssuesIcon = """
+		<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+			<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+		</svg>
+		""";
+
+	private const string TimeIcon = """
+		<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+			<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+		</svg>
+		""";
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Initialize with last 30 days
+		_endDate = DateTime.UtcNow.Date;
+		_startDate = _endDate.Value.AddDays(-30);
+
+		await LoadAnalyticsData();
+	}
+
+	private async Task OnDateRangeChanged((DateTime? Start, DateTime? End) range)
+	{
+		_startDate = range.Start;
+		_endDate = range.End;
+		await LoadAnalyticsData();
+	}
+
+	private async Task LoadAnalyticsData()
+	{
+		_isLoading = true;
+		StateHasChanged();
+
+		try
+		{
+			var query = new GetAnalyticsSummaryQuery(_startDate, _endDate);
+			var result = await Mediator.Send(query);
+
+			if (result.Success)
+			{
+				_analyticsData = result.Value;
+				PrepareChartData();
+			}
+			else
+			{
+				Logger.LogError("Failed to load analytics data: {Error}", result.Error);
+				_analyticsData = null;
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Failed to load analytics data");
+			_analyticsData = null;
+		}
+		finally
+		{
+			_isLoading = false;
+			StateHasChanged();
+		}
+	}
+
+	private void PrepareChartData()
+	{
+		if (_analyticsData == null) return;
+
+		// Status chart data
+		_statusLabels = _analyticsData.ByStatus.Select(s => s.Status).ToList();
+		_statusData = _analyticsData.ByStatus.Select(s => s.Count).ToList();
+		_statusColors = _analyticsData.ByStatus.Select(s => GetStatusColor(s.Status)).ToList();
+
+		// Category chart data
+		_categoryLabels = _analyticsData.ByCategory.Select(c => c.Category).ToList();
+		_categoryData = _analyticsData.ByCategory.Select(c => c.Count).ToList();
+
+		// Time chart data
+		_timeLabels = _analyticsData.OverTime.Select(t => t.Date.ToString("MMM dd")).ToList();
+		_timeDatasets =
+		[
+			new LineChart.LineChartDataset
+			{
+				Label = "Created",
+				Data = _analyticsData.OverTime.Select(t => t.Created).ToList(),
+				BorderColor = "#3b82f6",
+				BackgroundColor = "rgba(59, 130, 246, 0.1)"
+			},
+			new LineChart.LineChartDataset
+			{
+				Label = "Closed",
+				Data = _analyticsData.OverTime.Select(t => t.Closed).ToList(),
+				BorderColor = "#10b981",
+				BackgroundColor = "rgba(16, 185, 129, 0.1)"
+			}
+		];
+
+		// Contributors chart data
+		_contributorLabels = _analyticsData.TopContributors.Select(c => c.UserName).ToList();
+		_contributorData = _analyticsData.TopContributors.Select(c => c.IssuesClosed).ToList();
+	}
+
+	private static string GetStatusColor(string status)
+	{
+		return status.ToLowerInvariant() switch
+		{
+			"open" => "#3b82f6",
+			"inprogress" or "in progress" => "#f59e0b",
+			"resolved" => "#10b981",
+			"closed" => "#6b7280",
+			_ => "#8b5cf6"
+		};
+	}
+
+	private static string FormatResolutionTime(double hours)
+	{
+		if (hours < 1)
+		{
+			return $"{hours * 60:F0}m";
+		}
+		if (hours < 24)
+		{
+			return $"{hours:F1}h";
+		}
+		return $"{hours / 24:F1}d";
+	}
+
+	private async Task ExportToCsv()
+	{
+		_isExporting = true;
+		StateHasChanged();
+
+		try
+		{
+			var query = new ExportAnalyticsQuery(_startDate, _endDate);
+			var result = await Mediator.Send(query);
+
+			if (result.Success)
+			{
+				var csvBytes = result.Value;
+				var csvContent = System.Text.Encoding.UTF8.GetString(csvBytes ?? []);
+
+				var fileName = $"analytics-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
+				await JSRuntime.InvokeVoidAsync("eval", $@"
+					const blob = new Blob([{System.Text.Json.JsonSerializer.Serialize(csvContent)}], {{ type: 'text/csv' }});
+					const url = window.URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = '{fileName}';
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					window.URL.revokeObjectURL(url);
+				");
+			}
+			else
+			{
+				Logger.LogError("Failed to export analytics data: {Error}", result.Error);
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Failed to export analytics data");
+		}
+		finally
+		{
+			_isExporting = false;
+			StateHasChanged();
+		}
+	}
+}
