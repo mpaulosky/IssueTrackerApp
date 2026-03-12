@@ -1,71 +1,146 @@
+// =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Result.cs
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Domain
+// =======================================================
+
 namespace Domain.Abstractions;
 
 /// <summary>
-/// Represents the result of an operation with optional success value or error details.
+///   Represents error codes for Result operations.
 /// </summary>
-/// <typeparam name="T">The type of the success value.</typeparam>
-public sealed class Result<T>
+public enum ResultErrorCode
 {
-	private Result(bool isSuccess, T? value, Error? error)
+	None = 0,
+	Concurrency = 1,
+	NotFound = 2,
+	Validation = 3,
+	Conflict = 4
+}
+
+/// <summary>
+///   Represents the result of an operation with success/failure status and optional error details.
+/// </summary>
+public class Result
+{
+	protected Result(bool success, string? errorMessage = null, ResultErrorCode errorCode = ResultErrorCode.None, object? details = null)
 	{
-		IsSuccess = isSuccess;
-		Value = value;
-		Error = error;
+		Success = success;
+		Error = errorMessage;
+		ErrorCode = errorCode;
+		Details = details;
 	}
 
-	public bool IsSuccess { get; }
-	public bool IsFailure => !IsSuccess;
-	public T? Value { get; }
-	public Error? Error { get; }
+	public bool Success { get; }
+
+	public bool Failure => !Success;
+
+	public string? Error { get; }
+
+	public ResultErrorCode ErrorCode { get; }
 
 	/// <summary>
-	/// Creates a successful result with a value.
+	///   Optional structured error details (e.g., server version on concurrency conflict).
 	/// </summary>
-	public static Result<T> Success(T value) => new(true, value, null);
+	public object? Details { get; }
 
-	/// <summary>
-	/// Creates a failed result with an error.
-	/// </summary>
-	public static Result<T> Failure(Error error) => new(false, default, error);
-
-	/// <summary>
-	/// Maps the result value to a new type if successful.
-	/// </summary>
-	public Result<TNew> Map<TNew>(Func<T, TNew> mapper)
+	public static Result Ok()
 	{
-		return IsSuccess
-			? Result<TNew>.Success(mapper(Value!))
-			: Result<TNew>.Failure(Error!);
+		return new Result(true);
 	}
 
-	/// <summary>
-	/// Executes an async operation on the result value if successful.
-	/// </summary>
-	public async Task<Result<TNew>> MapAsync<TNew>(Func<T, Task<TNew>> mapper)
+	public static Result Fail(string errorMessage)
 	{
-		return IsSuccess
-			? Result<TNew>.Success(await mapper(Value!))
-			: Result<TNew>.Failure(Error!);
+		return new Result(false, errorMessage);
+	}
+
+	public static Result Fail(string errorMessage, ResultErrorCode code)
+	{
+		return new Result(false, errorMessage, code);
+	}
+
+	public static Result Fail(string errorMessage, ResultErrorCode code, object? details)
+	{
+		return new Result(false, errorMessage, code, details);
+	}
+
+	public static Result<T> Ok<T>(T value)
+	{
+		return new Result<T>(value, true);
+	}
+
+	public static Result<T> Fail<T>(string errorMessage)
+	{
+		return new Result<T>(default, false, errorMessage);
+	}
+
+	public static Result<T> Fail<T>(string errorMessage, ResultErrorCode code)
+	{
+		return new Result<T>(default, false, errorMessage, code);
+	}
+
+	public static Result<T> Fail<T>(string errorMessage, ResultErrorCode code, object? details)
+	{
+		return new Result<T>(default, false, errorMessage, code, details);
+	}
+
+	public static Result<T> FromValue<T>(T? value)
+	{
+		return value is not null ? Ok(value) : Result<T>.Fail("Provided value is null.");
 	}
 }
 
 /// <summary>
-/// Represents an error with a code and message.
+///   Represents the result of an operation with a value.
 /// </summary>
-public sealed record Error(string Code, string Message)
+/// <typeparam name="T">The type of the value.</typeparam>
+public sealed class Result<T> : Result
 {
-	public static readonly Error None = new(string.Empty, string.Empty);
-	public static readonly Error NullValue = new("Error.NullValue", "The specified value is null.");
-	
-	public static Error NotFound(string entityName, object id) =>
-		new("Error.NotFound", $"{entityName} with ID '{id}' was not found.");
-	
-	public static Error Validation(string message) =>
-		new("Error.Validation", message);
-	
-	public static Error Conflict(string message) =>
-		new("Error.Conflict", message);
-	
-	public static Error Failure(string message) =>
-		new("Error.Failure", message);
+	internal Result(T? value, bool success, string? errorMessage = null, ResultErrorCode errorCode = ResultErrorCode.None, object? details = null)
+		: base(success, errorMessage, errorCode, details)
+	{
+		Value = value;
+	}
+
+	public T? Value { get; }
+
+	private static Result<T> Ok(T? value)
+	{
+		return new Result<T>(value, true);
+	}
+
+	public static new Result<T> Fail(string errorMessage)
+	{
+		return new Result<T>(default, false, errorMessage);
+	}
+
+	public static new Result<T> Fail(string errorMessage, ResultErrorCode code)
+	{
+		return new Result<T>(default, false, errorMessage, code);
+	}
+
+	public static new Result<T> Fail(string errorMessage, ResultErrorCode code, object? details)
+	{
+		return new Result<T>(default, false, errorMessage, code, details);
+	}
+
+	public static implicit operator T?(Result<T>? result)
+	{
+		if (result is null)
+		{
+			// Return the language default for T? when the Result is null. For value types this will
+			// be the underlying default (e.g., 0 for int) which matches existing behavior.
+			return default;
+		}
+
+		return result.Value;
+	}
+
+	public static implicit operator Result<T>(T? value)
+	{
+		return Ok(value);
+	}
 }

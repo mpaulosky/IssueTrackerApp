@@ -1,3 +1,12 @@
+// =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Repository.cs
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Persistence.MongoDb
+// =======================================================
+
 using System.Linq.Expressions;
 using Domain.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -5,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace Persistence.MongoDb.Repositories;
 
 /// <summary>
-/// Base repository implementation using MongoDB with Entity Framework Core.
+///   Base repository implementation using MongoDB with Entity Framework Core.
 /// </summary>
 /// <typeparam name="TEntity">The entity type.</typeparam>
 public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
@@ -32,13 +41,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 			var entity = await DbSet.FindAsync([id], cancellationToken);
 
 			return entity is null
-				? Result<TEntity>.Failure(Error.NotFound(typeof(TEntity).Name, id))
-				: Result<TEntity>.Success(entity);
+				? Result.Fail<TEntity>($"{typeof(TEntity).Name} with ID '{id}' was not found.", ResultErrorCode.NotFound)
+				: Result.Ok(entity);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error getting {EntityType} with ID {Id}", typeof(TEntity).Name, id);
-			return Result<TEntity>.Failure(Error.Failure($"Failed to retrieve {typeof(TEntity).Name}: {ex.Message}"));
+			return Result.Fail<TEntity>($"Failed to retrieve {typeof(TEntity).Name}: {ex.Message}");
 		}
 	}
 
@@ -48,13 +57,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 		try
 		{
 			var entities = await DbSet.ToListAsync(cancellationToken);
-			return Result<IEnumerable<TEntity>>.Success(entities);
+			return Result.Ok<IEnumerable<TEntity>>(entities);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error getting all {EntityType}", typeof(TEntity).Name);
-			return Result<IEnumerable<TEntity>>.Failure(
-				Error.Failure($"Failed to retrieve {typeof(TEntity).Name} entities: {ex.Message}"));
+			return Result.Fail<IEnumerable<TEntity>>(
+				$"Failed to retrieve {typeof(TEntity).Name} entities: {ex.Message}");
 		}
 	}
 
@@ -65,13 +74,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 		try
 		{
 			var entities = await DbSet.Where(predicate).ToListAsync(cancellationToken);
-			return Result<IEnumerable<TEntity>>.Success(entities);
+			return Result.Ok<IEnumerable<TEntity>>(entities);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error finding {EntityType} with predicate", typeof(TEntity).Name);
-			return Result<IEnumerable<TEntity>>.Failure(
-				Error.Failure($"Failed to find {typeof(TEntity).Name} entities: {ex.Message}"));
+			return Result.Fail<IEnumerable<TEntity>>(
+				$"Failed to find {typeof(TEntity).Name} entities: {ex.Message}");
 		}
 	}
 
@@ -82,13 +91,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 		try
 		{
 			var entity = await DbSet.FirstOrDefaultAsync(predicate, cancellationToken);
-			return Result<TEntity?>.Success(entity);
+			return Result.Ok(entity);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error getting first {EntityType} with predicate", typeof(TEntity).Name);
-			return Result<TEntity?>.Failure(
-				Error.Failure($"Failed to retrieve {typeof(TEntity).Name}: {ex.Message}"));
+			return Result.Fail<TEntity?>(
+				$"Failed to retrieve {typeof(TEntity).Name}: {ex.Message}");
 		}
 	}
 
@@ -100,15 +109,15 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 		{
 			await DbSet.AddAsync(entity, cancellationToken);
 			await Context.SaveChangesAsync(cancellationToken);
-			
+
 			Logger.LogInformation("Added {EntityType} entity", typeof(TEntity).Name);
-			return Result<TEntity>.Success(entity);
+			return Result.Ok(entity);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error adding {EntityType}", typeof(TEntity).Name);
-			return Result<TEntity>.Failure(
-				Error.Failure($"Failed to add {typeof(TEntity).Name}: {ex.Message}"));
+			return Result.Fail<TEntity>(
+				$"Failed to add {typeof(TEntity).Name}: {ex.Message}");
 		}
 	}
 
@@ -121,15 +130,15 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 			var entityList = entities.ToList();
 			await DbSet.AddRangeAsync(entityList, cancellationToken);
 			await Context.SaveChangesAsync(cancellationToken);
-			
+
 			Logger.LogInformation("Added {Count} {EntityType} entities", entityList.Count, typeof(TEntity).Name);
-			return Result<IEnumerable<TEntity>>.Success(entityList);
+			return Result.Ok<IEnumerable<TEntity>>(entityList);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error adding multiple {EntityType}", typeof(TEntity).Name);
-			return Result<IEnumerable<TEntity>>.Failure(
-				Error.Failure($"Failed to add {typeof(TEntity).Name} entities: {ex.Message}"));
+			return Result.Fail<IEnumerable<TEntity>>(
+				$"Failed to add {typeof(TEntity).Name} entities: {ex.Message}");
 		}
 	}
 
@@ -141,15 +150,15 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 		{
 			DbSet.Update(entity);
 			await Context.SaveChangesAsync(cancellationToken);
-			
+
 			Logger.LogInformation("Updated {EntityType} entity", typeof(TEntity).Name);
-			return Result<TEntity>.Success(entity);
+			return Result.Ok(entity);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error updating {EntityType}", typeof(TEntity).Name);
-			return Result<TEntity>.Failure(
-				Error.Failure($"Failed to update {typeof(TEntity).Name}: {ex.Message}"));
+			return Result.Fail<TEntity>(
+				$"Failed to update {typeof(TEntity).Name}: {ex.Message}");
 		}
 	}
 
@@ -160,23 +169,23 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 		try
 		{
 			var entity = await DbSet.FindAsync([id], cancellationToken);
-			
+
 			if (entity is null)
 			{
-				return Result<bool>.Failure(Error.NotFound(typeof(TEntity).Name, id));
+				return Result.Fail<bool>($"{typeof(TEntity).Name} with ID '{id}' was not found.", ResultErrorCode.NotFound);
 			}
 
 			DbSet.Remove(entity);
 			await Context.SaveChangesAsync(cancellationToken);
-			
+
 			Logger.LogInformation("Deleted {EntityType} with ID {Id}", typeof(TEntity).Name, id);
-			return Result<bool>.Success(true);
+			return Result.Ok(true);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error deleting {EntityType} with ID {Id}", typeof(TEntity).Name, id);
-			return Result<bool>.Failure(
-				Error.Failure($"Failed to delete {typeof(TEntity).Name}: {ex.Message}"));
+			return Result.Fail<bool>(
+				$"Failed to delete {typeof(TEntity).Name}: {ex.Message}");
 		}
 	}
 
@@ -187,13 +196,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 		try
 		{
 			var exists = await DbSet.AnyAsync(predicate, cancellationToken);
-			return Result<bool>.Success(exists);
+			return Result.Ok(exists);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error checking existence of {EntityType}", typeof(TEntity).Name);
-			return Result<bool>.Failure(
-				Error.Failure($"Failed to check {typeof(TEntity).Name} existence: {ex.Message}"));
+			return Result.Fail<bool>(
+				$"Failed to check {typeof(TEntity).Name} existence: {ex.Message}");
 		}
 	}
 
@@ -206,14 +215,14 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 			var count = predicate is null
 				? await DbSet.CountAsync(cancellationToken)
 				: await DbSet.CountAsync(predicate, cancellationToken);
-			
-			return Result<int>.Success(count);
+
+			return Result.Ok(count);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex, "Error counting {EntityType}", typeof(TEntity).Name);
-			return Result<int>.Failure(
-				Error.Failure($"Failed to count {typeof(TEntity).Name} entities: {ex.Message}"));
+			return Result.Fail<int>(
+				$"Failed to count {typeof(TEntity).Name} entities: {ex.Message}");
 		}
 	}
 }

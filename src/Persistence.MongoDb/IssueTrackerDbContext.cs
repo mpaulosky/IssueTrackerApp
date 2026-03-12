@@ -1,10 +1,20 @@
+// =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     IssueTrackerDbContext.cs
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Persistence.MongoDb
+// =======================================================
+
+using Domain.Models;
 using Microsoft.Extensions.Options;
 using Persistence.MongoDb.Configurations;
 
 namespace Persistence.MongoDb;
 
 /// <summary>
-/// Database context for IssueTracker application using MongoDB.
+///   Database context for IssueTracker application using MongoDB.
 /// </summary>
 public sealed class IssueTrackerDbContext : DbContext
 {
@@ -16,6 +26,31 @@ public sealed class IssueTrackerDbContext : DbContext
 	{
 		_settings = settings.Value;
 	}
+
+	/// <summary>
+	///   Gets or sets the Issues collection.
+	/// </summary>
+	public DbSet<Issue> Issues => Set<Issue>();
+
+	/// <summary>
+	///   Gets or sets the Categories collection.
+	/// </summary>
+	public DbSet<Category> Categories => Set<Category>();
+
+	/// <summary>
+	///   Gets or sets the Statuses collection.
+	/// </summary>
+	public DbSet<Status> Statuses => Set<Status>();
+
+	/// <summary>
+	///   Gets or sets the Comments collection.
+	/// </summary>
+	public DbSet<Comment> Comments => Set<Comment>();
+
+	/// <summary>
+	///   Gets or sets the Users collection.
+	/// </summary>
+	public DbSet<User> Users => Set<User>();
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	{
@@ -33,10 +68,17 @@ public sealed class IssueTrackerDbContext : DbContext
 
 		// Apply all configurations from the assembly
 		modelBuilder.ApplyConfigurationsFromAssembly(typeof(IssueTrackerDbContext).Assembly);
+
+		// Configure entity keys (MongoDB uses string IDs or ObjectId)
+		modelBuilder.Entity<Issue>().HasKey(e => e.Id);
+		modelBuilder.Entity<Category>().HasKey(e => e.Id);
+		modelBuilder.Entity<Status>().HasKey(e => e.Id);
+		modelBuilder.Entity<Comment>().HasKey(e => e.Id);
+		modelBuilder.Entity<User>().HasKey(e => e.Id);
 	}
 
 	/// <summary>
-	/// Ensures the database and collections are created with proper indexes.
+	///   Ensures the database and collections are created with proper indexes.
 	/// </summary>
 	public async Task InitializeDatabaseAsync(CancellationToken cancellationToken = default)
 	{

@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
+    <PackageReference Include="MongoDB.Bson" />
   </ItemGroup>
 
 </Project>

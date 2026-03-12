@@ -1,0 +1,593 @@
+name: Test Suite
+
+# NOTE: xUnit v3 Compatibility Workaround
+# Architecture.Tests, Web.Tests.Bunit, Api.Tests.Integration, and AppHost.Tests.E2E use direct
+# executable execution instead of 'dotnet test' due to xUnit v3 TestProcessLauncherAdapter
+# compatibility issues with xunit.runner.visualstudio 3.1.5. Unit test projects (Api.Tests.Unit,
+# Shared.Tests.Unit, Web.Tests.Unit) work fine with 'dotnet test'.
+# See: docs/build-log.txt for details and future resolution options.
+
+permissions:
+  issues: write
+  checks: write
+  contents: read
+  pull-requests: write
+
+on:
+  workflow_call:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "The reason for running the workflow"
+        required: true
+        default: "Manual test run"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    name: Build Solution
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build IssueManager.sln --configuration Release --no-restore
+
+      - name: Cache build artifacts
+        uses: actions/cache@v5
+        with:
+          path: |
+            **/bin/Release/
+            **/obj/
+          key: ${{ runner.os }}-build-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+  test-api-unit:
+    name: "Api.Tests.Unit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run Api Unit Tests
+        run: |
+          if [ ! -d "tests/Api.Tests.Unit" ]; then
+            echo "::error::Api unit test project not found at tests/Api.Tests.Unit"
+            exit 1
+          fi
+          dotnet test tests/Api.Tests.Unit \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --logger "trx;LogFileName=api-unit.trx" \
+            --results-directory test-results \
+            --verbosity minimal
+
+      - name: Upload Api Unit Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: api-unit-test-results
+          path: test-results
+
+  test-shared-unit:
+    name: "Shared.Tests.Unit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run Shared Unit Tests
+        run: |
+          if [ ! -d "tests/Shared.Tests.Unit" ]; then
+            echo "::error::Shared unit test project not found at tests/Shared.Tests.Unit"
+            exit 1
+          fi
+          dotnet test tests/Shared.Tests.Unit \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --logger "trx;LogFileName=shared-unit.trx" \
+            --results-directory test-results \
+            --verbosity minimal
+
+      - name: Upload Shared Unit Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: shared-unit-test-results
+          path: test-results
+
+  test-web-unit:
+    name: "Web.Tests.Unit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run Web Unit Tests
+        run: |
+          if [ ! -d "tests/Web.Tests.Unit" ]; then
+            echo "::error::Web unit test project not found at tests/Web.Tests.Unit"
+            exit 1
+          fi
+          dotnet test tests/Web.Tests.Unit \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --logger "trx;LogFileName=web-unit.trx" \
+            --results-directory test-results \
+            --verbosity minimal
+
+      - name: Upload Web Unit Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: web-unit-test-results
+          path: test-results
+
+  test-architecture:
+    name: "Architecture.Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Architecture Tests
+        run: dotnet build tests/Architecture.Tests --configuration Release --no-restore
+
+      - name: Run Architecture Tests
+        id: arch-tests
+        run: |
+          mkdir -p test-results
+          if [ ! -d "tests/Architecture.Tests" ]; then
+            echo "::error::Architecture test project not found at tests/Architecture.Tests"
+            exit 1
+          fi
+
+          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
+          cd tests/Architecture.Tests/bin/Release/net10.0
+          ./Architecture.Tests -xml "$GITHUB_WORKSPACE/test-results/architecture.xml" -nunit "$GITHUB_WORKSPACE/test-results/architecture-nunit.xml"
+          exit_code=$?
+
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::Architecture tests failed"
+          fi
+          exit $exit_code
+
+      - name: Upload Architecture Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: architecture-test-results
+          path: test-results
+
+  test-bunit:
+    name: "Web.Tests.Bunit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Blazor Tests
+        run: dotnet build tests/Web.Tests.Bunit --configuration Release --no-restore
+
+      - name: Run bUnit Tests
+        id: bunit-tests
+        run: |
+          mkdir -p test-results
+          if [ ! -d "tests/Web.Tests.Bunit" ]; then
+            echo "::error::Blazor/bUnit test project not found at tests/Web.Tests.Bunit"
+            exit 1
+          fi
+
+          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
+          cd tests/Web.Tests.Bunit/bin/Release/net10.0
+          ./Web.Tests.Bunit -xml "$GITHUB_WORKSPACE/test-results/bunit.xml" -nunit "$GITHUB_WORKSPACE/test-results/bunit-nunit.xml"
+          exit_code=$?
+
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::Blazor component tests failed"
+          fi
+          exit $exit_code
+
+      - name: Upload bUnit Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: bunit-test-results
+          path: test-results
+
+  test-integration:
+    name: "Api.Tests.Integration"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MONGODB_CONNECTION_STRING: "mongodb://localhost:27017/issuemanager-test"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Integration Tests
+        run: dotnet build tests/Api.Tests.Integration --configuration Release --no-restore
+
+      - name: Run Integration Tests
+        id: integration-tests
+        run: |
+          mkdir -p test-results
+          if [ ! -d "tests/Api.Tests.Integration" ]; then
+            echo "::error::Integration test project not found at tests/Api.Tests.Integration"
+            exit 1
+          fi
+
+          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
+          cd tests/Api.Tests.Integration/bin/Release/net10.0
+          ./Api.Tests.Integration -xml "$GITHUB_WORKSPACE/test-results/integration.xml" -nunit "$GITHUB_WORKSPACE/test-results/integration-nunit.xml"
+          exit_code=$?
+
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::Integration tests failed"
+          fi
+          exit $exit_code
+
+      - name: Upload Integration Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: integration-test-results
+          path: test-results
+
+  test-apphost-e2e:
+    name: "AppHost.Tests.E2E"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build AppHost E2E Tests
+        run: dotnet build tests/AppHost.Tests.E2E --configuration Release --no-restore
+
+      - name: Install Playwright Browsers
+        run: |
+          cd tests/AppHost.Tests.E2E
+          pwsh bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run AppHost E2E Tests
+        id: apphost-tests
+        run: |
+          mkdir -p test-results
+          if [ ! -d "tests/AppHost.Tests.E2E" ]; then
+            echo "::notice::AppHost E2E test project not found at tests/AppHost.Tests.E2E — skipping"
+            exit 0
+          fi
+
+          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
+          # The fixture handles Docker unavailability gracefully — tests skip rather than fail
+          cd tests/AppHost.Tests.E2E/bin/Release/net10.0
+          ./AppHost.Tests.E2E -xml "$GITHUB_WORKSPACE/test-results/apphost-e2e.xml" -nunit "$GITHUB_WORKSPACE/test-results/apphost-e2e-nunit.xml"
+          exit_code=$?
+
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::AppHost E2E tests failed"
+          fi
+          exit $exit_code
+
+      - name: Upload AppHost E2E Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: apphost-e2e-test-results
+          path: test-results
+
+  coverage:
+    name: Coverage Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - test-api-unit
+      - test-shared-unit
+      - test-web-unit
+      - test-bunit
+      - test-integration
+      - test-apphost-e2e
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Download coverage reports
+        uses: actions/download-artifact@v8
+        with:
+          path: coverage-reports
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate coverage report
+        run: |
+          reportgenerator \
+            -reports:"coverage-reports/**/**/coverage.cobertura.xml" \
+            -targetdir:"./coverage-output" \
+            -reporttypes:"Html;Cobertura;JsonSummary" \
+            -verbosity:verbose || echo "::warning::No coverage files found"
+
+      - name: Check coverage threshold
+        run: |
+          if [ -f "./coverage-output/Summary.json" ]; then
+            coverage=$(jq -r '.lineCoverage' ./coverage-output/Summary.json 2>/dev/null || echo "0")
+            echo "Line Coverage: $coverage%"
+            if (( $(echo "$coverage < 80" | bc -l) )); then
+              echo "::warning::Code coverage is below 80% threshold: $coverage%"
+            fi
+          else
+            echo "::notice::Coverage report not available"
+          fi
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage-output
+
+      - name: Publish to Codecov
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          fail_ci_if_error: false
+          files: ./coverage-output/Cobertura.xml
+          verbose: false
+
+  report:
+    name: Test Report Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - build
+      - test-api-unit
+      - test-shared-unit
+      - test-web-unit
+      - test-architecture
+      - test-bunit
+      - test-integration
+      - test-apphost-e2e
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download all test results
+        uses: actions/download-artifact@v8
+        with:
+          path: all-test-results
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2.23.0
+        if: always()
+        with:
+          files: |
+            all-test-results/**/*.trx
+            all-test-results/**/*-nunit.xml
+          check_name: Test Results Summary
+          compare_to_earlier_commit: true
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build:** ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Api.Tests.Unit:** ${{ needs.test-api-unit.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Shared.Tests.Unit:** ${{ needs.test-shared-unit.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Web.Tests.Unit:** ${{ needs.test-web-unit.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Architecture.Tests:** ${{ needs.test-architecture.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Web.Tests.Bunit:** ${{ needs.test-bunit.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Api.Tests.Integration:** ${{ needs.test-integration.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **AppHost.Tests.E2E:** ${{ needs.test-apphost-e2e.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Test results and coverage reports available in Actions artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage report: \`coverage-reports\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Set overall status
+          build_status="${{ needs.build.result }}"
+          api_unit_status="${{ needs.test-api-unit.result }}"
+          shared_unit_status="${{ needs.test-shared-unit.result }}"
+          web_unit_status="${{ needs.test-web-unit.result }}"
+          arch_status="${{ needs.test-architecture.result }}"
+          bunit_status="${{ needs.test-bunit.result }}"
+          integration_status="${{ needs.test-integration.result }}"
+          apphost_e2e_status="${{ needs.test-apphost-e2e.result }}"
+
+          if [[ "$build_status" == "failure" || "$api_unit_status" == "failure" || "$shared_unit_status" == "failure" || \
+                "$web_unit_status" == "failure" || "$arch_status" == "failure" || "$bunit_status" == "failure" || \
+                "$integration_status" == "failure" || "$apphost_e2e_status" == "failure" ]]; then
+            echo "❌ **Overall Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Overall Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+          fi
