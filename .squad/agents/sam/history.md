@@ -148,3 +148,81 @@
 - Frontend integration required (Legolas will add Blazor SignalR client)
 - Optional: Add Azure SignalR Service package for production deployment
 - PR #39 created as draft (awaiting frontend completion)
+
+### Issue #35 - Attachment Backend Infrastructure (2026-03-12)
+
+**Backend Architecture:**
+- Created `Attachment` model in `src/Domain/Models/Attachment.cs` with MongoDB entity configuration
+- Created `AttachmentDto` with file size formatting and helper properties
+- Created `FileValidationConstants` for validation rules (10MB max, allowed file types)
+- Implemented CQRS pattern:
+  - `AddAttachmentCommand` - Upload file and save metadata
+  - `DeleteAttachmentCommand` - Delete file and metadata (owner/admin authorization)
+  - `GetIssueAttachmentsQuery` - Get all attachments for an issue
+- Added FluentValidation validators for all commands/queries
+
+**File Storage Services:**
+- Created `IFileStorageService` interface in `src/Domain/Abstractions/`
+- Implemented `BlobStorageService` in new `Persistence.AzureStorage` project:
+  - Uses Azure.Storage.Blobs (v12.25.0)
+  - Implements thumbnail generation using SixLabors.ImageSharp (v3.1.12)
+  - Stores files in `issue-attachments` container
+  - Stores thumbnails in `issue-attachments-thumbnails` container
+  - Generates unique blob names with Guid prefixes
+- Implemented `LocalFileStorageService` in `src/Web/Services/`:
+  - Fallback for development without Azure
+  - Stores files in `wwwroot/uploads` directory
+  - Stores thumbnails in `wwwroot/uploads/thumbnails` directory
+
+**Database Integration:**
+- Added `Attachments` DbSet to `IssueTrackerDbContext`
+- Created `AttachmentConfiguration` for entity mapping
+- Uses generic `Repository<Attachment>` for CRUD operations
+- Attachment metadata stored in MongoDB `attachments` collection
+
+**Service Layer:**
+- `AttachmentService` already existed (created by Legolas)
+- Updated to use Result<T> pattern correctly
+- Integrated with MediatR for CQRS operations
+- File validation helpers included
+
+**Configuration:**
+- Added package versions to `Directory.Packages.props`:
+  - Azure.Storage.Blobs v12.25.0
+  - SixLabors.ImageSharp v3.1.12 (latest non-vulnerable version)
+- Registered services in `Program.cs`:
+  - Conditional registration: Azure Blob if connection string exists, else local storage
+  - AttachmentService already registered
+- Updated `Web.csproj` to reference `Persistence.AzureStorage` project
+
+**Key Patterns:**
+- Generic repository pattern for attachment CRUD
+- Result<T> pattern with ResultErrorCode enum for error handling
+- Admin authorization in DeleteAttachmentCommand (IsAdmin parameter)
+- Automatic thumbnail generation for images
+- Cleanup on failure (deletes uploaded files if metadata save fails)
+
+**Validation Rules:**
+- Maximum file size: 10MB
+- Allowed image types: JPEG, PNG, GIF, WebP
+- Allowed document types: PDF, Plain text, Markdown
+- File name length: 255 characters max
+- Thumbnail size: 200x200px (max dimensions, aspect ratio preserved)
+
+**Build Status:**
+- All backend projects build successfully (Domain, Persistence.MongoDb, Persistence.AzureStorage)
+- Web project has frontend dependency on AttachmentList component (handled by Legolas)
+- Changes committed to existing branch `squad/35-issue-attachments`
+- PR #40 already exists as draft (created by Legolas with frontend code)
+
+**Azure Storage Setup:**
+- Configure `BlobStorage:ConnectionString` in appsettings for Azure Blob Storage
+- If not configured, falls back to local file storage automatically
+- Production deployment should use Azure Blob Storage for scalability
+- Connection string format: `DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net`
+
+**Collaboration Notes:**
+- Legolas (frontend) already created UI components (AttachmentList, AttachmentCard, FileUpload)
+- Backend infrastructure completes the feature implementation
+- Both frontend and backend changes in same PR (#40)
+- Ready for review and testing once frontend builds successfully
