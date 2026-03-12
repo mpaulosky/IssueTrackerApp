@@ -26,6 +26,9 @@ global using MediatR;
 // FluentValidation
 global using FluentValidation;
 
+// Microsoft Extensions
+global using Microsoft.Extensions.Logging;
+
 // Domain
 global using Domain.DTOs;
 global using Domain.Models;

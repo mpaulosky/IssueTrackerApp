@@ -1,9 +1,13 @@
 using Auth0.AspNetCore.Authentication;
+using Domain;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Persistence.MongoDb;
 using Web.Auth;
 using Web.Components;
+using Web.Data;
+using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +19,18 @@ builder.Services.AddMongoDbPersistence(builder.Configuration);
 
 // Add MongoDB connection from Aspire service discovery
 builder.AddMongoDBClient("mongodb");
+
+// Add MediatR for CQRS pattern
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DomainMarker).Assembly));
+
+// Add FluentValidation validators
+builder.Services.AddValidatorsFromAssembly(typeof(DomainMarker).Assembly);
+
+// Add application services
+builder.Services.AddScoped<IIssueService, IssueService>();
+
+// Add data seeder
+builder.Services.AddDataSeeder();
 
 // Configure Auth0 authentication
 var auth0Options = builder.Configuration.GetSection("Auth0").Get<Auth0Options>()
@@ -53,6 +69,9 @@ var app = builder.Build();
 if (!app.Environment.IsEnvironment("Testing"))
 {
 	await app.Services.InitializeMongoDbAsync();
+
+	// Seed default data
+	await app.Services.SeedDataAsync();
 }
 
 // Map health check endpoints (development only by default)
