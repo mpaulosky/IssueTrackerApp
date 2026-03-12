@@ -71,6 +71,13 @@ public interface IIssueService
 		string id,
 		StatusDto newStatus,
 		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///   Searches issues with text search, filters, and pagination.
+	/// </summary>
+	Task<Result<PagedResult<IssueDto>>> SearchIssuesAsync(
+		IssueSearchRequest request,
+		CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -141,5 +148,13 @@ public sealed class IssueService : IIssueService
 	{
 		var command = new ChangeIssueStatusCommand(id, newStatus);
 		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<Result<PagedResult<IssueDto>>> SearchIssuesAsync(
+		IssueSearchRequest request,
+		CancellationToken cancellationToken = default)
+	{
+		var query = new SearchIssuesQuery(request);
+		return await _mediator.Send(query, cancellationToken);
 	}
 }
