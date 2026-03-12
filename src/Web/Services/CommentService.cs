@@ -95,7 +95,12 @@ public sealed class CommentService : ICommentService
 		// Notify clients if successful
 		if (result.Success && result.Value is not null)
 		{
-			await _notificationService.NotifyCommentAddedAsync(result.Value.Issue.Id, result.Value, cancellationToken);
+			await _notificationService.NotifyCommentAddedAsync(
+				result.Value.Issue.Id, 
+				result.Value.Issue.Title,
+				result.Value.Issue.Author.Id,
+				result.Value, 
+				cancellationToken);
 		}
 
 		return result;

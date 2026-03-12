@@ -56,22 +56,33 @@ public sealed class NotificationService : INotificationService
 	}
 
 	/// <inheritdoc />
-	public async Task NotifyCommentAddedAsync(ObjectId issueId, CommentDto comment, CancellationToken cancellationToken = default)
+	public async Task NotifyCommentAddedAsync(ObjectId issueId, string issueTitle, string issueOwner, CommentDto comment, CancellationToken cancellationToken = default)
 	{
 		_logger.LogInformation("Notifying clients of comment added to issue: {IssueId}", issueId);
 
-		var evt = new CommentAddedEvent { IssueId = issueId, Comment = comment };
+		var evt = new CommentAddedEvent 
+		{ 
+			IssueId = issueId, 
+			IssueTitle = issueTitle,
+			IssueOwner = issueOwner,
+			Comment = comment 
+		};
 
 		// Notify clients in the issue-specific group
 		await _hubContext.Clients.Group($"issue-{issueId}").SendAsync("CommentAdded", evt, cancellationToken);
 	}
 
 	/// <inheritdoc />
-	public async Task NotifyIssueAssignedAsync(ObjectId issueId, string assignee, CancellationToken cancellationToken = default)
+	public async Task NotifyIssueAssignedAsync(ObjectId issueId, string issueTitle, string assignee, CancellationToken cancellationToken = default)
 	{
 		_logger.LogInformation("Notifying clients of issue assigned: {IssueId} to {Assignee}", issueId, assignee);
 
-		var evt = new IssueAssignedEvent { IssueId = issueId, Assignee = assignee };
+		var evt = new IssueAssignedEvent 
+		{ 
+			IssueId = issueId, 
+			IssueTitle = issueTitle,
+			Assignee = assignee 
+		};
 
 		// Notify clients in the issue-specific group
 		await _hubContext.Clients.Group($"issue-{issueId}").SendAsync("IssueAssigned", evt, cancellationToken);

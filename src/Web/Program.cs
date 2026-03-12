@@ -37,6 +37,24 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddScoped<Domain.Abstractions.INotificationService, NotificationService>();
 
+// Configure Email Service (SendGrid or SMTP fallback)
+var sendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
+if (!string.IsNullOrEmpty(sendGridApiKey))
+{
+	// Use SendGrid if API key is configured
+	builder.Services.Configure<SendGridSettings>(builder.Configuration.GetSection("SendGrid"));
+	builder.Services.AddSingleton<Domain.Abstractions.IEmailService, SendGridEmailService>();
+}
+else
+{
+	// Fallback to SMTP for development/testing
+	builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+	builder.Services.AddSingleton<Domain.Abstractions.IEmailService, SmtpEmailService>();
+}
+
+// Add Email Queue Background Service
+builder.Services.AddHostedService<EmailQueueBackgroundService>();
+
 // Configure File Storage (Azure Blob or Local)
 var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
 if (!string.IsNullOrEmpty(blobConnectionString))

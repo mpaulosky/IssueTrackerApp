@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Events;
 
 namespace Domain.Features.Comments.Commands;
 
@@ -27,15 +28,18 @@ public sealed class AddCommentCommandHandler : IRequestHandler<AddCommentCommand
 {
 	private readonly IRepository<Comment> _commentRepository;
 	private readonly IRepository<Issue> _issueRepository;
+	private readonly IMediator _mediator;
 	private readonly ILogger<AddCommentCommandHandler> _logger;
 
 	public AddCommentCommandHandler(
 		IRepository<Comment> commentRepository,
 		IRepository<Issue> issueRepository,
+		IMediator mediator,
 		ILogger<AddCommentCommandHandler> logger)
 	{
 		_commentRepository = commentRepository;
 		_issueRepository = issueRepository;
+		_mediator = mediator;
 		_logger = logger;
 	}
 
@@ -75,6 +79,18 @@ public sealed class AddCommentCommandHandler : IRequestHandler<AddCommentCommand
 		}
 
 		_logger.LogInformation("Successfully added comment with ID: {CommentId} to issue: {IssueId}", comment.Id, request.IssueId);
-		return Result.Ok(new CommentDto(result.Value!));
+
+		var commentDto = new CommentDto(result.Value!);
+
+		// Publish comment added event for email notifications
+		await _mediator.Publish(new CommentAddedEvent
+		{
+			IssueId = issue.Id,
+			IssueTitle = issue.Title,
+			IssueOwner = issue.Author.Id,
+			Comment = commentDto
+		}, cancellationToken);
+
+		return Result.Ok(commentDto);
 	}
 }
