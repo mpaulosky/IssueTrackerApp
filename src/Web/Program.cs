@@ -28,6 +28,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(DomainMarker).Assembly);
 
 // Add application services
 builder.Services.AddScoped<IIssueService, IssueService>();
+builder.Services.AddScoped<ILookupService, LookupService>();
 
 // Add data seeder
 builder.Services.AddDataSeeder();

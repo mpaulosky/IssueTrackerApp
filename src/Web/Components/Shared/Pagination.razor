@@ -1,0 +1,149 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Pagination.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@if (TotalPages > 1)
+{
+	<nav class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-4 sm:px-0 mt-6 pt-4">
+		<div class="-mt-px flex w-0 flex-1">
+			@if (CurrentPage > 1)
+			{
+				<button type="button"
+				        class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-300"
+				        @onclick="@(() => OnPageClick(CurrentPage - 1))">
+					<svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+						<path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
+					</svg>
+					Previous
+				</button>
+			}
+		</div>
+		<div class="hidden md:-mt-px md:flex">
+			@foreach (var pageNumber in GetPageNumbers())
+			{
+				@if (pageNumber == -1)
+				{
+					<span class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+						...
+					</span>
+				}
+				else
+				{
+					<button type="button"
+					        class="@GetPageButtonClasses(pageNumber)"
+					        @onclick="@(() => OnPageClick(pageNumber))">
+						@pageNumber
+					</button>
+				}
+			}
+		</div>
+		<div class="-mt-px flex w-0 flex-1 justify-end">
+			@if (CurrentPage < TotalPages)
+			{
+				<button type="button"
+				        class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-300"
+				        @onclick="@(() => OnPageClick(CurrentPage + 1))">
+					Next
+					<svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+						<path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
+					</svg>
+				</button>
+			}
+		</div>
+	</nav>
+
+	<div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+		Showing page @CurrentPage of @TotalPages (@TotalItems total items)
+	</div>
+}
+
+@code {
+	/// <summary>
+	///   The current page number.
+	/// </summary>
+	[Parameter]
+	public int CurrentPage { get; set; } = 1;
+
+	/// <summary>
+	///   The total number of pages.
+	/// </summary>
+	[Parameter]
+	public int TotalPages { get; set; }
+
+	/// <summary>
+	///   The total number of items.
+	/// </summary>
+	[Parameter]
+	public long TotalItems { get; set; }
+
+	/// <summary>
+	///   Event callback when page changes.
+	/// </summary>
+	[Parameter]
+	public EventCallback<int> OnPageChange { get; set; }
+
+	private async Task OnPageClick(int page)
+	{
+		if (page >= 1 && page <= TotalPages && page != CurrentPage)
+		{
+			await OnPageChange.InvokeAsync(page);
+		}
+	}
+
+	private string GetPageButtonClasses(int pageNumber)
+	{
+		var baseClasses = "inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium";
+
+		if (pageNumber == CurrentPage)
+		{
+			return $"{baseClasses} border-primary-500 text-primary-600 dark:text-primary-400";
+		}
+
+		return $"{baseClasses} border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-300";
+	}
+
+	private IEnumerable<int> GetPageNumbers()
+	{
+		var pages = new List<int>();
+		var showEllipsisStart = CurrentPage > 4;
+		var showEllipsisEnd = CurrentPage < TotalPages - 3;
+
+		// Always show first page
+		pages.Add(1);
+
+		if (showEllipsisStart)
+		{
+			pages.Add(-1); // Ellipsis
+		}
+
+		// Show pages around current page
+		var start = showEllipsisStart ? Math.Max(2, CurrentPage - 1) : 2;
+		var end = showEllipsisEnd ? Math.Min(TotalPages - 1, CurrentPage + 1) : TotalPages - 1;
+
+		for (var i = start; i <= end; i++)
+		{
+			if (!pages.Contains(i))
+			{
+				pages.Add(i);
+			}
+		}
+
+		if (showEllipsisEnd)
+		{
+			pages.Add(-1); // Ellipsis
+		}
+
+		// Always show last page
+		if (TotalPages > 1 && !pages.Contains(TotalPages))
+		{
+			pages.Add(TotalPages);
+		}
+
+		return pages;
+	}
+}

@@ -1,0 +1,303 @@
+@* =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     Index.razor
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web
+// ======================================================= *@
+
+@page "/issues"
+@using Microsoft.AspNetCore.Authorization
+@using Web.Auth
+@using Web.Services
+@using Domain.DTOs
+@using Web.Components.Shared
+
+@inject IIssueService IssueService
+@inject ILookupService LookupService
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
+@attribute [StreamRendering]
+
+<PageTitle>Issues - IssueTracker</PageTitle>
+
+<div class="space-y-6">
+	<!-- Header -->
+	<div class="sm:flex sm:items-center sm:justify-between">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Issues</h1>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+				Manage and track all issues in the system.
+			</p>
+		</div>
+		<div class="mt-4 sm:mt-0">
+			<a href="/issues/create"
+			   class="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+				<svg class="-ml-0.5 mr-1.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+					<path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+				</svg>
+				Create Issue
+			</a>
+		</div>
+	</div>
+
+	<!-- Filters -->
+	<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			<!-- Status Filter -->
+			<div>
+				<label for="status-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+					Status
+				</label>
+				<select id="status-filter"
+				        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+				        @bind="_statusFilter"
+				        @bind:after="OnFilterChange">
+					<option value="">All Statuses</option>
+					@if (_statuses is not null)
+					{
+						@foreach (var status in _statuses)
+						{
+							<option value="@status.StatusName">@status.StatusName</option>
+						}
+					}
+				</select>
+			</div>
+
+			<!-- Category Filter -->
+			<div>
+				<label for="category-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+					Category
+				</label>
+				<select id="category-filter"
+				        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+				        @bind="_categoryFilter"
+				        @bind:after="OnFilterChange">
+					<option value="">All Categories</option>
+					@if (_categories is not null)
+					{
+						@foreach (var category in _categories)
+						{
+							<option value="@category.CategoryName">@category.CategoryName</option>
+						}
+					}
+				</select>
+			</div>
+
+			<!-- Clear Filters -->
+			<div class="flex items-end">
+				<button type="button"
+				        class="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+				        @onclick="ClearFilters">
+					Clear Filters
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Issues List -->
+	@if (_isLoading)
+	{
+		<div class="flex justify-center py-12">
+			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+			</svg>
+		</div>
+	}
+	else if (!string.IsNullOrEmpty(_errorMessage))
+	{
+		<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+			<div class="flex">
+				<div class="flex-shrink-0">
+					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+					</svg>
+				</div>
+				<div class="ml-3">
+					<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error loading issues</h3>
+					<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+				</div>
+			</div>
+		</div>
+	}
+	else if (_issues is null || !_issues.Any())
+	{
+		<div class="text-center py-12">
+			<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+			</svg>
+			<h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No issues found</h3>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+				@if (!string.IsNullOrEmpty(_statusFilter) || !string.IsNullOrEmpty(_categoryFilter))
+				{
+					<span>Try adjusting your filters or </span>
+				}
+				<span>create a new issue to get started.</span>
+			</p>
+			<div class="mt-6">
+				<a href="/issues/create"
+				   class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+					<svg class="-ml-0.5 mr-1.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+					</svg>
+					Create Issue
+				</a>
+			</div>
+		</div>
+	}
+	else
+	{
+		<div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+			<ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+				@foreach (var issue in _issues)
+				{
+					<li>
+						<a href="/issues/@issue.Id" class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<div class="px-4 py-4 sm:px-6">
+								<div class="flex items-center justify-between">
+									<div class="flex items-center space-x-3 min-w-0">
+										<p class="text-sm font-medium text-primary-600 dark:text-primary-400 truncate">
+											@issue.Title
+										</p>
+										<StatusBadge Status="@issue.Status" />
+										<CategoryBadge Category="@issue.Category" />
+									</div>
+									<div class="ml-2 flex-shrink-0">
+										<svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+											<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+										</svg>
+									</div>
+								</div>
+								<div class="mt-2 sm:flex sm:justify-between">
+									<div class="sm:flex space-x-6">
+										<p class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+											<svg class="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
+											</svg>
+											@(issue.Author?.Name ?? "Unknown")
+										</p>
+									</div>
+									<div class="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
+										<svg class="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+											<path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" />
+										</svg>
+										<time datetime="@issue.DateCreated.ToString("yyyy-MM-dd")">
+											@issue.DateCreated.ToString("MMM d, yyyy")
+										</time>
+									</div>
+								</div>
+							</div>
+						</a>
+					</li>
+				}
+			</ul>
+		</div>
+
+		<!-- Pagination -->
+		<Pagination CurrentPage="@_currentPage"
+		            TotalPages="@_totalPages"
+		            TotalItems="@_totalItems"
+		            OnPageChange="OnPageChange" />
+	}
+</div>
+
+@code {
+	private IReadOnlyList<IssueDto>? _issues;
+	private IEnumerable<StatusDto>? _statuses;
+	private IEnumerable<CategoryDto>? _categories;
+
+	private bool _isLoading = true;
+	private string? _errorMessage;
+
+	private string? _statusFilter;
+	private string? _categoryFilter;
+
+	private int _currentPage = 1;
+	private int _totalPages = 1;
+	private long _totalItems;
+	private const int PAGE_SIZE = 10;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadLookupsAsync();
+		await LoadIssuesAsync();
+	}
+
+	private async Task LoadLookupsAsync()
+	{
+		var statusTask = LookupService.GetStatusesAsync();
+		var categoryTask = LookupService.GetCategoriesAsync();
+
+		await Task.WhenAll(statusTask, categoryTask);
+
+		var statusResult = await statusTask;
+		var categoryResult = await categoryTask;
+
+		if (statusResult.Success)
+		{
+			_statuses = statusResult.Value;
+		}
+
+		if (categoryResult.Success)
+		{
+			_categories = categoryResult.Value;
+		}
+	}
+
+	private async Task LoadIssuesAsync()
+	{
+		_isLoading = true;
+		_errorMessage = null;
+
+		try
+		{
+			var result = await IssueService.GetIssuesAsync(
+				page: _currentPage,
+				pageSize: PAGE_SIZE,
+				statusFilter: _statusFilter,
+				categoryFilter: _categoryFilter);
+
+			if (result.Success && result.Value is not null)
+			{
+				_issues = result.Value.Items;
+				_totalPages = result.Value.TotalPages;
+				_totalItems = result.Value.Total;
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to load issues";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+
+	private async Task OnFilterChange()
+	{
+		_currentPage = 1;
+		await LoadIssuesAsync();
+	}
+
+	private async Task ClearFilters()
+	{
+		_statusFilter = null;
+		_categoryFilter = null;
+		_currentPage = 1;
+		await LoadIssuesAsync();
+	}
+
+	private async Task OnPageChange(int page)
+	{
+		_currentPage = page;
+		await LoadIssuesAsync();
+	}
+}
