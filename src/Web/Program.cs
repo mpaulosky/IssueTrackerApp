@@ -3,6 +3,7 @@ using Domain;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Persistence.AzureStorage;
 using Persistence.MongoDb;
 using Web.Auth;
 using Web.Components;
@@ -33,7 +34,21 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddScoped<Domain.Abstractions.INotificationService, NotificationService>();
+
+// Configure File Storage (Azure Blob or Local)
+var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
+if (!string.IsNullOrEmpty(blobConnectionString))
+{
+	// Use Azure Blob Storage if connection string is configured
+	builder.Services.AddAzureBlobStorage(builder.Configuration);
+}
+else
+{
+	// Fallback to local file storage for development
+	builder.Services.AddScoped<Domain.Abstractions.IFileStorageService, LocalFileStorageService>();
+}
 
 // Add real-time notification services
 builder.Services.AddScoped<ToastService>();

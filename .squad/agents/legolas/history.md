@@ -101,3 +101,164 @@
 - Team transferred from IssueManager squad
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
 - Ready to begin development
+
+---
+
+### 2026-03-12 - Issue Attachments UI (Issue #35)
+
+**Task:** Implement file attachment upload and display UI for issues
+
+**What I Built:**
+1. **FileUpload Component (`FileUpload.razor`)**
+   - Drag-and-drop file upload zone with visual feedback
+   - Highlight on drag-over (border turns primary color)
+   - File type validation (images: JPG, PNG, GIF, WEBP; documents: PDF, TXT, MD)
+   - File size validation (10MB limit with clear error message)
+   - Upload progress indicator with animated spinner
+   - Error state display with red alert box
+   - Accept string for browser file picker
+   - TailwindCSS styling with dark mode support
+
+2. **AttachmentCard Component (`AttachmentCard.razor`)**
+   - Displays individual attachment in a card layout
+   - Image thumbnails with hover scale animation
+   - Document icons for PDF, TXT, MD with appropriate colors
+   - File metadata: name, size (formatted), upload date, author
+   - Hover overlay with download and delete buttons
+   - Authorization check: only owner/admin see delete button
+   - Responsive design with smooth transitions
+
+3. **AttachmentList Component (`AttachmentList.razor`)**
+   - Grid layout: 2 columns mobile, 3 tablet, 4 desktop
+   - Loading state with spinner
+   - Error state with red alert
+   - Empty state with icon and message
+   - Delete confirmation modal integration
+   - Authorization checks for delete actions
+   - Exposed methods: SetLoading, SetError, ClearError
+
+4. **AttachmentService Integration**
+   - Created `AttachmentService.cs` following the project's service pattern
+   - Interface `IAttachmentService` with three methods:
+     - `GetIssueAttachmentsAsync` - Retrieves all attachments for an issue
+     - `AddAttachmentAsync` - Uploads new attachment with stream
+     - `DeleteAttachmentAsync` - Deletes attachment with authorization check
+   - Wraps MediatR commands/queries
+   - Proper error handling and logging
+
+5. **Issue Details Page Integration**
+   - Added attachment section between issue details and comments
+   - Integrated FileUpload component
+   - Integrated AttachmentList component
+   - Upload handler with current user context
+   - Delete handler with authorization
+   - Auto-refresh attachments after upload/delete
+   - Error and success message display
+
+6. **SignalR Real-Time Updates**
+   - Added `OnAttachmentAdded` event to SignalRClientService
+   - Added `OnAttachmentDeleted` event to SignalRClientService
+   - Event handlers with toast notifications
+   - Auto-refresh attachment list when events fire
+   - Subscribed/unsubscribed in component lifecycle
+
+7. **Service Registration**
+   - Registered `IAttachmentService` as scoped service in Program.cs
+   - Follows same pattern as other services (IssueService, CommentService, etc.)
+
+**Technical Details:**
+- **File Validation Constants:**
+  - Max file size: 10MB (10 * 1024 * 1024 bytes)
+  - Image types: image/jpeg, image/png, image/gif, image/webp
+  - Document types: application/pdf, text/plain, text/markdown
+  - Client-side validation before upload
+
+- **Authorization Logic:**
+  - User can delete own attachments
+  - Admins can delete any attachment
+  - Delete button hidden if user unauthorized
+
+- **File Display:**
+  - Images: Show thumbnail or full image
+  - PDF: Red document icon with "PDF" badge
+  - Markdown: Blue document icon with "MD" badge
+  - Text: Gray document icon with "TXT" badge
+
+- **User Context:**
+  - Retrieved from AuthenticationStateProvider
+  - Extracts: ObjectId, Name, Email
+  - Used for upload attribution and authorization
+
+**Files Created:**
+- `src/Web/Services/AttachmentService.cs`
+- `src/Web/Components/Shared/FileUpload.razor`
+- `src/Web/Components/Issues/AttachmentCard.razor`
+- `src/Web/Components/Issues/AttachmentList.razor`
+
+**Files Modified:**
+- `src/Web/Components/Pages/Issues/Details.razor` - Added attachment section
+- `src/Web/Services/SignalRClientService.cs` - Added attachment events
+- `src/Web/Program.cs` - Registered AttachmentService
+
+**Backend Files (Already Existed):**
+- `src/Domain/DTOs/AttachmentDto.cs` - Has IsImage property and FileSizeFormatted
+- `src/Domain/Models/Attachment.cs` - MongoDB entity
+- `src/Domain/Models/FileValidationConstants.cs` - Validation constants
+- `src/Domain/Features/Attachments/Commands/AddAttachmentCommand.cs`
+- `src/Domain/Features/Attachments/Commands/DeleteAttachmentCommand.cs`
+- `src/Domain/Features/Attachments/Queries/GetIssueAttachmentsQuery.cs`
+- `src/Web/Services/LocalFileStorageService.cs` - File storage implementation
+
+**Key Design Decisions:**
+1. **Component Composition:** Separated concerns - FileUpload handles upload UI, AttachmentCard handles individual display, AttachmentList orchestrates
+2. **Event Callbacks:** Used EventCallbacks for parent-child communication (OnFileSelected, OnDelete, OnError)
+3. **Authorization:** Checked at both UI level (button visibility) and service level
+4. **Error Handling:** Multiple error states with clear user messaging
+5. **Real-Time:** Integrated with existing SignalR infrastructure for live updates
+6. **Styling:** Consistent TailwindCSS patterns with dark mode throughout
+7. **File Icons:** Used Heroicons-style SVG icons for document types
+8. **Progress Feedback:** Visual spinner during upload with file name display
+
+**Challenges & Solutions:**
+1. **Branch Availability:** Branch `squad/35-issue-attachments` existed locally but not on remote initially - checked it out successfully
+2. **SignalR Events:** Had to add new events (OnAttachmentAdded, OnAttachmentDeleted) to SignalRClientService
+3. **User Context:** Needed to extract user info in multiple places - considered creating helper but kept inline for clarity
+4. **File Stream Handling:** Used `OpenReadStream` with 10MB max size parameter for browser file uploads
+
+**Styling Highlights:**
+- **Drop Zone:** Dashed border, changes to primary color on drag-over
+- **Upload Progress:** Animated spinner with pulsing progress bar
+- **Cards:** White bg in light mode, gray-800 in dark mode
+- **Hover Effects:** Scale transform on images, opacity fade on overlay
+- **Icons:** Color-coded by file type (red PDF, blue MD, gray TXT)
+- **Responsive Grid:** 2/3/4 columns based on screen size
+- **Empty State:** Centered with icon and subtle message
+
+**Testing Recommendations:**
+- Upload various file types (valid and invalid)
+- Test file size limit (files over 10MB)
+- Drag-and-drop functionality
+- Delete authorization (owner vs non-owner vs admin)
+- Real-time updates with multiple browser windows
+- Dark mode appearance
+- Responsive layout on different screen sizes
+- Image thumbnails vs document icons
+
+**Collaboration:**
+- Built on Sam's backend attachment infrastructure
+- Integrates with Gimli's SignalR hub (Issue #37)
+- Ready for PR creation (need GitHub authentication fix)
+
+**Git:**
+- Branch: `squad/35-issue-attachments`
+- Commit: `e6969c9` - "feat(attachments): Add attachment upload and display UI"
+- Pushed to remote successfully
+- PR creation pending due to GitHub auth issue
+
+**Next Steps:**
+- PR will need to be created manually via GitHub web UI
+- Backend API endpoints should be tested for integration
+- Consider adding E2E tests for attachment workflows
+- May need to verify SignalR hub sends attachment events
+
+---
