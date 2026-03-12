@@ -14,10 +14,12 @@
 @using Web.Services
 @using Domain.DTOs
 @using Web.Components.Shared
+@implements IDisposable
 
 @inject IIssueService IssueService
 @inject ILookupService LookupService
 @inject NavigationManager NavigationManager
+@inject SignalRClientService SignalRClient
 
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 @attribute [StreamRendering]
@@ -201,6 +203,30 @@
 		ParseQueryParameters();
 		await LoadLookupsAsync();
 		await LoadIssuesAsync();
+		
+		// Subscribe to SignalR events for auto-refresh
+		SignalRClient.OnIssueCreated += HandleIssueCreated;
+		SignalRClient.OnIssueUpdated += HandleIssueUpdated;
+	}
+
+	private void HandleIssueCreated(string issueId)
+	{
+		// Reload issues when a new issue is created
+		InvokeAsync(async () =>
+		{
+			await LoadIssuesAsync();
+			StateHasChanged();
+		});
+	}
+
+	private void HandleIssueUpdated(string issueId)
+	{
+		// Reload issues when an issue is updated
+		InvokeAsync(async () =>
+		{
+			await LoadIssuesAsync();
+			StateHasChanged();
+		});
 	}
 
 	private void ParseQueryParameters()
@@ -394,5 +420,11 @@
 		_currentPage = page;
 		UpdateQueryParameters();
 		await LoadIssuesAsync();
+	}
+
+	public void Dispose()
+	{
+		SignalRClient.OnIssueCreated -= HandleIssueCreated;
+		SignalRClient.OnIssueUpdated -= HandleIssueUpdated;
 	}
 }

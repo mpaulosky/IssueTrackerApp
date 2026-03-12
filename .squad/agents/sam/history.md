@@ -92,3 +92,59 @@
 - AppHost initializes correctly (requires Docker running for containers)
 - Service discovery configured and ready for use
 - Health check endpoints functional in Development mode
+
+### Issue #37 - SignalR Hub Infrastructure (2026-03-12)
+
+**SignalR Architecture:**
+- Created `IssueHub` at `src/Web/Hubs/IssueHub.cs` with connection lifecycle management
+- Hub endpoint: `/hubs/issues` (configured in Program.cs)
+- Group-based notifications: `all` (broadcast) and `issue-{issueId}` (targeted)
+- Client methods: `JoinIssueGroup(issueId)` and `LeaveIssueGroup(issueId)` for subscription management
+
+**Event System:**
+- Created event DTOs in `src/Domain/Events/`:
+  - `IssueCreatedEvent` - Broadcast to `all` group
+  - `IssueUpdatedEvent` - Sent to `issue-{issueId}` and `all` groups
+  - `CommentAddedEvent` - Sent to `issue-{issueId}` group
+  - `IssueAssignedEvent` - Sent to `issue-{issueId}` and `all` groups
+- Each event includes timestamp and relevant DTOs (IssueDto, CommentDto)
+
+**Service Integration:**
+- Created `INotificationService` interface in `src/Domain/Abstractions/`
+- Implemented `NotificationService` in `src/Web/Services/` using `IHubContext<IssueHub>`
+- Integrated notifications into `IssueService` (create, update, status change operations)
+- Integrated notifications into `CommentService` (comment additions)
+- Notifications are sent after successful operations (Result.Success check)
+
+**Configuration:**
+- SignalR registered in Program.cs with `builder.Services.AddSignalR()`
+- Hub mapped with `app.MapHub<IssueHub>("/hubs/issues")`
+- NotificationService registered as scoped service
+- No additional NuGet packages needed (SignalR is part of ASP.NET Core framework)
+
+**Documentation:**
+- Created comprehensive README at `src/Web/Hubs/README.md`:
+  - Client event descriptions and usage
+  - Azure SignalR Service production setup guide
+  - Aspire integration instructions
+  - Security, monitoring, and troubleshooting guidance
+  - JavaScript client connection examples
+
+**Key Patterns:**
+- SignalR notifications follow existing Result<T> pattern
+- Service layer maintains separation of concerns (business logic in handlers, notifications in services)
+- Hub keeps minimal logic (connection management only)
+- Group-based targeting enables efficient message delivery
+- NotificationService uses structured logging for diagnostics
+
+**Azure SignalR Service (Production):**
+- Documented Azure SignalR Service setup steps
+- Configuration via appsettings.Production.json or environment variables
+- Requires `Microsoft.Azure.SignalR` package (not yet added)
+- Connection string format: `Endpoint=https://...;AccessKey=...;Version=1.0;`
+- Supports Aspire integration via `Aspire.Hosting.Azure.SignalR` component
+
+**Next Steps:**
+- Frontend integration required (Legolas will add Blazor SignalR client)
+- Optional: Add Azure SignalR Service package for production deployment
+- PR #39 created as draft (awaiting frontend completion)

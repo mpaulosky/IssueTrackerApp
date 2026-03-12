@@ -86,10 +86,12 @@ public interface IIssueService
 public sealed class IssueService : IIssueService
 {
 	private readonly IMediator _mediator;
+	private readonly Domain.Abstractions.INotificationService _notificationService;
 
-	public IssueService(IMediator mediator)
+	public IssueService(IMediator mediator, Domain.Abstractions.INotificationService notificationService)
 	{
 		_mediator = mediator;
+		_notificationService = notificationService;
 	}
 
 	public async Task<Result<PaginatedResponse<IssueDto>>> GetIssuesAsync(
@@ -118,7 +120,15 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new CreateIssueCommand(title, description, category, author);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		// Notify clients if successful
+		if (result.Success && result.Value is not null)
+		{
+			await _notificationService.NotifyIssueCreatedAsync(result.Value, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<IssueDto>> UpdateIssueAsync(
@@ -129,7 +139,15 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new UpdateIssueCommand(id, title, description, category);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		// Notify clients if successful
+		if (result.Success && result.Value is not null)
+		{
+			await _notificationService.NotifyIssueUpdatedAsync(result.Value, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<bool>> DeleteIssueAsync(
@@ -147,7 +165,15 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new ChangeIssueStatusCommand(id, newStatus);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		// Notify clients if successful
+		if (result.Success && result.Value is not null)
+		{
+			await _notificationService.NotifyIssueUpdatedAsync(result.Value, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<PagedResult<IssueDto>>> SearchIssuesAsync(

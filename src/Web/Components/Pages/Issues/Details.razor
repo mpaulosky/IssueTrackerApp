@@ -14,11 +14,14 @@
 @using Web.Services
 @using Domain.DTOs
 @using Web.Components.Shared
+@implements IAsyncDisposable
 
 @inject IIssueService IssueService
 @inject ILookupService LookupService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SignalRClientService SignalRClient
+@inject ICommentService CommentService
 
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 @attribute [StreamRendering]
@@ -224,6 +227,39 @@
 	protected override async Task OnInitializedAsync()
 	{
 		await LoadDataAsync();
+		
+		// Subscribe to SignalR events
+		SignalRClient.OnIssueUpdated += HandleIssueUpdated;
+		SignalRClient.OnCommentAdded += HandleCommentAdded;
+		
+		// Join this specific issue group for targeted notifications
+		await SignalRClient.JoinIssueGroupAsync(Id);
+	}
+
+	private void HandleIssueUpdated(string issueId)
+	{
+		if (issueId == Id)
+		{
+			// Reload issue data when this specific issue is updated
+			InvokeAsync(async () =>
+			{
+				await LoadDataAsync();
+				StateHasChanged();
+			});
+		}
+	}
+
+	private void HandleCommentAdded(string issueId)
+	{
+		if (issueId == Id)
+		{
+			// Reload issue data to show new comment
+			InvokeAsync(async () =>
+			{
+				await LoadDataAsync();
+				StateHasChanged();
+			});
+		}
 	}
 
 	private async Task LoadDataAsync()
@@ -358,5 +394,14 @@
 		{
 			_isDeleting = false;
 		}
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		SignalRClient.OnIssueUpdated -= HandleIssueUpdated;
+		SignalRClient.OnCommentAdded -= HandleCommentAdded;
+		
+		// Leave the issue group when navigating away
+		await SignalRClient.LeaveIssueGroupAsync(Id);
 	}
 }

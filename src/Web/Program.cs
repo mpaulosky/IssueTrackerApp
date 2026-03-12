@@ -33,6 +33,11 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<Domain.Abstractions.INotificationService, NotificationService>();
+
+// Add real-time notification services
+builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<SignalRClientService>();
 
 // Add data seeder
 builder.Services.AddDataSeeder();
@@ -60,6 +65,9 @@ builder.Services.AddAuthorization(options =>
 	options.AddPolicy(AuthorizationPolicies.UserPolicy, policy =>
 		policy.RequireRole(AuthorizationRoles.User));
 });
+
+// Add SignalR for real-time notifications
+builder.Services.AddSignalR();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -101,6 +109,9 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// Map SignalR hub endpoint
+app.MapHub<Web.Hubs.IssueHub>("/hubs/issues");
 
 // Map Auth0 login/logout endpoints
 app.MapGet("/account/login", async (HttpContext context, string returnUrl = "/") =>
