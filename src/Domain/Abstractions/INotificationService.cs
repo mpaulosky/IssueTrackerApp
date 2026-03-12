@@ -35,15 +35,18 @@ public interface INotificationService
 	///   Notifies connected clients that a comment was added to an issue.
 	/// </summary>
 	/// <param name="issueId">The ID of the issue.</param>
+	/// <param name="issueTitle">The title of the issue.</param>
+	/// <param name="issueOwner">The owner of the issue.</param>
 	/// <param name="comment">The added comment.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task NotifyCommentAddedAsync(ObjectId issueId, CommentDto comment, CancellationToken cancellationToken = default);
+	Task NotifyCommentAddedAsync(ObjectId issueId, string issueTitle, string issueOwner, CommentDto comment, CancellationToken cancellationToken = default);
 
 	/// <summary>
 	///   Notifies connected clients that an issue was assigned to a user.
 	/// </summary>
 	/// <param name="issueId">The ID of the issue.</param>
+	/// <param name="issueTitle">The title of the issue.</param>
 	/// <param name="assignee">The user identifier the issue was assigned to.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task NotifyIssueAssignedAsync(ObjectId issueId, string assignee, CancellationToken cancellationToken = default);
+	Task NotifyIssueAssignedAsync(ObjectId issueId, string issueTitle, string assignee, CancellationToken cancellationToken = default);
 }

@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Events;
 
 namespace Domain.Features.Issues.Commands;
 
@@ -24,13 +25,16 @@ public record ChangeIssueStatusCommand(
 public sealed class ChangeIssueStatusCommandHandler : IRequestHandler<ChangeIssueStatusCommand, Result<IssueDto>>
 {
 	private readonly IRepository<Issue> _repository;
+	private readonly IMediator _mediator;
 	private readonly ILogger<ChangeIssueStatusCommandHandler> _logger;
 
 	public ChangeIssueStatusCommandHandler(
 		IRepository<Issue> repository,
+		IMediator mediator,
 		ILogger<ChangeIssueStatusCommandHandler> logger)
 	{
 		_repository = repository;
+		_mediator = mediator;
 		_logger = logger;
 	}
 
@@ -50,6 +54,7 @@ public sealed class ChangeIssueStatusCommandHandler : IRequestHandler<ChangeIssu
 		}
 
 		var issue = existingResult.Value;
+		var oldStatus = issue.Status.StatusName;
 		issue.Status = request.NewStatus;
 		issue.DateModified = DateTime.UtcNow;
 
@@ -65,6 +70,16 @@ public sealed class ChangeIssueStatusCommandHandler : IRequestHandler<ChangeIssu
 			"Successfully changed status of issue {IssueId} to {NewStatus}",
 			request.Id,
 			request.NewStatus.StatusName);
+
+		// Publish status changed event for email notifications
+		await _mediator.Publish(new IssueStatusChangedEvent
+		{
+			IssueId = issue.Id,
+			IssueTitle = issue.Title,
+			OldStatus = oldStatus,
+			NewStatus = request.NewStatus.StatusName,
+			IssueOwner = issue.Author.Id
+		}, cancellationToken);
 
 		return Result.Ok(new IssueDto(result.Value!));
 	}

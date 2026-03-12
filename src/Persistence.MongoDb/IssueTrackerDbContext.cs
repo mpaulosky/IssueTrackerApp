@@ -52,6 +52,11 @@ public sealed class IssueTrackerDbContext : DbContext
 	/// </summary>
 	public DbSet<Attachment> Attachments => Set<Attachment>();
 
+	/// <summary>
+	///   Gets or sets the Email Queue collection.
+	/// </summary>
+	public DbSet<EmailQueueItem> EmailQueue => Set<EmailQueueItem>();
+
 	// Note: Users are not stored in MongoDB - they come from Auth0
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -77,6 +82,7 @@ public sealed class IssueTrackerDbContext : DbContext
 		modelBuilder.Entity<Status>().HasKey(e => e.Id);
 		modelBuilder.Entity<Comment>().HasKey(e => e.Id);
 		modelBuilder.Entity<Attachment>().HasKey(e => e.Id);
+		modelBuilder.Entity<EmailQueueItem>().HasKey(e => e.Id);
 		// Note: User entity is not persisted - comes from Auth0
 	}
 

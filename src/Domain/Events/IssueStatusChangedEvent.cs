@@ -1,31 +1,23 @@
 // =======================================================
 // Copyright (c) 2025. All rights reserved.
-// File Name :     CommentAddedEvent.cs
+// File Name :     IssueStatusChangedEvent.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueTrackerApp
 // Project Name :  Domain
 // =======================================================
 
-using Domain.DTOs;
-using MongoDB.Bson;
-
 namespace Domain.Events;
 
 /// <summary>
-///   Event raised when a comment is added to an issue.
+///   Event raised when an issue's status changes.
 /// </summary>
-public sealed record CommentAddedEvent : INotification
+public sealed record IssueStatusChangedEvent : INotification
 {
 	/// <summary>
-	///   The ID of the issue the comment was added to.
+	///   The ID of the issue.
 	/// </summary>
 	public required ObjectId IssueId { get; init; }
-
-	/// <summary>
-	///   The newly added comment.
-	/// </summary>
-	public required CommentDto Comment { get; init; }
 
 	/// <summary>
 	///   The issue title.
@@ -33,7 +25,17 @@ public sealed record CommentAddedEvent : INotification
 	public required string IssueTitle { get; init; }
 
 	/// <summary>
-	///   The issue owner (to be notified).
+	///   The old status.
+	/// </summary>
+	public required string OldStatus { get; init; }
+
+	/// <summary>
+	///   The new status.
+	/// </summary>
+	public required string NewStatus { get; init; }
+
+	/// <summary>
+	///   The user who owns the issue (to be notified).
 	/// </summary>
 	public required string IssueOwner { get; init; }
 

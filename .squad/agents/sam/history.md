@@ -226,3 +226,141 @@
 - Backend infrastructure completes the feature implementation
 - Both frontend and backend changes in same PR (#40)
 - Ready for review and testing once frontend builds successfully
+
+### Issue #33 - Email Notification System (2026-03-12)
+
+**Email Service Architecture:**
+- Created `IEmailService` abstraction in `src/Domain/Abstractions/` with two methods:
+  - `SendAsync(EmailMessage)` - Send simple email
+  - `SendTemplatedAsync<T>(templateName, model, toEmail)` - Send templated email (basic implementation)
+- Implemented two service providers:
+  - `SendGridEmailService` - Primary service using SendGrid API (requires API key)
+  - `SmtpEmailService` - Fallback service using System.Net.Mail (for development)
+- Conditional registration in Program.cs based on SendGrid API key presence
+- Added SendGrid NuGet package (v9.29.3) to Directory.Packages.props
+
+**Email Queue System:**
+- Created `EmailQueueItem` model with MongoDB entity configuration:
+  - Tracks attempts, status (Pending/Sending/Sent/Failed), retry schedule
+  - Max 3 attempts with exponential backoff (1, 2, 4 minutes)
+  - Stores email metadata (to, subject, body, HTML flag, from name)
+- Created `QueueEmailCommand` MediatR command to queue emails for background processing
+- Added EmailQueue DbSet to IssueTrackerDbContext
+- Emails stored in MongoDB `emailqueue` collection
+
+**Background Processing:**
+- Implemented `EmailQueueBackgroundService` (IHostedService):
+  - Processes queue every 10 seconds
+  - Retrieves up to 10 pending emails per batch
+  - Handles send failures with exponential backoff retry
+  - Logs all operations for diagnostics
+  - Updates email status and retry schedule in database
+- Registered as hosted service in Program.cs
+
+**Domain Events Integration:**
+- Enhanced existing events to implement INotification:
+  - `IssueAssignedEvent` - Added IssueTitle property
+  - `CommentAddedEvent` - Added IssueTitle and IssueOwner properties
+- Created new event:
+  - `IssueStatusChangedEvent` - Tracks old status, new status, issue owner
+- Updated INotificationService interface signatures to pass additional data (issueTitle, issueOwner)
+
+**Notification Handlers:**
+- Created MediatR notification handlers in `src/Domain/Features/Notifications/`:
+  - `IssueAssignedNotificationHandler` - Queues email when issue assigned
+  - `CommentAddedNotificationHandler` - Queues email when comment added (skips if author is owner)
+  - `IssueStatusChangedNotificationHandler` - Queues email when status changes
+- All handlers use inline HTML email templates (clean, simple styling)
+- Handlers follow Result<T> pattern and log operations
+
+**Event Publishing:**
+- Integrated event publishing in command handlers:
+  - `ChangeIssueStatusCommand` publishes `IssueStatusChangedEvent`
+  - `AddCommentCommand` publishes `CommentAddedEvent`
+- Used IMediator.Publish for notification pattern (one event, multiple handlers)
+- Events published after successful database operations
+
+**Configuration:**
+- Updated appsettings.Development.json with email settings:
+  ```json
+  "Smtp": {
+    "Host": "localhost",
+    "Port": 587,
+    "EnableSsl": false,
+    "FromEmail": "noreply@issuetracker.local",
+    "FromName": "IssueTracker Dev"
+  },
+  "SendGrid": {
+    "ApiKey": "",
+    "FromEmail": "noreply@issuetracker.com",
+    "FromName": "IssueTracker"
+  }
+  ```
+- Production should set SendGrid:ApiKey via environment variable or user secrets
+
+**User Preferences Model:**
+- Created `NotificationPreferences` record in `src/Domain/Models/`:
+  - EmailOnAssigned, EmailOnComment, EmailOnStatusChange, EmailOnMention (all default true)
+  - Note: Users are NOT stored in database (Auth0 managed)
+  - Preferences would be stored in Auth0 metadata or browser local storage
+  - Placeholder for future implementation
+
+**Email Templates:**
+- Used inline HTML templates in notification handlers (no external files)
+- Simple, clean styling (works in most email clients):
+  - Issue Assignment: Blue border-left accent
+  - Comment Added: Green border-left accent
+  - Status Changed: Yellow border-left accent
+- All templates include:
+  - Issue title and relevant details
+  - Action-specific information (assignee, comment text, status change)
+  - Automated notification footer
+
+**Key Technical Patterns:**
+- CQRS with MediatR for email queuing
+- Repository pattern for email queue storage
+- Background service with IHostedService for async processing
+- Notification pattern for event handling (INotification, INotificationHandler)
+- Result<T> pattern for error handling throughout
+- Dependency injection for service selection (SendGrid vs SMTP)
+- Exponential backoff retry logic for resilience
+
+**Service Integration Updates:**
+- Updated `NotificationService` (SignalR service) method signatures to accept issueTitle and issueOwner
+- Updated `CommentService` call to NotifyCommentAddedAsync with additional parameters
+- Both SignalR (real-time) and email notifications work together seamlessly
+
+**Build & Testing:**
+- All projects build successfully with no errors
+- Email sending requires SMTP server or SendGrid API key to function
+- Without configuration, emails are queued but remain pending
+- Check MongoDB EmailQueue collection to verify queuing works
+- Background service logs all email operations at Information level
+
+**Commit Details:**
+- Branch: `squad/33-email-notifications`
+- Commit: "feat(email): Add email notification system"
+- 24 files changed, 1066 insertions, 10 deletions
+- Push successful, PR URL: https://github.com/mpaulosky/IssueTrackerApp/pull/new/squad/33-email-notifications
+
+**Future Enhancements:**
+- Implement RazorLight or similar for proper template rendering
+- Add user preference management UI (Blazor component)
+- Create external email template files (.cshtml)
+- Implement @mention detection in comments
+- Add email digest feature (batch multiple notifications)
+- Add unsubscribe functionality
+- Consider using Azure Communication Services Email instead of SendGrid
+
+**Lessons Learned:**
+- MongoDB repository uses `AddAsync` not `CreateAsync` (IRepository<T> interface)
+- UserDto has `Id` property (not `ObjectIdentifier`)
+- CommentDto has `Description` property (not `Content`)
+- IRepository.UpdateAsync takes only entity parameter (not id + entity)
+- GetAllAsync returns Result<IEnumerable<T>>, must check Success and extract Value
+- MediatR notifications (INotification) are different from SignalR notifications
+- Required properties on events must be set in object initializers (C# 11 feature)
+- Background services should use IServiceProvider.CreateScope() for scoped dependencies
+- SignalR NotificationService and email NotificationHandlers serve different purposes (real-time vs async)
+
+---
