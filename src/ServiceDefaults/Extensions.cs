@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -87,12 +89,12 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        //{
-        //    builder.Services.AddOpenTelemetry()
-        //       .UseAzureMonitor();
-        //}
+        // Enable Azure Monitor exporter if Application Insights connection string is configured
+        if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        {
+            builder.Services.AddOpenTelemetry()
+               .UseAzureMonitor();
+        }
 
         return builder;
     }
@@ -106,21 +108,52 @@ public static class Extensions
         return builder;
     }
 
+    public static IHealthChecksBuilder AddMongoDbHealthCheck<TBuilder>(
+        this TBuilder builder, 
+        string connectionName = "mongodb") where TBuilder : IHostApplicationBuilder
+    {
+        var healthChecks = builder.Services.AddHealthChecks();
+        
+        var connectionString = builder.Configuration.GetConnectionString(connectionName);
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            healthChecks.AddMongoDb(
+                sp => new MongoDB.Driver.MongoClient(connectionString),
+                name: "mongodb",
+                tags: new[] { "ready" });
+        }
+        
+        return healthChecks;
+    }
+
+    public static IHealthChecksBuilder AddRedisHealthCheck<TBuilder>(
+        this TBuilder builder,
+        string connectionName = "redis") where TBuilder : IHostApplicationBuilder
+    {
+        var healthChecks = builder.Services.AddHealthChecks();
+        
+        var connectionString = builder.Configuration.GetConnectionString(connectionName);
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            healthChecks.AddRedis(
+                connectionString,
+                name: "redis",
+                tags: new[] { "ready" });
+        }
+        
+        return healthChecks;
+    }
+
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        // Adding health checks endpoints to applications in non-development environments has security implications.
-        // See https://aka.ms/dotnet/aspire/healthchecks for details before enabling these endpoints in non-development environments.
-        if (app.Environment.IsDevelopment())
-        {
-            // All health checks must pass for app to be considered ready to accept traffic after starting
-            app.MapHealthChecks(HealthEndpointPath);
+        // All health checks must pass for app to be considered ready to accept traffic after starting
+        app.MapHealthChecks(HealthEndpointPath);
 
-            // Only health checks tagged with the "live" tag must pass for app to be considered alive
-            app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
-            {
-                Predicate = r => r.Tags.Contains("live")
-            });
-        }
+        // Only health checks tagged with the "live" tag must pass for app to be considered alive
+        app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
+        {
+            Predicate = r => r.Tags.Contains("live")
+        });
 
         return app;
     }

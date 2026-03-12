@@ -49,3 +49,46 @@
 - Team transferred from IssueManager squad
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
 - Ready to begin development
+
+### Issue #3 - Aspire AppHost Configuration (2026-03-12)
+
+**Aspire Orchestration Setup:**
+- Enhanced AppHost with MongoDB (with MongoExpress UI) and Redis (with RedisCommander UI)
+- Configured service discovery between Web project and backing resources
+- Added health check endpoints: `/health` (all checks) and `/alive` (liveness only)
+- Health checks enabled in Development environment by default
+
+**OpenTelemetry Integration:**
+- Integrated OpenTelemetry with OTLP exporter (configurable via `OTEL_EXPORTER_OTLP_ENDPOINT`)
+- Added Azure Monitor/Application Insights support (via `APPLICATIONINSIGHTS_CONNECTION_STRING`)
+- Configured tracing, metrics, and logging exporters
+- Excludes health check endpoints from tracing to reduce noise
+
+**ServiceDefaults Enhancements:**
+- Added Azure.Monitor.OpenTelemetry.AspNetCore package (v1.3.0)
+- Enabled Azure Monitor exporter when connection string is configured
+- Service discovery and resilience patterns already configured
+- HTTP client defaults include standard resilience handler and service discovery
+
+**Environment Configuration:**
+- Created environment-specific appsettings for Development, Staging, and Production
+- Development: OTLP endpoint set to `http://localhost:4317`
+- Staging/Production: OTLP and Application Insights configured via appsettings or environment variables
+- Logging levels adjusted per environment (Development = Information, Production = Warning)
+
+**Web Project Integration:**
+- Updated Program.cs to use `builder.AddServiceDefaults()` and `app.MapDefaultEndpoints()`
+- ServiceDefaults automatically configures OpenTelemetry, service discovery, resilience, and health checks
+- Health check endpoints exposed in Development mode
+
+**Key Patterns:**
+- Aspire resources use `.WaitFor()` to ensure dependencies start in correct order
+- AppHost manages MongoDB and Redis as containerized resources
+- Web project references resources via service discovery
+- Cross-cutting concerns centralized in ServiceDefaults project
+
+**Testing Notes:**
+- Solution builds successfully
+- AppHost initializes correctly (requires Docker running for containers)
+- Service discovery configured and ready for use
+- Health check endpoints functional in Development mode

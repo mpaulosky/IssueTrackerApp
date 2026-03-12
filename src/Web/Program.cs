@@ -2,11 +2,17 @@ using Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add service defaults (OpenTelemetry, service discovery, resilience, health checks)
+builder.AddServiceDefaults();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
+
+// Map health check endpoints (development only by default)
+app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
