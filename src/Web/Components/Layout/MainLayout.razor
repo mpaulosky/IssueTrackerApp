@@ -1,13 +1,13 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-	<header class="header">
-		<div class="header-content">
-			<h1 class="app-title">IssueTracker</h1>
+<div class="min-h-screen flex flex-col bg-gray-50">
+	<header class="bg-white shadow-sm border-b border-gray-200">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+			<h1 class="text-xl font-semibold text-gray-900">IssueTracker</h1>
 			<LoginDisplay />
 		</div>
 	</header>
-	<main class="main-content">
+	<main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
 		@Body
 	</main>
 </div>

@@ -18,4 +18,15 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
+  <!-- TailwindCSS Build Integration -->
+  <Target Name="CheckNodeModules" BeforeTargets="BuildTailwindCSS">
+    <Message Importance="high" Text="Checking for node_modules..." />
+    <Exec Command="npm install" WorkingDirectory="$(ProjectDir)" Condition="!Exists('$(ProjectDir)node_modules')" />
+  </Target>
+
+  <Target Name="BuildTailwindCSS" BeforeTargets="Build">
+    <Message Importance="high" Text="Building TailwindCSS..." />
+    <Exec Command="npm run css:build" WorkingDirectory="$(ProjectDir)" />
+  </Target>
+
 </Project>

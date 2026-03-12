@@ -1,0 +1,22 @@
+{
+  "name": "issuetracker-web",
+  "version": "1.0.0",
+  "description": "IssueTrackerApp Blazor Server UI with TailwindCSS",
+  "private": true,
+  "scripts": {
+    "css:build": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css --minify",
+    "css:watch": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css --watch"
+  },
+  "keywords": [
+    "blazor",
+    "tailwindcss"
+  ],
+  "author": "mpaulosky",
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.1",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1"
+  }
+}
