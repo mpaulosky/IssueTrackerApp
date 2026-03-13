@@ -8,6 +8,8 @@ using Persistence.MongoDb;
 using Web.Auth;
 using Web.Components;
 using Web.Data;
+using Web.Endpoints;
+using Web.Features;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -164,6 +166,18 @@ app.MapRazorComponents<App>()
 
 // Map SignalR hub endpoint
 app.MapHub<Web.Hubs.IssueHub>("/hubs/issues");
+
+// Map API endpoints
+app.MapAttachmentEndpoints();
+
+// Map API endpoints
+app.MapCategoryEndpoints();
+
+// Map Comment API endpoints
+app.MapCommentEndpoints();
+
+// Map Status API endpoints
+app.MapStatusEndpoints();
 
 // Map Auth0 login/logout endpoints
 app.MapGet("/account/login", async (HttpContext context, string returnUrl = "/") =>

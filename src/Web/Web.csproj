@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Auth0.AspNetCore.Authentication" />
     <PackageReference Include="Aspire.MongoDB.Driver" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
     <PackageReference Include="SendGrid" />
     <PackageReference Include="SixLabors.ImageSharp" />
