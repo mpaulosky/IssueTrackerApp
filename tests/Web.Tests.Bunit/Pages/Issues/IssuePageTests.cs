@@ -22,7 +22,7 @@ var paginatedResult = new PaginatedResponse<IssueDto>(issues, 0, 1, 10);
 IssueService.GetIssuesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 .Returns(Result.Ok<PaginatedResponse<IssueDto>>(paginatedResult));
 
-var cut = Render<IssueIndex>();
+var cut = RenderComponent<IssueIndex>();
 
 cut.Find("h1").TextContent.Should().Contain("Issues");
 cut.Find("p").TextContent.Should().Contain("Manage and track all issues");
@@ -36,7 +36,7 @@ var paginatedResult = new PaginatedResponse<IssueDto>(issues, 0, 1, 10);
 IssueService.GetIssuesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 .Returns(Result.Ok<PaginatedResponse<IssueDto>>(paginatedResult));
 
-var cut = Render<IssueIndex>();
+var cut = RenderComponent<IssueIndex>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Markup.Should().Contain("No issues found");
@@ -50,7 +50,7 @@ var paginatedResult = new PaginatedResponse<IssueDto>(issues, 5, 1, 10);
 IssueService.GetIssuesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 .Returns(Result.Ok<PaginatedResponse<IssueDto>>(paginatedResult));
 
-var cut = Render<IssueIndex>();
+var cut = RenderComponent<IssueIndex>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Markup.Should().Contain("Test Issue");
@@ -62,7 +62,7 @@ public async Task Index_DisplaysErrorMessageOnLoadFailure()
 IssueService.GetIssuesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 .Returns(Result.Fail<PaginatedResponse<IssueDto>>("Failed to load issues"));
 
-var cut = Render<IssueIndex>();
+var cut = RenderComponent<IssueIndex>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Markup.Should().Contain("Error loading issues");
@@ -76,7 +76,7 @@ var paginatedResult = new PaginatedResponse<IssueDto>(issues, 0, 1, 10);
 IssueService.GetIssuesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 .Returns(Result.Ok<PaginatedResponse<IssueDto>>(paginatedResult));
 
-var cut = Render<IssueIndex>();
+var cut = RenderComponent<IssueIndex>();
 
 var createButton = cut.Find("a[href='/issues/create']");
 createButton.Should().NotBeNull();
@@ -94,7 +94,7 @@ var lookupService = Services.GetRequiredService<ILookupService>();
 lookupService.GetCategoriesAsync()
 .Returns(Result.Ok<IEnumerable<CategoryDto>>(categories));
 
-var cut = Render<Create>();
+var cut = RenderComponent<Create>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Find("h1").TextContent.Should().Contain("Create New Issue");
@@ -109,7 +109,7 @@ var lookupService = Services.GetRequiredService<ILookupService>();
 lookupService.GetCategoriesAsync()
 .Returns(Result.Ok<IEnumerable<CategoryDto>>(categories));
 
-var cut = Render<Create>();
+var cut = RenderComponent<Create>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Find("input#title").Should().NotBeNull();
@@ -130,7 +130,7 @@ var lookupService = Services.GetRequiredService<ILookupService>();
 lookupService.GetCategoriesAsync()
 .Returns(Result.Ok<IEnumerable<CategoryDto>>(categories));
 
-var cut = Render<Create>();
+var cut = RenderComponent<Create>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 var select = cut.Find("select#category");
@@ -147,7 +147,7 @@ var lookupService = Services.GetRequiredService<ILookupService>();
 lookupService.GetCategoriesAsync()
 .Returns(Result.Ok<IEnumerable<CategoryDto>>(categories));
 
-var cut = Render<Create>();
+var cut = RenderComponent<Create>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 var cancelButton = cut.Find("a[href='/issues']");
@@ -163,7 +163,7 @@ var lookupService = Services.GetRequiredService<ILookupService>();
 lookupService.GetCategoriesAsync()
 .Returns(Result.Ok<IEnumerable<CategoryDto>>(categories));
 
-var cut = Render<Create>();
+var cut = RenderComponent<Create>();
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 var submitButton = cut.Find("button[type='submit']");
@@ -188,7 +188,7 @@ lookupService.GetCategoriesAsync()
 IssueService.GetIssueByIdAsync(issueId)
 .Returns(Result.Ok<IssueDto>(issue));
 
-var cut = Render<Edit>(parameters => parameters.Add(p => p.Id, issueId));
+var cut = RenderComponent<Edit>(parameters => parameters.Add(p => p.Id, issueId));
 
 cut.Markup.Should().Contain("animate-spin");
 }
@@ -207,7 +207,7 @@ lookupService.GetCategoriesAsync()
 IssueService.GetIssueByIdAsync(issueId)
 .Returns(Result.Ok<IssueDto>(issue));
 
-var cut = Render<Edit>(parameters => parameters.Add(p => p.Id, issueId));
+var cut = RenderComponent<Edit>(parameters => parameters.Add(p => p.Id, issueId));
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Find("h1").TextContent.Should().Contain("Edit Issue");
@@ -228,7 +228,7 @@ lookupService.GetCategoriesAsync()
 IssueService.GetIssueByIdAsync(issueId)
 .Returns(Result.Ok<IssueDto>(issue));
 
-var cut = Render<Edit>(parameters => parameters.Add(p => p.Id, issueId));
+var cut = RenderComponent<Edit>(parameters => parameters.Add(p => p.Id, issueId));
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 var submitButton = cut.Find("button[type='submit']");
@@ -248,7 +248,7 @@ var issueId = issue.Id.ToString();
 IssueService.GetIssueByIdAsync(issueId)
 .Returns(Result.Ok<IssueDto>(issue));
 
-var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
+var cut = RenderComponent<Details>(parameters => parameters.Add(p => p.Id, issueId));
 
 cut.Markup.Should().Contain("animate-spin");
 }
@@ -271,7 +271,7 @@ var issueId = issue.Id.ToString();
 IssueService.GetIssueByIdAsync(issueId)
 .Returns(Result.Ok<IssueDto>(issue));
 
-var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
+var cut = RenderComponent<Details>(parameters => parameters.Add(p => p.Id, issueId));
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Find("h1").TextContent.Should().Contain("Critical Issue");
@@ -288,7 +288,7 @@ var issueId = issue.Id.ToString();
 IssueService.GetIssueByIdAsync(issueId)
 .Returns(Result.Ok<IssueDto>(issue));
 
-var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
+var cut = RenderComponent<Details>(parameters => parameters.Add(p => p.Id, issueId));
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 var editLink = cut.FindAll("a").FirstOrDefault(a => a.GetAttribute("href")?.Contains("/edit") == true);
@@ -306,7 +306,7 @@ var issueId = issue.Id.ToString();
 IssueService.GetIssueByIdAsync(issueId)
 .Returns(Result.Ok<IssueDto>(issue));
 
-var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
+var cut = RenderComponent<Details>(parameters => parameters.Add(p => p.Id, issueId));
 await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
 cut.Markup.Should().Contain("Feature Request");

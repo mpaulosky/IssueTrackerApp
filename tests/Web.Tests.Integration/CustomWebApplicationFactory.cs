@@ -46,7 +46,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 	/// </summary>
 	public async Task InitializeAsync()
 	{
-		_mongoContainer = new MongoDbBuilder("mongo:7.0")
+		_mongoContainer = new MongoDbBuilder()
+			.WithImage("mongo:7.0")
 			.WithName($"mongodb-integration-test-{Guid.NewGuid():N}")
 			.Build();
 

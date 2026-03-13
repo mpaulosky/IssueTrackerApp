@@ -21,7 +21,7 @@ namespace Web.Tests.Bunit;
 /// <summary>
 ///   Base class for bUnit component tests providing common test infrastructure.
 /// </summary>
-public abstract class BunitTestBase : BunitContext
+public abstract class BunitTestBase : TestContext
 {
 	protected IMediator Mediator { get; }
 	protected IIssueService IssueService { get; }
@@ -246,9 +246,9 @@ internal class TestAuthStateProvider : AuthenticationStateProvider
 /// </summary>
 internal class FakeNavigationManager : NavigationManager
 {
-	private readonly BunitContext _context;
+	private readonly TestContext _context;
 
-	public FakeNavigationManager(BunitContext context)
+	public FakeNavigationManager(TestContext context)
 	{
 		_context = context;
 		Initialize("http://localhost/", "http://localhost/");
