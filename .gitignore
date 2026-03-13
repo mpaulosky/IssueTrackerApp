@@ -300,6 +300,17 @@ paket-files/
 # FAKE - F# Make
 .fake/
 
+# Secrets and credentials - NEVER commit
+*.user.json
+appsettings.*.user.json
+secrets.json
+.env
+.env.*
+!.env.example
+azure.json
+servicePrincipal.json
+**/secrets/
+
 # CodeRush personal settings
 .cr/personal
 

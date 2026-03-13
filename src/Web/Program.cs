@@ -1,4 +1,5 @@
 using Auth0.AspNetCore.Authentication;
+using Azure.Identity;
 using Domain;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
@@ -13,6 +14,18 @@ using Web.Features;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Azure Key Vault configuration for non-Development environments
+if (!builder.Environment.IsDevelopment())
+{
+	var keyVaultUri = builder.Configuration["KeyVault:Uri"];
+	if (!string.IsNullOrEmpty(keyVaultUri))
+	{
+		builder.Configuration.AddAzureKeyVault(
+			new Uri(keyVaultUri),
+			new DefaultAzureCredential());
+	}
+}
 
 // Add service defaults (OpenTelemetry, service discovery, resilience, health checks)
 builder.AddServiceDefaults();
