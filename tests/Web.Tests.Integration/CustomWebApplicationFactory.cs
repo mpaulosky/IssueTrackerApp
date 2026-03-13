@@ -1,0 +1,155 @@
+// =======================================================
+// Copyright (c) 2025. All rights reserved.
+// File Name :     CustomWebApplicationFactory.cs
+// Company :       mpaulosky
+// Author :        Matthew Paulosky
+// Solution Name : IssueTrackerApp
+// Project Name :  Web.Tests.Integration
+// =======================================================
+
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Persistence.MongoDb;
+using Persistence.MongoDb.Configurations;
+
+namespace Web.Tests.Integration;
+
+/// <summary>
+/// Custom WebApplicationFactory that configures the test environment with:
+/// - MongoDB Testcontainer for real database testing
+/// - Mock Auth0 authentication using TestAuthHandler
+/// - Proper lifecycle management via IAsyncLifetime
+/// </summary>
+public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+{
+	private MongoDbContainer? _mongoContainer;
+
+	/// <summary>
+	/// Gets the MongoDB connection string for the test container.
+	/// </summary>
+	public string MongoConnectionString => _mongoContainer?.GetConnectionString()
+		?? throw new InvalidOperationException("MongoDB container is not initialized.");
+
+	/// <summary>
+	/// Gets the test database name.
+	/// </summary>
+	public string DatabaseName => "issuetracker-test-db";
+
+	/// <summary>
+	/// Initializes the MongoDB test container.
+	/// </summary>
+	public async Task InitializeAsync()
+	{
+		_mongoContainer = new MongoDbBuilder()
+			.WithImage("mongo:7.0")
+			.WithName($"mongodb-integration-test-{Guid.NewGuid():N}")
+			.Build();
+
+		await _mongoContainer.StartAsync();
+	}
+
+	/// <summary>
+	/// Disposes of the MongoDB test container.
+	/// </summary>
+	public new async Task DisposeAsync()
+	{
+		if (_mongoContainer is not null)
+		{
+			await _mongoContainer.StopAsync();
+			await _mongoContainer.DisposeAsync();
+		}
+
+		await base.DisposeAsync();
+	}
+
+	/// <summary>
+	/// Configures the web host for integration testing.
+	/// </summary>
+	protected override void ConfigureWebHost(IWebHostBuilder builder)
+	{
+		builder.UseEnvironment("Testing");
+
+		builder.ConfigureAppConfiguration((_, configBuilder) =>
+		{
+			// Override MongoDB settings with test container connection
+			var testConfig = new Dictionary<string, string?>
+			{
+				["MongoDB:ConnectionString"] = MongoConnectionString,
+				["MongoDB:DatabaseName"] = DatabaseName,
+				// Auth0 settings (not used since we mock auth, but required for startup)
+				["Auth0:Domain"] = "test.auth0.com",
+				["Auth0:ClientId"] = "test-client-id",
+				["Auth0:ClientSecret"] = "test-client-secret"
+			};
+
+			configBuilder.AddInMemoryCollection(testConfig);
+		});
+
+		builder.ConfigureTestServices(services =>
+		{
+			// Remove the real Auth0 authentication
+			services.RemoveAll<IConfigureOptions<AuthenticationOptions>>();
+
+			// Add test authentication handler
+			services.AddTestAuthentication();
+
+			// Configure authorization to use test scheme
+			services.AddAuthorization(options =>
+			{
+				options.AddPolicy("AdminPolicy", policy =>
+					policy.RequireRole("Admin"));
+				options.AddPolicy("UserPolicy", policy =>
+					policy.RequireRole("User"));
+			});
+
+			// Re-register MongoDB settings with test container values
+			services.RemoveAll<IOptions<MongoDbSettings>>();
+			services.RemoveAll<IOptionsSnapshot<MongoDbSettings>>();
+			services.RemoveAll<IOptionsMonitor<MongoDbSettings>>();
+
+			// Capture connection string and database name for closure
+			var connectionString = MongoConnectionString;
+			var databaseName = DatabaseName;
+
+			services.AddSingleton<IOptions<MongoDbSettings>>(sp =>
+				Options.Create(new MongoDbSettings
+				{
+					ConnectionString = connectionString,
+					DatabaseName = databaseName
+				}));
+		});
+	}
+
+	/// <summary>
+	/// Creates a new IssueTrackerDbContext for direct database access in tests.
+	/// </summary>
+	public IssueTrackerDbContext CreateDbContext()
+	{
+		var scope = Services.CreateScope();
+		return scope.ServiceProvider.GetRequiredService<IssueTrackerDbContext>();
+	}
+
+	/// <summary>
+	/// Clears all data from the test database.
+	/// </summary>
+	public async Task ClearDatabaseAsync()
+	{
+		await using var context = CreateDbContext();
+
+		// Remove all entities from collections
+		context.Issues.RemoveRange(context.Issues);
+		context.Categories.RemoveRange(context.Categories);
+		context.Statuses.RemoveRange(context.Statuses);
+		context.Comments.RemoveRange(context.Comments);
+		context.Attachments.RemoveRange(context.Attachments);
+		context.EmailQueue.RemoveRange(context.EmailQueue);
+
+		await context.SaveChangesAsync();
+	}
+}

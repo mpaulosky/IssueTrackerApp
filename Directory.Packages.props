@@ -8,6 +8,7 @@
     <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.1.0" />
     <!-- MongoDB -->
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageVersion Include="MongoDB.Bson" Version="3.6.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.6.0" />
     <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="10.0.0" />
@@ -17,7 +18,9 @@
     <!-- MediatR -->
     <PackageVersion Include="MediatR" Version="12.4.1" />
     <!-- FluentValidation -->
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.TestHelper" Version="11.11.0" />
     <!-- Authentication -->
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.5.1" />
     <!-- Email -->
@@ -36,6 +39,8 @@
     <PackageVersion Include="FluentAssertions" Version="7.0.0" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="bUnit" Version="1.31.3" />
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="Microsoft.Playwright" Version="1.49.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.2.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
