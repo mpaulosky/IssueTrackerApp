@@ -1,10 +1,10 @@
 name: Test Suite
 
 # NOTE: xUnit v3 Compatibility Workaround
-# Architecture.Tests, Web.Tests.Bunit, Api.Tests.Integration, and AppHost.Tests.E2E use direct
+# Architecture.Tests, Web.Tests.Bunit, Web.Tests.Integration, and AppHost.Tests.E2E use direct
 # executable execution instead of 'dotnet test' due to xUnit v3 TestProcessLauncherAdapter
-# compatibility issues with xunit.runner.visualstudio 3.1.5. Unit test projects (Api.Tests.Unit,
-# Shared.Tests.Unit, Web.Tests.Unit) work fine with 'dotnet test'.
+# compatibility issues with xunit.runner.visualstudio 3.1.5. Unit test projects (Domain.Tests,
+# Web.Tests) work fine with 'dotnet test'.
 # See: docs/build-log.txt for details and future resolution options.
 
 permissions:
@@ -166,144 +166,6 @@ jobs:
           name: web-test-results
           path: test-results
 
-  test-api-unit:
-    name: "Api.Tests.Unit"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Run Api Unit Tests
-        run: |
-          if [ ! -d "tests/Api.Tests.Unit" ]; then
-            echo "::notice::Api unit test project not found at tests/Api.Tests.Unit - skipping"
-            exit 0
-          fi
-          dotnet test tests/Api.Tests.Unit \
-            --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --logger "trx;LogFileName=api-unit.trx" \
-            --results-directory test-results \
-            --verbosity minimal
-
-      - name: Upload Api Unit Test Results
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: api-unit-test-results
-          path: test-results
-
-  test-shared-unit:
-    name: "Shared.Tests.Unit"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Run Shared Unit Tests
-        run: |
-          if [ ! -d "tests/Shared.Tests.Unit" ]; then
-            echo "::notice::Shared unit test project not found at tests/Shared.Tests.Unit - skipping"
-            exit 0
-          fi
-          dotnet test tests/Shared.Tests.Unit \
-            --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --logger "trx;LogFileName=shared-unit.trx" \
-            --results-directory test-results \
-            --verbosity minimal
-
-      - name: Upload Shared Unit Test Results
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: shared-unit-test-results
-          path: test-results
-
-  test-web-unit:
-    name: "Web.Tests.Unit"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Run Web Unit Tests
-        run: |
-          if [ ! -d "tests/Web.Tests.Unit" ]; then
-            echo "::notice::Web unit test project not found at tests/Web.Tests.Unit - skipping"
-            exit 0
-          fi
-          dotnet test tests/Web.Tests.Unit \
-            --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --logger "trx;LogFileName=web-unit.trx" \
-            --results-directory test-results \
-            --verbosity minimal
-
-      - name: Upload Web Unit Test Results
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: web-unit-test-results
-          path: test-results
-
   test-architecture:
     name: "Architecture.Tests"
     runs-on: ubuntu-latest
@@ -415,7 +277,7 @@ jobs:
           path: test-results
 
   test-integration:
-    name: "Api.Tests.Integration"
+    name: "Web.Tests.Integration"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
@@ -454,20 +316,20 @@ jobs:
         run: dotnet restore
 
       - name: Build Integration Tests
-        run: dotnet build tests/Api.Tests.Integration --configuration Release --no-restore
+        run: dotnet build tests/Web.Tests.Integration --configuration Release --no-restore
 
       - name: Run Integration Tests
         id: integration-tests
         run: |
           mkdir -p test-results
-          if [ ! -d "tests/Api.Tests.Integration" ]; then
-            echo "::notice::Integration test project not found at tests/Api.Tests.Integration - skipping"
+          if [ ! -d "tests/Web.Tests.Integration" ]; then
+            echo "::notice::Integration test project not found at tests/Web.Tests.Integration - skipping"
             exit 0
           fi
 
           # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
-          cd tests/Api.Tests.Integration/bin/Release/net10.0
-          ./Api.Tests.Integration -xml "$GITHUB_WORKSPACE/test-results/integration.xml" -nunit "$GITHUB_WORKSPACE/test-results/integration-nunit.xml"
+          cd tests/Web.Tests.Integration/bin/Release/net10.0
+          ./Web.Tests.Integration -xml "$GITHUB_WORKSPACE/test-results/integration.xml" -nunit "$GITHUB_WORKSPACE/test-results/integration-nunit.xml"
           exit_code=$?
 
           if [ $exit_code -ne 0 ]; then
@@ -556,9 +418,7 @@ jobs:
     needs:
       - test-domain
       - test-web
-      - test-api-unit
-      - test-shared-unit
-      - test-web-unit
+      - test-architecture
       - test-bunit
       - test-integration
       - test-apphost-e2e
@@ -624,9 +484,6 @@ jobs:
       - build
       - test-domain
       - test-web
-      - test-api-unit
-      - test-shared-unit
-      - test-web-unit
       - test-architecture
       - test-bunit
       - test-integration
@@ -661,12 +518,9 @@ jobs:
           echo "- **Build:** ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Domain.Tests:** ${{ needs.test-domain.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Web.Tests:** ${{ needs.test-web.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Api.Tests.Unit:** ${{ needs.test-api-unit.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Shared.Tests.Unit:** ${{ needs.test-shared-unit.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Web.Tests.Unit:** ${{ needs.test-web-unit.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Architecture.Tests:** ${{ needs.test-architecture.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Web.Tests.Bunit:** ${{ needs.test-bunit.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Api.Tests.Integration:** ${{ needs.test-integration.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Web.Tests.Integration:** ${{ needs.test-integration.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **AppHost.Tests.E2E:** ${{ needs.test-apphost-e2e.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
@@ -678,17 +532,13 @@ jobs:
           build_status="${{ needs.build.result }}"
           domain_status="${{ needs.test-domain.result }}"
           web_status="${{ needs.test-web.result }}"
-          api_unit_status="${{ needs.test-api-unit.result }}"
-          shared_unit_status="${{ needs.test-shared-unit.result }}"
-          web_unit_status="${{ needs.test-web-unit.result }}"
           arch_status="${{ needs.test-architecture.result }}"
           bunit_status="${{ needs.test-bunit.result }}"
           integration_status="${{ needs.test-integration.result }}"
           apphost_e2e_status="${{ needs.test-apphost-e2e.result }}"
 
           if [[ "$build_status" == "failure" || "$domain_status" == "failure" || "$web_status" == "failure" || \
-                "$api_unit_status" == "failure" || "$shared_unit_status" == "failure" || \
-                "$web_unit_status" == "failure" || "$arch_status" == "failure" || "$bunit_status" == "failure" || \
+                "$arch_status" == "failure" || "$bunit_status" == "failure" || \
                 "$integration_status" == "failure" || "$apphost_e2e_status" == "failure" ]]; then
             echo "❌ **Overall Status:** FAILED" >> $GITHUB_STEP_SUMMARY
           else
