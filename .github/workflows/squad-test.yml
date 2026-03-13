@@ -1,11 +1,8 @@
 name: Test Suite
 
-# NOTE: xUnit v3 Compatibility Workaround
-# Architecture.Tests, Web.Tests.Bunit, and Web.Tests.Integration use direct
-# executable execution instead of 'dotnet test' due to xUnit v3 TestProcessLauncherAdapter
-# compatibility issues with xunit.runner.visualstudio 3.1.5. Unit test projects (Domain.Tests,
-# Web.Tests) work fine with 'dotnet test'.
-# See: docs/build-log.txt for details and future resolution options.
+# NOTE: All test projects now use 'dotnet test' consistently.
+# This was updated to fix issues with direct executable execution that was
+# causing "No such file or directory" errors in CI.
 
 permissions:
   issues: write
@@ -204,9 +201,14 @@ jobs:
             exit 0
           fi
 
-          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
-          cd tests/Architecture.Tests/bin/Release/net10.0
-          ./Architecture.Tests -xml "$GITHUB_WORKSPACE/test-results/architecture.xml" -nunit "$GITHUB_WORKSPACE/test-results/architecture-nunit.xml"
+          # Run tests using dotnet test
+          dotnet test tests/Architecture.Tests \
+            --configuration Release \
+            --no-build \
+            --logger "trx;LogFileName=architecture.trx" \
+            --results-directory "$GITHUB_WORKSPACE/test-results" \
+            --collect:"XPlat Code Coverage" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
           exit_code=$?
 
           if [ $exit_code -ne 0 ]; then
@@ -259,9 +261,14 @@ jobs:
             exit 0
           fi
 
-          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
-          cd tests/Web.Tests.Bunit/bin/Release/net10.0
-          ./Web.Tests.Bunit -xml "$GITHUB_WORKSPACE/test-results/bunit.xml" -nunit "$GITHUB_WORKSPACE/test-results/bunit-nunit.xml"
+          # Run tests using dotnet test
+          dotnet test tests/Web.Tests.Bunit \
+            --configuration Release \
+            --no-build \
+            --logger "trx;LogFileName=bunit.trx" \
+            --results-directory "$GITHUB_WORKSPACE/test-results" \
+            --collect:"XPlat Code Coverage" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
           exit_code=$?
 
           if [ $exit_code -ne 0 ]; then
@@ -327,9 +334,14 @@ jobs:
             exit 0
           fi
 
-          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
-          cd tests/Web.Tests.Integration/bin/Release/net10.0
-          ./Web.Tests.Integration -xml "$GITHUB_WORKSPACE/test-results/integration.xml" -nunit "$GITHUB_WORKSPACE/test-results/integration-nunit.xml"
+          # Run tests using dotnet test
+          dotnet test tests/Web.Tests.Integration \
+            --configuration Release \
+            --no-build \
+            --logger "trx;LogFileName=integration.trx" \
+            --results-directory "$GITHUB_WORKSPACE/test-results" \
+            --collect:"XPlat Code Coverage" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
           exit_code=$?
 
           if [ $exit_code -ne 0 ]; then
