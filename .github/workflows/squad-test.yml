@@ -36,6 +36,10 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
+  Auth0__Domain: ${{ secrets.AUTH0_DOMAIN }}
+  Auth0__ClientId: ${{ secrets.AUTH0_CLIENT_ID }}
+  Auth0__ClientSecret: ${{ secrets.AUTH0_CLIENT_SECRET }}
+  MongoDB__ConnectionString: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
 jobs:
   build:
@@ -483,6 +487,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
+
+    env:
+      Auth0__Domain: ${{ secrets.AUTH0_DOMAIN }}
+      Auth0__ClientId: ${{ secrets.AUTH0_CLIENT_ID }}
+      Auth0__ClientSecret: ${{ secrets.AUTH0_CLIENT_SECRET }}
+      MongoDB__ConnectionString: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
     steps:
       - name: Checkout code
