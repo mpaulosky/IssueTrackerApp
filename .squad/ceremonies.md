@@ -83,13 +83,14 @@
 1. Make changes in the branch
 2. Test locally
 3. Iterate until complete
-4. Commit and push — all 5 pre-push gates must pass:
+4. Commit and push — all pre-push gates must pass:
    - Copyright headers
    - Code formatting (`dotnet format`)
-   - Api.Tests.Unit
-   - Shared.Tests.Unit
-   - Web.Tests.Unit + Web.Tests.Bunit
-   - Architecture.Tests + AppHost.Tests.Unit
+   - Domain.Tests
+   - Web.Tests
+   - Web.Tests.Bunit
+   - Architecture.Tests
+   - Web.Tests.Integration
 5. If pre-push fails, fix issues and retry
 
 ##### Phase 4: Review & Merge

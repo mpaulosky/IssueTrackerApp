@@ -24,7 +24,7 @@ public class PaginationTests : BunitTestBase
 	public void Pagination_WithSinglePage_DoesNotRender()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<Pagination>(parameters => parameters
+		var cut = Render<Pagination>(parameters => parameters
 			.Add(p => p.CurrentPage, 1)
 			.Add(p => p.TotalPages, 1)
 			.Add(p => p.TotalItems, 10)
@@ -38,7 +38,7 @@ public class PaginationTests : BunitTestBase
 	public void Pagination_WithMultiplePages_RendersNavigation()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<Pagination>(parameters => parameters
+		var cut = Render<Pagination>(parameters => parameters
 			.Add(p => p.CurrentPage, 1)
 			.Add(p => p.TotalPages, 5)
 			.Add(p => p.TotalItems, 50)
@@ -53,7 +53,7 @@ public class PaginationTests : BunitTestBase
 	public void Pagination_OnFirstPage_PreviousButtonNotRendered()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<Pagination>(parameters => parameters
+		var cut = Render<Pagination>(parameters => parameters
 			.Add(p => p.CurrentPage, 1)
 			.Add(p => p.TotalPages, 5)
 			.Add(p => p.TotalItems, 50)
@@ -67,7 +67,7 @@ public class PaginationTests : BunitTestBase
 	public void Pagination_OnLastPage_NextButtonNotRendered()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<Pagination>(parameters => parameters
+		var cut = Render<Pagination>(parameters => parameters
 			.Add(p => p.CurrentPage, 5)
 			.Add(p => p.TotalPages, 5)
 			.Add(p => p.TotalItems, 50)
@@ -81,7 +81,7 @@ public class PaginationTests : BunitTestBase
 	public void Pagination_OnMiddlePage_BothButtonsRendered()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<Pagination>(parameters => parameters
+		var cut = Render<Pagination>(parameters => parameters
 			.Add(p => p.CurrentPage, 3)
 			.Add(p => p.TotalPages, 5)
 			.Add(p => p.TotalItems, 50)
@@ -99,7 +99,7 @@ public class PaginationTests : BunitTestBase
 		var pageChanged = false;
 		var newPage = 0;
 
-		var cut = RenderComponent<Pagination>(parameters => parameters
+		var cut = Render<Pagination>(parameters => parameters
 			.Add(p => p.CurrentPage, 1)
 			.Add(p => p.TotalPages, 5)
 			.Add(p => p.TotalItems, 50)
@@ -123,7 +123,7 @@ public class PaginationTests : BunitTestBase
 	public void Pagination_CurrentPageHighlighted_WithPrimaryColor()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<Pagination>(parameters => parameters
+		var cut = Render<Pagination>(parameters => parameters
 			.Add(p => p.CurrentPage, 3)
 			.Add(p => p.TotalPages, 5)
 			.Add(p => p.TotalItems, 50)
@@ -144,7 +144,7 @@ public class FilterPanelTests : BunitTestBase
 	public void FilterPanel_RendersSearchInput()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FilterPanel>(parameters => parameters
+		var cut = Render<FilterPanel>(parameters => parameters
 			.Add(p => p.SearchText, null)
 			.Add(p => p.SearchTextChanged, EventCallback.Factory.Create<string?>(this, _ => { }))
 			.Add(p => p.OnFiltersApplied, EventCallback.Factory.Create(this, () => { }))
@@ -158,7 +158,7 @@ public class FilterPanelTests : BunitTestBase
 	public void FilterPanel_WithoutActiveFilters_ClearButtonNotVisible()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FilterPanel>(parameters => parameters
+		var cut = Render<FilterPanel>(parameters => parameters
 			.Add(p => p.SearchText, null)
 			.Add(p => p.StatusFilter, null)
 			.Add(p => p.CategoryFilter, null)
@@ -175,7 +175,7 @@ public class FilterPanelTests : BunitTestBase
 	public void FilterPanel_WithActiveFilters_DisplaysActiveFilterCount()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FilterPanel>(parameters => parameters
+		var cut = Render<FilterPanel>(parameters => parameters
 			.Add(p => p.SearchText, "bug")
 			.Add(p => p.StatusFilter, "Open")
 			.Add(p => p.CategoryFilter, "Feature")
@@ -192,7 +192,7 @@ public class FilterPanelTests : BunitTestBase
 	public async Task FilterPanel_ToggleFilters_ShowsHidesFilterOptions()
 	{
 		// Arrange
-		var cut = RenderComponent<FilterPanel>(parameters => parameters
+		var cut = Render<FilterPanel>(parameters => parameters
 			.Add(p => p.SearchText, null)
 			.Add(p => p.OnFiltersApplied, EventCallback.Factory.Create(this, () => { }))
 			.Add(p => p.OnFiltersCleared, EventCallback.Factory.Create(this, () => { })));
@@ -217,7 +217,7 @@ public class FilterPanelTests : BunitTestBase
 		};
 
 		// Act
-		var cut = RenderComponent<FilterPanel>(parameters => parameters
+		var cut = Render<FilterPanel>(parameters => parameters
 			.Add(p => p.Statuses, statuses)
 			.Add(p => p.OnFiltersApplied, EventCallback.Factory.Create(this, () => { }))
 			.Add(p => p.OnFiltersCleared, EventCallback.Factory.Create(this, () => { })));
@@ -240,7 +240,7 @@ public class FilterPanelTests : BunitTestBase
 		};
 
 		// Act
-		var cut = RenderComponent<FilterPanel>(parameters => parameters
+		var cut = Render<FilterPanel>(parameters => parameters
 			.Add(p => p.Categories, categories)
 			.Add(p => p.OnFiltersApplied, EventCallback.Factory.Create(this, () => { }))
 			.Add(p => p.OnFiltersCleared, EventCallback.Factory.Create(this, () => { })));
@@ -255,7 +255,7 @@ public class FilterPanelTests : BunitTestBase
 	public void FilterPanel_DisplaysTotalResults()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FilterPanel>(parameters => parameters
+		var cut = Render<FilterPanel>(parameters => parameters
 			.Add(p => p.TotalResults, 42)
 			.Add(p => p.OnFiltersApplied, EventCallback.Factory.Create(this, () => { }))
 			.Add(p => p.OnFiltersCleared, EventCallback.Factory.Create(this, () => { })));
@@ -277,7 +277,7 @@ public class StatusBadgeTests : BunitTestBase
 		var status = CreateTestStatus(name: "Open");
 
 		// Act
-		var cut = RenderComponent<StatusBadge>(parameters => parameters
+		var cut = Render<StatusBadge>(parameters => parameters
 			.Add(p => p.Status, status));
 
 		// Assert
@@ -288,7 +288,7 @@ public class StatusBadgeTests : BunitTestBase
 	public void StatusBadge_WithNullStatus_RendersUnknown()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<StatusBadge>(parameters => parameters
+		var cut = Render<StatusBadge>(parameters => parameters
 			.Add(p => p.Status, null));
 
 		// Assert
@@ -302,7 +302,7 @@ public class StatusBadgeTests : BunitTestBase
 		var status = CreateTestStatus(name: "Open");
 
 		// Act
-		var cut = RenderComponent<StatusBadge>(parameters => parameters
+		var cut = Render<StatusBadge>(parameters => parameters
 			.Add(p => p.Status, status));
 
 		// Assert
@@ -317,7 +317,7 @@ public class StatusBadgeTests : BunitTestBase
 		var status = CreateTestStatus(name: "In Progress");
 
 		// Act
-		var cut = RenderComponent<StatusBadge>(parameters => parameters
+		var cut = Render<StatusBadge>(parameters => parameters
 			.Add(p => p.Status, status));
 
 		// Assert
@@ -332,7 +332,7 @@ public class StatusBadgeTests : BunitTestBase
 		var status = CreateTestStatus(name: "Resolved");
 
 		// Act
-		var cut = RenderComponent<StatusBadge>(parameters => parameters
+		var cut = Render<StatusBadge>(parameters => parameters
 			.Add(p => p.Status, status));
 
 		// Assert
@@ -347,7 +347,7 @@ public class StatusBadgeTests : BunitTestBase
 		var status = CreateTestStatus(name: "Closed");
 
 		// Act
-		var cut = RenderComponent<StatusBadge>(parameters => parameters
+		var cut = Render<StatusBadge>(parameters => parameters
 			.Add(p => p.Status, status));
 
 		// Assert
@@ -362,7 +362,7 @@ public class StatusBadgeTests : BunitTestBase
 		var status = CreateTestStatus(name: "Open");
 
 		// Act
-		var cut = RenderComponent<StatusBadge>(parameters => parameters
+		var cut = Render<StatusBadge>(parameters => parameters
 			.Add(p => p.Status, status)
 			.Add(p => p.AdditionalClasses, "custom-class"));
 
@@ -383,7 +383,7 @@ public class CategoryBadgeTests : BunitTestBase
 		var category = CreateTestCategory(name: "Bug");
 
 		// Act
-		var cut = RenderComponent<CategoryBadge>(parameters => parameters
+		var cut = Render<CategoryBadge>(parameters => parameters
 			.Add(p => p.Category, category));
 
 		// Assert
@@ -394,7 +394,7 @@ public class CategoryBadgeTests : BunitTestBase
 	public void CategoryBadge_WithNullCategory_RendersUnknown()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<CategoryBadge>(parameters => parameters
+		var cut = Render<CategoryBadge>(parameters => parameters
 			.Add(p => p.Category, null));
 
 		// Assert
@@ -408,7 +408,7 @@ public class CategoryBadgeTests : BunitTestBase
 		var category = CreateTestCategory(name: "Bug");
 
 		// Act
-		var cut = RenderComponent<CategoryBadge>(parameters => parameters
+		var cut = Render<CategoryBadge>(parameters => parameters
 			.Add(p => p.Category, category));
 
 		// Assert
@@ -423,7 +423,7 @@ public class CategoryBadgeTests : BunitTestBase
 		var category = CreateTestCategory(name: "Feature");
 
 		// Act
-		var cut = RenderComponent<CategoryBadge>(parameters => parameters
+		var cut = Render<CategoryBadge>(parameters => parameters
 			.Add(p => p.Category, category));
 
 		// Assert
@@ -438,7 +438,7 @@ public class CategoryBadgeTests : BunitTestBase
 		var category = CreateTestCategory(name: "Enhancement");
 
 		// Act
-		var cut = RenderComponent<CategoryBadge>(parameters => parameters
+		var cut = Render<CategoryBadge>(parameters => parameters
 			.Add(p => p.Category, category));
 
 		// Assert
@@ -453,7 +453,7 @@ public class CategoryBadgeTests : BunitTestBase
 		var category = CreateTestCategory(name: "Question");
 
 		// Act
-		var cut = RenderComponent<CategoryBadge>(parameters => parameters
+		var cut = Render<CategoryBadge>(parameters => parameters
 			.Add(p => p.Category, category));
 
 		// Assert
@@ -468,7 +468,7 @@ public class CategoryBadgeTests : BunitTestBase
 		var category = CreateTestCategory(name: "Bug");
 
 		// Act
-		var cut = RenderComponent<CategoryBadge>(parameters => parameters
+		var cut = Render<CategoryBadge>(parameters => parameters
 			.Add(p => p.Category, category)
 			.Add(p => p.AdditionalClasses, "custom-class"));
 
@@ -486,7 +486,7 @@ public class SearchInputTests : BunitTestBase
 	public void SearchInput_RendersWithCorrectId()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SearchInput>(parameters => parameters
+		var cut = Render<SearchInput>(parameters => parameters
 			.Add(p => p.Id, "test-search")
 			.Add(p => p.ValueChanged, EventCallback.Factory.Create<string?>(this, _ => { })));
 
@@ -498,7 +498,7 @@ public class SearchInputTests : BunitTestBase
 	public void SearchInput_RendersWithCorrectPlaceholder()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SearchInput>(parameters => parameters
+		var cut = Render<SearchInput>(parameters => parameters
 			.Add(p => p.Placeholder, "Search issues...")
 			.Add(p => p.ValueChanged, EventCallback.Factory.Create<string?>(this, _ => { })));
 
@@ -510,7 +510,7 @@ public class SearchInputTests : BunitTestBase
 	public void SearchInput_WithValue_DisplaysValue()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SearchInput>(parameters => parameters
+		var cut = Render<SearchInput>(parameters => parameters
 			.Add(p => p.Value, "test query")
 			.Add(p => p.ValueChanged, EventCallback.Factory.Create<string?>(this, _ => { })));
 
@@ -522,7 +522,7 @@ public class SearchInputTests : BunitTestBase
 	public void SearchInput_WithValue_ShowsClearButton()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SearchInput>(parameters => parameters
+		var cut = Render<SearchInput>(parameters => parameters
 			.Add(p => p.Value, "test query")
 			.Add(p => p.ValueChanged, EventCallback.Factory.Create<string?>(this, _ => { })));
 
@@ -535,7 +535,7 @@ public class SearchInputTests : BunitTestBase
 	public void SearchInput_WithoutValue_HidesClearButton()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SearchInput>(parameters => parameters
+		var cut = Render<SearchInput>(parameters => parameters
 			.Add(p => p.Value, null)
 			.Add(p => p.ValueChanged, EventCallback.Factory.Create<string?>(this, _ => { })));
 
@@ -548,7 +548,7 @@ public class SearchInputTests : BunitTestBase
 	{
 		// Arrange
 		var clearedValue = "";
-		var cut = RenderComponent<SearchInput>(parameters => parameters
+		var cut = Render<SearchInput>(parameters => parameters
 			.Add(p => p.Value, "test query")
 			.Add(p => p.ValueChanged, EventCallback.Factory.Create<string?>(this, value =>
 			{
@@ -568,7 +568,7 @@ public class SearchInputTests : BunitTestBase
 	public void SearchInput_RendersWithAriaLabel()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SearchInput>(parameters => parameters
+		var cut = Render<SearchInput>(parameters => parameters
 			.Add(p => p.AriaLabel, "Search issues")
 			.Add(p => p.ValueChanged, EventCallback.Factory.Create<string?>(this, _ => { })));
 
@@ -586,7 +586,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_RendersTitle()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42"));
 
@@ -598,7 +598,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_RendersValue()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42"));
 
@@ -610,7 +610,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_WithSubtitle_RendersSubtitle()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42")
 			.Add(p => p.Subtitle, "This month"));
@@ -623,7 +623,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_WithoutSubtitle_DoesNotRenderSubtitle()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42")
 			.Add(p => p.Subtitle, null));
@@ -639,7 +639,7 @@ public class SummaryCardTests : BunitTestBase
 		var iconSvg = "<svg class=\"w-5 h-5\"></svg>";
 
 		// Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42")
 			.Add(p => p.Icon, iconSvg));
@@ -652,7 +652,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_PositiveTrend_ShowsUpArrow()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42")
 			.Add(p => p.TrendPercentage, 15.5));
@@ -666,7 +666,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_NegativeTrend_ShowsDownArrow()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42")
 			.Add(p => p.TrendPercentage, -10.2));
@@ -680,7 +680,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_ZeroTrend_ShowsNoChange()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42")
 			.Add(p => p.TrendPercentage, 0));
@@ -693,7 +693,7 @@ public class SummaryCardTests : BunitTestBase
 	public void SummaryCard_WithCustomIconBackground_AppliesCustomClass()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SummaryCard>(parameters => parameters
+		var cut = Render<SummaryCard>(parameters => parameters
 			.Add(p => p.Title, "Total Issues")
 			.Add(p => p.Value, "42")
 			.Add(p => p.Icon, "<svg></svg>")
@@ -714,7 +714,7 @@ public class ToastContainerTests : BunitTestBase
 	{
 		// Arrange & Act
 		var toastService = Services.GetRequiredService<ToastService>();
-		var cut = RenderComponent<ToastContainer>();
+		var cut = Render<ToastContainer>();
 
 		// Assert
 		cut.Should().NotBeNull();
@@ -725,7 +725,7 @@ public class ToastContainerTests : BunitTestBase
 	public void ToastContainer_WithNoToasts_DoesNotDisplayAnyMessages()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<ToastContainer>();
+		var cut = Render<ToastContainer>();
 
 		// Assert
 		cut.Markup.Should().NotContain("role=\"alert\"");
@@ -736,7 +736,7 @@ public class ToastContainerTests : BunitTestBase
 	{
 		// Arrange
 		var toastService = Services.GetRequiredService<ToastService>();
-		var cut = RenderComponent<ToastContainer>();
+		var cut = Render<ToastContainer>();
 
 		// Act
 		toastService.ShowInfo("Test Info Message");
@@ -751,7 +751,7 @@ public class ToastContainerTests : BunitTestBase
 	{
 		// Arrange
 		var toastService = Services.GetRequiredService<ToastService>();
-		var cut = RenderComponent<ToastContainer>();
+		var cut = Render<ToastContainer>();
 
 		// Act
 		toastService.ShowSuccess("Test Success Message");
@@ -766,7 +766,7 @@ public class ToastContainerTests : BunitTestBase
 	{
 		// Arrange
 		var toastService = Services.GetRequiredService<ToastService>();
-		var cut = RenderComponent<ToastContainer>();
+		var cut = Render<ToastContainer>();
 
 		// Act
 		toastService.ShowWarning("Test Warning Message");
@@ -781,7 +781,7 @@ public class ToastContainerTests : BunitTestBase
 	{
 		// Arrange
 		var toastService = Services.GetRequiredService<ToastService>();
-		var cut = RenderComponent<ToastContainer>();
+		var cut = Render<ToastContainer>();
 
 		// Act
 		toastService.ShowError("Test Error Message");
@@ -796,7 +796,7 @@ public class ToastContainerTests : BunitTestBase
 	{
 		// Arrange
 		var toastService = Services.GetRequiredService<ToastService>();
-		var cut = RenderComponent<ToastContainer>();
+		var cut = Render<ToastContainer>();
 
 		// Act
 		toastService.ShowInfo("Test Message");
@@ -817,7 +817,7 @@ public class SignalRConnectionTests : BunitTestBase
 	public void SignalRConnection_Renders()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SignalRConnection>();
+		var cut = Render<SignalRConnection>();
 
 		// Assert
 		cut.Should().NotBeNull();
@@ -830,7 +830,7 @@ public class SignalRConnectionTests : BunitTestBase
 		var signalRClient = Services.GetRequiredService<SignalRClientService>();
 
 		// Act
-		var cut = RenderComponent<SignalRConnection>();
+		var cut = Render<SignalRConnection>();
 
 		// Assert
 		cut.Markup.Should().Contain("Reconnecting...");
@@ -840,7 +840,7 @@ public class SignalRConnectionTests : BunitTestBase
 	public void SignalRConnection_StatusIndicator_HasAppropriateTitle()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SignalRConnection>();
+		var cut = Render<SignalRConnection>();
 
 		// Assert
 		cut.Markup.Should().Contain("title=");
@@ -850,7 +850,7 @@ public class SignalRConnectionTests : BunitTestBase
 	public void SignalRConnection_FixedPositioning_AppliedCorrectly()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<SignalRConnection>();
+		var cut = Render<SignalRConnection>();
 
 		// Assert
 		cut.Find("div").GetAttribute("class").Should().Contain("fixed");
@@ -868,7 +868,7 @@ public class FileUploadTests : BunitTestBase
 	public void FileUpload_RendersUploadZone()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FileUpload>(parameters => parameters
+		var cut = Render<FileUpload>(parameters => parameters
 			.Add(p => p.OnFileSelected, EventCallback.Factory.Create<IBrowserFile>(this, _ => { })));
 
 		// Assert
@@ -880,7 +880,7 @@ public class FileUploadTests : BunitTestBase
 	public void FileUpload_RendersWithCorrectAcceptTypes()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FileUpload>(parameters => parameters
+		var cut = Render<FileUpload>(parameters => parameters
 			.Add(p => p.OnFileSelected, EventCallback.Factory.Create<IBrowserFile>(this, _ => { })));
 
 		// Assert
@@ -891,7 +891,7 @@ public class FileUploadTests : BunitTestBase
 	public void FileUpload_WithoutError_ErrorMessageNotShown()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FileUpload>(parameters => parameters
+		var cut = Render<FileUpload>(parameters => parameters
 			.Add(p => p.OnFileSelected, EventCallback.Factory.Create<IBrowserFile>(this, _ => { })));
 
 		// Assert
@@ -902,7 +902,7 @@ public class FileUploadTests : BunitTestBase
 	public void FileUpload_FileUploadLabel_ClickableForAccessibility()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FileUpload>(parameters => parameters
+		var cut = Render<FileUpload>(parameters => parameters
 			.Add(p => p.OnFileSelected, EventCallback.Factory.Create<IBrowserFile>(this, _ => { })));
 
 		// Assert
@@ -915,7 +915,7 @@ public class FileUploadTests : BunitTestBase
 	public void FileUpload_HasInputFile_WithFileUploadComponent()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FileUpload>(parameters => parameters
+		var cut = Render<FileUpload>(parameters => parameters
 			.Add(p => p.OnFileSelected, EventCallback.Factory.Create<IBrowserFile>(this, _ => { })));
 
 		// Assert
@@ -926,7 +926,7 @@ public class FileUploadTests : BunitTestBase
 	public void FileUpload_AttachmentsLabel_Displayed()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<FileUpload>(parameters => parameters
+		var cut = Render<FileUpload>(parameters => parameters
 			.Add(p => p.OnFileSelected, EventCallback.Factory.Create<IBrowserFile>(this, _ => { })));
 
 		// Assert
@@ -943,7 +943,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_WhenHidden_DoesNotRender()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, false)
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
 			.Add(p => p.OnCancel, EventCallback.Factory.Create(this, () => { })));
@@ -956,7 +956,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_WhenVisible_RendersDialog()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
 			.Add(p => p.OnCancel, EventCallback.Factory.Create(this, () => { })));
@@ -969,7 +969,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_RendersTitle()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.Title, "Delete Issue?")
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
@@ -983,7 +983,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_RendersMessage()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.Message, "This cannot be undone.")
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
@@ -997,7 +997,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_WithItemTitle_RendersItemTitle()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.ItemTitle, "Critical Bug")
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
@@ -1011,7 +1011,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_ConfirmButton_DisplaysConfirmText()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.ConfirmButtonText, "Delete Forever")
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
@@ -1025,7 +1025,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_CancelButton_DisplaysCancelText()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.CancelButtonText, "Keep It")
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
@@ -1041,7 +1041,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 		// Arrange
 		var confirmed = false;
 
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () =>
 			{
@@ -1065,7 +1065,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 		// Arrange
 		var cancelled = false;
 
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
 			.Add(p => p.OnCancel, EventCallback.Factory.Create(this, () =>
@@ -1087,7 +1087,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_WhenDeleting_ConfirmButtonDisabled()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.IsDeleting, true)
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
@@ -1102,7 +1102,7 @@ public class DeleteConfirmationModalTests : BunitTestBase
 	public void DeleteConfirmationModal_WhenDeleting_ShowsLoadingSpinner()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DeleteConfirmationModal>(parameters => parameters
+		var cut = Render<DeleteConfirmationModal>(parameters => parameters
 			.Add(p => p.IsVisible, true)
 			.Add(p => p.IsDeleting, true)
 			.Add(p => p.OnConfirm, EventCallback.Factory.Create(this, () => { }))
@@ -1122,7 +1122,7 @@ public class DateRangePickerTests : BunitTestBase
 	public void DateRangePicker_RendersPresetButtons()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ => { })));
 
 		// Assert
@@ -1136,7 +1136,7 @@ public class DateRangePickerTests : BunitTestBase
 	public void DateRangePicker_RendersDateInputs()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ => { })));
 
 		// Assert
@@ -1150,7 +1150,7 @@ public class DateRangePickerTests : BunitTestBase
 		var startDate = new DateTime(2025, 1, 1);
 
 		// Act
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.StartDate, startDate)
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ => { })));
 
@@ -1165,7 +1165,7 @@ public class DateRangePickerTests : BunitTestBase
 		var endDate = new DateTime(2025, 1, 31);
 
 		// Act
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.EndDate, endDate)
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ => { })));
 
@@ -1180,7 +1180,7 @@ public class DateRangePickerTests : BunitTestBase
 		var rangeChanged = false;
 		var newStartDate = DateTime.MinValue;
 
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, range =>
 			{
 				rangeChanged = true;
@@ -1203,7 +1203,7 @@ public class DateRangePickerTests : BunitTestBase
 	public void DateRangePicker_FromLabel_Displayed()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ => { })));
 
 		// Assert
@@ -1214,7 +1214,7 @@ public class DateRangePickerTests : BunitTestBase
 	public void DateRangePicker_ToLabel_Displayed()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ => { })));
 
 		// Assert
@@ -1227,7 +1227,7 @@ public class DateRangePickerTests : BunitTestBase
 		// Arrange
 		var rangeChanged = false;
 
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ =>
 			{
 				rangeChanged = true;
@@ -1246,7 +1246,7 @@ public class DateRangePickerTests : BunitTestBase
 	public void DateRangePicker_AllTimeButton_ClearsPreset()
 	{
 		// Arrange & Act
-		var cut = RenderComponent<DateRangePicker>(parameters => parameters
+		var cut = Render<DateRangePicker>(parameters => parameters
 			.Add(p => p.OnRangeChanged, EventCallback.Factory.Create<(DateTime?, DateTime?)>(this, _ => { })));
 
 		// Assert

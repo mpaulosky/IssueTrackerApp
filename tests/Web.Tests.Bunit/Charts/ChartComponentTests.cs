@@ -29,7 +29,7 @@ public class PieChartTests : BunitTestBase
 		JSInterop.SetupVoid("chartInterop.destroyChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -50,7 +50,7 @@ public class PieChartTests : BunitTestBase
 		var colors = new List<string>();
 
 		// Act
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
 			.Add(x => x.Colors, colors)
@@ -70,7 +70,7 @@ public class PieChartTests : BunitTestBase
 		var colors = new List<string> { "#3b82f6", "#10b981" };
 
 		// Act
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
 			.Add(x => x.Colors, colors)
@@ -99,7 +99,7 @@ public class PieChartTests : BunitTestBase
 		});
 
 		// Act
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -122,7 +122,7 @@ public async Task PieChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderPieChart", _ => true);
 		JSInterop.SetupVoid("chartInterop.destroyChart", _ => true);
 
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -146,7 +146,7 @@ public async Task PieChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderPieChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
 			.Add(x => x.IsLoading, false));
@@ -168,7 +168,7 @@ public async Task PieChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderPieChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -183,7 +183,7 @@ public async Task PieChart_OnDispose_InvokesDestroyChart()
 	public void PieChart_DefaultChartId_IsGenerated()
 	{
 		// Act
-		var cut = RenderComponent<PieChart>(parameters => parameters
+		var cut = Render<PieChart>(parameters => parameters
 			.Add(x => x.IsLoading, false));
 
 		// Assert
@@ -211,7 +211,7 @@ public class BarChartTests : BunitTestBase
 		JSInterop.SetupVoid("chartInterop.destroyChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -231,7 +231,7 @@ public class BarChartTests : BunitTestBase
 		var data = new List<int>();
 
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
 			.Add(x => x.IsLoading, false));
@@ -249,7 +249,7 @@ public class BarChartTests : BunitTestBase
 		var data = new List<int> { 10, 20 };
 
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
 			.Add(x => x.IsLoading, true));
@@ -277,7 +277,7 @@ public class BarChartTests : BunitTestBase
 		});
 
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -300,7 +300,7 @@ public async Task BarChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderBarChart", _ => true);
 		JSInterop.SetupVoid("chartInterop.destroyChart", _ => true);
 
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -324,7 +324,7 @@ public async Task BarChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderBarChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
 			.Add(x => x.IsLoading, false));
@@ -345,7 +345,7 @@ public async Task BarChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderBarChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -360,7 +360,7 @@ public async Task BarChart_OnDispose_InvokesDestroyChart()
 	public void BarChart_DefaultColor_IsBlue()
 	{
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.IsLoading, false));
 
 		// Assert
@@ -378,7 +378,7 @@ public async Task BarChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderBarChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<BarChart>(parameters => parameters
+		var cut = Render<BarChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Data, data)
@@ -415,7 +415,7 @@ public class LineChartTests : BunitTestBase
 		JSInterop.SetupVoid("chartInterop.destroyChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
@@ -434,7 +434,7 @@ public class LineChartTests : BunitTestBase
 		var datasets = new List<LineChart.LineChartDataset>();
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
 			.Add(x => x.IsLoading, false));
@@ -455,7 +455,7 @@ public class LineChartTests : BunitTestBase
 		};
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
 			.Add(x => x.IsLoading, true));
@@ -491,7 +491,7 @@ public class LineChartTests : BunitTestBase
 		});
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
@@ -521,7 +521,7 @@ public async Task LineChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderLineChart", _ => true);
 		JSInterop.SetupVoid("chartInterop.destroyChart", _ => true);
 
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
@@ -561,7 +561,7 @@ public async Task LineChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderLineChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
@@ -581,7 +581,7 @@ public async Task LineChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderLineChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
 			.Add(x => x.IsLoading, false));
@@ -611,7 +611,7 @@ public async Task LineChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderLineChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)
@@ -652,7 +652,7 @@ public async Task LineChart_OnDispose_InvokesDestroyChart()
 		JSInterop.SetupVoid("chartInterop.renderLineChart", _ => true);
 
 		// Act
-		var cut = RenderComponent<LineChart>(parameters => parameters
+		var cut = Render<LineChart>(parameters => parameters
 			.Add(x => x.ChartId, chartId)
 			.Add(x => x.Labels, labels)
 			.Add(x => x.Datasets, datasets)

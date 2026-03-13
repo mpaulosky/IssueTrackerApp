@@ -15,7 +15,7 @@ public class DashboardPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
 
         // Assert - Should show unauthorized/redirect message or be empty
         cut.Markup.Should().NotBeNull();
@@ -35,7 +35,7 @@ public class DashboardPageTests : BunitTestBase
             .Returns(Result.Ok(dashboard));
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
         await cut.InvokeAsync(() => Task.Delay(100)); // Allow async operations
 
         // Assert
@@ -57,7 +57,7 @@ public class DashboardPageTests : BunitTestBase
             .Returns(Result.Ok(dashboard));
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
         await cut.InvokeAsync(() => Task.Delay(100));
 
         // Assert
@@ -87,7 +87,7 @@ public class DashboardPageTests : BunitTestBase
             .Returns(Result.Ok(dashboard));
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
         await cut.InvokeAsync(() => Task.Delay(100));
 
         // Assert
@@ -110,7 +110,7 @@ public class DashboardPageTests : BunitTestBase
             .Returns(Result.Ok(dashboard));
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
         await cut.InvokeAsync(() => Task.Delay(100));
 
         // Assert
@@ -131,7 +131,7 @@ public class DashboardPageTests : BunitTestBase
             .Returns(Result.Fail<UserDashboardDto>("Failed to load dashboard"));
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
         await cut.InvokeAsync(() => Task.Delay(100));
 
         // Assert
@@ -151,7 +151,7 @@ public class DashboardPageTests : BunitTestBase
             .Returns(Result.Ok(dashboard));
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
         await cut.InvokeAsync(() => Task.Delay(100));
 
         // Assert
@@ -174,7 +174,7 @@ public class HomePageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<Home>();
+        var cut = Render<Home>();
 
         // Assert
         var markup = cut.Markup;
@@ -189,7 +189,7 @@ public class HomePageTests : BunitTestBase
         SetupAuthenticatedUser(userId: "user123", userName: "Jane Smith");
 
         // Act
-        var cut = RenderComponent<Home>();
+        var cut = Render<Home>();
 
         // Assert
         var markup = cut.Markup;
@@ -204,7 +204,7 @@ public class HomePageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<Home>();
+        var cut = Render<Home>();
 
         // Assert
         var markup = cut.Markup;
@@ -216,10 +216,10 @@ public class HomePageTests : BunitTestBase
     {
         // Arrange - Both authenticated and anonymous users should see the page
         SetupAnonymousUser();
-        var cut1 = RenderComponent<Home>();
+        var cut1 = Render<Home>();
 
         SetupAuthenticatedUser(userId: "user456");
-        var cut2 = RenderComponent<Home>();
+        var cut2 = Render<Home>();
 
         // Assert - Both should render successfully
         cut1.Markup.Should().NotBeNull();
@@ -240,7 +240,7 @@ public class ErrorPageTests : BunitTestBase
         SetupAuthenticatedUser(userId: "user123");
 
         // Act
-        var cut = RenderComponent<Error>();
+        var cut = Render<Error>();
 
         // Assert
         var markup = cut.Markup;
@@ -254,7 +254,7 @@ public class ErrorPageTests : BunitTestBase
         SetupAuthenticatedUser(userId: "user123");
 
         // Act
-        var cut = RenderComponent<Error>();
+        var cut = Render<Error>();
 
         // Assert
         var markup = cut.Markup;
@@ -268,7 +268,7 @@ public class ErrorPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<Error>();
+        var cut = Render<Error>();
 
         // Assert
         cut.Markup.Should().NotBeNull();
@@ -283,7 +283,7 @@ public class ErrorPageTests : BunitTestBase
         SetupAuthenticatedUser(userId: "user123");
 
         // Act
-        var cut = RenderComponent<Error>();
+        var cut = Render<Error>();
 
         // Assert - Should display error context/message
         var markup = cut.Markup;
@@ -296,10 +296,10 @@ public class ErrorPageTests : BunitTestBase
     {
         // Arrange - Error page should be accessible by both user types
         SetupAnonymousUser();
-        var cut1 = RenderComponent<Error>();
+        var cut1 = Render<Error>();
 
         SetupAuthenticatedUser(userId: "user789");
-        var cut2 = RenderComponent<Error>();
+        var cut2 = Render<Error>();
 
         // Assert
         cut1.Markup.Should().NotBeNull();
@@ -313,7 +313,7 @@ public class ErrorPageTests : BunitTestBase
         SetupAuthenticatedUser(userId: "user123");
 
         // Act
-        var cut = RenderComponent<Error>();
+        var cut = Render<Error>();
 
         // Assert - Error page should have proper structure
         cut.Nodes.Count().Should().BeGreaterThan(0);
@@ -333,7 +333,7 @@ public class NotFoundPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<NotFound>();
+        var cut = Render<NotFound>();
 
         // Assert
         var markup = cut.Markup;
@@ -347,7 +347,7 @@ public class NotFoundPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<NotFound>();
+        var cut = Render<NotFound>();
 
         // Assert
         var markup = cut.Markup;
@@ -361,7 +361,7 @@ public class NotFoundPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<NotFound>();
+        var cut = Render<NotFound>();
 
         // Assert
         var markup = cut.Markup;
@@ -375,7 +375,7 @@ public class NotFoundPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<NotFound>();
+        var cut = Render<NotFound>();
 
         // Assert
         cut.Markup.Should().NotBeNull();
@@ -388,7 +388,7 @@ public class NotFoundPageTests : BunitTestBase
         SetupAuthenticatedUser(userId: "user123", userName: "Test User");
 
         // Act
-        var cut = RenderComponent<NotFound>();
+        var cut = Render<NotFound>();
 
         // Assert
         cut.Markup.Should().NotBeNull();
@@ -398,10 +398,10 @@ public class NotFoundPageTests : BunitTestBase
     public void NotFound_PageIsPubliclyAccessible()
     {
         // Arrange - NotFound page should be accessible by both user types
-        var cut1 = RenderComponent<NotFound>();
+        var cut1 = Render<NotFound>();
 
         SetupAuthenticatedUser(userId: "user456");
-        var cut2 = RenderComponent<NotFound>();
+        var cut2 = Render<NotFound>();
 
         // Assert
         cut1.Markup.Should().NotBeNull();
@@ -415,7 +415,7 @@ public class NotFoundPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<NotFound>();
+        var cut = Render<NotFound>();
 
         // Assert
         var headings = cut.FindAll("h1, h2, h3, h4");
@@ -429,7 +429,7 @@ public class NotFoundPageTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<NotFound>();
+        var cut = Render<NotFound>();
 
         // Assert - Page should have content
         cut.Nodes.Count().Should().BeGreaterThan(0);

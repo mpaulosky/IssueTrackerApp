@@ -19,7 +19,7 @@ public class AdminIndexPageTests : BunitTestBase
         // The component should be marked with [Authorize(Policy = "AdminPolicy")]
         // In a real app, this would redirect to login/forbidden page
         // For now, we verify it renders (Blazor testing requires special setup for auth check)
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
         
         cut.Should().NotBeNull();
     }
@@ -31,7 +31,7 @@ public class AdminIndexPageTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         var heading = cut.Find("h1");
@@ -45,7 +45,7 @@ public class AdminIndexPageTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         var cards = cut.FindAll(".card, .admin-card, [class*='card']");
@@ -59,7 +59,7 @@ public class AdminIndexPageTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         var categoriesLink = cut.FindAll("a")
@@ -76,7 +76,7 @@ public class AdminIndexPageTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         var statusesLink = cut.FindAll("a")
@@ -93,7 +93,7 @@ public class AdminIndexPageTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         var analyticsLink = cut.FindAll("a")
@@ -134,7 +134,7 @@ public class AdminCategoriesPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok<IEnumerable<CategoryDto>>(categories)));
 
         // Act
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
@@ -157,7 +157,7 @@ public class AdminCategoriesPageTests : BunitTestBase
             .Returns(x => Task.Delay(500).ContinueWith(_ => Result.Ok<IEnumerable<CategoryDto>>(categories)));
 
         // Act
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Assert - Before loading completes
         var loadingElements = cut.FindAll("[class*='loading'], [class*='spinner'], .spinner");
@@ -173,7 +173,7 @@ public class AdminCategoriesPageTests : BunitTestBase
             .Returns(Result.Fail<IEnumerable<CategoryDto>>("Failed to load categories"));
 
         // Act
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
@@ -192,7 +192,7 @@ public class AdminCategoriesPageTests : BunitTestBase
         _categoryService.GetCategoriesAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IEnumerable<CategoryDto>>(categories)));
 
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Act
         var createButton = cut.FindAll("button")
@@ -220,7 +220,7 @@ public class AdminCategoriesPageTests : BunitTestBase
         _categoryService.GetCategoriesAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IEnumerable<CategoryDto>>(categories)));
 
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Act
         var createButton = cut.FindAll("button")
@@ -260,7 +260,7 @@ public class AdminCategoriesPageTests : BunitTestBase
         _categoryService.CreateCategoryAsync("New Category", "Description", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<CategoryDto>(newCategory)));
 
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Act
         var createdResult = await _categoryService.CreateCategoryAsync("New Category", "Description");
@@ -289,7 +289,7 @@ public class AdminCategoriesPageTests : BunitTestBase
             Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<CategoryDto>(updatedCategory)));
 
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Act
         var editResult = await _categoryService.UpdateCategoryAsync(category.Id.ToString(), 
@@ -316,7 +316,7 @@ public class AdminCategoriesPageTests : BunitTestBase
         _categoryService.ArchiveCategoryAsync(category.Id.ToString(), true, currentUser, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<CategoryDto>(archivedCategory)));
 
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Act
         var archiveResult = await _categoryService.ArchiveCategoryAsync(category.Id.ToString(), true, currentUser);
@@ -340,7 +340,7 @@ public class AdminCategoriesPageTests : BunitTestBase
         _categoryService.GetCategoriesAsync(true, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IEnumerable<CategoryDto>>(new[] { activeCategory, archivedCategory })));
 
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Act
         var activeResult = await _categoryService.GetCategoriesAsync(false);
@@ -363,7 +363,7 @@ public class AdminCategoriesPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok<IEnumerable<CategoryDto>>(Enumerable.Empty<CategoryDto>())));
 
         // Act
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -385,7 +385,7 @@ public class AdminCategoriesPageTests : BunitTestBase
         _categoryService.CreateCategoryAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<CategoryDto>(newCategory)));
 
-        var cut = RenderComponent<Categories>();
+        var cut = Render<Categories>();
 
         // Act
         var result = await _categoryService.CreateCategoryAsync("Test", "Test Description");
@@ -425,7 +425,7 @@ public class AdminStatusesPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok<IEnumerable<StatusDto>>(statuses)));
 
         // Act
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -448,7 +448,7 @@ public class AdminStatusesPageTests : BunitTestBase
             .Returns(x => Task.Delay(500).ContinueWith(_ => Result.Ok<IEnumerable<StatusDto>>(statuses)));
 
         // Act
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Assert
         var loadingElements = cut.FindAll("[class*='loading'], [class*='spinner']");
@@ -464,7 +464,7 @@ public class AdminStatusesPageTests : BunitTestBase
             .Returns(Result.Fail<IEnumerable<StatusDto>>("Failed to load statuses"));
 
         // Act
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -486,7 +486,7 @@ public class AdminStatusesPageTests : BunitTestBase
         _statusService.CreateStatusAsync("New Status", "Description", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<StatusDto>(newStatus)));
 
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Act
         var result = await _statusService.CreateStatusAsync("New Status", "Description");
@@ -511,7 +511,7 @@ public class AdminStatusesPageTests : BunitTestBase
             Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<StatusDto>(updatedStatus)));
 
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Act
         var result = await _statusService.UpdateStatusAsync(status.Id.ToString(), "Updated Open", "Updated Description");
@@ -536,7 +536,7 @@ public class AdminStatusesPageTests : BunitTestBase
         _statusService.ArchiveStatusAsync(status.Id.ToString(), true, currentUser, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<StatusDto>(archivedStatus)));
 
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Act
         var result = await _statusService.ArchiveStatusAsync(status.Id.ToString(), true, currentUser);
@@ -575,7 +575,7 @@ public class AdminStatusesPageTests : BunitTestBase
         _statusService.GetStatusesAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IEnumerable<StatusDto>>(Enumerable.Empty<StatusDto>())));
 
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Act
         var createButton = cut.FindAll("button")
@@ -613,7 +613,7 @@ public class AdminStatusesPageTests : BunitTestBase
         _statusService.GetStatusesAsync(true, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok<IEnumerable<StatusDto>>(new[] { activeStatus, archivedStatus })));
 
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Act
         var activeResult = await _statusService.GetStatusesAsync(false);
@@ -636,7 +636,7 @@ public class AdminStatusesPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok<IEnumerable<StatusDto>>(Enumerable.Empty<StatusDto>())));
 
         // Act
-        var cut = RenderComponent<Statuses>();
+        var cut = Render<Statuses>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -670,7 +670,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok(analyticsData)));
 
         // Act
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -694,7 +694,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok(analyticsData)));
 
         // Act
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -717,7 +717,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
                 Result.Ok(analyticsData)));
 
         // Act
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Assert
         var loadingElements = cut.FindAll("[class*='loading'], [class*='spinner']");
@@ -733,7 +733,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
             .Returns(Result.Fail<AnalyticsSummaryDto>("Failed to load analytics"));
 
         // Act
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -752,7 +752,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
         _analyticsService.GetAnalyticsSummaryAsync(Arg.Any<DateTime?>(), Arg.Any<DateTime?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok(analyticsData)));
 
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
         await cut.InvokeAsync(() => Task.Delay(100));
 
         // Act
@@ -777,7 +777,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok(analyticsData)));
 
         // Act
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Assert
         await cut.InvokeAsync(() => Task.Delay(100));
@@ -801,7 +801,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
         _analyticsService.ExportAnalyticsAsync(Arg.Any<DateTime?>(), Arg.Any<DateTime?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Ok(csvBytes)));
 
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Act
         var exportButton = cut.FindAll("button")
@@ -829,7 +829,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok(analyticsData)));
 
         // Act
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Assert
         var dateInputs = cut.FindAll("input[type='date']");
@@ -847,7 +847,7 @@ public class AdminAnalyticsPageTests : BunitTestBase
             .Returns(Task.FromResult(Result.Ok(analyticsData)));
 
         // Act
-        var cut = RenderComponent<Analytics>();
+        var cut = Render<Analytics>();
 
         // Assert
         // Default should be last 30 days (or similar)
@@ -911,7 +911,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>(parameters => parameters
+        var cut = Render<AdminPageLayout>(parameters => parameters
             .Add(p => p.Title, "Test Page")
         );
 
@@ -927,7 +927,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>(parameters => parameters
+        var cut = Render<AdminPageLayout>(parameters => parameters
             .Add(p => p.Title, "Test Page")
             .Add(p => p.Description, "Test Description")
         );
@@ -943,7 +943,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>(parameters => parameters
+        var cut = Render<AdminPageLayout>(parameters => parameters
             .Add(p => p.ChildContent, 
                 new RenderFragment(builder => builder.AddContent(0, "Child Content")))
         );
@@ -957,10 +957,9 @@ public class AdminPageLayoutTests : BunitTestBase
     {
         // Arrange
         SetupAuthenticatedUser(isAdmin: true);
-        var parameters = new ComponentParameter();
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>(parameters);
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var navLinks = cut.FindAll("a");
@@ -974,7 +973,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>();
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var dashboardLink = cut.FindAll("a")
@@ -991,7 +990,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>();
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var categoriesLink = cut.FindAll("a")
@@ -1007,7 +1006,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>();
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var statusesLink = cut.FindAll("a")
@@ -1023,7 +1022,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>();
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var analyticsLink = cut.FindAll("a")
@@ -1039,7 +1038,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>();
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var backLink = cut.FindAll("a")
@@ -1056,7 +1055,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>();
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var activeLinks = cut.FindAll("[class*='active']");
@@ -1070,7 +1069,7 @@ public class AdminPageLayoutTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>();
+        var cut = Render<AdminPageLayout>();
 
         // Assert
         var navContainer = cut.Find("nav, [class*='nav']");
@@ -1090,7 +1089,7 @@ public class AdminAuthenticationTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: false); // Non-admin user
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         // Component should be protected by [Authorize(Policy = "AdminPolicy")]
@@ -1105,7 +1104,7 @@ public class AdminAuthenticationTests : BunitTestBase
         SetupAnonymousUser();
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         // Component should require authentication
@@ -1120,8 +1119,8 @@ public class AdminAuthenticationTests : BunitTestBase
         SetupAuthenticatedUser(isAdmin: true);
 
         // Act
-        var indexCut = RenderComponent<AdminIndex>();
-        var layoutCut = RenderComponent<AdminPageLayout>();
+        var indexCut = Render<AdminIndex>();
+        var layoutCut = Render<AdminPageLayout>();
 
         // Assert
         indexCut.Should().NotBeNull();
@@ -1138,7 +1137,7 @@ public class AdminAuthenticationTests : BunitTestBase
         SetupAuthenticatedUser(userId: userId, userName: userName, email: email, isAdmin: true);
 
         // Act
-        var cut = RenderComponent<AdminIndex>();
+        var cut = Render<AdminIndex>();
 
         // Assert
         // User context should be available for operations like archiving

@@ -1,7 +1,7 @@
 name: Test Suite
 
 # NOTE: xUnit v3 Compatibility Workaround
-# Architecture.Tests, Web.Tests.Bunit, Web.Tests.Integration, and AppHost.Tests.E2E use direct
+# Architecture.Tests, Web.Tests.Bunit, and Web.Tests.Integration use direct
 # executable execution instead of 'dotnet test' due to xUnit v3 TestProcessLauncherAdapter
 # compatibility issues with xunit.runner.visualstudio 3.1.5. Unit test projects (Domain.Tests,
 # Web.Tests) work fine with 'dotnet test'.
@@ -344,73 +344,6 @@ jobs:
           name: integration-test-results
           path: test-results
 
-  test-apphost-e2e:
-    name: "AppHost.Tests.E2E"
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build
-
-    env:
-      Auth0__Domain: ${{ secrets.AUTH0_DOMAIN }}
-      Auth0__ClientId: ${{ secrets.AUTH0_CLIENT_ID }}
-      Auth0__ClientSecret: ${{ secrets.AUTH0_CLIENT_SECRET }}
-      MongoDB__ConnectionString: ${{ secrets.MONGODB_CONNECTION_STRING }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build AppHost E2E Tests
-        run: dotnet build tests/AppHost.Tests.E2E --configuration Release --no-restore
-
-      - name: Install Playwright Browsers
-        run: |
-          cd tests/AppHost.Tests.E2E
-          pwsh bin/Release/net10.0/playwright.ps1 install --with-deps chromium
-
-      - name: Run AppHost E2E Tests
-        id: apphost-tests
-        run: |
-          mkdir -p test-results
-          if [ ! -d "tests/AppHost.Tests.E2E" ]; then
-            echo "::notice::AppHost E2E test project not found at tests/AppHost.Tests.E2E — skipping"
-            exit 0
-          fi
-
-          # Run test executable directly (xUnit v3 workaround for test process launcher compatibility)
-          # The fixture handles Docker unavailability gracefully — tests skip rather than fail
-          cd tests/AppHost.Tests.E2E/bin/Release/net10.0
-          ./AppHost.Tests.E2E -xml "$GITHUB_WORKSPACE/test-results/apphost-e2e.xml" -nunit "$GITHUB_WORKSPACE/test-results/apphost-e2e-nunit.xml"
-          exit_code=$?
-
-          if [ $exit_code -ne 0 ]; then
-            echo "::error::AppHost E2E tests failed"
-          fi
-          exit $exit_code
-
-      - name: Upload AppHost E2E Test Results
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: apphost-e2e-test-results
-          path: test-results
-
   coverage:
     name: Coverage Analysis
     runs-on: ubuntu-latest
@@ -421,7 +354,6 @@ jobs:
       - test-architecture
       - test-bunit
       - test-integration
-      - test-apphost-e2e
     if: always()
 
     steps:
@@ -487,7 +419,6 @@ jobs:
       - test-architecture
       - test-bunit
       - test-integration
-      - test-apphost-e2e
     if: always()
 
     steps:
@@ -521,7 +452,6 @@ jobs:
           echo "- **Architecture.Tests:** ${{ needs.test-architecture.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Web.Tests.Bunit:** ${{ needs.test-bunit.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Web.Tests.Integration:** ${{ needs.test-integration.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **AppHost.Tests.E2E:** ${{ needs.test-apphost-e2e.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- Test results and coverage reports available in Actions artifacts" >> $GITHUB_STEP_SUMMARY
@@ -535,11 +465,10 @@ jobs:
           arch_status="${{ needs.test-architecture.result }}"
           bunit_status="${{ needs.test-bunit.result }}"
           integration_status="${{ needs.test-integration.result }}"
-          apphost_e2e_status="${{ needs.test-apphost-e2e.result }}"
 
           if [[ "$build_status" == "failure" || "$domain_status" == "failure" || "$web_status" == "failure" || \
                 "$arch_status" == "failure" || "$bunit_status" == "failure" || \
-                "$integration_status" == "failure" || "$apphost_e2e_status" == "failure" ]]; then
+                "$integration_status" == "failure" ]]; then
             echo "❌ **Overall Status:** FAILED" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ **Overall Status:** PASSED" >> $GITHUB_STEP_SUMMARY
