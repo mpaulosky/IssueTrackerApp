@@ -63,8 +63,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 		}
 
 		// Use Testcontainers for local development
-		_mongoContainer = new MongoDbBuilder()
-			.WithImage("mongo:7.0")
+		_mongoContainer = new MongoDbBuilder("mongo:7.0")
 			.WithName($"mongodb-integration-test-{Guid.NewGuid():N}")
 			.Build();
 
