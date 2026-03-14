@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Persistence.MongoDb;
 using Persistence.MongoDb.Configurations;
 
@@ -166,19 +167,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
 	/// <summary>
 	/// Clears all data from the test database.
+	/// Drops the entire database using the MongoDB driver directly, avoiding EF Core
+	/// deserialization issues with owned types during enumeration.
 	/// </summary>
 	public async Task ClearDatabaseAsync()
 	{
-		await using var context = CreateDbContext();
-
-		// Remove all entities from collections
-		context.Issues.RemoveRange(context.Issues);
-		context.Categories.RemoveRange(context.Categories);
-		context.Statuses.RemoveRange(context.Statuses);
-		context.Comments.RemoveRange(context.Comments);
-		context.Attachments.RemoveRange(context.Attachments);
-		context.EmailQueue.RemoveRange(context.EmailQueue);
-
-		await context.SaveChangesAsync();
+		var client = new MongoClient(MongoConnectionString);
+		await client.DropDatabaseAsync(DatabaseName);
 	}
 }
