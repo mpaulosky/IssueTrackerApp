@@ -100,6 +100,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 			{
 				["MongoDB:ConnectionString"] = MongoConnectionString,
 				["MongoDB:DatabaseName"] = DatabaseName,
+				// Aspire AddMongoDBClient("mongodb") reads this key; without it, service discovery hangs
+				["ConnectionStrings:mongodb"] = MongoConnectionString,
 				// Auth0 settings (not used since we mock auth, but required for startup)
 				["Auth0:Domain"] = "test.auth0.com",
 				["Auth0:ClientId"] = "test-client-id",

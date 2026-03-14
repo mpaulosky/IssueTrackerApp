@@ -338,6 +338,8 @@ jobs:
           dotnet test tests/Web.Tests.Integration \
             --configuration Release \
             --no-build \
+            --verbosity normal \
+            --logger "console;verbosity=detailed" \
             --logger "trx;LogFileName=integration.trx" \
             --results-directory "$GITHUB_WORKSPACE/test-results" \
             --collect:"XPlat Code Coverage" \
