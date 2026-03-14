@@ -191,7 +191,7 @@ Services.AddSingleton(DashboardService);
 		string? title = null,
 		string? description = null,
 		UserDto? author = null,
-		IssueDto? issue = null)
+		MongoDB.Bson.ObjectId? issueId = null)
 	{
 		return new CommentDto(
 			Id: id is not null ? MongoDB.Bson.ObjectId.Parse(id) : MongoDB.Bson.ObjectId.GenerateNewId(),
@@ -199,7 +199,7 @@ Services.AddSingleton(DashboardService);
 			Description: description ?? "Test comment content",
 			DateCreated: DateTime.UtcNow,
 			DateModified: null,
-			Issue: issue ?? CreateTestIssue(),
+			IssueId: issueId ?? MongoDB.Bson.ObjectId.GenerateNewId(),
 			Author: author ?? CreateTestUser(),
 			UserVotes: [],
 			Archived: false,

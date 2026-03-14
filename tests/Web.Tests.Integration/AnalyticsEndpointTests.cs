@@ -627,13 +627,25 @@ public sealed class AnalyticsEndpointTests : IntegrationTestBase
 	{
 		await using var context = Factory.CreateDbContext();
 
-		var author = new UserDto(
-			TestAuthHandler.TestUserId,
-			TestAuthHandler.TestUserName,
-			TestAuthHandler.TestUserEmail);
+		var author = new UserInfo
+		{
+			Id = TestAuthHandler.TestUserId,
+			Name = TestAuthHandler.TestUserName,
+			Email = TestAuthHandler.TestUserEmail
+		};
 
-		var categoryDto = new CategoryDto(category);
-		var statusDto = new StatusDto(status);
+		var categoryInfo = new CategoryInfo
+		{
+			Id = category.Id,
+			CategoryName = category.CategoryName,
+			CategoryDescription = category.CategoryDescription
+		};
+		var statusInfo = new StatusInfo
+		{
+			Id = status.Id,
+			StatusName = status.StatusName,
+			StatusDescription = status.StatusDescription
+		};
 
 		var issues = new List<Issue>();
 		for (var i = 1; i <= count; i++)
@@ -644,8 +656,8 @@ public sealed class AnalyticsEndpointTests : IntegrationTestBase
 				Id = ObjectId.GenerateNewId(),
 				Title = $"Resolved Issue {i}",
 				Description = $"Resolved issue description {i}",
-				Category = categoryDto,
-				Status = statusDto,
+				Category = categoryInfo,
+				Status = statusInfo,
 				Author = author,
 				DateCreated = createdDate,
 				DateModified = DateTime.UtcNow.AddHours(-12 * i) // Simulates resolution time
@@ -666,24 +678,36 @@ public sealed class AnalyticsEndpointTests : IntegrationTestBase
 	{
 		await using var context = Factory.CreateDbContext();
 
-		var categoryDto = new CategoryDto(category);
-		var statusDto = new StatusDto(status);
+		var categoryInfo = new CategoryInfo
+		{
+			Id = category.Id,
+			CategoryName = category.CategoryName,
+			CategoryDescription = category.CategoryDescription
+		};
+		var statusInfo = new StatusInfo
+		{
+			Id = status.Id,
+			StatusName = status.StatusName,
+			StatusDescription = status.StatusDescription
+		};
 
 		var issues = new List<Issue>();
 		for (var i = 1; i <= count; i++)
 		{
-			var author = new UserDto(
-				$"auth0|user-{i}",
-				$"User {i}",
-				$"user{i}@example.com");
+			var author = new UserInfo
+			{
+				Id = $"auth0|user-{i}",
+				Name = $"User {i}",
+				Email = $"user{i}@example.com"
+			};
 
 			issues.Add(new Issue
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = $"Multi-Author Issue {i}",
 				Description = $"Issue created by User {i}",
-				Category = categoryDto,
-				Status = statusDto,
+				Category = categoryInfo,
+				Status = statusInfo,
 				Author = author
 			});
 		}

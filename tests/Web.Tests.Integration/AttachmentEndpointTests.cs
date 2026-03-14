@@ -435,7 +435,12 @@ public class AttachmentEndpointTests : IntegrationTestBase
 			ContentType = contentType,
 			FileSize = 1024,
 			BlobUrl = $"/uploads/{Guid.NewGuid()}_{fileName}",
-			UploadedBy = new UserDto(TestAuthHandler.TestUserId, TestAuthHandler.TestUserName, TestAuthHandler.TestUserEmail),
+			UploadedBy = new UserInfo
+			{
+				Id = TestAuthHandler.TestUserId,
+				Name = TestAuthHandler.TestUserName,
+				Email = TestAuthHandler.TestUserEmail
+			},
 			UploadedAt = DateTime.UtcNow
 		};
 

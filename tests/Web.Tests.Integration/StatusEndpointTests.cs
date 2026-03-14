@@ -508,10 +508,12 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 			StatusName = "Archived Status",
 			StatusDescription = "An archived status for testing",
 			Archived = true,
-			ArchivedBy = new UserDto(
-				TestAuthHandler.TestUserId,
-				TestAuthHandler.TestUserName,
-				TestAuthHandler.TestUserEmail)
+			ArchivedBy = new UserInfo
+			{
+				Id = TestAuthHandler.TestUserId,
+				Name = TestAuthHandler.TestUserName,
+				Email = TestAuthHandler.TestUserEmail
+			}
 		};
 
 		context.Statuses.Add(status);
