@@ -45,15 +45,15 @@ Do NOT push if either check reports failures. Fix first.
 
 ### Hook (Local Enforcement)
 
-The `.git/hooks/pre-push` hook runs `dotnet test tests/Unit.Tests` as a local tripwire.
+The `.git/hooks/pre-push` hook runs unit tests as a local tripwire.
 Install once per clone — **Shell (Linux/macOS/Git Bash)**:
 
 ```bash
 cat > .git/hooks/pre-push << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-echo "🔎 pre-push: running build-repair gate (Unit.Tests)…"
-if dotnet test tests/Unit.Tests --configuration Release --verbosity quiet 2>&1; then
+echo "🔎 pre-push: running build-repair gate (Domain.Tests + Web.Tests)…"
+if dotnet test tests/Domain.Tests tests/Web.Tests --configuration Release --verbosity quiet 2>&1; then
   echo "✅ Gate passed — push allowed."
 else
   echo "❌ Gate FAILED. Run .github/prompts/build-repair.prompt.md and fix before pushing."
@@ -68,8 +68,8 @@ chmod +x .git/hooks/pre-push
 @'
 #!/usr/bin/env bash
 set -euo pipefail
-echo "🔎 pre-push: running build-repair gate (Unit.Tests)…"
-if dotnet test tests/Unit.Tests --configuration Release --verbosity quiet 2>&1; then
+echo "🔎 pre-push: running build-repair gate (Domain.Tests + Web.Tests)…"
+if dotnet test tests/Domain.Tests tests/Web.Tests --configuration Release --verbosity quiet 2>&1; then
   echo "✅ Gate passed — push allowed."
 else
   echo "❌ Gate FAILED. Run .github/prompts/build-repair.prompt.md and fix before pushing."

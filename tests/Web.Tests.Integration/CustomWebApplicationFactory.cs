@@ -22,19 +22,26 @@ namespace Web.Tests.Integration;
 
 /// <summary>
 /// Custom WebApplicationFactory that configures the test environment with:
-/// - MongoDB Testcontainer for real database testing
+/// - MongoDB Testcontainer for local development, OR
+/// - External MongoDB service when MONGODB_CONNECTION_STRING env var is set (CI)
 /// - Mock Auth0 authentication using TestAuthHandler
 /// - Proper lifecycle management via IAsyncLifetime
 /// </summary>
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
 	private MongoDbContainer? _mongoContainer;
+	private string? _connectionString;
 
 	/// <summary>
-	/// Gets the MongoDB connection string for the test container.
+	/// Indicates whether we're using an external MongoDB service (e.g., CI) instead of Testcontainers.
 	/// </summary>
-	public string MongoConnectionString => _mongoContainer?.GetConnectionString()
-		?? throw new InvalidOperationException("MongoDB container is not initialized.");
+	private bool UseExternalMongoDB => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING"));
+
+	/// <summary>
+	/// Gets the MongoDB connection string for the test container or external service.
+	/// </summary>
+	public string MongoConnectionString => _connectionString
+		?? throw new InvalidOperationException("MongoDB is not initialized.");
 
 	/// <summary>
 	/// Gets the test database name.
@@ -42,20 +49,31 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 	public string DatabaseName => "issuetracker-test-db";
 
 	/// <summary>
-	/// Initializes the MongoDB test container.
+	/// Initializes the MongoDB test container or uses external connection.
 	/// </summary>
 	public async Task InitializeAsync()
 	{
+		var externalConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
+
+		if (!string.IsNullOrEmpty(externalConnectionString))
+		{
+			// Use the external MongoDB service provided by CI environment
+			_connectionString = externalConnectionString;
+			return;
+		}
+
+		// Use Testcontainers for local development
 		_mongoContainer = new MongoDbBuilder()
 			.WithImage("mongo:7.0")
 			.WithName($"mongodb-integration-test-{Guid.NewGuid():N}")
 			.Build();
 
 		await _mongoContainer.StartAsync();
+		_connectionString = _mongoContainer.GetConnectionString();
 	}
 
 	/// <summary>
-	/// Disposes of the MongoDB test container.
+	/// Disposes of the MongoDB test container if one was created.
 	/// </summary>
 	public new async Task DisposeAsync()
 	{
@@ -77,7 +95,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
 		builder.ConfigureAppConfiguration((_, configBuilder) =>
 		{
-			// Override MongoDB settings with test container connection
+			// Override MongoDB settings with test container or external service connection
 			var testConfig = new Dictionary<string, string?>
 			{
 				["MongoDB:ConnectionString"] = MongoConnectionString,

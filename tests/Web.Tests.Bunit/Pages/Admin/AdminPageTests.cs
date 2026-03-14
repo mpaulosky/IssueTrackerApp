@@ -957,10 +957,9 @@ public class AdminPageLayoutTests : BunitTestBase
     {
         // Arrange
         SetupAuthenticatedUser(isAdmin: true);
-        var parameters = new ComponentParameter();
 
         // Act
-        var cut = RenderComponent<AdminPageLayout>(parameters);
+        var cut = RenderComponent<AdminPageLayout>();
 
         // Assert
         var navLinks = cut.FindAll("a");
