@@ -1,6 +1,7 @@
 // Temporary diagnostic test to inspect MongoDB document structure
 using System.Linq.Expressions;
 using Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver;
@@ -50,12 +51,20 @@ public class DiagnosticTests : IntegrationTestBase
 
 		// Act - Read back via EF Core ToListAsync (same as Repository.FindAsync)
 		await using var context = Factory.CreateDbContext();
-		var act = async () => await context.Issues.ToListAsync();
+		List<Issue> issues;
+		try
+		{
+			issues = await context.Issues.ToListAsync(CancellationToken.None);
+		}
+		catch (Exception ex)
+		{
+			// Force failure with full exception details
+			Assert.Fail($"EF Core ToListAsync failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+			return;
+		}
 
 		// Assert
-		var issues = await act.Should().NotThrowAsync(
-			"EF Core should be able to deserialize Issues written by EF Core");
-		issues.Subject.Should().HaveCount(3);
+		issues.Should().HaveCount(3, "EF Core should deserialize Issues written by EF Core");
 	}
 
 	[Fact]
@@ -70,15 +79,24 @@ public class DiagnosticTests : IntegrationTestBase
 
 		// Act - Read back via EF Core Where + ToListAsync (same as Repository.FindAsync)
 		await using var context = Factory.CreateDbContext();
-		var act = async () => await context.Issues
-			.Where(i => i.DateCreated >= startDate && i.DateCreated <= endDate)
-			.ToListAsync();
+		List<Issue> issues;
+		try
+		{
+			issues = await context.Issues
+				.Where(i => i.DateCreated >= startDate && i.DateCreated <= endDate)
+				.ToListAsync(CancellationToken.None);
+		}
+		catch (Exception ex)
+		{
+			// Force failure with full exception details
+			Assert.Fail(
+				$"EF Core Where+ToListAsync failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+			return;
+		}
 
 		// Assert
-		var issues = await act.Should().NotThrowAsync(
-			"EF Core Where+ToListAsync should deserialize Issues. " +
-			"This is the exact pattern Repository.FindAsync uses.");
-		issues.Subject.Should().HaveCount(3);
+		issues.Should().HaveCount(3,
+			"EF Core Where+ToListAsync should deserialize Issues - this is Repository.FindAsync pattern");
 	}
 
 	[Fact]
