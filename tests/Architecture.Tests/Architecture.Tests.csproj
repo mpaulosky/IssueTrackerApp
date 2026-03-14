@@ -22,5 +22,6 @@
     <ProjectReference Include="..\..\src\Domain\Domain.csproj" />
     <ProjectReference Include="..\..\src\Web\Web.csproj" />
     <ProjectReference Include="..\..\src\Persistence.MongoDb\Persistence.MongoDb.csproj" />
+    <ProjectReference Include="..\..\src\Persistence.AzureStorage\Persistence.AzureStorage.csproj" />
   </ItemGroup>
 </Project>
