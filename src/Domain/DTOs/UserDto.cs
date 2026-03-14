@@ -24,5 +24,13 @@ public record UserDto(string Id, string Name, string Email)
 	{
 	}
 
+	/// <summary>
+	///   Initializes a new instance of the <see cref="UserDto" /> record from a UserInfo value object.
+	/// </summary>
+	/// <param name="info">The user info value object.</param>
+	public UserDto(UserInfo info) : this(info.Id, info.Name, info.Email)
+	{
+	}
+
 	public static UserDto Empty => new(string.Empty, string.Empty, string.Empty);
 }

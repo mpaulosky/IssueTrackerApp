@@ -30,7 +30,7 @@ public static class StatusMapper
 			status.DateCreated,
 			status.DateModified,
 			status.Archived,
-			status.ArchivedBy);
+			UserMapper.ToDto(status.ArchivedBy));
 	}
 
 	/// <summary>
@@ -69,7 +69,7 @@ public static class StatusMapper
 			DateCreated = dto.DateCreated,
 			DateModified = dto.DateModified,
 			Archived = dto.Archived,
-			ArchivedBy = dto.ArchivedBy
+			ArchivedBy = UserMapper.ToInfo(dto.ArchivedBy)
 		};
 	}
 

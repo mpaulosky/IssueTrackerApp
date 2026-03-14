@@ -29,13 +29,13 @@ public static class CommentMapper
 			comment.Description,
 			comment.DateCreated,
 			comment.DateModified,
-			comment.Issue,
-			comment.Author,
+			comment.IssueId,
+			UserMapper.ToDto(comment.Author),
 			comment.UserVotes,
 			comment.Archived,
-			comment.ArchivedBy,
+			UserMapper.ToDto(comment.ArchivedBy),
 			comment.IsAnswer,
-			comment.AnswerSelectedBy);
+			UserMapper.ToDto(comment.AnswerSelectedBy));
 	}
 
 	/// <summary>
@@ -54,13 +54,13 @@ public static class CommentMapper
 			Description = dto.Description,
 			DateCreated = dto.DateCreated,
 			DateModified = dto.DateModified,
-			Issue = dto.Issue,
-			Author = dto.Author,
+			IssueId = dto.IssueId,
+			Author = UserMapper.ToInfo(dto.Author),
 			UserVotes = dto.UserVotes,
 			Archived = dto.Archived,
-			ArchivedBy = dto.ArchivedBy,
+			ArchivedBy = UserMapper.ToInfo(dto.ArchivedBy),
 			IsAnswer = dto.IsAnswer,
-			AnswerSelectedBy = dto.AnswerSelectedBy
+			AnswerSelectedBy = UserMapper.ToInfo(dto.AnswerSelectedBy)
 		};
 	}
 

@@ -494,3 +494,30 @@
 - Architecture.Tests: 38 passed, 0 failed
 - Full solution: pre-existing TailwindCSS/npm issue in Web project (unrelated)
 
+### WI-3 + WI-4 — Model Refactoring to Value Objects + DTO/Mapper Updates (2026-03-14)
+
+**What Changed:**
+- **Models refactored:** Replaced all DTO types in domain models with value objects:
+  - Issue.cs: `CategoryDto→CategoryInfo`, `UserDto Author→UserInfo`, `StatusDto→StatusInfo`, `UserDto ArchivedBy→UserInfo`
+  - Category.cs: `UserDto ArchivedBy→UserInfo`
+  - Status.cs: `UserDto ArchivedBy→UserInfo`
+  - Comment.cs: `IssueDto Issue→ObjectId IssueId` (breaks circular dep), `UserDto Author/ArchivedBy/AnswerSelectedBy→UserInfo`
+  - Attachment.cs: `UserDto UploadedBy→UserInfo`
+- **DTOs updated:** All 6 DTO constructors now convert value objects via Mappers (UserMapper.ToDto, CategoryMapper.ToDto, etc.)
+- **CommentDto:** Changed from `IssueDto Issue` to `ObjectId IssueId` to match the model change
+- **UserDto:** Added `UserDto(UserInfo info)` constructor for direct value object conversion
+- **Mappers updated:** All 6 mappers now use UserMapper.ToInfo/ToDto, CategoryMapper.ToInfo/ToDto, StatusMapper.ToInfo/ToDto for conversions
+- **EF Core configs:** CommentConfiguration removed the nested IssueDto OwnsOne block; other configs unchanged (property names match)
+- **GlobalUsings:** Added `global using Domain.Mappers;` to Domain project
+
+**Remaining Compile Errors (29 errors in 15 Feature handler files — expected, for WI-5):**
+- Comment handlers: `AddCommentCommand`, `UpdateCommentCommand`, `DeleteCommentCommand` — need `UserMapper.ToInfo()` + `IssueId` instead of `Issue`
+- Comment queries: `GetIssueCommentsQuery` — needs `IssueId` filter instead of `Issue.Id`
+- Issue commands: `CreateIssueCommand`, `UpdateIssueCommand`, `DeleteIssueCommand`, `ChangeIssueStatusCommand` — need mapper conversions
+- Bulk commands: `BulkAssignCommand`, `BulkDeleteCommand`, `BulkUpdateCategoryCommand`, `BulkUpdateStatusCommand`, `UndoBulkOperationCommand` — need mapper conversions
+- Category commands: `ArchiveCategoryCommand`, `CreateCategoryCommand` — need `UserMapper.ToInfo()`
+- Status commands: `ArchiveStatusCommand`, `CreateStatusCommand` — need `UserMapper.ToInfo()`
+- Attachment commands: `AddAttachmentCommand` — needs `UserMapper.ToInfo()`
+
+**Key Decision:** Changed `Comment.Issue` (IssueDto) → `Comment.IssueId` (ObjectId) to break circular dependency. CommentDto also changed to hold `ObjectId IssueId` instead of embedded `IssueDto`. Downstream handlers that need full issue data must load it separately.
+

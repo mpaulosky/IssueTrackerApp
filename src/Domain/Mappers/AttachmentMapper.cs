@@ -31,7 +31,7 @@ public static class AttachmentMapper
 			attachment.FileSize,
 			attachment.BlobUrl,
 			attachment.ThumbnailUrl,
-			attachment.UploadedBy,
+			UserMapper.ToDto(attachment.UploadedBy),
 			attachment.UploadedAt);
 	}
 
@@ -53,7 +53,7 @@ public static class AttachmentMapper
 			FileSize = dto.FileSize,
 			BlobUrl = dto.BlobUrl,
 			ThumbnailUrl = dto.ThumbnailUrl,
-			UploadedBy = dto.UploadedBy,
+			UploadedBy = UserMapper.ToInfo(dto.UploadedBy),
 			UploadedAt = dto.UploadedAt
 		};
 	}

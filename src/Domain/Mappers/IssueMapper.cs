@@ -30,11 +30,11 @@ public static class IssueMapper
 			issue.Description,
 			issue.DateCreated,
 			issue.DateModified,
-			issue.Author,
-			issue.Category,
-			issue.Status,
+			UserMapper.ToDto(issue.Author),
+			CategoryMapper.ToDto(issue.Category),
+			StatusMapper.ToDto(issue.Status),
 			issue.Archived,
-			issue.ArchivedBy,
+			UserMapper.ToDto(issue.ArchivedBy),
 			issue.ApprovedForRelease,
 			issue.Rejected);
 	}
@@ -55,11 +55,11 @@ public static class IssueMapper
 			Description = dto.Description,
 			DateCreated = dto.DateCreated,
 			DateModified = dto.DateModified,
-			Author = dto.Author,
-			Category = dto.Category,
-			Status = dto.Status,
+			Author = UserMapper.ToInfo(dto.Author),
+			Category = CategoryMapper.ToInfo(dto.Category),
+			Status = StatusMapper.ToInfo(dto.Status),
 			Archived = dto.Archived,
-			ArchivedBy = dto.ArchivedBy,
+			ArchivedBy = UserMapper.ToInfo(dto.ArchivedBy),
 			ApprovedForRelease = dto.ApprovedForRelease,
 			Rejected = dto.Rejected
 		};

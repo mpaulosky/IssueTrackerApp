@@ -21,7 +21,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
 		// Configure the key
 		builder.HasKey(c => c.Id);
 
-		// Configure owned type for embedded UserDto
+		// Configure owned type for embedded UserInfo
 		builder.OwnsOne(c => c.ArchivedBy, ab =>
 		{
 			ab.Property(u => u.Id).HasElementName("id");

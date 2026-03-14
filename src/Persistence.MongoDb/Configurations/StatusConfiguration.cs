@@ -21,7 +21,7 @@ public class StatusConfiguration : IEntityTypeConfiguration<Status>
 		// Configure the key
 		builder.HasKey(s => s.Id);
 
-		// Configure owned type for embedded UserDto
+		// Configure owned type for embedded UserInfo
 		builder.OwnsOne(s => s.ArchivedBy, ab =>
 		{
 			ab.Property(u => u.Id).HasElementName("id");

@@ -30,7 +30,7 @@ public static class CategoryMapper
 			category.DateCreated,
 			category.DateModified,
 			category.Archived,
-			category.ArchivedBy);
+			UserMapper.ToDto(category.ArchivedBy));
 	}
 
 	/// <summary>
@@ -69,7 +69,7 @@ public static class CategoryMapper
 			DateCreated = dto.DateCreated,
 			DateModified = dto.DateModified,
 			Archived = dto.Archived,
-			ArchivedBy = dto.ArchivedBy
+			ArchivedBy = UserMapper.ToInfo(dto.ArchivedBy)
 		};
 	}
 

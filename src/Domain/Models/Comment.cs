@@ -66,12 +66,14 @@ public class Comment
 	public DateTime? DateModified { get; set; }
 
 	/// <summary>
-	///   Gets or sets the issue.
+	///   Gets or sets the issue identifier.
 	/// </summary>
 	/// <value>
-	///   The issue.
+	///   The issue identifier.
 	/// </value>
-	public IssueDto Issue { get; set; } = IssueDto.Empty;
+	[BsonElement("issue_id")]
+	[BsonRepresentation(BsonType.ObjectId)]
+	public ObjectId IssueId { get; set; } = ObjectId.Empty;
 
 	/// <summary>
 	///   Gets or sets the author.
@@ -79,7 +81,7 @@ public class Comment
 	/// <value>
 	///   The author.
 	/// </value>
-	public UserDto Author { get; set; } = UserDto.Empty;
+	public UserInfo Author { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets the user votes.
@@ -106,7 +108,7 @@ public class Comment
 	///   Who archived the record.
 	/// </value>
 	[BsonElement("archived_by")]
-	public UserDto ArchivedBy { get; set; } = UserDto.Empty;
+	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets that this comment is the selected answer to the associated Issue.
@@ -124,5 +126,5 @@ public class Comment
 	/// <value>
 	///   Who selected this comment as the answer to the associated Issue.
 	/// </value>
-	public UserDto AnswerSelectedBy { get; set; } = UserDto.Empty;
+	public UserInfo AnswerSelectedBy { get; set; } = UserInfo.Empty;
 }

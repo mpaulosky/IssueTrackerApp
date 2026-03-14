@@ -38,11 +38,11 @@ public record IssueDto(
 		issue.Description,
 		issue.DateCreated,
 		issue.DateModified,
-		issue.Author,
-		issue.Category,
-		issue.Status,
+		UserMapper.ToDto(issue.Author),
+		CategoryMapper.ToDto(issue.Category),
+		StatusMapper.ToDto(issue.Status),
 		issue.Archived,
-		issue.ArchivedBy,
+		UserMapper.ToDto(issue.ArchivedBy),
 		issue.ApprovedForRelease,
 		issue.Rejected)
 	{

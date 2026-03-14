@@ -92,7 +92,7 @@ public class Attachment
 	///   The uploaded by user.
 	/// </value>
 	[BsonElement("uploaded_by")]
-	public UserDto UploadedBy { get; set; } = UserDto.Empty;
+	public UserInfo UploadedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets the uploaded date.

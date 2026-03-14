@@ -83,5 +83,5 @@ public class Category
 	///   Who archived the record.
 	/// </value>
 	[BsonElement("archived_by")]
-	public UserDto ArchivedBy { get; set; } = UserDto.Empty;
+	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
 }
