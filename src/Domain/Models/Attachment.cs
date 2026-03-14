@@ -22,7 +22,6 @@ public class Attachment
 	///   The identifier.
 	/// </value>
 	[BsonId]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId Id { get; set; } = ObjectId.Empty;
 
 	/// <summary>
@@ -31,8 +30,6 @@ public class Attachment
 	/// <value>
 	///   The issue identifier.
 	/// </value>
-	[BsonElement("issue_id")]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId IssueId { get; set; } = ObjectId.Empty;
 
 	/// <summary>
@@ -41,8 +38,6 @@ public class Attachment
 	/// <value>
 	///   The name of the file.
 	/// </value>
-	[BsonElement("file_name")]
-	[BsonRepresentation(BsonType.String)]
 	public string FileName { get; set; } = string.Empty;
 
 	/// <summary>
@@ -51,8 +46,6 @@ public class Attachment
 	/// <value>
 	///   The type of the content.
 	/// </value>
-	[BsonElement("content_type")]
-	[BsonRepresentation(BsonType.String)]
 	public string ContentType { get; set; } = string.Empty;
 
 	/// <summary>
@@ -61,8 +54,6 @@ public class Attachment
 	/// <value>
 	///   The size of the file.
 	/// </value>
-	[BsonElement("file_size")]
-	[BsonRepresentation(BsonType.Int64)]
 	public long FileSize { get; set; }
 
 	/// <summary>
@@ -71,8 +62,6 @@ public class Attachment
 	/// <value>
 	///   The BLOB URL.
 	/// </value>
-	[BsonElement("blob_url")]
-	[BsonRepresentation(BsonType.String)]
 	public string BlobUrl { get; set; } = string.Empty;
 
 	/// <summary>
@@ -81,8 +70,6 @@ public class Attachment
 	/// <value>
 	///   The thumbnail URL.
 	/// </value>
-	[BsonElement("thumbnail_url")]
-	[BsonRepresentation(BsonType.String)]
 	public string? ThumbnailUrl { get; set; }
 
 	/// <summary>
@@ -91,7 +78,6 @@ public class Attachment
 	/// <value>
 	///   The uploaded by user.
 	/// </value>
-	[BsonElement("uploaded_by")]
 	public UserInfo UploadedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
@@ -100,7 +86,5 @@ public class Attachment
 	/// <value>
 	///   The uploaded date.
 	/// </value>
-	[BsonElement("uploaded_at")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 }

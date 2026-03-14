@@ -94,9 +94,9 @@ public static class StatusEndpoints
 	///   Gets all statuses with optional filtering.
 	/// </summary>
 	private static async Task<IResult> GetAllStatuses(
-		[FromQuery] bool includeArchived,
 		IStatusService statusService,
-		CancellationToken cancellationToken)
+		[FromQuery] bool includeArchived = false,
+		CancellationToken cancellationToken = default)
 	{
 		var result = await statusService.GetStatusesAsync(includeArchived, cancellationToken);
 

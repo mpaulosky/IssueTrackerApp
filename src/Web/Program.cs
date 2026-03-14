@@ -11,9 +11,16 @@ using Web.Components;
 using Web.Data;
 using Web.Endpoints;
 using Web.Features;
+using Web.Helpers;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure JSON serialization for MongoDB ObjectId
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+	options.SerializerOptions.Converters.Add(new ObjectIdJsonConverter());
+});
 
 // Add Azure Key Vault configuration for non-Development environments
 if (!builder.Environment.IsDevelopment())
@@ -33,8 +40,12 @@ builder.AddServiceDefaults();
 // Add MongoDB persistence layer
 builder.Services.AddMongoDbPersistence(builder.Configuration);
 
-// Add MongoDB connection from Aspire service discovery
-builder.AddMongoDBClient("mongodb");
+// Add MongoDB connection from Aspire service discovery (skip in test environment —
+// the EF Core provider handles the connection, and Aspire service discovery hangs without AppHost)
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+	builder.AddMongoDBClient("mongodb");
+}
 
 // Add MediatR for CQRS pattern
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DomainMarker).Assembly));
@@ -164,7 +175,12 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// StatusCodePagesWithReExecute re-executes requests to /not-found (a Blazor page, GET-only).
+// This interferes with API PUT/DELETE responses by converting 401→405, so skip in Testing.
+if (!app.Environment.IsEnvironment("Testing"))
+{
+	app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+}
 app.UseHttpsRedirection();
 
 // Add authentication and authorization middleware

@@ -17,6 +17,7 @@ namespace Web.Tests.Integration;
 /// <summary>
 ///   Integration tests for Category API endpoints.
 /// </summary>
+[Collection("Integration")]
 public sealed class CategoryEndpointTests : IntegrationTestBase
 {
 	public CategoryEndpointTests(CustomWebApplicationFactory factory) : base(factory)
@@ -36,7 +37,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>();
+		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>(JsonOptions);
 		categories.Should().NotBeNull();
 		categories.Should().BeEmpty();
 	}
@@ -53,7 +54,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>();
+		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>(JsonOptions);
 		categories.Should().NotBeNull();
 		categories.Should().HaveCount(seededCategories.Count);
 		categories!.Select(c => c.CategoryName).Should()
@@ -79,7 +80,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>();
+		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>(JsonOptions);
 		categories.Should().NotBeNull();
 		categories.Should().HaveCount(seededCategories.Count - 1);
 		categories!.Should().NotContain(c => c.CategoryName == categoryToArchive.CategoryName);
@@ -104,7 +105,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>();
+		var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>(JsonOptions);
 		categories.Should().NotBeNull();
 		categories.Should().HaveCount(seededCategories.Count);
 	}
@@ -126,7 +127,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var category = await response.Content.ReadFromJsonAsync<CategoryDto>();
+		var category = await response.Content.ReadFromJsonAsync<CategoryDto>(JsonOptions);
 		category.Should().NotBeNull();
 		category!.CategoryName.Should().Be(targetCategory.CategoryName);
 		category.CategoryDescription.Should().Be(targetCategory.CategoryDescription);
@@ -175,7 +176,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.Created);
-		var category = await response.Content.ReadFromJsonAsync<CategoryDto>();
+		var category = await response.Content.ReadFromJsonAsync<CategoryDto>(JsonOptions);
 		category.Should().NotBeNull();
 		category!.CategoryName.Should().Be(request.CategoryName);
 		category.CategoryDescription.Should().Be(request.CategoryDescription);
@@ -275,7 +276,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var category = await response.Content.ReadFromJsonAsync<CategoryDto>();
+		var category = await response.Content.ReadFromJsonAsync<CategoryDto>(JsonOptions);
 		category.Should().NotBeNull();
 		category!.CategoryName.Should().Be(request.CategoryName);
 		category.CategoryDescription.Should().Be(request.CategoryDescription);
@@ -395,7 +396,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var category = await response.Content.ReadFromJsonAsync<CategoryDto>();
+		var category = await response.Content.ReadFromJsonAsync<CategoryDto>(JsonOptions);
 		category.Should().NotBeNull();
 		category!.Archived.Should().BeTrue();
 	}
@@ -442,7 +443,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var category = await response.Content.ReadFromJsonAsync<CategoryDto>();
+		var category = await response.Content.ReadFromJsonAsync<CategoryDto>(JsonOptions);
 		category.Should().NotBeNull();
 		category!.ArchivedBy.Should().NotBeNull();
 		category.ArchivedBy!.Id.Should().NotBeEmpty();
@@ -465,7 +466,7 @@ public sealed class CategoryEndpointTests : IntegrationTestBase
 
 		// Assert
 		listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-		var categories = await listResponse.Content.ReadFromJsonAsync<List<CategoryDto>>();
+		var categories = await listResponse.Content.ReadFromJsonAsync<List<CategoryDto>>(JsonOptions);
 		categories.Should().NotBeNull();
 		categories!.Should().NotContain(c => c.Id.ToString() == targetCategory.Id.ToString());
 	}

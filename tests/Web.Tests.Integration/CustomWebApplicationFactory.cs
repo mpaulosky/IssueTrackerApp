@@ -10,11 +10,13 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Persistence.MongoDb;
 using Persistence.MongoDb.Configurations;
 
@@ -63,12 +65,21 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 		}
 
 		// Use Testcontainers for local development
+		// EF Core MongoDB provider requires a replica set for transactions
 		_mongoContainer = new MongoDbBuilder("mongo:7.0")
-
+			.WithCommand("mongod", "--replSet", "rs0", "--bind_ip_all")
 			.WithName($"mongodb-integration-test-{Guid.NewGuid():N}")
 			.Build();
 
 		await _mongoContainer.StartAsync();
+
+		// Initialize single-node replica set (required for SaveChangesAsync transactions)
+		await _mongoContainer.ExecScriptAsync(
+			"rs.initiate({_id:'rs0', members:[{_id:0, host:'localhost:27017'}]})");
+
+		// Wait for replica set to elect primary
+		await Task.Delay(3000);
+
 		_connectionString = _mongoContainer.GetConnectionString();
 	}
 
@@ -100,6 +111,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 			{
 				["MongoDB:ConnectionString"] = MongoConnectionString,
 				["MongoDB:DatabaseName"] = DatabaseName,
+				// Aspire AddMongoDBClient("mongodb") reads this key; without it, service discovery hangs
+				["ConnectionStrings:mongodb"] = MongoConnectionString,
 				// Auth0 settings (not used since we mock auth, but required for startup)
 				["Auth0:Domain"] = "test.auth0.com",
 				["Auth0:ClientId"] = "test-client-id",
@@ -154,20 +167,27 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 	}
 
 	/// <summary>
-	/// Clears all data from the test database.
+	/// Clears all data from the test database and in-memory caches.
+	/// Uses the MongoDB driver to delete all documents from each collection,
+	/// avoiding both EF Core deserialization issues and DropDatabase race conditions
+	/// when test classes run with shared fixtures.
 	/// </summary>
 	public async Task ClearDatabaseAsync()
 	{
-		await using var context = CreateDbContext();
+		var client = new MongoClient(MongoConnectionString);
+		var database = client.GetDatabase(DatabaseName);
+		var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
 
-		// Remove all entities from collections
-		context.Issues.RemoveRange(context.Issues);
-		context.Categories.RemoveRange(context.Categories);
-		context.Statuses.RemoveRange(context.Statuses);
-		context.Comments.RemoveRange(context.Comments);
-		context.Attachments.RemoveRange(context.Attachments);
-		context.EmailQueue.RemoveRange(context.EmailQueue);
+		foreach (var name in collectionNames)
+		{
+			await database.GetCollection<MongoDB.Bson.BsonDocument>(name)
+				.DeleteManyAsync(MongoDB.Driver.FilterDefinition<MongoDB.Bson.BsonDocument>.Empty);
+		}
 
-		await context.SaveChangesAsync();
+		// Clear in-memory caches to prevent stale analytics data between tests
+		if (Services.GetService<IMemoryCache>() is MemoryCache mc)
+		{
+			mc.Compact(1.0);
+		}
 	}
 }

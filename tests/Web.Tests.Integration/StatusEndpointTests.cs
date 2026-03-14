@@ -7,7 +7,7 @@
 // Project Name :  Web.Tests.Integration
 // =======================================================
 
-using System.Text.Json;
+using System.Net.Http.Json;
 using Domain.DTOs;
 using Domain.Models;
 using MongoDB.Bson;
@@ -18,12 +18,9 @@ namespace Web.Tests.Integration;
 /// <summary>
 ///   Integration tests for the Status API endpoints.
 /// </summary>
+[Collection("Integration")]
 public sealed class StatusEndpointTests : IntegrationTestBase
 {
-	private static readonly JsonSerializerOptions JsonOptions = new()
-	{
-		PropertyNameCaseInsensitive = true
-	};
 
 	public StatusEndpointTests(CustomWebApplicationFactory factory) : base(factory)
 	{
@@ -43,8 +40,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var statuses = JsonSerializer.Deserialize<List<StatusDto>>(content, JsonOptions);
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().BeEmpty();
@@ -63,8 +59,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var statuses = JsonSerializer.Deserialize<List<StatusDto>>(content, JsonOptions);
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().HaveCount(seededStatuses.Count);
@@ -84,8 +79,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var statuses = JsonSerializer.Deserialize<List<StatusDto>>(content, JsonOptions);
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses!.All(s => !s.Archived).Should().BeTrue();
@@ -105,8 +99,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var statuses = JsonSerializer.Deserialize<List<StatusDto>>(content, JsonOptions);
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().HaveCount(seededStatuses.Count + 1);
@@ -126,8 +119,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var statuses = JsonSerializer.Deserialize<List<StatusDto>>(content, JsonOptions);
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().BeInAscendingOrder(s => s.StatusName);
@@ -151,8 +143,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var status = JsonSerializer.Deserialize<StatusDto>(content, JsonOptions);
+		var status = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		status.Should().NotBeNull();
 		status!.Id.Should().Be(targetStatus.Id);
@@ -204,8 +195,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var createdStatus = JsonSerializer.Deserialize<StatusDto>(content, JsonOptions);
+		var createdStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		createdStatus.Should().NotBeNull();
 		createdStatus!.StatusName.Should().Be(request.StatusName);
@@ -338,8 +328,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var updatedStatus = JsonSerializer.Deserialize<StatusDto>(content, JsonOptions);
+		var updatedStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		updatedStatus.Should().NotBeNull();
 		updatedStatus!.Id.Should().Be(targetStatus.Id);
@@ -432,8 +421,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var archivedStatus = JsonSerializer.Deserialize<StatusDto>(content, JsonOptions);
+		var archivedStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		archivedStatus.Should().NotBeNull();
 		archivedStatus!.Id.Should().Be(targetStatus.Id);
@@ -484,8 +472,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var content = await response.Content.ReadAsStringAsync();
-		var archivedStatus = JsonSerializer.Deserialize<StatusDto>(content, JsonOptions);
+		var archivedStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		archivedStatus.Should().NotBeNull();
 		archivedStatus!.ArchivedBy.Id.Should().Be(TestAuthHandler.TestUserId);

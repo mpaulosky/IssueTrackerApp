@@ -7,10 +7,12 @@
 // Project Name :  Web.Tests.Integration
 // =======================================================
 
+using System.Text.Json;
 using Domain.DTOs;
 using Domain.Models;
 using MongoDB.Bson;
 using Persistence.MongoDb;
+using Web.Helpers;
 
 namespace Web.Tests.Integration;
 
@@ -20,6 +22,14 @@ namespace Web.Tests.Integration;
 /// </summary>
 public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
 {
+	/// <summary>
+	/// JSON serializer options configured with ObjectId converter for deserializing API responses.
+	/// </summary>
+	protected static readonly JsonSerializerOptions JsonOptions = new()
+	{
+		PropertyNameCaseInsensitive = true,
+		Converters = { new ObjectIdJsonConverter() }
+	};
 	/// <summary>
 	/// The custom web application factory instance.
 	/// </summary>
@@ -252,36 +262,35 @@ public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFa
 	{
 		await using var context = Factory.CreateDbContext();
 
-		var author = new UserInfo
-		{
-			Id = TestAuthHandler.TestUserId,
-			Name = TestAuthHandler.TestUserName,
-			Email = TestAuthHandler.TestUserEmail
-		};
-		var categoryInfo = new CategoryInfo
-		{
-			Id = category.Id,
-			CategoryName = category.CategoryName,
-			CategoryDescription = category.CategoryDescription
-		};
-		var statusInfo = new StatusInfo
-		{
-			Id = status.Id,
-			StatusName = status.StatusName,
-			StatusDescription = status.StatusDescription
-		};
-
 		var issues = new List<Issue>();
 		for (var i = 1; i <= count; i++)
 		{
+			// EF Core owned types require unique instances per parent entity —
+			// sharing the same object reference causes only the first parent
+			// to serialize the embedded document correctly
 			issues.Add(new Issue
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = $"Test Issue {i}",
 				Description = $"Test issue description {i}",
-				Category = categoryInfo,
-				Status = statusInfo,
-				Author = author
+				Category = new CategoryInfo
+				{
+					Id = category.Id,
+					CategoryName = category.CategoryName,
+					CategoryDescription = category.CategoryDescription
+				},
+				Status = new StatusInfo
+				{
+					Id = status.Id,
+					StatusName = status.StatusName,
+					StatusDescription = status.StatusDescription
+				},
+				Author = new UserInfo
+				{
+					Id = TestAuthHandler.TestUserId,
+					Name = TestAuthHandler.TestUserName,
+					Email = TestAuthHandler.TestUserEmail
+				}
 			});
 		}
 

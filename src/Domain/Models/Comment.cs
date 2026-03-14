@@ -22,7 +22,6 @@ public class Comment
 	///   The identifier.
 	/// </value>
 	[BsonId]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId Id { get; set; } = ObjectId.Empty;
 
 	/// <summary>
@@ -31,8 +30,6 @@ public class Comment
 	/// <value>
 	///   The title.
 	/// </value>
-	[BsonElement("comment_title")]
-	[BsonRepresentation(BsonType.String)]
 	public string Title { get; set; } = string.Empty;
 
 	/// <summary>
@@ -41,8 +38,6 @@ public class Comment
 	/// <value>
 	///   The description.
 	/// </value>
-	[BsonElement("comment_description")]
-	[BsonRepresentation(BsonType.String)]
 	public string Description { get; init; } = string.Empty;
 
 	/// <summary>
@@ -51,8 +46,6 @@ public class Comment
 	/// <value>
 	///   The date created.
 	/// </value>
-	[BsonElement("date_created")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime DateCreated { get; init; } = DateTime.UtcNow;
 
 	/// <summary>
@@ -61,8 +54,6 @@ public class Comment
 	/// <value>
 	///   The date modified.
 	/// </value>
-	[BsonElement("date_modified")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime? DateModified { get; set; }
 
 	/// <summary>
@@ -71,8 +62,6 @@ public class Comment
 	/// <value>
 	///   The issue identifier.
 	/// </value>
-	[BsonElement("issue_id")]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId IssueId { get; set; } = ObjectId.Empty;
 
 	/// <summary>
@@ -97,8 +86,6 @@ public class Comment
 	/// <value>
 	///   <c>true</c> if archived; otherwise, <c>false</c>.
 	/// </value>
-	[BsonElement("archived")]
-	[BsonRepresentation(BsonType.Boolean)]
 	public bool Archived { get; set; }
 
 	/// <summary>
@@ -107,7 +94,6 @@ public class Comment
 	/// <value>
 	///   Who archived the record.
 	/// </value>
-	[BsonElement("archived_by")]
 	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
@@ -116,8 +102,6 @@ public class Comment
 	/// <value>
 	///   <c>true</c> if is the answer; otherwise, <c>false</c>.
 	/// </value>
-	[BsonElement("is_answer")]
-	[BsonRepresentation(BsonType.Boolean)]
 	public bool IsAnswer { get; set; }
 
 	/// <summary>

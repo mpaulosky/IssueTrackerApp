@@ -18,6 +18,7 @@ namespace Web.Tests.Integration;
 /// <summary>
 ///   Integration tests for Attachment API endpoints.
 /// </summary>
+[Collection("Integration")]
 public class AttachmentEndpointTests : IntegrationTestBase
 {
 	public AttachmentEndpointTests(CustomWebApplicationFactory factory) : base(factory)
@@ -40,7 +41,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var attachments = await response.Content.ReadFromJsonAsync<List<AttachmentDto>>();
+		var attachments = await response.Content.ReadFromJsonAsync<List<AttachmentDto>>(JsonOptions);
 		attachments.Should().NotBeNull();
 		attachments.Should().HaveCount(1);
 		attachments![0].FileName.Should().Be(attachment.FileName);
@@ -59,7 +60,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
-		var attachments = await response.Content.ReadFromJsonAsync<List<AttachmentDto>>();
+		var attachments = await response.Content.ReadFromJsonAsync<List<AttachmentDto>>(JsonOptions);
 		attachments.Should().NotBeNull();
 		attachments.Should().BeEmpty();
 	}
@@ -97,7 +98,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.Created);
-		var attachment = await response.Content.ReadFromJsonAsync<AttachmentDto>();
+		var attachment = await response.Content.ReadFromJsonAsync<AttachmentDto>(JsonOptions);
 		attachment.Should().NotBeNull();
 		attachment!.FileName.Should().Be("test-file.txt");
 		attachment.ContentType.Should().Be("text/plain");
@@ -122,7 +123,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.Created);
-		var attachment = await response.Content.ReadFromJsonAsync<AttachmentDto>();
+		var attachment = await response.Content.ReadFromJsonAsync<AttachmentDto>(JsonOptions);
 		attachment.Should().NotBeNull();
 		attachment!.FileName.Should().Be("test-image.png");
 		attachment.ContentType.Should().Be("image/png");
@@ -146,7 +147,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.Created);
-		var attachment = await response.Content.ReadFromJsonAsync<AttachmentDto>();
+		var attachment = await response.Content.ReadFromJsonAsync<AttachmentDto>(JsonOptions);
 		attachment.Should().NotBeNull();
 		attachment!.FileName.Should().Be("document.pdf");
 		attachment.ContentType.Should().Be("application/pdf");
@@ -243,7 +244,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 		using var uploadContent = CreateMultipartContent("download-test.txt", "text/plain", "Download me!");
 		var uploadResponse = await client.PostAsync($"/api/issues/{issue.Id}/attachments", uploadContent);
 		uploadResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>();
+		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>(JsonOptions);
 
 		// Act
 		var response = await client.GetAsync($"/api/attachments/{uploadedAttachment!.Id}");
@@ -299,7 +300,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 		using var uploadContent = CreateMultipartContent("to-delete.txt", "text/plain", "Delete me!");
 		var uploadResponse = await client.PostAsync($"/api/issues/{issue.Id}/attachments", uploadContent);
 		uploadResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>();
+		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>(JsonOptions);
 
 		// Act
 		var response = await client.DeleteAsync($"/api/attachments/{uploadedAttachment!.Id}");
@@ -326,7 +327,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 		using var uploadContent = CreateMultipartContent("admin-delete.txt", "text/plain", "Admin will delete me!");
 		var uploadResponse = await userClient.PostAsync($"/api/issues/{issue.Id}/attachments", uploadContent);
 		uploadResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>();
+		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>(JsonOptions);
 
 		// Act - Admin deletes the attachment
 		var response = await adminClient.DeleteAsync($"/api/attachments/{uploadedAttachment!.Id}");
@@ -349,7 +350,7 @@ public class AttachmentEndpointTests : IntegrationTestBase
 		using var uploadContent = CreateMultipartContent("forbidden.txt", "text/plain", "Can't touch this!");
 		var uploadResponse = await ownerClient.PostAsync($"/api/issues/{issue.Id}/attachments", uploadContent);
 		uploadResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>();
+		var uploadedAttachment = await uploadResponse.Content.ReadFromJsonAsync<AttachmentDto>(JsonOptions);
 
 		// Act - Another user tries to delete
 		var response = await otherClient.DeleteAsync($"/api/attachments/{uploadedAttachment!.Id}");

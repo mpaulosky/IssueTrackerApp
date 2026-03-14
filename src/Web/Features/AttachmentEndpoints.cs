@@ -81,7 +81,16 @@ public static class AttachmentEndpoints
 			return Results.BadRequest(new { error = "Request must be multipart/form-data" });
 		}
 
-		var form = await request.ReadFormAsync(cancellationToken);
+		IFormCollection form;
+		try
+		{
+			form = await request.ReadFormAsync(cancellationToken);
+		}
+		catch (InvalidDataException)
+		{
+			return Results.BadRequest(new { error = "No file provided" });
+		}
+
 		var file = form.Files.GetFile("file");
 
 		if (file == null || file.Length == 0)

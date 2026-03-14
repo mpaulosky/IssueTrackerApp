@@ -12,6 +12,7 @@ namespace Domain.DTOs;
 /// <summary>
 ///   Data transfer object for attachment.
 /// </summary>
+[method: JsonConstructor]
 public record AttachmentDto(
 	string Id,
 	string IssueId,

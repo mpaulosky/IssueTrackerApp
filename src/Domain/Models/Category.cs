@@ -22,8 +22,6 @@ public class Category
 	///   The identifier.
 	/// </value>
 	[BsonId]
-	[BsonElement("_id")]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId Id { get; set; } = ObjectId.Empty;
 
 	/// <summary>
@@ -32,8 +30,6 @@ public class Category
 	/// <value>
 	///   The name of the category.
 	/// </value>
-	[BsonElement("category_name")]
-	[BsonRepresentation(BsonType.String)]
 	public string CategoryName { get; set; } = string.Empty;
 
 	/// <summary>
@@ -42,8 +38,6 @@ public class Category
 	/// <value>
 	///   The category description.
 	/// </value>
-	[BsonElement("category-description")]
-	[BsonRepresentation(BsonType.String)]
 	public string CategoryDescription { get; set; } = string.Empty;
 
 	/// <summary>
@@ -52,8 +46,6 @@ public class Category
 	/// <value>
 	///   The date created.
 	/// </value>
-	[BsonElement("date_created")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime DateCreated { get; init; } = DateTime.UtcNow;
 
 	/// <summary>
@@ -62,8 +54,6 @@ public class Category
 	/// <value>
 	///   The date modified.
 	/// </value>
-	[BsonElement("date_modified")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime? DateModified { get; set; }
 
 	/// <summary>
@@ -72,8 +62,6 @@ public class Category
 	/// <value>
 	///   <c>true</c> if archived; otherwise, <c>false</c>.
 	/// </value>
-	[BsonElement("archived")]
-	[BsonRepresentation(BsonType.Boolean)]
 	public bool Archived { get; set; }
 
 	/// <summary>
@@ -82,6 +70,5 @@ public class Category
 	/// <value>
 	///   Who archived the record.
 	/// </value>
-	[BsonElement("archived_by")]
 	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
 }

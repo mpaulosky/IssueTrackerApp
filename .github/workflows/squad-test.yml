@@ -288,21 +288,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
-    services:
-      mongodb:
-        image: mongo:7.0
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd mongosh
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     env:
-      MONGODB_CONNECTION_STRING: "mongodb://localhost:27017/issuemanager-test"
+      MONGODB_CONNECTION_STRING: "mongodb://localhost:27017/issuemanager-test?directConnection=true"
 
     steps:
+      - name: Start MongoDB Replica Set
+        run: |
+          docker run -d --name mongodb -p 27017:27017 mongo:7.0 mongod --replSet rs0
+          # Wait for MongoDB to be ready
+          for i in {1..30}; do
+            if docker exec mongodb mongosh --quiet --eval "db.runCommand({ ping: 1 })" 2>/dev/null; then
+              echo "MongoDB is accepting connections"
+              break
+            fi
+            echo "Waiting for MongoDB... attempt $i"
+            sleep 2
+          done
+          # Initialize single-node replica set (required for EF Core MongoDB transactions)
+          docker exec mongodb mongosh --quiet --eval "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
+          # Wait for replica set to elect primary
+          for i in {1..30}; do
+            if docker exec mongodb mongosh --quiet --eval "rs.isMaster().ismaster" 2>/dev/null | grep -q true; then
+              echo "Replica set primary is ready"
+              break
+            fi
+            echo "Waiting for primary... attempt $i"
+            sleep 2
+          done
+
       - name: Checkout code
         uses: actions/checkout@v6
 
@@ -338,6 +352,8 @@ jobs:
           dotnet test tests/Web.Tests.Integration \
             --configuration Release \
             --no-build \
+            --verbosity normal \
+            --logger "console;verbosity=detailed" \
             --logger "trx;LogFileName=integration.trx" \
             --results-directory "$GITHUB_WORKSPACE/test-results" \
             --collect:"XPlat Code Coverage" \
