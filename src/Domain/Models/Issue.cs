@@ -22,7 +22,6 @@ public class Issue
 	///   The identifier.
 	/// </value>
 	[BsonId]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId Id { get; set; } = ObjectId.Empty;
 
 	/// <summary>
@@ -31,8 +30,6 @@ public class Issue
 	/// <value>
 	///   The title.
 	/// </value>
-	[BsonElement("issue_title")]
-	[BsonRepresentation(BsonType.String)]
 	public string Title { get; set; } = string.Empty;
 
 	/// <summary>
@@ -41,8 +38,6 @@ public class Issue
 	/// <value>
 	///   The description.
 	/// </value>
-	[BsonElement("issue_description")]
-	[BsonRepresentation(BsonType.String)]
 	public string Description { get; set; } = string.Empty;
 
 	/// <summary>
@@ -51,8 +46,6 @@ public class Issue
 	/// <value>
 	///   The date created.
 	/// </value>
-	[BsonElement("date_created")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime DateCreated { get; init; } = DateTime.UtcNow;
 
 	/// <summary>
@@ -61,8 +54,6 @@ public class Issue
 	/// <value>
 	///   The date modified.
 	/// </value>
-	[BsonElement("date_modified")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime? DateModified { get; set; }
 
 	/// <summary>
@@ -95,8 +86,6 @@ public class Issue
 	/// <value>
 	///   <c>true</c> if archived; otherwise, <c>false</c>.
 	/// </value>
-	[BsonElement("archived")]
-	[BsonRepresentation(BsonType.Boolean)]
 	public bool Archived { get; set; }
 
 	/// <summary>
@@ -105,7 +94,6 @@ public class Issue
 	/// <value>
 	///   Who archived the record.
 	/// </value>
-	[BsonElement("archived_by")]
 	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
@@ -114,8 +102,6 @@ public class Issue
 	/// <value>
 	///   <c>true</c> if [approved for release]; otherwise, <c>false</c>.
 	/// </value>
-	[BsonElement("approved_for_release")]
-	[BsonRepresentation(BsonType.Boolean)]
 	public bool ApprovedForRelease { get; set; }
 
 	/// <summary>
@@ -124,7 +110,5 @@ public class Issue
 	/// <value>
 	///   <c>true</c> if rejected; otherwise, <c>false</c>.
 	/// </value>
-	[BsonElement("rejected")]
-	[BsonRepresentation(BsonType.Boolean)]
 	public bool Rejected { get; set; }
 }

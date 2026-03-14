@@ -22,7 +22,6 @@ public sealed class CategoryInfo
 	/// <value>
 	///   The identifier.
 	/// </value>
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId Id { get; set; } = ObjectId.Empty;
 
 	/// <summary>

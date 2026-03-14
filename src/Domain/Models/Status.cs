@@ -22,7 +22,6 @@ public class Status
 	///   The identifier.
 	/// </value>
 	[BsonId]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId Id { get; set; } = ObjectId.Empty;
 
 	/// <summary>
@@ -31,8 +30,6 @@ public class Status
 	/// <value>
 	///   The name of the status.
 	/// </value>
-	[BsonElement("status_name")]
-	[BsonRepresentation(BsonType.String)]
 	public string StatusName { get; set; } = string.Empty;
 
 	/// <summary>
@@ -41,8 +38,6 @@ public class Status
 	/// <value>
 	///   The status description.
 	/// </value>
-	[BsonElement("status_description")]
-	[BsonRepresentation(BsonType.String)]
 	public string StatusDescription { get; set; } = string.Empty;
 
 	/// <summary>
@@ -51,8 +46,6 @@ public class Status
 	/// <value>
 	///   The date created.
 	/// </value>
-	[BsonElement("date_created")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime DateCreated { get; init; } = DateTime.UtcNow;
 
 	/// <summary>
@@ -61,8 +54,6 @@ public class Status
 	/// <value>
 	///   The date modified.
 	/// </value>
-	[BsonElement("date_modified")]
-	[BsonRepresentation(BsonType.DateTime)]
 	public DateTime? DateModified { get; set; }
 
 	/// <summary>
@@ -71,8 +62,6 @@ public class Status
 	/// <value>
 	///   <c>true</c> if archived; otherwise, <c>false</c>.
 	/// </value>
-	[BsonElement("archived")]
-	[BsonRepresentation(BsonType.Boolean)]
 	public bool Archived { get; set; }
 
 	/// <summary>
@@ -81,6 +70,5 @@ public class Status
 	/// <value>
 	///   Who archived the record.
 	/// </value>
-	[BsonElement("archived_by")]
 	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
 }

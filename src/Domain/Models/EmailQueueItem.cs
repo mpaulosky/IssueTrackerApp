@@ -18,7 +18,6 @@ public sealed class EmailQueueItem
 	///   Unique identifier for the queue item.
 	/// </summary>
 	[BsonId]
-	[BsonRepresentation(BsonType.ObjectId)]
 	public ObjectId Id { get; set; }
 
 	/// <summary>

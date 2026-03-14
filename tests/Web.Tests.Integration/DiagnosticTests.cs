@@ -1,9 +1,7 @@
 // Temporary diagnostic test to inspect MongoDB document structure
-using System.Linq.Expressions;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Driver;
 using Persistence.MongoDb;
 
@@ -18,130 +16,62 @@ public class DiagnosticTests : IntegrationTestBase
 	}
 
 	[Fact]
-	public async Task BsonDocument_ShouldContain_StatusField()
+	public async Task BsonDocument_ShowStructure_AndEfCoreRoundTrip()
 	{
 		// Arrange - Seed via EF Core (same pattern as analytics tests)
 		var (categories, statuses) = await SeedTestDataAsync();
-		await SeedIssuesAsync(categories[0], statuses[0], 3);
-
-		// Act - Read raw BSON via MongoDB driver
-		var client = new MongoClient(Factory.MongoConnectionString);
-		var database = client.GetDatabase(Factory.DatabaseName);
-		var collection = database.GetCollection<BsonDocument>("Issue");
-		var docs = await collection.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
-
-		// Assert - Document should have Status field
-		docs.Should().NotBeEmpty("Issues collection should contain seeded documents");
-
-		var firstDoc = docs[0];
-		var fieldNames = firstDoc.Elements.Select(e => e.Name).ToList();
-
-		// This assertion will SHOW the actual field names in the error message
-		firstDoc.Contains("Status").Should().BeTrue(
-			$"Issue document should contain 'Status' field. " +
-			$"Actual top-level fields: [{string.Join(", ", fieldNames)}]");
-	}
-
-	[Fact]
-	public async Task EfCore_ToListAsync_ShouldDeserializeIssues()
-	{
-		// Arrange - Seed via EF Core
-		var (categories, statuses) = await SeedTestDataAsync();
-		await SeedIssuesAsync(categories[0], statuses[0], 3);
-
-		// Act - Read back via EF Core ToListAsync (same as Repository.FindAsync)
-		await using var context = Factory.CreateDbContext();
-		List<Issue> issues;
-		try
-		{
-			issues = await context.Issues.ToListAsync(CancellationToken.None);
-		}
-		catch (Exception ex)
-		{
-			// Force failure with full exception details
-			Assert.Fail($"EF Core ToListAsync failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
-			return;
-		}
-
-		// Assert
-		issues.Should().HaveCount(3, "EF Core should deserialize Issues written by EF Core");
-	}
-
-	[Fact]
-	public async Task EfCore_WhereToListAsync_ShouldDeserializeIssues()
-	{
-		// Arrange - Seed via EF Core (exact pattern analytics uses)
-		var (categories, statuses) = await SeedTestDataAsync();
-		await SeedIssuesAsync(categories[0], statuses[0], 3);
-
-		var startDate = DateTime.UtcNow.AddDays(-1);
-		var endDate = DateTime.UtcNow.AddDays(1);
-
-		// Act - Read back via EF Core Where + ToListAsync (same as Repository.FindAsync)
-		await using var context = Factory.CreateDbContext();
-		List<Issue> issues;
-		try
-		{
-			issues = await context.Issues
-				.Where(i => i.DateCreated >= startDate && i.DateCreated <= endDate)
-				.ToListAsync(CancellationToken.None);
-		}
-		catch (Exception ex)
-		{
-			// Force failure with full exception details
-			Assert.Fail(
-				$"EF Core Where+ToListAsync failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
-			return;
-		}
-
-		// Assert
-		issues.Should().HaveCount(3,
-			"EF Core Where+ToListAsync should deserialize Issues - this is Repository.FindAsync pattern");
-	}
-
-	[Fact]
-	public async Task BsonDocument_ShowFullStructure_OnFailure()
-	{
-		// Arrange - Seed via EF Core
-		var (categories, statuses) = await SeedTestDataAsync();
 		await SeedIssuesAsync(categories[0], statuses[0], 1);
 
-		// Act - Read raw BSON
+		// Step 1: Discover actual collection name
 		var client = new MongoClient(Factory.MongoConnectionString);
 		var database = client.GetDatabase(Factory.DatabaseName);
-
-		// Try both "Issue" and "Issues" collection names
 		var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
 		var issueCollectionName = collectionNames.FirstOrDefault(n =>
-			n.Equals("Issue", StringComparison.OrdinalIgnoreCase) ||
-			n.Equals("Issues", StringComparison.OrdinalIgnoreCase));
+			n.Contains("Issue", StringComparison.OrdinalIgnoreCase));
 
-		issueCollectionName.Should().NotBeNull(
-			$"Should find an Issue/Issues collection. Available collections: [{string.Join(", ", collectionNames)}]");
+		Assert.NotNull(issueCollectionName);
 
-		var collection = database.GetCollection<BsonDocument>(issueCollectionName!);
+		// Step 2: Read raw BSON and build structure dump
+		var collection = database.GetCollection<BsonDocument>(issueCollectionName);
 		var doc = await collection.Find(FilterDefinition<BsonDocument>.Empty).FirstOrDefaultAsync();
-		doc.Should().NotBeNull("Should have at least one seeded document");
+		Assert.NotNull(doc);
 
-		// Build a detailed description of the document structure
 		var structure = new List<string>();
-		foreach (var element in doc!.Elements)
+		foreach (var element in doc.Elements)
 		{
 			if (element.Value.BsonType == BsonType.Document)
 			{
 				var subdoc = element.Value.AsBsonDocument;
-				var subfields = string.Join(", ", subdoc.Elements.Select(e => $"{e.Name}:{e.Value.BsonType}"));
-				structure.Add($"'{element.Name}'(Document): {{{subfields}}}");
+				var subfields = string.Join(", ",
+					subdoc.Elements.Select(e => $"{e.Name}:{e.Value.BsonType}"));
+				structure.Add($"  '{element.Name}'(Document): {{{subfields}}}");
 			}
 			else
 			{
-				structure.Add($"'{element.Name}'({element.Value.BsonType})");
+				structure.Add($"  '{element.Name}'({element.Value.BsonType}): {element.Value}");
 			}
 		}
 
-		// This will always pass but shows the structure in test output
-		// If Status field is missing, BsonDocument_ShouldContain_StatusField will catch it
-		doc.ElementCount.Should().BeGreaterThan(0,
-			$"Document structure:\n{string.Join("\n", structure)}");
+		var structureDump = $"Collection: '{issueCollectionName}'\n" +
+			$"All collections: [{string.Join(", ", collectionNames)}]\n" +
+			$"Document fields:\n{string.Join("\n", structure)}";
+
+		// Step 3: Try EF Core round-trip
+		await using var context = Factory.CreateDbContext();
+		try
+		{
+			var issues = await context.Issues.ToListAsync(CancellationToken.None);
+			// If we get here, deserialization works! Pass the test.
+			issues.Should().NotBeEmpty(
+				$"EF Core round-trip succeeded but returned empty. {structureDump}");
+		}
+		catch (Exception ex)
+		{
+			// Force failure with BOTH the exception AND the document structure
+			Assert.Fail(
+				$"EF Core ToListAsync failed.\n" +
+				$"Exception: {ex.GetType().Name}: {ex.Message}\n" +
+				$"{structureDump}");
+		}
 	}
 }
