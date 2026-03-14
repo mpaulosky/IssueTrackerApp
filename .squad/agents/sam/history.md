@@ -521,3 +521,26 @@
 
 **Key Decision:** Changed `Comment.Issue` (IssueDto) → `Comment.IssueId` (ObjectId) to break circular dependency. CommentDto also changed to hold `ObjectId IssueId` instead of embedded `IssueDto`. Downstream handlers that need full issue data must load it separately.
 
+### WI-5 - Update All CQRS Handlers to Use Value Objects (2025-06-25)
+
+**What Was Done:**
+- Fixed all 18 CQRS handler files that were assigning DTOs to model properties now typed as value objects
+- Domain project builds with zero errors, zero warnings
+
+**Fix Patterns Applied:**
+- `UserDto → UserInfo` via `UserMapper.ToInfo()` (most common — Author, ArchivedBy, UploadedBy)
+- `CategoryDto → CategoryInfo` via `CategoryMapper.ToInfo()` (Issue.Category)
+- `StatusDto → StatusInfo` via `StatusMapper.ToInfo()` (Issue.Status)
+- `Comment.Issue = issueDto` → `Comment.IssueId = issue.Id` (property renamed from embedded DTO to ObjectId)
+- `UserDto.Empty` → `UserInfo.Empty` for default empty values on model properties
+- Bulk snapshot creation: model value objects → DTOs via `ToDto()` (snapshots store DTOs)
+- Bulk undo restoration: snapshot DTOs → value objects via `ToInfo()` (restoring to models)
+- `CreateIssueCommand`: replaced `new StatusDto(...)` with `new StatusInfo { ... }` for default Open status
+
+**Remaining Downstream Errors (for other WIs):**
+- `tests/Domain.Tests/` — 29 test files with ~187 errors (same DTO→value object pattern in test Issue/Comment setup code)
+- `src/Web/Services/CommentService.cs` — 3 errors referencing `CommentDto.Issue` which no longer exists (now `IssueId`)
+- Total: ~190 errors across 30 files outside Domain handlers
+
+**Key Learning:** When models switch from DTOs to value objects, the conversion ripples through: handlers (fixed here), tests (need mapper calls in setup), and consuming services (need property name updates).
+
