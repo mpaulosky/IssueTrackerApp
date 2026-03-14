@@ -10,6 +10,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -166,7 +167,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 	}
 
 	/// <summary>
-	/// Clears all data from the test database.
+	/// Clears all data from the test database and in-memory caches.
 	/// Uses the MongoDB driver to delete all documents from each collection,
 	/// avoiding both EF Core deserialization issues and DropDatabase race conditions
 	/// when test classes run with shared fixtures.
@@ -181,6 +182,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 		{
 			await database.GetCollection<MongoDB.Bson.BsonDocument>(name)
 				.DeleteManyAsync(MongoDB.Driver.FilterDefinition<MongoDB.Bson.BsonDocument>.Empty);
+		}
+
+		// Clear in-memory caches to prevent stale analytics data between tests
+		if (Services.GetService<IMemoryCache>() is MemoryCache mc)
+		{
+			mc.Compact(1.0);
 		}
 	}
 }
