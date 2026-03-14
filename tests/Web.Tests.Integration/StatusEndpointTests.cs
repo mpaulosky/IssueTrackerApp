@@ -18,6 +18,7 @@ namespace Web.Tests.Integration;
 /// <summary>
 ///   Integration tests for the Status API endpoints.
 /// </summary>
+[Collection("Integration")]
 public sealed class StatusEndpointTests : IntegrationTestBase
 {
 	private static readonly JsonSerializerOptions JsonOptions = new()

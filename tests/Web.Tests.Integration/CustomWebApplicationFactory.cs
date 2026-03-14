@@ -167,12 +167,20 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
 	/// <summary>
 	/// Clears all data from the test database.
-	/// Drops the entire database using the MongoDB driver directly, avoiding EF Core
-	/// deserialization issues with owned types during enumeration.
+	/// Uses the MongoDB driver to delete all documents from each collection,
+	/// avoiding both EF Core deserialization issues and DropDatabase race conditions
+	/// when test classes run with shared fixtures.
 	/// </summary>
 	public async Task ClearDatabaseAsync()
 	{
 		var client = new MongoClient(MongoConnectionString);
-		await client.DropDatabaseAsync(DatabaseName);
+		var database = client.GetDatabase(DatabaseName);
+		var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
+
+		foreach (var name in collectionNames)
+		{
+			await database.GetCollection<MongoDB.Bson.BsonDocument>(name)
+				.DeleteManyAsync(MongoDB.Driver.FilterDefinition<MongoDB.Bson.BsonDocument>.Empty);
+		}
 	}
 }

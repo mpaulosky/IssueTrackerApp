@@ -18,6 +18,7 @@ namespace Web.Tests.Integration;
 /// <summary>
 ///   Integration tests for Attachment API endpoints.
 /// </summary>
+[Collection("Integration")]
 public class AttachmentEndpointTests : IntegrationTestBase
 {
 	public AttachmentEndpointTests(CustomWebApplicationFactory factory) : base(factory)

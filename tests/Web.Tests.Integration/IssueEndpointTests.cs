@@ -20,6 +20,7 @@ namespace Web.Tests.Integration;
 /// Tests the IIssueService layer which powers issue management functionality.
 /// Uses Testcontainers MongoDB for real database testing.
 /// </summary>
+[Collection("Integration")]
 public sealed class IssueEndpointTests : IntegrationTestBase
 {
 	public IssueEndpointTests(CustomWebApplicationFactory factory) : base(factory)

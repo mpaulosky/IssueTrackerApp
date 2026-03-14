@@ -17,6 +17,7 @@ namespace Web.Tests.Integration;
 /// <summary>
 ///   Integration tests for Category API endpoints.
 /// </summary>
+[Collection("Integration")]
 public sealed class CategoryEndpointTests : IntegrationTestBase
 {
 	public CategoryEndpointTests(CustomWebApplicationFactory factory) : base(factory)

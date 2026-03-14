@@ -20,6 +20,7 @@ namespace Web.Tests.Integration;
 /// Integration tests for bulk operation endpoints/services.
 /// Tests bulk operations for status updates, category updates, assignments, deletions, exports, and undo functionality.
 /// </summary>
+[Collection("Integration")]
 public sealed class BulkOperationEndpointTests : IntegrationTestBase
 {
 	private IBulkOperationService _bulkOperationService = null!;
