@@ -54,7 +54,7 @@ public sealed class CategoryInfo
 	/// </value>
 	[BsonElement("DateCreated")]
 	[BsonRepresentation(BsonType.DateTime)]
-	public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+	public DateTime DateCreated { get; init; } = DateTime.UtcNow;
 
 	/// <summary>
 	///   Gets or sets the date modified.
