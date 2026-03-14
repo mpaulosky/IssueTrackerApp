@@ -11,9 +11,16 @@ using Web.Components;
 using Web.Data;
 using Web.Endpoints;
 using Web.Features;
+using Web.Helpers;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure JSON serialization for MongoDB ObjectId
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+	options.SerializerOptions.Converters.Add(new ObjectIdJsonConverter());
+});
 
 // Add Azure Key Vault configuration for non-Development environments
 if (!builder.Environment.IsDevelopment())
