@@ -8,7 +8,7 @@
 // =======================================================
 
 using System.Linq.Expressions;
-using Domain.Abstractions;
+
 using Microsoft.Extensions.Logging;
 
 namespace Persistence.MongoDb.Repositories;

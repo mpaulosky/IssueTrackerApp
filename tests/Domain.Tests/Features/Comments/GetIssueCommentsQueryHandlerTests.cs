@@ -30,21 +30,8 @@ public sealed class GetIssueCommentsQueryHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var issueDto = new IssueDto(
-			issueId,
-			"Test Issue",
-			"Test Description",
-			DateTime.UtcNow,
-			null,
-			UserDto.Empty,
-			CategoryDto.Empty,
-			StatusDto.Empty,
-			false,
-			UserDto.Empty,
-			false,
-			false);
 
-		var author = new UserDto("user-123", "Test User", "test@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 		var comments = new List<Comment>
 		{
 			new()
@@ -53,7 +40,7 @@ public sealed class GetIssueCommentsQueryHandlerTests
 				Title = "Comment 1",
 				Description = "Description 1",
 				Author = author,
-				Issue = issueDto,
+				IssueId = issueId,
 				DateCreated = DateTime.UtcNow.AddMinutes(-30),
 				Archived = false
 			},
@@ -63,7 +50,7 @@ public sealed class GetIssueCommentsQueryHandlerTests
 				Title = "Comment 2",
 				Description = "Description 2",
 				Author = author,
-				Issue = issueDto,
+				IssueId = issueId,
 				DateCreated = DateTime.UtcNow.AddMinutes(-15),
 				Archived = false
 			}
@@ -89,21 +76,8 @@ public sealed class GetIssueCommentsQueryHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var issueDto = new IssueDto(
-			issueId,
-			"Test Issue",
-			"Test Description",
-			DateTime.UtcNow,
-			null,
-			UserDto.Empty,
-			CategoryDto.Empty,
-			StatusDto.Empty,
-			false,
-			UserDto.Empty,
-			false,
-			false);
 
-		var author = new UserDto("user-123", "Test User", "test@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 		var oldestDate = DateTime.UtcNow.AddHours(-3);
 		var middleDate = DateTime.UtcNow.AddHours(-2);
 		var newestDate = DateTime.UtcNow.AddHours(-1);
@@ -116,7 +90,7 @@ public sealed class GetIssueCommentsQueryHandlerTests
 				Title = "Oldest Comment",
 				Description = "Oldest",
 				Author = author,
-				Issue = issueDto,
+				IssueId = issueId,
 				DateCreated = oldestDate,
 				Archived = false
 			},
@@ -126,7 +100,7 @@ public sealed class GetIssueCommentsQueryHandlerTests
 				Title = "Newest Comment",
 				Description = "Newest",
 				Author = author,
-				Issue = issueDto,
+				IssueId = issueId,
 				DateCreated = newestDate,
 				Archived = false
 			},
@@ -136,7 +110,7 @@ public sealed class GetIssueCommentsQueryHandlerTests
 				Title = "Middle Comment",
 				Description = "Middle",
 				Author = author,
-				Issue = issueDto,
+				IssueId = issueId,
 				DateCreated = middleDate,
 				Archived = false
 			}
@@ -186,21 +160,8 @@ public sealed class GetIssueCommentsQueryHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var issueDto = new IssueDto(
-			issueId,
-			"Test Issue",
-			"Test Description",
-			DateTime.UtcNow,
-			null,
-			UserDto.Empty,
-			CategoryDto.Empty,
-			StatusDto.Empty,
-			false,
-			UserDto.Empty,
-			false,
-			false);
 
-		var author = new UserDto("user-123", "Test User", "test@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 		var comments = new List<Comment>
 		{
 			new()
@@ -209,7 +170,7 @@ public sealed class GetIssueCommentsQueryHandlerTests
 				Title = "Active Comment",
 				Description = "Active",
 				Author = author,
-				Issue = issueDto,
+				IssueId = issueId,
 				DateCreated = DateTime.UtcNow,
 				Archived = false
 			},
@@ -219,7 +180,7 @@ public sealed class GetIssueCommentsQueryHandlerTests
 				Title = "Archived Comment",
 				Description = "Archived",
 				Author = author,
-				Issue = issueDto,
+				IssueId = issueId,
 				DateCreated = DateTime.UtcNow.AddMinutes(-30),
 				Archived = true
 			}

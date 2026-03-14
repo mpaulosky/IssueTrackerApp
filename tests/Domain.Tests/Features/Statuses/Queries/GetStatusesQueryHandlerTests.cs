@@ -42,7 +42,7 @@ public class GetStatusesQueryHandlerTests
 				StatusName = "Status A",
 				StatusDescription = "Description A",
 				Archived = false,
-				ArchivedBy = UserDto.Empty
+				ArchivedBy = UserInfo.Empty
 			},
 			new()
 			{
@@ -50,7 +50,7 @@ public class GetStatusesQueryHandlerTests
 				StatusName = "Status B",
 				StatusDescription = "Description B",
 				Archived = false,
-				ArchivedBy = UserDto.Empty
+				ArchivedBy = UserInfo.Empty
 			}
 		};
 

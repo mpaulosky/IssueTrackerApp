@@ -11,6 +11,7 @@ using Domain.Abstractions;
 using Domain.DTOs;
 using Domain.Features.Comments.Commands;
 using Domain.Features.Comments.Queries;
+using Domain.Features.Issues.Queries;
 using MediatR;
 
 namespace Web.Services;
@@ -95,12 +96,16 @@ public sealed class CommentService : ICommentService
 		// Notify clients if successful
 		if (result.Success && result.Value is not null)
 		{
-			await _notificationService.NotifyCommentAddedAsync(
-				result.Value.Issue.Id, 
-				result.Value.Issue.Title,
-				result.Value.Issue.Author.Id,
-				result.Value, 
-				cancellationToken);
+			var issueResult = await _mediator.Send(new GetIssueByIdQuery(issueId), cancellationToken);
+			if (issueResult.Success && issueResult.Value is not null)
+			{
+				await _notificationService.NotifyCommentAddedAsync(
+					issueResult.Value.Id,
+					issueResult.Value.Title,
+					issueResult.Value.Author.Id,
+					result.Value,
+					cancellationToken);
+			}
 		}
 
 		return result;

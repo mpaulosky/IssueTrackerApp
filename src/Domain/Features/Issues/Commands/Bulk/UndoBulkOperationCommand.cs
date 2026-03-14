@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands.Bulk;
 
@@ -84,21 +85,21 @@ public sealed class UndoBulkOperationCommandHandler : IRequestHandler<UndoBulkOp
 					case BulkOperationType.StatusUpdate:
 						if (snapshot.PreviousState is StatusUpdateSnapshot statusSnapshot)
 						{
-							issue.Status = statusSnapshot.PreviousStatus;
+							issue.Status = StatusMapper.ToInfo(statusSnapshot.PreviousStatus);
 						}
 						break;
 
 					case BulkOperationType.CategoryUpdate:
 						if (snapshot.PreviousState is CategoryUpdateSnapshot categorySnapshot)
 						{
-							issue.Category = categorySnapshot.PreviousCategory;
+							issue.Category = CategoryMapper.ToInfo(categorySnapshot.PreviousCategory);
 						}
 						break;
 
 					case BulkOperationType.Assignment:
 						if (snapshot.PreviousState is AssignmentSnapshot assignmentSnapshot)
 						{
-							issue.Author = assignmentSnapshot.PreviousAssignee;
+							issue.Author = UserMapper.ToInfo(assignmentSnapshot.PreviousAssignee);
 						}
 						break;
 
@@ -106,7 +107,7 @@ public sealed class UndoBulkOperationCommandHandler : IRequestHandler<UndoBulkOp
 						if (snapshot.PreviousState is DeleteSnapshot deleteSnapshot)
 						{
 							issue.Archived = deleteSnapshot.WasArchived;
-							issue.ArchivedBy = deleteSnapshot.ArchivedBy;
+							issue.ArchivedBy = UserMapper.ToInfo(deleteSnapshot.ArchivedBy);
 						}
 						break;
 				}

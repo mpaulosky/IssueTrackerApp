@@ -31,4 +31,5 @@ global using Microsoft.Extensions.Logging;
 
 // Domain
 global using Domain.DTOs;
+global using Domain.Mappers;
 global using Domain.Models;

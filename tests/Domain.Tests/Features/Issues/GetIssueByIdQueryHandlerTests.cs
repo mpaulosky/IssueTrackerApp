@@ -104,25 +104,29 @@ public sealed class GetIssueByIdQueryHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var category = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Bug",
-			"Bug category",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var category = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Bug",
+			CategoryDescription = "Bug category",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var author = new UserDto("user-123", "John Doe", "john@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "John Doe", Email = "john@example.com" };
 
-		var status = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"In Progress",
-			"Issue is being worked on",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var status = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "In Progress",
+			StatusDescription = "Issue is being worked on",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var existingIssue = new Issue
 		{
@@ -153,9 +157,9 @@ public sealed class GetIssueByIdQueryHandlerTests
 		result.Value!.Id.Should().Be(issueId);
 		result.Value.Title.Should().Be("Complete Issue");
 		result.Value.Description.Should().Be("Complete Description");
-		result.Value.Category.Should().Be(category);
-		result.Value.Author.Should().Be(author);
-		result.Value.Status.Should().Be(status);
+		result.Value.Category.Should().Be(CategoryMapper.ToDto(category));
+		result.Value.Author.Should().Be(new UserDto(author));
+		result.Value.Status.Should().Be(StatusMapper.ToDto(status));
 		result.Value.ApprovedForRelease.Should().BeTrue();
 		result.Value.Archived.Should().BeFalse();
 	}
@@ -188,9 +192,9 @@ public sealed class GetIssueByIdQueryHandlerTests
 			Id = id,
 			Title = title,
 			Description = description,
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
-			Status = StatusDto.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
+			Status = StatusInfo.Empty,
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
 			ApprovedForRelease = false,

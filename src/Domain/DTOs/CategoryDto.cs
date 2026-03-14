@@ -34,7 +34,7 @@ public record CategoryDto(
 		category.DateCreated,
 		category.DateModified,
 		category.Archived,
-		category.ArchivedBy)
+		UserMapper.ToDto(category.ArchivedBy))
 	{
 	}
 

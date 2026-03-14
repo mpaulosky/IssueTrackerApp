@@ -38,7 +38,8 @@ public sealed class AddCommentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var author = new UserDto("user-123", "Test User", "test@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var authorDto = new UserDto(author);
 		var issue = new Issue
 		{
 			Id = issueId,
@@ -51,7 +52,7 @@ public sealed class AddCommentCommandHandlerTests
 			issueId.ToString(),
 			"Comment Title",
 			"Comment Description",
-			author);
+			authorDto);
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(issue));
@@ -71,7 +72,7 @@ public sealed class AddCommentCommandHandlerTests
 		result.Value.Should().NotBeNull();
 		result.Value!.Title.Should().Be("Comment Title");
 		result.Value.Description.Should().Be("Comment Description");
-		result.Value.Author.Should().Be(author);
+		result.Value.Author.Should().Be(new UserDto(author));
 	}
 
 	[Fact]
@@ -79,7 +80,8 @@ public sealed class AddCommentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var author = new UserDto("user-123", "Test User", "test@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var authorDto = new UserDto(author);
 		var issue = new Issue
 		{
 			Id = issueId,
@@ -92,7 +94,7 @@ public sealed class AddCommentCommandHandlerTests
 			issueId.ToString(),
 			"Comment Title",
 			"Comment Description",
-			author);
+			authorDto);
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(issue));
@@ -121,13 +123,14 @@ public sealed class AddCommentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var author = new UserDto("user-123", "Test User", "test@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var authorDto = new UserDto(author);
 
 		var command = new AddCommentCommand(
 			issueId.ToString(),
 			"Comment Title",
 			"Comment Description",
-			author);
+			authorDto);
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<Issue>("Issue not found", ResultErrorCode.NotFound));

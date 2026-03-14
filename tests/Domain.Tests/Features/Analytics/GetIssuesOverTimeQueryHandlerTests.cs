@@ -40,23 +40,27 @@ public sealed class GetIssuesOverTimeQueryHandlerTests
 		var today = DateTime.UtcNow.Date;
 		var yesterday = today.AddDays(-1);
 
-		var closedStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var closedStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var openStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Open",
-			"Open status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var openStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Open",
+			StatusDescription = "Open status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var issues = new List<Issue>
 		{
@@ -65,8 +69,8 @@ public sealed class GetIssuesOverTimeQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 1",
 				Status = openStatus,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = today.AddHours(10)
 			},
 			new()
@@ -74,8 +78,8 @@ public sealed class GetIssuesOverTimeQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 2",
 				Status = closedStatus,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = yesterday.AddHours(14),
 				DateModified = today.AddHours(9)
 			},
@@ -84,8 +88,8 @@ public sealed class GetIssuesOverTimeQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 3",
 				Status = openStatus,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = yesterday.AddHours(8)
 			}
 		};
@@ -121,9 +125,9 @@ public sealed class GetIssuesOverTimeQueryHandlerTests
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = "Recent Issue",
-				Status = StatusDto.Empty,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Status = StatusInfo.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow.AddDays(-3)
 			}
 		};

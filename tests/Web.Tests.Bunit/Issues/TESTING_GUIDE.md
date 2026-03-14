@@ -15,7 +15,7 @@ tests/
 
 ### 1. Rendering a Component
 ```csharp
-var cut = RenderComponent<AttachmentCard>(parameters => parameters
+var cut = Render<AttachmentCard>(parameters => parameters
     .Add(p => p.Attachment, attachment)
     .Add(p => p.CanDelete, false)
 );
@@ -72,7 +72,7 @@ CommentService.GetCommentsAsync(issueId)
 
 ### 7. Testing Loading States
 ```csharp
-var cut = RenderComponent<CommentsSection>(parameters => parameters
+var cut = Render<CommentsSection>(parameters => parameters
     .Add(p => p.IssueId, issueId)
 );
 
@@ -83,13 +83,13 @@ cut.Markup.Should().Contain("animate-spin");
 ### 8. Testing Visibility Toggle
 ```csharp
 // When not visible
-var cut1 = RenderComponent<BulkProgressIndicator>(parameters => parameters
+var cut1 = Render<BulkProgressIndicator>(parameters => parameters
     .Add(p => p.IsVisible, false)
 );
 cut1.Markup.Should().NotContain("Processing");
 
 // When visible
-var cut2 = RenderComponent<BulkProgressIndicator>(parameters => parameters
+var cut2 = Render<BulkProgressIndicator>(parameters => parameters
     .Add(p => p.IsVisible, true)
 );
 cut2.Markup.Should().Contain("Processing");
@@ -98,7 +98,7 @@ cut2.Markup.Should().Contain("Processing");
 ### 9. Testing Conditional Rendering
 ```csharp
 // Test with condition true
-var cut = RenderComponent<AttachmentCard>(parameters => parameters
+var cut = Render<AttachmentCard>(parameters => parameters
     .Add(p => p.CanDelete, true)
 );
 var deleteButton = cut.FindAll("button")
@@ -106,7 +106,7 @@ var deleteButton = cut.FindAll("button")
 deleteButton.Should().NotBeNull();
 
 // Test with condition false
-var cut2 = RenderComponent<AttachmentCard>(parameters => parameters
+var cut2 = Render<AttachmentCard>(parameters => parameters
     .Add(p => p.CanDelete, false)
 );
 var deleteButton2 = cut2.FindAll("button")
@@ -116,7 +116,7 @@ deleteButton2.Should().BeNull();
 
 ### 10. Testing Parameter Changes
 ```csharp
-var cut = RenderComponent<IssueMultiSelect>(parameters => parameters
+var cut = Render<IssueMultiSelect>(parameters => parameters
     .Add(p => p.ShowSelectAll, true)
     .Add(p => p.AllIssueIds, issueIds)
 );
@@ -146,7 +146,7 @@ public void ComponentName_Scenario_ExpectedBehavior()
     var testData = CreateTestData();
     
     // Act - Perform the action being tested
-    var cut = RenderComponent<MyComponent>(parameters => parameters
+    var cut = Render<MyComponent>(parameters => parameters
         .Add(p => p.Data, testData)
     );
     
@@ -249,7 +249,7 @@ itemCount.Should().Be(5);
 
 ### Test Fails Unexpectedly
 - Check mock setup is correct
-- Verify parameters passed to RenderComponent
+- Verify parameters passed to Render
 - Check for asynchronous operations (some need await)
 - Ensure test data is valid
 

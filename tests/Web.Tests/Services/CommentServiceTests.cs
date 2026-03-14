@@ -26,6 +26,16 @@ public sealed class CommentServiceTests
 		_mediator = Substitute.For<IMediator>();
 		_notificationService = Substitute.For<Domain.Abstractions.INotificationService>();
 		_sut = new CommentService(_mediator, _notificationService);
+
+		// Default mock for GetIssueByIdQuery used by AddCommentAsync notification flow
+		var testIssue = IssueDto.Empty with
+		{
+			Id = ObjectId.GenerateNewId(),
+			Title = "Test Issue",
+			Author = CreateTestUserDto()
+		};
+		_mediator.Send(Arg.Any<GetIssueByIdQuery>(), Arg.Any<CancellationToken>())
+			.Returns(Result.Ok(testIssue));
 	}
 
 	#region GetCommentsAsync Tests
@@ -352,20 +362,13 @@ public sealed class CommentServiceTests
 
 	private static CommentDto CreateTestCommentDto(string title)
 	{
-		var issueDto = IssueDto.Empty with
-		{
-			Id = ObjectId.GenerateNewId(),
-			Title = "Test Issue",
-			Author = CreateTestUserDto()
-		};
-
 		return new CommentDto(
 			ObjectId.GenerateNewId(),
 			title,
 			"Test Description",
 			DateTime.UtcNow,
 			null,
-			issueDto,
+			ObjectId.GenerateNewId(),
 			CreateTestUserDto(),
 			new HashSet<string>(),
 			false,

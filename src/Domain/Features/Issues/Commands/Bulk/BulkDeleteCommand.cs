@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands.Bulk;
 
@@ -103,10 +104,10 @@ public sealed class BulkDeleteCommandHandler : IRequestHandler<BulkDeleteCommand
 				undoSnapshots.Add(new IssueUndoSnapshot(
 					issue.Id.ToString(),
 					BulkOperationType.Delete,
-					new DeleteSnapshot(issue.Archived, issue.ArchivedBy)));
+					new DeleteSnapshot(issue.Archived, UserMapper.ToDto(issue.ArchivedBy))));
 
 				issue.Archived = true;
-				issue.ArchivedBy = request.DeletedBy;
+				issue.ArchivedBy = UserMapper.ToInfo(request.DeletedBy);
 				issue.DateModified = DateTime.UtcNow;
 
 				var updateResult = await _repository.UpdateAsync(issue, cancellationToken);

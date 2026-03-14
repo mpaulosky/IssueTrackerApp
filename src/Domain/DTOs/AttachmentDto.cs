@@ -34,7 +34,7 @@ public record AttachmentDto(
 		attachment.FileSize,
 		attachment.BlobUrl,
 		attachment.ThumbnailUrl,
-		attachment.UploadedBy,
+		UserMapper.ToDto(attachment.UploadedBy),
 		attachment.UploadedAt)
 	{
 	}

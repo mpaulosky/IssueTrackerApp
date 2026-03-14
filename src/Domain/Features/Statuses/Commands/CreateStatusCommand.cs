@@ -56,7 +56,7 @@ public sealed class CreateStatusCommandHandler : IRequestHandler<CreateStatusCom
 			StatusDescription = request.StatusDescription,
 			DateCreated = DateTime.UtcNow,
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
 		var result = await _repository.AddAsync(status, cancellationToken);

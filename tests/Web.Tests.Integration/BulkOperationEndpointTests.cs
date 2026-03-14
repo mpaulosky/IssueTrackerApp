@@ -357,7 +357,12 @@ public sealed class BulkOperationEndpointTests : IntegrationTestBase
 		{
 			var issueToArchive = context.Issues.First(i => i.Id == issues[0].Id);
 			issueToArchive.Archived = true;
-			issueToArchive.ArchivedBy = new UserDto("archive-user", "Archive User", "archive@example.com");
+			issueToArchive.ArchivedBy = new UserInfo
+			{
+				Id = "archive-user",
+				Name = "Archive User",
+				Email = "archive@example.com"
+			};
 			await context.SaveChangesAsync();
 		}
 

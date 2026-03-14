@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Comments.Commands;
 
@@ -61,7 +62,7 @@ public sealed class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentC
 
 		// Soft delete (archive) the comment
 		comment.Archived = true;
-		comment.ArchivedBy = request.ArchivedBy;
+		comment.ArchivedBy = UserMapper.ToInfo(request.ArchivedBy);
 		comment.DateModified = DateTime.UtcNow;
 
 		var updateResult = await _repository.UpdateAsync(comment, cancellationToken);

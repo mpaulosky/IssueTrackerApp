@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Statuses.Commands;
 
@@ -50,7 +51,7 @@ public sealed class ArchiveStatusCommandHandler : IRequestHandler<ArchiveStatusC
 
 		var status = existingResult.Value;
 		status.Archived = request.Archive;
-		status.ArchivedBy = request.Archive ? request.ArchivedBy : UserDto.Empty;
+		status.ArchivedBy = request.Archive ? UserMapper.ToInfo(request.ArchivedBy) : UserInfo.Empty;
 		status.DateModified = DateTime.UtcNow;
 
 		var result = await _repository.UpdateAsync(status, cancellationToken);

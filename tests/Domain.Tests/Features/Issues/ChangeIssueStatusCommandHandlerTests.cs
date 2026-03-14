@@ -42,16 +42,18 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId, "Open");
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"In Progress",
-			"Issue is being worked on",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "In Progress",
+			StatusDescription = "Issue is being worked on",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new ChangeIssueStatusCommand(issueId.ToString(), newStatus);
+		var command = new ChangeIssueStatusCommand(issueId.ToString(), StatusMapper.ToDto(newStatus));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -70,7 +72,7 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		// Assert
 		result.Success.Should().BeTrue();
 		result.Value.Should().NotBeNull();
-		result.Value!.Status.Should().Be(newStatus);
+		result.Value!.Status.Should().Be(StatusMapper.ToDto(newStatus));
 
 		capturedIssue.Should().NotBeNull();
 		capturedIssue!.Status.StatusName.Should().Be("In Progress");
@@ -84,19 +86,21 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var author = new UserDto("user-123", "John Doe", "john@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "John Doe", Email = "john@example.com" };
 		var existingIssue = CreateTestIssue(issueId, "Open", author: author);
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Issue is closed",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Issue is closed",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new ChangeIssueStatusCommand(issueId.ToString(), newStatus);
+		var command = new ChangeIssueStatusCommand(issueId.ToString(), StatusMapper.ToDto(newStatus));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -129,16 +133,18 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		// Arrange
 		var issueId = ObjectId.GenerateNewId().ToString();
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Issue is closed",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Issue is closed",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new ChangeIssueStatusCommand(issueId, newStatus);
+		var command = new ChangeIssueStatusCommand(issueId, StatusMapper.ToDto(newStatus));
 
 		_issueRepository.GetByIdAsync(issueId, Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<Issue>("Issue not found", ResultErrorCode.NotFound));
@@ -164,16 +170,18 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		var existingIssue = CreateTestIssue(issueId, "Open");
 		var beforeTest = DateTime.UtcNow;
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"In Progress",
-			"Issue is being worked on",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "In Progress",
+			StatusDescription = "Issue is being worked on",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new ChangeIssueStatusCommand(issueId.ToString(), newStatus);
+		var command = new ChangeIssueStatusCommand(issueId.ToString(), StatusMapper.ToDto(newStatus));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -206,16 +214,18 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId, "Open");
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"In Progress",
-			"Issue is being worked on",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "In Progress",
+			StatusDescription = "Issue is being worked on",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new ChangeIssueStatusCommand(issueId.ToString(), newStatus);
+		var command = new ChangeIssueStatusCommand(issueId.ToString(), StatusMapper.ToDto(newStatus));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -240,16 +250,18 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId, "Closed");
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Open",
-			"Issue is reopened",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Open",
+			StatusDescription = "Issue is reopened",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new ChangeIssueStatusCommand(issueId.ToString(), newStatus);
+		var command = new ChangeIssueStatusCommand(issueId.ToString(), StatusMapper.ToDto(newStatus));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -280,16 +292,18 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		var existingIssue = CreateTestIssue(issueId, "Open");
 		var beforeTest = DateTime.UtcNow;
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Issue is closed",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Issue is closed",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new ChangeIssueStatusCommand(issueId.ToString(), newStatus);
+		var command = new ChangeIssueStatusCommand(issueId.ToString(), StatusMapper.ToDto(newStatus));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -315,24 +329,26 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 	private static Issue CreateTestIssue(
 		ObjectId id,
 		string statusName,
-		UserDto? author = null)
+		UserInfo? author = null)
 	{
-		var status = new StatusDto(
-			ObjectId.GenerateNewId(),
-			statusName,
-			$"{statusName} status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var status = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = statusName,
+			StatusDescription = $"{statusName} status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		return new Issue
 		{
 			Id = id,
 			Title = "Test Issue",
 			Description = "Test Description",
-			Category = CategoryDto.Empty,
-			Author = author ?? UserDto.Empty,
+			Category = CategoryInfo.Empty,
+			Author = author ?? UserInfo.Empty,
 			Status = status,
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,

@@ -445,7 +445,7 @@ public sealed class AnalyticsServiceTests
 		// multiple calls may hit the mediator before the first one completes and caches.
 		// This test documents the current behavior.
 		// For true stampede protection, consider using SemaphoreSlim or LazyCache.
-		callCount.Should().BeGreaterOrEqualTo(1);
+		callCount.Should().BeGreaterThanOrEqualTo(1);
 	}
 
 	#endregion

@@ -37,23 +37,27 @@ public sealed class GetResolutionTimesQueryHandlerTests
 		// Arrange
 		var query = new GetResolutionTimesQuery(null, null);
 
-		var bugCategory = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Bug",
-			"Bug category",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var bugCategory = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Bug",
+			CategoryDescription = "Bug category",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var closedStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var closedStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var baseDate = DateTime.UtcNow.AddDays(-10);
 
@@ -69,7 +73,7 @@ public sealed class GetResolutionTimesQueryHandlerTests
 				Title = "Bug 1",
 				Status = closedStatus,
 				Category = bugCategory,
-				Author = UserDto.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = baseDate,
 				DateModified = baseDate.AddHours(48)
 			},
@@ -79,7 +83,7 @@ public sealed class GetResolutionTimesQueryHandlerTests
 				Title = "Bug 2",
 				Status = closedStatus,
 				Category = bugCategory,
-				Author = UserDto.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = baseDate.AddDays(1),
 				DateModified = baseDate.AddDays(1).AddHours(24)
 			}

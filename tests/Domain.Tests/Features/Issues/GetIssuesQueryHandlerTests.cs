@@ -60,23 +60,27 @@ public sealed class GetIssuesQueryHandlerTests
 	public async Task GetIssues_WithStatusFilter_FiltersCorrectly()
 	{
 		// Arrange
-		var openStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Open",
-			"Open status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var openStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Open",
+			StatusDescription = "Open status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var closedStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var closedStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var issues = new List<Issue>
 		{
@@ -107,23 +111,27 @@ public sealed class GetIssuesQueryHandlerTests
 	public async Task GetIssues_WithCategoryFilter_FiltersCorrectly()
 	{
 		// Arrange
-		var bugCategory = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Bug",
-			"Bug category",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var bugCategory = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Bug",
+			CategoryDescription = "Bug category",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var featureCategory = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Feature",
-			"Feature category",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var featureCategory = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Feature",
+			CategoryDescription = "Feature category",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var issues = new List<Issue>
 		{
@@ -299,9 +307,9 @@ public sealed class GetIssuesQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = $"Issue {i}",
 				Description = "Test Description",
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
-				Status = StatusDto.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
+				Status = StatusInfo.Empty,
 				DateCreated = DateTime.UtcNow.AddHours(-i),
 				Archived = false,
 				ApprovedForRelease = false,
@@ -317,9 +325,9 @@ public sealed class GetIssuesQueryHandlerTests
 			Id = ObjectId.GenerateNewId(),
 			Title = "Test Issue",
 			Description = "Test Description",
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
-			Status = StatusDto.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
+			Status = StatusInfo.Empty,
 			DateCreated = dateCreated,
 			Archived = false,
 			ApprovedForRelease = false,
@@ -328,8 +336,8 @@ public sealed class GetIssuesQueryHandlerTests
 	}
 
 	private static Issue CreateTestIssue(
-		StatusDto? status = null,
-		CategoryDto? category = null,
+		StatusInfo? status = null,
+		CategoryInfo? category = null,
 		bool archived = false)
 	{
 		return new Issue
@@ -337,9 +345,9 @@ public sealed class GetIssuesQueryHandlerTests
 			Id = ObjectId.GenerateNewId(),
 			Title = "Test Issue",
 			Description = "Test Description",
-			Category = category ?? CategoryDto.Empty,
-			Author = UserDto.Empty,
-			Status = status ?? StatusDto.Empty,
+			Category = category ?? CategoryInfo.Empty,
+			Author = UserInfo.Empty,
+			Status = status ?? StatusInfo.Empty,
 			DateCreated = DateTime.UtcNow,
 			Archived = archived,
 			ApprovedForRelease = false,

@@ -7,13 +7,15 @@
 // Project Name :  Web.Tests.Bunit
 // =======================================================
 
+using Bunit.TestDoubles;
 using Domain.Abstractions;
 using Domain.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.JSInterop;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Claims;
+using Web.Auth;
 using Web.Services;
 
 namespace Web.Tests.Bunit;
@@ -21,7 +23,7 @@ namespace Web.Tests.Bunit;
 /// <summary>
 ///   Base class for bUnit component tests providing common test infrastructure.
 /// </summary>
-public abstract class BunitTestBase : TestContext
+public abstract class BunitTestBase : BunitContext
 {
 	protected IMediator Mediator { get; }
 	protected IIssueService IssueService { get; }
@@ -32,11 +34,20 @@ public abstract class BunitTestBase : TestContext
 	protected INotificationService NotificationService { get; }
 	protected ICategoryService CategoryService { get; }
 	protected IStatusService StatusService { get; }
-	protected IJSRuntime JsRuntime { get; }
-protected IDashboardService DashboardService { get; }
+	protected IDashboardService DashboardService { get; }
+	protected ILookupService LookupService { get; }
+
+	private readonly BunitAuthorizationContext _authContext;
 
 	protected BunitTestBase()
 	{
+		// Use bUnit's built-in JSInterop in Loose mode so unmocked JS calls
+		// return defaults instead of throwing or hanging.
+		JSInterop.Mode = JSRuntimeMode.Loose;
+
+		// Set up bUnit's fake authorization (handles AuthorizeView, policies, etc.)
+		_authContext = this.AddAuthorization();
+
 		// Create mocks
 		Mediator = Substitute.For<IMediator>();
 		IssueService = Substitute.For<IIssueService>();
@@ -47,10 +58,10 @@ protected IDashboardService DashboardService { get; }
 		NotificationService = Substitute.For<INotificationService>();
 		CategoryService = Substitute.For<ICategoryService>();
 		StatusService = Substitute.For<IStatusService>();
-		JsRuntime = Substitute.For<IJSRuntime>();
-DashboardService = Substitute.For<IDashboardService>();
+		DashboardService = Substitute.For<IDashboardService>();
+		LookupService = Substitute.For<ILookupService>();
 
-		// Register mocks
+		// Register interface mocks
 		Services.AddSingleton(Mediator);
 		Services.AddSingleton(IssueService);
 		Services.AddSingleton(CommentService);
@@ -60,42 +71,75 @@ DashboardService = Substitute.For<IDashboardService>();
 		Services.AddSingleton(NotificationService);
 		Services.AddSingleton(CategoryService);
 		Services.AddSingleton(StatusService);
-		Services.AddSingleton(JsRuntime);
-Services.AddSingleton(DashboardService);
+		Services.AddSingleton(DashboardService);
+		Services.AddSingleton(LookupService);
+
+		// Register concrete services required by page components
+		var toastService = new ToastService();
+		var fakeNav = new FakeNavigationManager(this);
+		Services.AddSingleton(toastService);
+		Services.AddSingleton(new BulkSelectionState());
+		Services.AddSingleton(new SignalRClientService(
+			NullLogger<SignalRClientService>.Instance,
+			toastService,
+			fakeNav));
+
+		// Set up sensible default returns for common services so that
+		// unmocked calls return empty successful results instead of null
+		// (NSubstitute returns null for Task<T> by default which causes NRE).
+		LookupService.GetStatusesAsync(Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Ok<IEnumerable<StatusDto>>(Enumerable.Empty<StatusDto>())));
+		LookupService.GetCategoriesAsync(Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Ok<IEnumerable<CategoryDto>>(Enumerable.Empty<CategoryDto>())));
+		AttachmentService.GetIssueAttachmentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<AttachmentDto>>(Array.Empty<AttachmentDto>())));
+		CommentService.GetCommentsAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<CommentDto>>(Array.Empty<CommentDto>())));
+		IssueService.SearchIssuesAsync(Arg.Any<IssueSearchRequest>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Ok(PagedResult<IssueDto>.Empty)));
+		DashboardService.GetUserDashboardAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Ok(new UserDashboardDto(0, 0, 0, 0, []))));
+		AnalyticsService.GetAnalyticsSummaryAsync(Arg.Any<DateTime?>(), Arg.Any<DateTime?>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Fail<AnalyticsSummaryDto>("No data")));
+
+		// Register logging infrastructure
+		Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
+		Services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
 
 		// Add fake navigation manager
-		Services.AddSingleton<NavigationManager>(new FakeNavigationManager(this));
+		Services.AddSingleton<NavigationManager>(fakeNav);
 
-		// Add authorization state
+		// Set default authenticated user
 		SetupAuthenticatedUser();
 	}
 
 	/// <summary>
-	///   Sets up an authenticated test user.
+	///   Sets up an authenticated test user with bUnit's fake authorization.
 	/// </summary>
 	protected void SetupAuthenticatedUser(string userId = "test-user-id", string userName = "Test User",
 		string email = "test@example.com", bool isAdmin = false)
 	{
-		var claims = new List<Claim>
-		{
-			new(ClaimTypes.NameIdentifier, userId),
-			new(ClaimTypes.Name, userName),
-			new(ClaimTypes.Email, email)
-		};
+		_authContext.SetAuthorized(userName);
+		_authContext.SetClaims(
+			new Claim(ClaimTypes.NameIdentifier, userId),
+			new Claim(ClaimTypes.Name, userName),
+			new Claim(ClaimTypes.Email, email),
+			new Claim(ClaimTypes.Role, AuthorizationRoles.User)
+		);
+		_authContext.SetPolicies(AuthorizationPolicies.UserPolicy);
 
 		if (isAdmin)
 		{
-			claims.Add(new Claim("role", "admin"));
+			_authContext.SetClaims(
+				new Claim(ClaimTypes.NameIdentifier, userId),
+				new Claim(ClaimTypes.Name, userName),
+				new Claim(ClaimTypes.Email, email),
+				new Claim(ClaimTypes.Role, AuthorizationRoles.User),
+				new Claim(ClaimTypes.Role, AuthorizationRoles.Admin)
+			);
+			_authContext.SetRoles(AuthorizationRoles.User, AuthorizationRoles.Admin);
+			_authContext.SetPolicies(AuthorizationPolicies.UserPolicy, AuthorizationPolicies.AdminPolicy);
 		}
-
-		var identity = new ClaimsIdentity(claims, "Test");
-		var principal = new ClaimsPrincipal(identity);
-
-		var authState = Task.FromResult(new AuthenticationState(principal));
-		Services.AddSingleton<AuthenticationStateProvider>(
-			new TestAuthStateProvider(authState));
-		Services.AddSingleton(sp => sp.GetRequiredService<AuthenticationStateProvider>());
-		Services.AddCascadingValue(sp => authState);
 	}
 
 	/// <summary>
@@ -103,13 +147,7 @@ Services.AddSingleton(DashboardService);
 	/// </summary>
 	protected void SetupAnonymousUser()
 	{
-		var identity = new ClaimsIdentity();
-		var principal = new ClaimsPrincipal(identity);
-		var authState = Task.FromResult(new AuthenticationState(principal));
-
-		Services.AddSingleton<AuthenticationStateProvider>(
-			new TestAuthStateProvider(authState));
-		Services.AddCascadingValue(sp => authState);
+		_authContext.SetNotAuthorized();
 	}
 
 	/// <summary>
@@ -191,7 +229,7 @@ Services.AddSingleton(DashboardService);
 		string? title = null,
 		string? description = null,
 		UserDto? author = null,
-		IssueDto? issue = null)
+		MongoDB.Bson.ObjectId? issueId = null)
 	{
 		return new CommentDto(
 			Id: id is not null ? MongoDB.Bson.ObjectId.Parse(id) : MongoDB.Bson.ObjectId.GenerateNewId(),
@@ -199,7 +237,7 @@ Services.AddSingleton(DashboardService);
 			Description: description ?? "Test comment content",
 			DateCreated: DateTime.UtcNow,
 			DateModified: null,
-			Issue: issue ?? CreateTestIssue(),
+			IssueId: issueId ?? MongoDB.Bson.ObjectId.GenerateNewId(),
 			Author: author ?? CreateTestUser(),
 			UserVotes: [],
 			Archived: false,
@@ -224,31 +262,13 @@ Services.AddSingleton(DashboardService);
 }
 
 /// <summary>
-///   Test authentication state provider.
-/// </summary>
-internal class TestAuthStateProvider : AuthenticationStateProvider
-{
-	private readonly Task<AuthenticationState> _authState;
-
-	public TestAuthStateProvider(Task<AuthenticationState> authState)
-	{
-		_authState = authState;
-	}
-
-	public override Task<AuthenticationState> GetAuthenticationStateAsync()
-	{
-		return _authState;
-	}
-}
-
-/// <summary>
 ///   Fake NavigationManager for testing.
 /// </summary>
 internal class FakeNavigationManager : NavigationManager
 {
-	private readonly TestContext _context;
+	private readonly BunitContext _context;
 
-	public FakeNavigationManager(TestContext context)
+	public FakeNavigationManager(BunitContext context)
 	{
 		_context = context;
 		Initialize("http://localhost/", "http://localhost/");

@@ -18,7 +18,7 @@ Follow the naming convention: `ComponentName_Scenario_ExpectedResult`
 public void Pagination_WithLargePageCount_ShowsEllipsis()
 {
     // Arrange
-    var cut = RenderComponent<Pagination>(parameters => parameters
+    var cut = Render<Pagination>(parameters => parameters
         .Add(p => p.CurrentPage, 10)
         .Add(p => p.TotalPages, 50)
         .Add(p => p.TotalItems, 500)
@@ -40,7 +40,7 @@ public void Pagination_WithLargePageCount_ShowsEllipsis()
 public async Task Component_AsyncAction_InvokesCallback()
 {
     var executed = false;
-    var cut = RenderComponent<Component>(p => p
+    var cut = Render<Component>(p => p
         .Add(x => x.OnAsync, EventCallback.Factory.Create(this, async () =>
         {
             executed = true;
@@ -58,7 +58,7 @@ public async Task Component_AsyncAction_InvokesCallback()
 public async Task Component_MultipleClicks_UpdatesCounter()
 {
     var count = 0;
-    var cut = RenderComponent<Component>(p => p
+    var cut = Render<Component>(p => p
         .Add(x => x.OnClick, EventCallback.Factory.Create(this, () =>
         {
             count++;
@@ -80,7 +80,7 @@ public void Component_WithMultipleItems_RendersAll()
 {
     var items = new List<string> { "Item1", "Item2", "Item3" };
     
-    var cut = RenderComponent<Component>(p => p
+    var cut = Render<Component>(p => p
         .Add(x => x.Items, items));
 
     var listItems = cut.FindAll("li");
@@ -93,7 +93,7 @@ public void Component_WithMultipleItems_RendersAll()
 [Fact]
 public async Task Component_ParameterUpdate_ReRendersCorrectly()
 {
-    var cut = RenderComponent<Component>(p => p
+    var cut = Render<Component>(p => p
         .Add(x => x.Value, "Initial"));
 
     cut.Markup.Should().Contain("Initial");
@@ -123,7 +123,7 @@ public class NewComponentTests : BunitTestBase
     public void NewComponent_Renders()
     {
         // Arrange & Act
-        var cut = RenderComponent<NewComponent>();
+        var cut = Render<NewComponent>();
 
         // Assert
         cut.Should().NotBeNull();
@@ -138,7 +138,7 @@ Start with basic rendering tests, then add parameter and callback tests:
 [Fact]
 public void NewComponent_RendersTitle()
 {
-    var cut = RenderComponent<NewComponent>(p => p
+    var cut = Render<NewComponent>(p => p
         .Add(x => x.Title, "Test Title"));
 
     cut.Markup.Should().Contain("Test Title");
@@ -147,7 +147,7 @@ public void NewComponent_RendersTitle()
 [Fact]
 public void NewComponent_WithDescription_Rendered()
 {
-    var cut = RenderComponent<NewComponent>(p => p
+    var cut = Render<NewComponent>(p => p
         .Add(x => x.Description, "Test Description"));
 
     cut.Markup.Should().Contain("Test Description");
@@ -158,7 +158,7 @@ public async Task NewComponent_ClickButton_InvokesCallback()
 {
     var clicked = false;
     
-    var cut = RenderComponent<NewComponent>(p => p
+    var cut = Render<NewComponent>(p => p
         .Add(x => x.OnClick, EventCallback.Factory.Create(this, () =>
         {
             clicked = true;
@@ -177,7 +177,7 @@ Test null values, empty collections, boundary conditions:
 [Fact]
 public void NewComponent_WithNullDescription_RendersDefault()
 {
-    var cut = RenderComponent<NewComponent>(p => p
+    var cut = Render<NewComponent>(p => p
         .Add(x => x.Description, null));
 
     cut.Markup.Should().Contain("No description provided");
@@ -186,7 +186,7 @@ public void NewComponent_WithNullDescription_RendersDefault()
 [Fact]
 public void NewComponent_WithEmptyList_ShowsMessage()
 {
-    var cut = RenderComponent<NewComponent>(p => p
+    var cut = Render<NewComponent>(p => p
         .Add(x => x.Items, new List<Item>()));
 
     cut.Markup.Should().Contain("No items found");
@@ -208,7 +208,7 @@ var comment = CreateTestComment(description: "Test comment");
 var issues = CreateTestIssues(count: 10);
 
 // Use in tests
-var cut = RenderComponent<Component>(p => p
+var cut = Render<Component>(p => p
     .Add(x => x.Issue, issue)
     .Add(x => x.Category, category));
 ```
@@ -227,7 +227,7 @@ private static List<StatusDto> CreateTestStatuses()
 
 // Use in test
 var statuses = CreateTestStatuses();
-var cut = RenderComponent<FilterPanel>(p => p
+var cut = Render<FilterPanel>(p => p
     .Add(x => x.Statuses, statuses));
 ```
 
@@ -245,7 +245,7 @@ public async Task Component_WithJSInterop_CallsJS()
         .InvokeAsync<bool>("functionName", Arg.Any<string>())
         .Returns(Task.FromResult(true));
 
-    var cut = RenderComponent<Component>();
+    var cut = Render<Component>();
     // Component should call JS function
     
     await jsRuntime.Received().InvokeAsync<bool>(
@@ -268,7 +268,7 @@ public async Task Component_LoadsData_DisplaysResults()
         .Returns(Task.FromResult<IEnumerable<IssueDto>>(testIssues));
 
     // Render and verify
-    var cut = RenderComponent<Component>();
+    var cut = Render<Component>();
     
     cut.Markup.Should().Contain("5 issues");
 }
@@ -281,7 +281,7 @@ public void Component_WithoutAuth_HidesContent()
 {
     SetupAnonymousUser();
     
-    var cut = RenderComponent<Component>();
+    var cut = Render<Component>();
     
     cut.Markup.Should().NotContain("protected-content");
 }
@@ -291,7 +291,7 @@ public void Component_WithAdminAuth_ShowsAdminOptions()
 {
     SetupAuthenticatedUser(isAdmin: true);
     
-    var cut = RenderComponent<Component>();
+    var cut = Render<Component>();
     
     cut.Markup.Should().Contain("admin-button");
 }
@@ -333,7 +333,7 @@ public class [ComponentName]Tests : BunitTestBase
     public void [ComponentName]_Renders()
     {
         // Arrange & Act
-        var cut = RenderComponent<[ComponentName]>();
+        var cut = Render<[ComponentName]>();
 
         // Assert
         cut.Should().NotBeNull();
@@ -343,7 +343,7 @@ public class [ComponentName]Tests : BunitTestBase
     public void [ComponentName]_With[Parameter]_Rendered()
     {
         // Arrange & Act
-        var cut = RenderComponent<[ComponentName]>(parameters => parameters
+        var cut = Render<[ComponentName]>(parameters => parameters
             .Add(p => p.[Parameter], "[value]"));
 
         // Assert
@@ -355,7 +355,7 @@ public class [ComponentName]Tests : BunitTestBase
     {
         // Arrange
         var result = false;
-        var cut = RenderComponent<[ComponentName]>(parameters => parameters
+        var cut = Render<[ComponentName]>(parameters => parameters
             .Add(p => p.OnEvent, EventCallback.Factory.Create(this, () =>
             {
                 result = true;
@@ -447,7 +447,7 @@ public class CustomButtonTests : BunitTestBase
     [Fact]
     public void CustomButton_RendersWithText()
     {
-        var cut = RenderComponent<CustomButton>(p => p
+        var cut = Render<CustomButton>(p => p
             .Add(x => x.Text, "Click Me"));
 
         cut.Markup.Should().Contain("Click Me");
@@ -456,7 +456,7 @@ public class CustomButtonTests : BunitTestBase
     [Fact]
     public void CustomButton_DisabledState_ButtonDisabled()
     {
-        var cut = RenderComponent<CustomButton>(p => p
+        var cut = Render<CustomButton>(p => p
             .Add(x => x.Disabled, true));
 
         cut.Find("button").GetAttribute("disabled").Should().Be("disabled");
@@ -466,7 +466,7 @@ public class CustomButtonTests : BunitTestBase
     public async Task CustomButton_Click_InvokesCallback()
     {
         var clicked = false;
-        var cut = RenderComponent<CustomButton>(p => p
+        var cut = Render<CustomButton>(p => p
             .Add(x => x.OnClick, EventCallback.Factory.Create(this, () =>
             {
                 clicked = true;
@@ -480,7 +480,7 @@ public class CustomButtonTests : BunitTestBase
     [Fact]
     public void CustomButton_WithVariant_AppliesToClass()
     {
-        var cut = RenderComponent<CustomButton>(p => p
+        var cut = Render<CustomButton>(p => p
             .Add(x => x.Variant, "primary"));
 
         cut.Find("button").GetAttribute("class").Should().Contain("primary");
@@ -489,7 +489,7 @@ public class CustomButtonTests : BunitTestBase
     [Fact]
     public void CustomButton_WithLoading_ShowsSpinner()
     {
-        var cut = RenderComponent<CustomButton>(p => p
+        var cut = Render<CustomButton>(p => p
             .Add(x => x.Loading, true));
 
         cut.Markup.Should().Contain("spinner");

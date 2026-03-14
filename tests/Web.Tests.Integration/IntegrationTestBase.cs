@@ -205,15 +205,30 @@ public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFa
 	{
 		await using var context = Factory.CreateDbContext();
 
-		var author = new UserDto(TestAuthHandler.TestUserId, TestAuthHandler.TestUserName, TestAuthHandler.TestUserEmail);
+		var author = new UserInfo
+		{
+			Id = TestAuthHandler.TestUserId,
+			Name = TestAuthHandler.TestUserName,
+			Email = TestAuthHandler.TestUserEmail
+		};
 
 		var issue = new Issue
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = title,
 			Description = "Test issue description",
-			Category = new CategoryDto(category),
-			Status = new StatusDto(status),
+			Category = new CategoryInfo
+			{
+				Id = category.Id,
+				CategoryName = category.CategoryName,
+				CategoryDescription = category.CategoryDescription
+			},
+			Status = new StatusInfo
+			{
+				Id = status.Id,
+				StatusName = status.StatusName,
+				StatusDescription = status.StatusDescription
+			},
 			Author = author
 		};
 
@@ -237,9 +252,24 @@ public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFa
 	{
 		await using var context = Factory.CreateDbContext();
 
-		var author = new UserDto(TestAuthHandler.TestUserId, TestAuthHandler.TestUserName, TestAuthHandler.TestUserEmail);
-		var categoryDto = new CategoryDto(category);
-		var statusDto = new StatusDto(status);
+		var author = new UserInfo
+		{
+			Id = TestAuthHandler.TestUserId,
+			Name = TestAuthHandler.TestUserName,
+			Email = TestAuthHandler.TestUserEmail
+		};
+		var categoryInfo = new CategoryInfo
+		{
+			Id = category.Id,
+			CategoryName = category.CategoryName,
+			CategoryDescription = category.CategoryDescription
+		};
+		var statusInfo = new StatusInfo
+		{
+			Id = status.Id,
+			StatusName = status.StatusName,
+			StatusDescription = status.StatusDescription
+		};
 
 		var issues = new List<Issue>();
 		for (var i = 1; i <= count; i++)
@@ -249,8 +279,8 @@ public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFa
 				Id = ObjectId.GenerateNewId(),
 				Title = $"Test Issue {i}",
 				Description = $"Test issue description {i}",
-				Category = categoryDto,
-				Status = statusDto,
+				Category = categoryInfo,
+				Status = statusInfo,
 				Author = author
 			});
 		}

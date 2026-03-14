@@ -42,7 +42,7 @@ public class GetCategoriesQueryHandlerTests
 				CategoryName = "Category A",
 				CategoryDescription = "Description A",
 				Archived = false,
-				ArchivedBy = UserDto.Empty
+				ArchivedBy = UserInfo.Empty
 			},
 			new()
 			{
@@ -50,7 +50,7 @@ public class GetCategoriesQueryHandlerTests
 				CategoryName = "Category B",
 				CategoryDescription = "Description B",
 				Archived = false,
-				ArchivedBy = UserDto.Empty
+				ArchivedBy = UserInfo.Empty
 			}
 		};
 
@@ -86,7 +86,7 @@ public class GetCategoriesQueryHandlerTests
 				CategoryName = "Active Category",
 				CategoryDescription = "Description",
 				Archived = false,
-				ArchivedBy = UserDto.Empty
+				ArchivedBy = UserInfo.Empty
 			}
 		};
 

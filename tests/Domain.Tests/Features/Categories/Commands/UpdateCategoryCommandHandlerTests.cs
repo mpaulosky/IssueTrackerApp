@@ -42,7 +42,7 @@ public class UpdateCategoryCommandHandlerTests
 			CategoryDescription = "Old Description",
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
 		var command = new UpdateCategoryCommand(categoryId.ToString(), "New Name", "New Description");

@@ -80,7 +80,7 @@ JSInterop.Setup<string>("method").SetException(new JSException("error"));
 
 ### Component Rendering with Cascading Values
 ```csharp
-var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+var themeProvider = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 

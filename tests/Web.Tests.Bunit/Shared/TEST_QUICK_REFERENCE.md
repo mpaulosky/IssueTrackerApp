@@ -39,7 +39,7 @@ public void ComponentName_Scenario_ExpectedResult()
     var component = CreateTestComponent(); // or use helper like CreateTestStatus()
     
     // Act
-    var cut = RenderComponent<ComponentName>(parameters => parameters
+    var cut = Render<ComponentName>(parameters => parameters
         .Add(p => p.Property, value)
         .Add(p => p.EventCallback, EventCallback.Factory.Create<TValue>(this, _ => { })));
     

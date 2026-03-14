@@ -42,11 +42,12 @@ public class ArchiveCategoryCommandHandlerTests
 			CategoryDescription = "Test Description",
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
-		var archivedByUser = new UserDto("user-123", "Test User", "test@example.com");
-		var command = new ArchiveCategoryCommand(categoryId.ToString(), true, archivedByUser);
+		var archivedByUser = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var archivedByUserDto = new UserDto(archivedByUser);
+		var command = new ArchiveCategoryCommand(categoryId.ToString(), true, archivedByUserDto);
 
 		_repository.GetByIdAsync(categoryId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingCategory));
@@ -66,6 +67,6 @@ public class ArchiveCategoryCommandHandlerTests
 		result.Success.Should().BeTrue();
 		capturedCategory.Should().NotBeNull();
 		capturedCategory!.Archived.Should().BeTrue();
-		capturedCategory.ArchivedBy.Should().Be(archivedByUser);
+		capturedCategory.ArchivedBy.Should().BeEquivalentTo(archivedByUser);
 	}
 }

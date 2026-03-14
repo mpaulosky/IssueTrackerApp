@@ -38,9 +38,9 @@ public sealed class DeleteIssueCommandHandlerTests
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId);
-		var archivedBy = new UserDto("admin-123", "Admin User", "admin@example.com");
+		var archivedBy = new UserInfo { Id = "admin-123", Name = "Admin User", Email = "admin@example.com" };
 
-		var command = new DeleteIssueCommand(issueId.ToString(), archivedBy);
+		var command = new DeleteIssueCommand(issueId.ToString(), new UserDto(archivedBy));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -62,7 +62,7 @@ public sealed class DeleteIssueCommandHandlerTests
 
 		capturedIssue.Should().NotBeNull();
 		capturedIssue!.Archived.Should().BeTrue();
-		capturedIssue.ArchivedBy.Should().Be(archivedBy);
+		capturedIssue.ArchivedBy.Should().BeEquivalentTo(archivedBy);
 
 		await _issueRepository.Received(1).GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>());
 		await _issueRepository.Received(1).UpdateAsync(Arg.Any<Issue>(), Arg.Any<CancellationToken>());
@@ -73,9 +73,9 @@ public sealed class DeleteIssueCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId().ToString();
-		var archivedBy = new UserDto("admin-123", "Admin User", "admin@example.com");
+		var archivedBy = new UserInfo { Id = "admin-123", Name = "Admin User", Email = "admin@example.com" };
 
-		var command = new DeleteIssueCommand(issueId, archivedBy);
+		var command = new DeleteIssueCommand(issueId, new UserDto(archivedBy));
 
 		_issueRepository.GetByIdAsync(issueId, Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<Issue>("Issue not found", ResultErrorCode.NotFound));
@@ -99,9 +99,9 @@ public sealed class DeleteIssueCommandHandlerTests
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId);
 		var beforeTest = DateTime.UtcNow;
-		var archivedBy = new UserDto("admin-123", "Admin User", "admin@example.com");
+		var archivedBy = new UserInfo { Id = "admin-123", Name = "Admin User", Email = "admin@example.com" };
 
-		var command = new DeleteIssueCommand(issueId.ToString(), archivedBy);
+		var command = new DeleteIssueCommand(issueId.ToString(), new UserDto(archivedBy));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -133,9 +133,9 @@ public sealed class DeleteIssueCommandHandlerTests
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId);
-		var archivedBy = new UserDto("admin-123", "Admin User", "admin@example.com");
+		var archivedBy = new UserInfo { Id = "admin-123", Name = "Admin User", Email = "admin@example.com" };
 
-		var command = new DeleteIssueCommand(issueId.ToString(), archivedBy);
+		var command = new DeleteIssueCommand(issueId.ToString(), new UserDto(archivedBy));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -157,9 +157,9 @@ public sealed class DeleteIssueCommandHandlerTests
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId);
-		var archivedBy = UserDto.Empty;
+		var archivedBy = UserInfo.Empty;
 
-		var command = new DeleteIssueCommand(issueId.ToString(), archivedBy);
+		var command = new DeleteIssueCommand(issueId.ToString(), new UserDto(archivedBy));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -185,9 +185,9 @@ public sealed class DeleteIssueCommandHandlerTests
 			Id = id,
 			Title = "Test Issue",
 			Description = "Test Description",
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
-			Status = StatusDto.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
+			Status = StatusInfo.Empty,
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
 			ApprovedForRelease = false,

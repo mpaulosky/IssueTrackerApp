@@ -81,13 +81,13 @@ All tests inherit from `BunitTestBase` which provides:
 Tests verify components show/hide elements based on state:
 ```csharp
 // With permission
-var cut = RenderComponent<AttachmentCard>(parameters => parameters
+var cut = Render<AttachmentCard>(parameters => parameters
     .Add(p => p.CanDelete, true)
 );
 cut.FindAll("button").Should().Contain(b => b.TextContent.Contains("Delete"));
 
 // Without permission
-var cut2 = RenderComponent<AttachmentCard>(parameters => parameters
+var cut2 = Render<AttachmentCard>(parameters => parameters
     .Add(p => p.CanDelete, false)
 );
 cut2.FindAll("button").Should().NotContain(b => b.TextContent.Contains("Delete"));
@@ -96,7 +96,7 @@ cut2.FindAll("button").Should().NotContain(b => b.TextContent.Contains("Delete")
 ### 2. State Management
 Tests verify component state changes (loading, empty, error):
 ```csharp
-var cut = RenderComponent<CommentsSection>(parameters => parameters
+var cut = Render<CommentsSection>(parameters => parameters
     .Add(p => p.IssueId, issueId)
 );
 
@@ -108,7 +108,7 @@ cut.Markup.Should().Contain("animate-spin");
 Tests verify correct rendering of data:
 ```csharp
 var attachment = new AttachmentDto(...);
-var cut = RenderComponent<AttachmentCard>(parameters => parameters
+var cut = Render<AttachmentCard>(parameters => parameters
     .Add(p => p.Attachment, attachment)
 );
 
@@ -119,7 +119,7 @@ cut.Markup.Should().Contain(attachment.FileName);
 Tests verify admin/owner authorization:
 ```csharp
 // Admin can delete
-var cut = RenderComponent<AttachmentList>(parameters => parameters
+var cut = Render<AttachmentList>(parameters => parameters
     .Add(p => p.IsAdmin, true)
 );
 var card = cut.FindComponent<AttachmentCard>();
@@ -129,7 +129,7 @@ card.Instance.CanDelete.Should().BeTrue();
 ### 5. Empty/Error States
 Tests verify UI handles no data and errors:
 ```csharp
-var cut = RenderComponent<AttachmentList>(parameters => parameters
+var cut = Render<AttachmentList>(parameters => parameters
     .Add(p => p.Attachments, new List<AttachmentDto>())
 );
 cut.Markup.Should().Contain("No attachments yet");
@@ -201,7 +201,7 @@ element.Should().NotBeNull();
 When adding new component tests:
 1. Follow the naming convention: `{Component}_{Scenario}_{Expected}()`
 2. Inherit from `BunitTestBase`
-3. Use `RenderComponent<T>()` for component initialization
+3. Use `Render<T>()` for component initialization
 4. Use `FindAll()`, `Find()`, `FindComponent<T>()` for DOM queries
 5. Add assertions using FluentAssertions
 6. Include comments explaining complex test logic

@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands.Bulk;
 
@@ -97,9 +98,9 @@ public sealed class BulkUpdateCategoryCommandHandler : IRequestHandler<BulkUpdat
 				undoSnapshots.Add(new IssueUndoSnapshot(
 					issue.Id.ToString(),
 					BulkOperationType.CategoryUpdate,
-					new CategoryUpdateSnapshot(issue.Category)));
+					new CategoryUpdateSnapshot(CategoryMapper.ToDto(issue.Category))));
 
-				issue.Category = request.NewCategory;
+				issue.Category = CategoryMapper.ToInfo(request.NewCategory);
 				issue.DateModified = DateTime.UtcNow;
 
 				var updateResult = await _repository.UpdateAsync(issue, cancellationToken);

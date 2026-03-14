@@ -42,11 +42,12 @@ public class ArchiveStatusCommandHandlerTests
 			StatusDescription = "Test Description",
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
-		var archivedByUser = new UserDto("user-123", "Test User", "test@example.com");
-		var command = new ArchiveStatusCommand(statusId.ToString(), true, archivedByUser);
+		var archivedByUser = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var archivedByUserDto = new UserDto(archivedByUser);
+		var command = new ArchiveStatusCommand(statusId.ToString(), true, archivedByUserDto);
 
 		_repository.GetByIdAsync(statusId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingStatus));
@@ -66,6 +67,6 @@ public class ArchiveStatusCommandHandlerTests
 		result.Success.Should().BeTrue();
 		capturedStatus.Should().NotBeNull();
 		capturedStatus!.Archived.Should().BeTrue();
-		capturedStatus.ArchivedBy.Should().Be(archivedByUser);
+		capturedStatus.ArchivedBy.Should().BeEquivalentTo(archivedByUser);
 	}
 }

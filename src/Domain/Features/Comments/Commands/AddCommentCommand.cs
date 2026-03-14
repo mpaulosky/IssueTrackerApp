@@ -9,6 +9,7 @@
 
 using Domain.Abstractions;
 using Domain.Events;
+using Domain.Mappers;
 
 namespace Domain.Features.Comments.Commands;
 
@@ -56,15 +57,14 @@ public sealed class AddCommentCommandHandler : IRequestHandler<AddCommentCommand
 		}
 
 		var issue = issueResult.Value;
-		var issueDto = new IssueDto(issue);
 
 		var comment = new Comment
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = request.Title,
 			Description = request.Description,
-			Author = request.Author,
-			Issue = issueDto,
+			Author = UserMapper.ToInfo(request.Author),
+			IssueId = issue.Id,
 			DateCreated = DateTime.UtcNow,
 			Archived = false,
 			IsAnswer = false

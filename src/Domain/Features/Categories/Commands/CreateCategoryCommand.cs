@@ -56,7 +56,7 @@ public sealed class CreateCategoryCommandHandler : IRequestHandler<CreateCategor
 			CategoryDescription = request.CategoryDescription,
 			DateCreated = DateTime.UtcNow,
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
 		var result = await _repository.AddAsync(category, cancellationToken);

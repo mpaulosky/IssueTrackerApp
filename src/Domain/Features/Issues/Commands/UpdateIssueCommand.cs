@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands;
 
@@ -51,7 +52,7 @@ public sealed class UpdateIssueCommandHandler : IRequestHandler<UpdateIssueComma
 		var issue = existingResult.Value;
 		issue.Title = request.Title;
 		issue.Description = request.Description;
-		issue.Category = request.Category;
+		issue.Category = CategoryMapper.ToInfo(request.Category);
 		issue.DateModified = DateTime.UtcNow;
 
 		var result = await _repository.UpdateAsync(issue, cancellationToken);

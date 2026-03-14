@@ -156,7 +156,7 @@
 
 ### 1. Component Rendering
 ```csharp
-var component = RenderComponent<ThemeProvider>(parameters =>
+var component = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 

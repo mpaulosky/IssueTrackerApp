@@ -20,7 +20,7 @@ public record CommentDto(
 	string Description,
 	DateTime DateCreated,
 	DateTime? DateModified,
-	IssueDto Issue,
+	ObjectId IssueId,
 	UserDto Author,
 	HashSet<string> UserVotes,
 	bool Archived,
@@ -38,13 +38,13 @@ public record CommentDto(
 		comment.Description,
 		comment.DateCreated,
 		comment.DateModified,
-		comment.Issue,
-		comment.Author,
+		comment.IssueId,
+		UserMapper.ToDto(comment.Author),
 		comment.UserVotes,
 		comment.Archived,
-		comment.ArchivedBy,
+		UserMapper.ToDto(comment.ArchivedBy),
 		comment.IsAnswer,
-		comment.AnswerSelectedBy)
+		UserMapper.ToDto(comment.AnswerSelectedBy))
 	{
 	}
 
@@ -54,7 +54,7 @@ public record CommentDto(
 		string.Empty,
 		DateTime.UtcNow,
 		null,
-		IssueDto.Empty,
+		ObjectId.Empty,
 		UserDto.Empty,
 		[],
 		false,

@@ -34,7 +34,7 @@ public record StatusDto(
 		status.DateCreated,
 		status.DateModified,
 		status.Archived,
-		status.ArchivedBy)
+		UserMapper.ToDto(status.ArchivedBy))
 	{
 	}
 

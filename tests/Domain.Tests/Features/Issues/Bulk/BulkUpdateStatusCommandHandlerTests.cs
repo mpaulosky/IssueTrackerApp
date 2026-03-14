@@ -41,16 +41,20 @@ public sealed class BulkUpdateStatusCommandHandlerTests
 	{
 		// Arrange
 		var issueIds = new List<string> { "issue1", "issue2", "issue3" };
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new BulkUpdateStatusCommand(issueIds, newStatus, "user1");
+		var newStatusDto = StatusMapper.ToDto(newStatus);
+
+		var command = new BulkUpdateStatusCommand(issueIds, newStatusDto, "user1");
 
 		foreach (var issueId in issueIds)
 		{
@@ -58,9 +62,9 @@ public sealed class BulkUpdateStatusCommandHandlerTests
 			{
 				Id = ObjectId.Parse(ObjectId.GenerateNewId().ToString()),
 				Title = $"Issue {issueId}",
-				Status = StatusDto.Empty,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Status = StatusInfo.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow.AddDays(-5)
 			};
 
@@ -94,25 +98,29 @@ public sealed class BulkUpdateStatusCommandHandlerTests
 	{
 		// Arrange
 		var issueIds = new List<string> { "issue1", "issue2" };
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"In Progress",
-			"In progress status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "In Progress",
+			StatusDescription = "In progress status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new BulkUpdateStatusCommand(issueIds, newStatus, "user1");
+		var newStatusDto = StatusMapper.ToDto(newStatus);
+
+		var command = new BulkUpdateStatusCommand(issueIds, newStatusDto, "user1");
 
 		// Setup first issue to succeed
 		var issue1 = new Issue
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = "Issue 1",
-			Status = StatusDto.Empty,
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty
+			Status = StatusInfo.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty
 		};
 
 		_repository.GetByIdAsync("issue1", Arg.Any<CancellationToken>())
@@ -151,16 +159,20 @@ public sealed class BulkUpdateStatusCommandHandlerTests
 			.Select(i => $"issue{i}")
 			.ToList();
 
-		var newStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new BulkUpdateStatusCommand(issueIds, newStatus, "user1");
+		var newStatusDto = StatusMapper.ToDto(newStatus);
+
+		var command = new BulkUpdateStatusCommand(issueIds, newStatusDto, "user1");
 
 		_bulkQueue.QueueAsync(Arg.Any<BulkUpdateStatusCommand>(), Arg.Any<CancellationToken>())
 			.Returns("operation-id-123");

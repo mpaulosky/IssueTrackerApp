@@ -14,14 +14,14 @@ The application uses a layered configuration system where secrets are **never** 
 
 ## Required Secrets
 
-| Secret                         | Description                                    | Required     |
-|--------------------------------|------------------------------------------------|--------------|
-| `Auth0:Domain`                 | Auth0 tenant domain (e.g., `tenant.auth0.com`) | ✅ Yes        |
-| `Auth0:ClientId`               | Auth0 application client ID                    | ✅ Yes        |
-| `Auth0:ClientSecret`           | Auth0 application client secret                | ✅ Yes        |
-| `MongoDB:ConnectionString`     | MongoDB Atlas connection string                | ✅ Production |
-| `SendGrid:ApiKey`              | SendGrid API key for email                     | Optional     |
-| `BlobStorage:ConnectionString` | Azure Blob Storage connection                  | Optional     |
+| Secret                         | Description                                     | Required      |
+|------------------------------- |-------------------------------------------------|-------------- |
+| `Auth0:Domain`                 | Auth0 tenant domain (e.g., `tenant.auth0.com`)  | ✅ Yes        |
+| `Auth0:ClientId`               | Auth0 application client ID                     | ✅ Yes        |
+| `Auth0:ClientSecret`           | Auth0 application client secret                 | ✅ Yes        |
+| `MongoDB:ConnectionString`     | MongoDB Atlas connection string                 | ✅ Production |
+| `SendGrid:ApiKey`              | SendGrid API key for email                      | Optional      |
+| `BlobStorage:ConnectionString` | Azure Blob Storage connection                   | Optional      |
 
 ---
 
@@ -53,6 +53,7 @@ Select-String -Path Web.csproj -Pattern "UserSecretsId"
 ### Step 3: Set Your Auth0 Secrets
 
 Get your Auth0 credentials from the [Auth0 Dashboard](https://manage.auth0.com/):
+
 1. Go to **Applications → Applications → Your App**
 2. Copy Domain, Client ID, and Client Secret
 
@@ -68,6 +69,7 @@ dotnet user-secrets set "Auth0:ClientSecret" "YOUR_CLIENT_SECRET_HERE"
 For **local development**, .NET Aspire runs MongoDB in a container automatically — no connection string needed!
 
 For **MongoDB Atlas** (cloud database), get your connection string from [MongoDB Atlas](https://cloud.mongodb.com/):
+
 1. Go to **Database → Connect → Drivers**
 2. Copy the connection string (replace `<password>` with your actual password)
 
@@ -83,7 +85,8 @@ dotnet user-secrets list
 ```
 
 Expected output:
-```
+
+```text
 Auth0:ClientId = abc123...
 Auth0:ClientSecret = xyz789...
 Auth0:Domain = your-tenant.us.auth0.com
@@ -136,7 +139,7 @@ env:
 
 ## Production Setup (Azure Key Vault)
 
-### Prerequisites
+### Prerequisites for Azure
 
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) installed
 - Logged in: `az login`
@@ -265,6 +268,7 @@ Before sending emails, you must verify a sender:
    - **Domain Authentication** (recommended for production) — Verify your domain via DNS
 
 For Single Sender:
+
 1. Click **Create a Sender**
 2. Fill in your details (From Name, From Email, etc.)
 3. Click the verification link sent to that email

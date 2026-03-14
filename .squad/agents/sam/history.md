@@ -459,3 +459,88 @@
 - Backend components can build successfully even when Web project has frontend errors
 
 ---
+### WI-1 — Value Objects and Mapper Infrastructure (2026-03-14)
+
+**Value Objects Created (src/Domain/Models/):**
+- `UserInfo.cs` — Sealed class with Id/Name/Email, BsonElement attributes matching UserDto serialization
+- `CategoryInfo.cs` — Sealed class mirroring CategoryDto fields, nested UserInfo for ArchivedBy
+- `StatusInfo.cs` — Sealed class mirroring StatusDto fields, nested UserInfo for ArchivedBy
+
+**Mapper Classes Created (src/Domain/Mappers/):**
+- `UserMapper.cs` — User ↔ UserDto, UserInfo ↔ UserDto, with ToInfo conversion
+- `CategoryMapper.cs` — Category ↔ CategoryDto, CategoryInfo ↔ CategoryDto, with ToInfo
+- `StatusMapper.cs` — Status ↔ StatusDto, StatusInfo ↔ StatusDto, with ToInfo
+- `IssueMapper.cs` — Issue ↔ IssueDto, uses existing embedded DTOs directly
+- `CommentMapper.cs` — Comment ↔ CommentDto, handles IssueDto/UserDto embeds
+- `AttachmentMapper.cs` — Attachment ↔ AttachmentDto, ObjectId ↔ string parsing
+
+**Architecture Decisions:**
+- Value objects are `sealed class` (not records) for EF Core/MongoDB mutable property support
+- BsonElement attributes explicitly match current DTO serialization (PascalCase) for zero-migration compatibility
+- Mappers are static classes with null-safe patterns returning Empty/default instances
+- Value objects use `static Empty => new()` pattern (new instance per call) matching existing DTO convention
+- Collection overloads use `Select(lambda).ToList()` to avoid overload ambiguity
+- AttachmentMapper uses `ObjectId.TryParse` for safe string-to-ObjectId conversion
+
+**Key Patterns:**
+- Value objects in `Domain.Models` namespace (same as models, ready for embedding)
+- Mappers in `Domain.Mappers` namespace (new directory)
+- CategoryInfo/StatusInfo nest UserInfo (not UserDto) for proper DDD value object composition
+- All mappers compile against CURRENT codebase without modifications to existing files
+
+**Build/Test Results:**
+- Domain project: 0 errors, 0 warnings
+- Domain.Tests: 255 passed, 0 failed
+- Architecture.Tests: 38 passed, 0 failed
+- Full solution: pre-existing TailwindCSS/npm issue in Web project (unrelated)
+
+### WI-3 + WI-4 — Model Refactoring to Value Objects + DTO/Mapper Updates (2026-03-14)
+
+**What Changed:**
+- **Models refactored:** Replaced all DTO types in domain models with value objects:
+  - Issue.cs: `CategoryDto→CategoryInfo`, `UserDto Author→UserInfo`, `StatusDto→StatusInfo`, `UserDto ArchivedBy→UserInfo`
+  - Category.cs: `UserDto ArchivedBy→UserInfo`
+  - Status.cs: `UserDto ArchivedBy→UserInfo`
+  - Comment.cs: `IssueDto Issue→ObjectId IssueId` (breaks circular dep), `UserDto Author/ArchivedBy/AnswerSelectedBy→UserInfo`
+  - Attachment.cs: `UserDto UploadedBy→UserInfo`
+- **DTOs updated:** All 6 DTO constructors now convert value objects via Mappers (UserMapper.ToDto, CategoryMapper.ToDto, etc.)
+- **CommentDto:** Changed from `IssueDto Issue` to `ObjectId IssueId` to match the model change
+- **UserDto:** Added `UserDto(UserInfo info)` constructor for direct value object conversion
+- **Mappers updated:** All 6 mappers now use UserMapper.ToInfo/ToDto, CategoryMapper.ToInfo/ToDto, StatusMapper.ToInfo/ToDto for conversions
+- **EF Core configs:** CommentConfiguration removed the nested IssueDto OwnsOne block; other configs unchanged (property names match)
+- **GlobalUsings:** Added `global using Domain.Mappers;` to Domain project
+
+**Remaining Compile Errors (29 errors in 15 Feature handler files — expected, for WI-5):**
+- Comment handlers: `AddCommentCommand`, `UpdateCommentCommand`, `DeleteCommentCommand` — need `UserMapper.ToInfo()` + `IssueId` instead of `Issue`
+- Comment queries: `GetIssueCommentsQuery` — needs `IssueId` filter instead of `Issue.Id`
+- Issue commands: `CreateIssueCommand`, `UpdateIssueCommand`, `DeleteIssueCommand`, `ChangeIssueStatusCommand` — need mapper conversions
+- Bulk commands: `BulkAssignCommand`, `BulkDeleteCommand`, `BulkUpdateCategoryCommand`, `BulkUpdateStatusCommand`, `UndoBulkOperationCommand` — need mapper conversions
+- Category commands: `ArchiveCategoryCommand`, `CreateCategoryCommand` — need `UserMapper.ToInfo()`
+- Status commands: `ArchiveStatusCommand`, `CreateStatusCommand` — need `UserMapper.ToInfo()`
+- Attachment commands: `AddAttachmentCommand` — needs `UserMapper.ToInfo()`
+
+**Key Decision:** Changed `Comment.Issue` (IssueDto) → `Comment.IssueId` (ObjectId) to break circular dependency. CommentDto also changed to hold `ObjectId IssueId` instead of embedded `IssueDto`. Downstream handlers that need full issue data must load it separately.
+
+### WI-5 - Update All CQRS Handlers to Use Value Objects (2025-06-25)
+
+**What Was Done:**
+- Fixed all 18 CQRS handler files that were assigning DTOs to model properties now typed as value objects
+- Domain project builds with zero errors, zero warnings
+
+**Fix Patterns Applied:**
+- `UserDto → UserInfo` via `UserMapper.ToInfo()` (most common — Author, ArchivedBy, UploadedBy)
+- `CategoryDto → CategoryInfo` via `CategoryMapper.ToInfo()` (Issue.Category)
+- `StatusDto → StatusInfo` via `StatusMapper.ToInfo()` (Issue.Status)
+- `Comment.Issue = issueDto` → `Comment.IssueId = issue.Id` (property renamed from embedded DTO to ObjectId)
+- `UserDto.Empty` → `UserInfo.Empty` for default empty values on model properties
+- Bulk snapshot creation: model value objects → DTOs via `ToDto()` (snapshots store DTOs)
+- Bulk undo restoration: snapshot DTOs → value objects via `ToInfo()` (restoring to models)
+- `CreateIssueCommand`: replaced `new StatusDto(...)` with `new StatusInfo { ... }` for default Open status
+
+**Remaining Downstream Errors (for other WIs):**
+- `tests/Domain.Tests/` — 29 test files with ~187 errors (same DTO→value object pattern in test Issue/Comment setup code)
+- `src/Web/Services/CommentService.cs` — 3 errors referencing `CommentDto.Issue` which no longer exists (now `IssueId`)
+- Total: ~190 errors across 30 files outside Domain handlers
+
+**Key Learning:** When models switch from DTOs to value objects, the conversion ripples through: handlers (fixed here), tests (need mapper calls in setup), and consuming services (need property name updates).
+

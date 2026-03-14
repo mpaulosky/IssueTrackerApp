@@ -26,7 +26,7 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 - Sets up authenticated user with custom userId and userName
 - Mocks `DashboardService.GetUserDashboardAsync()`
 - Creates test `UserDashboardDto` with configurable statistics
-- Uses `RenderComponent<Dashboard>()` for component rendering
+- Uses `Render<Dashboard>()` for component rendering
 - Verifies markup contains expected content and labels
 
 ---
@@ -111,7 +111,7 @@ DashboardService.Received(1).GetUserDashboardAsync(userId);
 ### Component Rendering
 ```csharp
 // Render component
-var cut = RenderComponent<Dashboard>();
+var cut = Render<Dashboard>();
 
 // Allow async operations to complete
 await cut.InvokeAsync(() => Task.Delay(100));

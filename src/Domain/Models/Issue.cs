@@ -71,7 +71,7 @@ public class Issue
 	/// <value>
 	///   The category.
 	/// </value>
-	public CategoryDto Category { get; set; } = CategoryDto.Empty;
+	public CategoryInfo Category { get; set; } = CategoryInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets the author.
@@ -79,7 +79,7 @@ public class Issue
 	/// <value>
 	///   The author.
 	/// </value>
-	public UserDto Author { get; set; } = UserDto.Empty;
+	public UserInfo Author { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets the issue status.
@@ -87,7 +87,7 @@ public class Issue
 	/// <value>
 	///   The issue status.
 	/// </value>
-	public StatusDto Status { get; set; } = StatusDto.Empty;
+	public StatusInfo Status { get; set; } = StatusInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets a value indicating whether this <see cref="Issue" /> is archived.
@@ -106,7 +106,7 @@ public class Issue
 	///   Who archived the record.
 	/// </value>
 	[BsonElement("archived_by")]
-	public UserDto ArchivedBy { get; set; } = UserDto.Empty;
+	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets a value indicating whether [approved for release].

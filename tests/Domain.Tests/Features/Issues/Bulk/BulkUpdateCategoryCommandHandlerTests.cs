@@ -39,16 +39,20 @@ public sealed class BulkUpdateCategoryCommandHandlerTests
 	{
 		// Arrange
 		var issueIds = new List<string> { "issue1", "issue2", "issue3" };
-		var newCategory = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Feature",
-			"Feature requests",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newCategory = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Feature",
+			CategoryDescription = "Feature requests",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var command = new BulkUpdateCategoryCommand(issueIds, newCategory, "user1");
+		var newCategoryDto = CategoryMapper.ToDto(newCategory);
+
+		var command = new BulkUpdateCategoryCommand(issueIds, newCategoryDto, "user1");
 
 		foreach (var issueId in issueIds)
 		{
@@ -56,9 +60,9 @@ public sealed class BulkUpdateCategoryCommandHandlerTests
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = $"Issue {issueId}",
-				Status = StatusDto.Empty,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Status = StatusInfo.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow.AddDays(-5)
 			};
 
