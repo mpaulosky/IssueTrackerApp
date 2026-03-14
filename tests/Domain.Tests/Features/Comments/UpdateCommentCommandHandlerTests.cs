@@ -30,14 +30,14 @@ public sealed class UpdateCommentCommandHandlerTests
 	{
 		// Arrange
 		var commentId = ObjectId.GenerateNewId();
-		var author = new UserDto("user-123", "Test User", "test@example.com");
+		var author = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 		var existingComment = new Comment
 		{
 			Id = commentId,
 			Title = "Original Title",
 			Description = "Original Description",
 			Author = author,
-			Issue = IssueDto.Empty,
+			IssueId = ObjectId.Empty,
 			DateCreated = DateTime.UtcNow.AddHours(-1)
 		};
 
@@ -100,14 +100,14 @@ public sealed class UpdateCommentCommandHandlerTests
 	{
 		// Arrange
 		var commentId = ObjectId.GenerateNewId();
-		var owner = new UserDto("owner-123", "Owner", "owner@example.com");
+		var owner = new UserInfo { Id = "owner-123", Name = "Owner", Email = "owner@example.com" };
 		var existingComment = new Comment
 		{
 			Id = commentId,
 			Title = "Original Title",
 			Description = "Original Description",
 			Author = owner,
-			Issue = IssueDto.Empty
+			IssueId = ObjectId.Empty
 		};
 
 		var command = new UpdateCommentCommand(

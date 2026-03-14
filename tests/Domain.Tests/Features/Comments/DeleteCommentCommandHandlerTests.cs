@@ -30,23 +30,24 @@ public sealed class DeleteCommentCommandHandlerTests
 	{
 		// Arrange
 		var commentId = ObjectId.GenerateNewId();
-		var owner = new UserDto("user-123", "Test User", "test@example.com");
+		var owner = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 		var existingComment = new Comment
 		{
 			Id = commentId,
 			Title = "Test Comment",
 			Description = "Test Description",
 			Author = owner,
-			Issue = IssueDto.Empty,
+			IssueId = ObjectId.Empty,
 			Archived = false
 		};
 
-		var archivedBy = new UserDto("user-123", "Test User", "test@example.com");
+		var archivedBy = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var archivedByDto = new UserDto(archivedBy);
 		var command = new DeleteCommentCommand(
 			commentId.ToString(),
 			owner.Id,
 			false,
-			archivedBy);
+			archivedByDto);
 
 		_repository.GetByIdAsync(commentId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingComment));
@@ -70,7 +71,7 @@ public sealed class DeleteCommentCommandHandlerTests
 			Arg.Is<Comment>(c =>
 				c.Id == commentId &&
 				c.Archived == true &&
-				c.ArchivedBy == archivedBy),
+				c.ArchivedBy.Id == archivedBy.Id),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -79,12 +80,13 @@ public sealed class DeleteCommentCommandHandlerTests
 	{
 		// Arrange
 		var commentId = ObjectId.GenerateNewId();
-		var archivedBy = new UserDto("user-123", "Test User", "test@example.com");
+		var archivedBy = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var archivedByDto = new UserDto(archivedBy);
 		var command = new DeleteCommentCommand(
 			commentId.ToString(),
 			"user-123",
 			false,
-			archivedBy);
+			archivedByDto);
 
 		_repository.GetByIdAsync(commentId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<Comment>("Comment not found", ResultErrorCode.NotFound));
@@ -103,23 +105,24 @@ public sealed class DeleteCommentCommandHandlerTests
 	{
 		// Arrange
 		var commentId = ObjectId.GenerateNewId();
-		var owner = new UserDto("owner-123", "Owner", "owner@example.com");
+		var owner = new UserInfo { Id = "owner-123", Name = "Owner", Email = "owner@example.com" };
 		var existingComment = new Comment
 		{
 			Id = commentId,
 			Title = "Test Comment",
 			Description = "Test Description",
 			Author = owner,
-			Issue = IssueDto.Empty,
+			IssueId = ObjectId.Empty,
 			Archived = false
 		};
 
-		var archivedBy = new UserDto("admin-456", "Admin User", "admin@example.com");
+		var archivedBy = new UserInfo { Id = "admin-456", Name = "Admin User", Email = "admin@example.com" };
+		var archivedByDto = new UserDto(archivedBy);
 		var command = new DeleteCommentCommand(
 			commentId.ToString(),
 			"admin-456", // Different user but admin
 			true, // IsAdmin = true
-			archivedBy);
+			archivedByDto);
 
 		_repository.GetByIdAsync(commentId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingComment));
@@ -143,22 +146,23 @@ public sealed class DeleteCommentCommandHandlerTests
 	{
 		// Arrange
 		var commentId = ObjectId.GenerateNewId();
-		var owner = new UserDto("owner-123", "Owner", "owner@example.com");
+		var owner = new UserInfo { Id = "owner-123", Name = "Owner", Email = "owner@example.com" };
 		var existingComment = new Comment
 		{
 			Id = commentId,
 			Title = "Test Comment",
 			Description = "Test Description",
 			Author = owner,
-			Issue = IssueDto.Empty
+			IssueId = ObjectId.Empty
 		};
 
-		var archivedBy = new UserDto("other-user-456", "Other User", "other@example.com");
+		var archivedBy = new UserInfo { Id = "other-user-456", Name = "Other User", Email = "other@example.com" };
+		var archivedByDto = new UserDto(archivedBy);
 		var command = new DeleteCommentCommand(
 			commentId.ToString(),
 			"other-user-456", // Different user
 			false, // Not admin
-			archivedBy);
+			archivedByDto);
 
 		_repository.GetByIdAsync(commentId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingComment));

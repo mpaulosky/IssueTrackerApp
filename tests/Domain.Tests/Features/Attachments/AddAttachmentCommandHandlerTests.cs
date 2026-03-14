@@ -32,7 +32,8 @@ public sealed class AddAttachmentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var uploaderDto = new UserDto(uploader);
 		var fileStream = new MemoryStream([0x01, 0x02, 0x03]);
 		var blobUrl = "https://storage.example.com/attachments/test-file.pdf";
 
@@ -42,7 +43,7 @@ public sealed class AddAttachmentCommandHandlerTests
 			"test-file.pdf",
 			"application/pdf",
 			1024,
-			uploader);
+			uploaderDto);
 
 		_fileStorageService.UploadAsync(
 				Arg.Any<Stream>(),
@@ -75,7 +76,8 @@ public sealed class AddAttachmentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var uploaderDto = new UserDto(uploader);
 		var fileStream = new MemoryStream([0x01, 0x02, 0x03]);
 		var blobUrl = "https://storage.example.com/attachments/document.pdf";
 
@@ -85,7 +87,7 @@ public sealed class AddAttachmentCommandHandlerTests
 			"document.pdf",
 			"application/pdf",
 			2048,
-			uploader);
+			uploaderDto);
 
 		_fileStorageService.UploadAsync(
 				Arg.Any<Stream>(),
@@ -117,7 +119,8 @@ public sealed class AddAttachmentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var uploaderDto = new UserDto(uploader);
 		var fileStream = new MemoryStream([0x01, 0x02, 0x03]);
 		var blobUrl = "https://storage.example.com/attachments/report.pdf";
 
@@ -127,7 +130,7 @@ public sealed class AddAttachmentCommandHandlerTests
 			"report.pdf",
 			"application/pdf",
 			4096,
-			uploader);
+			uploaderDto);
 
 		_fileStorageService.UploadAsync(
 				Arg.Any<Stream>(),
@@ -153,7 +156,7 @@ public sealed class AddAttachmentCommandHandlerTests
 				a.ContentType == "application/pdf" &&
 				a.FileSize == 4096 &&
 				a.BlobUrl == blobUrl &&
-				a.UploadedBy == uploader),
+				a.UploadedBy.Id == uploader.Id),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -162,7 +165,8 @@ public sealed class AddAttachmentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var uploaderDto = new UserDto(uploader);
 		var fileStream = new MemoryStream([0x01, 0x02, 0x03]);
 		var blobUrl = "https://storage.example.com/attachments/image.png";
 		var thumbnailUrl = "https://storage.example.com/attachments/image-thumb.png";
@@ -173,7 +177,7 @@ public sealed class AddAttachmentCommandHandlerTests
 			"image.png",
 			"image/png", // Image content type
 			8192,
-			uploader);
+			uploaderDto);
 
 		_fileStorageService.UploadAsync(
 				Arg.Any<Stream>(),
@@ -205,7 +209,8 @@ public sealed class AddAttachmentCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
+		var uploaderDto = new UserDto(uploader);
 		var fileStream = new MemoryStream([0x01, 0x02, 0x03]);
 		var blobUrl = "https://storage.example.com/attachments/test.pdf";
 
@@ -215,7 +220,7 @@ public sealed class AddAttachmentCommandHandlerTests
 			"test.pdf",
 			"application/pdf",
 			1024,
-			uploader);
+			uploaderDto);
 
 		_fileStorageService.UploadAsync(
 				Arg.Any<Stream>(),

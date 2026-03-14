@@ -39,19 +39,20 @@ public sealed class BulkDeleteCommandHandlerTests
 	{
 		// Arrange
 		var issueIds = new List<string> { "issue1", "issue2", "issue3" };
-		var deletedBy = new UserDto("admin1", "Admin User", "admin@example.com");
+		var deletedBy = new UserInfo { Id = "admin1", Name = "Admin User", Email = "admin@example.com" };
+		var deletedByDto = new UserDto(deletedBy);
 
-		var command = new BulkDeleteCommand(issueIds, deletedBy, "admin1");
+		var command = new BulkDeleteCommand(issueIds, deletedByDto, "admin1");
 
 		var issues = issueIds.Select(id => new Issue
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = $"Issue {id}",
-			Status = StatusDto.Empty,
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
+			Status = StatusInfo.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
 			Archived = false,
-			ArchivedBy = UserDto.Empty,
+			ArchivedBy = UserInfo.Empty,
 			DateCreated = DateTime.UtcNow.AddDays(-5)
 		}).ToList();
 
@@ -90,20 +91,21 @@ public sealed class BulkDeleteCommandHandlerTests
 	{
 		// Arrange
 		var issueIds = new List<string> { "issue1", "issue2" };
-		var deletedBy = new UserDto("admin1", "Admin User", "admin@example.com");
+		var deletedBy = new UserInfo { Id = "admin1", Name = "Admin User", Email = "admin@example.com" };
+		var deletedByDto = new UserDto(deletedBy);
 
-		var command = new BulkDeleteCommand(issueIds, deletedBy, "admin1");
+		var command = new BulkDeleteCommand(issueIds, deletedByDto, "admin1");
 
 		// First issue is already archived
 		var alreadyArchivedIssue = new Issue
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = "Already Archived Issue",
-			Status = StatusDto.Empty,
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
+			Status = StatusInfo.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
 			Archived = true,
-			ArchivedBy = new UserDto("other-admin", "Other Admin", "other@example.com"),
+			ArchivedBy = new UserInfo { Id = "other-admin", Name = "Other Admin", Email = "other@example.com" },
 			DateCreated = DateTime.UtcNow.AddDays(-10)
 		};
 
@@ -112,11 +114,11 @@ public sealed class BulkDeleteCommandHandlerTests
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = "Active Issue",
-			Status = StatusDto.Empty,
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
+			Status = StatusInfo.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
 			Archived = false,
-			ArchivedBy = UserDto.Empty,
+			ArchivedBy = UserInfo.Empty,
 			DateCreated = DateTime.UtcNow.AddDays(-5)
 		};
 

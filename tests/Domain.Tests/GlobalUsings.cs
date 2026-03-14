@@ -37,6 +37,7 @@ global using Domain;
 global using Domain.Abstractions;
 global using Domain.DTOs;
 global using Domain.Events;
+global using Domain.Mappers;
 global using Domain.Models;
 global using Domain.Features.Comments.Commands;
 global using Domain.Features.Comments.Queries;

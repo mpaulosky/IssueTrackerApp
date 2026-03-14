@@ -38,25 +38,29 @@ public sealed class ExportAnalyticsQueryHandlerTests
 		// Arrange
 		var query = new ExportAnalyticsQuery(null, null);
 
-		var status = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Open",
-			"Open status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var status = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Open",
+			StatusDescription = "Open status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var category = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Bug",
-			"Bug category",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var category = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Bug",
+			CategoryDescription = "Bug category",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var author = new UserDto("user1", "John Doe", "john@example.com");
+		var author = new UserInfo { Id = "user1", Name = "John Doe", Email = "john@example.com" };
 
 		var issues = new List<Issue>
 		{

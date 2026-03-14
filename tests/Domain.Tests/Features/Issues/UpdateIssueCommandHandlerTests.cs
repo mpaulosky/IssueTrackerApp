@@ -39,20 +39,22 @@ public sealed class UpdateIssueCommandHandlerTests
 		var issueId = ObjectId.GenerateNewId();
 		var existingIssue = CreateTestIssue(issueId);
 
-		var newCategory = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Updated Category",
-			"Updated Description",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var newCategory = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Updated Category",
+			CategoryDescription = "Updated Description",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var command = new UpdateIssueCommand(
 			issueId.ToString(),
 			"Updated Title",
 			"Updated Description",
-			newCategory);
+			CategoryMapper.ToDto(newCategory));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -88,7 +90,7 @@ public sealed class UpdateIssueCommandHandlerTests
 			issueId,
 			"Updated Title",
 			"Updated Description",
-			CategoryDto.Empty);
+			CategoryMapper.ToDto(CategoryInfo.Empty));
 
 		_issueRepository.GetByIdAsync(issueId, Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<Issue>("Issue not found", ResultErrorCode.NotFound));
@@ -117,7 +119,7 @@ public sealed class UpdateIssueCommandHandlerTests
 			issueId.ToString(),
 			"Updated Title",
 			"Updated Description",
-			CategoryDto.Empty);
+			CategoryMapper.ToDto(CategoryInfo.Empty));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -154,7 +156,7 @@ public sealed class UpdateIssueCommandHandlerTests
 			issueId.ToString(),
 			"Updated Title",
 			"Updated Description",
-			CategoryDto.Empty);
+			CategoryMapper.ToDto(CategoryInfo.Empty));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -175,14 +177,14 @@ public sealed class UpdateIssueCommandHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var originalAuthor = new UserDto("original-author", "Original Author", "original@example.com");
+		var originalAuthor = new UserInfo { Id = "original-author", Name = "Original Author", Email = "original@example.com" };
 		var existingIssue = CreateTestIssue(issueId, author: originalAuthor);
 
 		var command = new UpdateIssueCommand(
 			issueId.ToString(),
 			"Updated Title",
 			"Updated Description",
-			CategoryDto.Empty);
+			CategoryMapper.ToDto(CategoryInfo.Empty));
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(existingIssue));
@@ -208,16 +210,16 @@ public sealed class UpdateIssueCommandHandlerTests
 		ObjectId id,
 		string title = "Test Issue",
 		string description = "Test Description",
-		UserDto? author = null)
+		UserInfo? author = null)
 	{
 		return new Issue
 		{
 			Id = id,
 			Title = title,
 			Description = description,
-			Category = CategoryDto.Empty,
-			Author = author ?? UserDto.Empty,
-			Status = StatusDto.Empty,
+			Category = CategoryInfo.Empty,
+			Author = author ?? UserInfo.Empty,
+			Status = StatusInfo.Empty,
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
 			ApprovedForRelease = false,

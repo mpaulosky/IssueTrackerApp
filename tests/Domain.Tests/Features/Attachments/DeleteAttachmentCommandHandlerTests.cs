@@ -33,7 +33,7 @@ public sealed class DeleteAttachmentCommandHandlerTests
 		// Arrange
 		var attachmentId = ObjectId.GenerateNewId();
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 		var blobUrl = "https://storage.example.com/attachments/test.pdf";
 		var thumbnailUrl = "https://storage.example.com/attachments/test-thumb.png";
 
@@ -108,7 +108,7 @@ public sealed class DeleteAttachmentCommandHandlerTests
 		// Arrange
 		var attachmentId = ObjectId.GenerateNewId();
 		var issueId = ObjectId.GenerateNewId();
-		var originalUploader = new UserDto("original-user-123", "Original User", "original@example.com");
+		var originalUploader = new UserInfo { Id = "original-user-123", Name = "Original User", Email = "original@example.com" };
 		var blobUrl = "https://storage.example.com/attachments/document.pdf";
 
 		var existingAttachment = new Attachment
@@ -149,7 +149,7 @@ public sealed class DeleteAttachmentCommandHandlerTests
 		// Arrange
 		var attachmentId = ObjectId.GenerateNewId();
 		var issueId = ObjectId.GenerateNewId();
-		var originalUploader = new UserDto("original-user-123", "Original User", "original@example.com");
+		var originalUploader = new UserInfo { Id = "original-user-123", Name = "Original User", Email = "original@example.com" };
 		var blobUrl = "https://storage.example.com/attachments/file.pdf";
 
 		var existingAttachment = new Attachment
@@ -192,7 +192,7 @@ public sealed class DeleteAttachmentCommandHandlerTests
 		// Arrange
 		var attachmentId = ObjectId.GenerateNewId();
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 		var blobUrl = "https://storage.example.com/attachments/document.pdf";
 
 		var existingAttachment = new Attachment

@@ -41,17 +41,18 @@ public sealed class BulkAssignCommandHandlerTests
 	{
 		// Arrange
 		var issueIds = new List<string> { "issue1", "issue2", "issue3" };
-		var assignee = new UserDto("user2", "Jane Doe", "jane@example.com");
+		var assignee = new UserInfo { Id = "user2", Name = "Jane Doe", Email = "jane@example.com" };
+		var assigneeDto = new UserDto(assignee);
 
-		var command = new BulkAssignCommand(issueIds, assignee, "user1");
+		var command = new BulkAssignCommand(issueIds, assigneeDto, "user1");
 
 		var issues = issueIds.Select(id => new Issue
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = $"Issue {id}",
-			Status = StatusDto.Empty,
-			Category = CategoryDto.Empty,
-			Author = new UserDto("user1", "Original Author", "original@example.com"),
+			Status = StatusInfo.Empty,
+			Category = CategoryInfo.Empty,
+			Author = new UserInfo { Id = "user1", Name = "Original Author", Email = "original@example.com" },
 			DateCreated = DateTime.UtcNow.AddDays(-5)
 		}).ToList();
 

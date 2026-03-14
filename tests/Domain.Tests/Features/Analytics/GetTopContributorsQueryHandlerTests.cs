@@ -39,17 +39,19 @@ public sealed class GetTopContributorsQueryHandlerTests
 		// Arrange
 		var query = new GetTopContributorsQuery(null, null, 10);
 
-		var user1 = new UserDto("user1", "John Doe", "john@example.com");
-		var user2 = new UserDto("user2", "Jane Smith", "jane@example.com");
+		var user1 = new UserInfo { Id = "user1", Name = "John Doe", Email = "john@example.com" };
+		var user2 = new UserInfo { Id = "user2", Name = "Jane Smith", Email = "jane@example.com" };
 
-		var closedStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var closedStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var issues = new List<Issue>
 		{
@@ -58,7 +60,7 @@ public sealed class GetTopContributorsQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 1",
 				Status = closedStatus,
-				Category = CategoryDto.Empty,
+				Category = CategoryInfo.Empty,
 				Author = user1,
 				DateCreated = DateTime.UtcNow.AddDays(-5),
 				DateModified = DateTime.UtcNow.AddDays(-3),
@@ -69,7 +71,7 @@ public sealed class GetTopContributorsQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 2",
 				Status = closedStatus,
-				Category = CategoryDto.Empty,
+				Category = CategoryInfo.Empty,
 				Author = user1,
 				DateCreated = DateTime.UtcNow.AddDays(-4),
 				DateModified = DateTime.UtcNow.AddDays(-2),
@@ -80,7 +82,7 @@ public sealed class GetTopContributorsQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 3",
 				Status = closedStatus,
-				Category = CategoryDto.Empty,
+				Category = CategoryInfo.Empty,
 				Author = user2,
 				DateCreated = DateTime.UtcNow.AddDays(-3),
 				DateModified = DateTime.UtcNow.AddDays(-1),

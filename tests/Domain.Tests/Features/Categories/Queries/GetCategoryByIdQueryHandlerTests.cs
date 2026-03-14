@@ -42,7 +42,7 @@ public class GetCategoryByIdQueryHandlerTests
 			CategoryDescription = "Test Description",
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
 		var query = new GetCategoryByIdQuery(categoryId.ToString());

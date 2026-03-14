@@ -42,7 +42,7 @@ public class UpdateStatusCommandHandlerTests
 			StatusDescription = "Old Description",
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
 		var command = new UpdateStatusCommand(statusId.ToString(), "New Name", "New Description");

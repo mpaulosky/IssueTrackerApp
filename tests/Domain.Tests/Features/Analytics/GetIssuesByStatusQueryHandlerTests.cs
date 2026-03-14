@@ -37,23 +37,27 @@ public sealed class GetIssuesByStatusQueryHandlerTests
 		// Arrange
 		var query = new GetIssuesByStatusQuery(null, null);
 
-		var openStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Open",
-			"Open status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var openStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Open",
+			StatusDescription = "Open status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var closedStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var closedStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var issues = new List<Issue>
 		{
@@ -62,8 +66,8 @@ public sealed class GetIssuesByStatusQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 1",
 				Status = openStatus,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow
 			},
 			new()
@@ -71,8 +75,8 @@ public sealed class GetIssuesByStatusQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 2",
 				Status = openStatus,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow
 			},
 			new()
@@ -80,8 +84,8 @@ public sealed class GetIssuesByStatusQueryHandlerTests
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 3",
 				Status = closedStatus,
-				Category = CategoryDto.Empty,
-				Author = UserDto.Empty,
+				Category = CategoryInfo.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow
 			}
 		};

@@ -38,25 +38,29 @@ public sealed class BulkExportCommandHandlerTests
 		var issueIds = new List<string> { "issue1", "issue2", "issue3" };
 		var command = new BulkExportCommand(issueIds, "user1");
 
-		var status = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Open",
-			"Open status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var status = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Open",
+			StatusDescription = "Open status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var category = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Bug",
-			"Bug reports",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var category = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Bug",
+			CategoryDescription = "Bug reports",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var author = new UserDto("user1", "John Doe", "john@example.com");
+		var author = new UserInfo { Id = "user1", Name = "John Doe", Email = "john@example.com" };
 
 		var issues = issueIds.Select((id, index) => new Issue
 		{
@@ -111,9 +115,9 @@ public sealed class BulkExportCommandHandlerTests
 			Id = ObjectId.GenerateNewId(),
 			Title = "Valid Issue",
 			Description = "Valid Description",
-			Status = StatusDto.Empty,
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
+			Status = StatusInfo.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
 			DateCreated = DateTime.UtcNow
 		};
 

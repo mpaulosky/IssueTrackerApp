@@ -37,15 +37,15 @@ public sealed class CommentAddedNotificationHandlerTests
 	public async Task Handle_NotifiesIssueOwner()
 	{
 		// Arrange
-		var commentAuthor = new UserDto("author-123", "Comment Author", "author@example.com");
+		var commentAuthor = new UserInfo { Id = "author-123", Name = "Comment Author", Email = "author@example.com" };
 		var comment = new CommentDto(
 			ObjectId.GenerateNewId(),
 			"Comment Title",
 			"This is the comment description",
 			DateTime.UtcNow,
 			null,
-			IssueDto.Empty,
-			commentAuthor,
+			ObjectId.Empty,
+			new UserDto(commentAuthor),
 			[],
 			false,
 			UserDto.Empty,
@@ -81,15 +81,15 @@ public sealed class CommentAddedNotificationHandlerTests
 		// For now, we verify at least the issue owner is notified.
 
 		// Arrange
-		var commentAuthor = new UserDto("commenter-456", "New Commenter", "newcommenter@example.com");
+		var commentAuthor = new UserInfo { Id = "commenter-456", Name = "New Commenter", Email = "newcommenter@example.com" };
 		var comment = new CommentDto(
 			ObjectId.GenerateNewId(),
 			"Follow-up Comment",
 			"I have additional thoughts on this issue",
 			DateTime.UtcNow,
 			null,
-			IssueDto.Empty,
-			commentAuthor,
+			ObjectId.Empty,
+			new UserDto(commentAuthor),
 			[],
 			false,
 			UserDto.Empty,
@@ -124,15 +124,15 @@ public sealed class CommentAddedNotificationHandlerTests
 	{
 		// Arrange
 		const string ownerId = "owner-123";
-		var commentAuthor = new UserDto(ownerId, "Issue Owner", "owner@example.com");
+		var commentAuthor = new UserInfo { Id = ownerId, Name = "Issue Owner", Email = "owner@example.com" };
 		var comment = new CommentDto(
 			ObjectId.GenerateNewId(),
 			"Owner Comment",
 			"Owner adds a comment to their own issue",
 			DateTime.UtcNow,
 			null,
-			IssueDto.Empty,
-			commentAuthor,
+			ObjectId.Empty,
+			new UserDto(commentAuthor),
 			[],
 			false,
 			UserDto.Empty,
@@ -160,15 +160,15 @@ public sealed class CommentAddedNotificationHandlerTests
 	public async Task Handle_IncludesCommentContentInEmail()
 	{
 		// Arrange
-		var commentAuthor = new UserDto("author-789", "Technical Lead", "lead@example.com");
+		var commentAuthor = new UserInfo { Id = "author-789", Name = "Technical Lead", Email = "lead@example.com" };
 		var comment = new CommentDto(
 			ObjectId.GenerateNewId(),
 			"Technical Review",
 			"The implementation looks good, but consider adding error handling.",
 			DateTime.UtcNow,
 			null,
-			IssueDto.Empty,
-			commentAuthor,
+			ObjectId.Empty,
+			new UserDto(commentAuthor),
 			[],
 			false,
 			UserDto.Empty,
@@ -201,15 +201,15 @@ public sealed class CommentAddedNotificationHandlerTests
 	public async Task Handle_SetsSubjectWithIssueTitle()
 	{
 		// Arrange
-		var commentAuthor = new UserDto("user-abc", "User", "user@example.com");
+		var commentAuthor = new UserInfo { Id = "user-abc", Name = "User", Email = "user@example.com" };
 		var comment = new CommentDto(
 			ObjectId.GenerateNewId(),
 			"Question",
 			"Can you clarify the requirements?",
 			DateTime.UtcNow,
 			null,
-			IssueDto.Empty,
-			commentAuthor,
+			ObjectId.Empty,
+			new UserDto(commentAuthor),
 			[],
 			false,
 			UserDto.Empty,

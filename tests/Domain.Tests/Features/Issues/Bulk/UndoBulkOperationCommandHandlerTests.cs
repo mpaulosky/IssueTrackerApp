@@ -40,23 +40,27 @@ public sealed class UndoBulkOperationCommandHandlerTests
 		var requestedBy = "user1";
 		var command = new UndoBulkOperationCommand(undoToken, requestedBy);
 
-		var previousStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Open",
-			"Open status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var previousStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Open",
+			StatusDescription = "Open status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var currentStatus = new StatusDto(
-			ObjectId.GenerateNewId(),
-			"Closed",
-			"Closed status",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var currentStatus = new StatusInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			StatusName = "Closed",
+			StatusDescription = "Closed status",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var issueId = "issue-123";
 		var issue = new Issue
@@ -64,14 +68,14 @@ public sealed class UndoBulkOperationCommandHandlerTests
 			Id = ObjectId.GenerateNewId(),
 			Title = "Test Issue",
 			Status = currentStatus, // Current state is "Closed"
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
 			DateCreated = DateTime.UtcNow.AddDays(-5)
 		};
 
 		var snapshots = new List<IssueUndoSnapshot>
 		{
-			new(issueId, BulkOperationType.StatusUpdate, new StatusUpdateSnapshot(previousStatus))
+			new(issueId, BulkOperationType.StatusUpdate, new StatusUpdateSnapshot(StatusMapper.ToDto(previousStatus)))
 		};
 
 		var undoData = new UndoData(requestedBy, snapshots, DateTime.UtcNow.AddMinutes(-5));
@@ -153,14 +157,14 @@ public sealed class UndoBulkOperationCommandHandlerTests
 		var command = new UndoBulkOperationCommand(undoToken, requestedBy);
 
 		var issueId = "deleted-issue-123";
-		var archivedBy = new UserDto("admin1", "Admin", "admin@example.com");
+		var archivedBy = new UserInfo { Id = "admin1", Name = "Admin", Email = "admin@example.com" };
 		var issue = new Issue
 		{
 			Id = ObjectId.GenerateNewId(),
 			Title = "Archived Issue",
-			Status = StatusDto.Empty,
-			Category = CategoryDto.Empty,
-			Author = UserDto.Empty,
+			Status = StatusInfo.Empty,
+			Category = CategoryInfo.Empty,
+			Author = UserInfo.Empty,
 			Archived = true,
 			ArchivedBy = archivedBy,
 			DateCreated = DateTime.UtcNow.AddDays(-10)

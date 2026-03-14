@@ -42,7 +42,7 @@ public class GetStatusByIdQueryHandlerTests
 			StatusDescription = "Test Description",
 			DateCreated = DateTime.UtcNow.AddDays(-1),
 			Archived = false,
-			ArchivedBy = UserDto.Empty
+			ArchivedBy = UserInfo.Empty
 		};
 
 		var query = new GetStatusByIdQuery(statusId.ToString());

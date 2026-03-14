@@ -37,23 +37,27 @@ public sealed class GetIssuesByCategoryQueryHandlerTests
 		// Arrange
 		var query = new GetIssuesByCategoryQuery(null, null);
 
-		var bugCategory = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Bug",
-			"Bug category",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var bugCategory = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Bug",
+			CategoryDescription = "Bug category",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
-		var featureCategory = new CategoryDto(
-			ObjectId.GenerateNewId(),
-			"Feature",
-			"Feature category",
-			DateTime.UtcNow,
-			null,
-			false,
-			UserDto.Empty);
+		var featureCategory = new CategoryInfo
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Feature",
+			CategoryDescription = "Feature category",
+			DateCreated = DateTime.UtcNow,
+			DateModified = null,
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
 
 		var issues = new List<Issue>
 		{
@@ -61,36 +65,36 @@ public sealed class GetIssuesByCategoryQueryHandlerTests
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 1",
-				Status = StatusDto.Empty,
+				Status = StatusInfo.Empty,
 				Category = bugCategory,
-				Author = UserDto.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow
 			},
 			new()
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 2",
-				Status = StatusDto.Empty,
+				Status = StatusInfo.Empty,
 				Category = bugCategory,
-				Author = UserDto.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow
 			},
 			new()
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 3",
-				Status = StatusDto.Empty,
+				Status = StatusInfo.Empty,
 				Category = bugCategory,
-				Author = UserDto.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow
 			},
 			new()
 			{
 				Id = ObjectId.GenerateNewId(),
 				Title = "Issue 4",
-				Status = StatusDto.Empty,
+				Status = StatusInfo.Empty,
 				Category = featureCategory,
-				Author = UserDto.Empty,
+				Author = UserInfo.Empty,
 				DateCreated = DateTime.UtcNow
 			}
 		};

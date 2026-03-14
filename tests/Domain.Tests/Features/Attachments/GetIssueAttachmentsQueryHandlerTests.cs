@@ -30,7 +30,7 @@ public sealed class GetIssueAttachmentsQueryHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 
 		var attachments = new List<Attachment>
 		{
@@ -91,7 +91,7 @@ public sealed class GetIssueAttachmentsQueryHandlerTests
 	{
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
-		var uploader = new UserDto("user-123", "Test User", "test@example.com");
+		var uploader = new UserInfo { Id = "user-123", Name = "Test User", Email = "test@example.com" };
 
 		var oldestDate = DateTime.UtcNow.AddHours(-3);
 		var middleDate = DateTime.UtcNow.AddHours(-2);
