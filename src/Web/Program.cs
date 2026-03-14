@@ -168,7 +168,12 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// StatusCodePagesWithReExecute re-executes requests to /not-found (a Blazor page, GET-only).
+// This interferes with API PUT/DELETE responses by converting 401→405, so skip in Testing.
+if (!app.Environment.IsEnvironment("Testing"))
+{
+	app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+}
 app.UseHttpsRedirection();
 
 // Add authentication and authorization middleware
