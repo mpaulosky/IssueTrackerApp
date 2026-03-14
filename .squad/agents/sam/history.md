@@ -459,3 +459,38 @@
 - Backend components can build successfully even when Web project has frontend errors
 
 ---
+### WI-1 — Value Objects and Mapper Infrastructure (2026-03-14)
+
+**Value Objects Created (src/Domain/Models/):**
+- `UserInfo.cs` — Sealed class with Id/Name/Email, BsonElement attributes matching UserDto serialization
+- `CategoryInfo.cs` — Sealed class mirroring CategoryDto fields, nested UserInfo for ArchivedBy
+- `StatusInfo.cs` — Sealed class mirroring StatusDto fields, nested UserInfo for ArchivedBy
+
+**Mapper Classes Created (src/Domain/Mappers/):**
+- `UserMapper.cs` — User ↔ UserDto, UserInfo ↔ UserDto, with ToInfo conversion
+- `CategoryMapper.cs` — Category ↔ CategoryDto, CategoryInfo ↔ CategoryDto, with ToInfo
+- `StatusMapper.cs` — Status ↔ StatusDto, StatusInfo ↔ StatusDto, with ToInfo
+- `IssueMapper.cs` — Issue ↔ IssueDto, uses existing embedded DTOs directly
+- `CommentMapper.cs` — Comment ↔ CommentDto, handles IssueDto/UserDto embeds
+- `AttachmentMapper.cs` — Attachment ↔ AttachmentDto, ObjectId ↔ string parsing
+
+**Architecture Decisions:**
+- Value objects are `sealed class` (not records) for EF Core/MongoDB mutable property support
+- BsonElement attributes explicitly match current DTO serialization (PascalCase) for zero-migration compatibility
+- Mappers are static classes with null-safe patterns returning Empty/default instances
+- Value objects use `static Empty => new()` pattern (new instance per call) matching existing DTO convention
+- Collection overloads use `Select(lambda).ToList()` to avoid overload ambiguity
+- AttachmentMapper uses `ObjectId.TryParse` for safe string-to-ObjectId conversion
+
+**Key Patterns:**
+- Value objects in `Domain.Models` namespace (same as models, ready for embedding)
+- Mappers in `Domain.Mappers` namespace (new directory)
+- CategoryInfo/StatusInfo nest UserInfo (not UserDto) for proper DDD value object composition
+- All mappers compile against CURRENT codebase without modifications to existing files
+
+**Build/Test Results:**
+- Domain project: 0 errors, 0 warnings
+- Domain.Tests: 255 passed, 0 failed
+- Architecture.Tests: 38 passed, 0 failed
+- Full solution: pre-existing TailwindCSS/npm issue in Web project (unrelated)
+
