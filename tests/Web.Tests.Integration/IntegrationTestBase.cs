@@ -7,10 +7,12 @@
 // Project Name :  Web.Tests.Integration
 // =======================================================
 
+using System.Text.Json;
 using Domain.DTOs;
 using Domain.Models;
 using MongoDB.Bson;
 using Persistence.MongoDb;
+using Web.Helpers;
 
 namespace Web.Tests.Integration;
 
@@ -20,6 +22,14 @@ namespace Web.Tests.Integration;
 /// </summary>
 public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
 {
+	/// <summary>
+	/// JSON serializer options configured with ObjectId converter for deserializing API responses.
+	/// </summary>
+	protected static readonly JsonSerializerOptions JsonOptions = new()
+	{
+		PropertyNameCaseInsensitive = true,
+		Converters = { new ObjectIdJsonConverter() }
+	};
 	/// <summary>
 	/// The custom web application factory instance.
 	/// </summary>

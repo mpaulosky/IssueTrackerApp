@@ -40,7 +40,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>();
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().BeEmpty();
@@ -59,7 +59,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>();
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().HaveCount(seededStatuses.Count);
@@ -79,7 +79,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>();
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses!.All(s => !s.Archived).Should().BeTrue();
@@ -99,7 +99,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>();
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().HaveCount(seededStatuses.Count + 1);
@@ -119,7 +119,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>();
+		var statuses = await response.Content.ReadFromJsonAsync<List<StatusDto>>(JsonOptions);
 
 		statuses.Should().NotBeNull();
 		statuses.Should().BeInAscendingOrder(s => s.StatusName);
@@ -143,7 +143,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var status = await response.Content.ReadFromJsonAsync<StatusDto>();
+		var status = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		status.Should().NotBeNull();
 		status!.Id.Should().Be(targetStatus.Id);
@@ -195,7 +195,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-		var createdStatus = await response.Content.ReadFromJsonAsync<StatusDto>();
+		var createdStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		createdStatus.Should().NotBeNull();
 		createdStatus!.StatusName.Should().Be(request.StatusName);
@@ -328,7 +328,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var updatedStatus = await response.Content.ReadFromJsonAsync<StatusDto>();
+		var updatedStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		updatedStatus.Should().NotBeNull();
 		updatedStatus!.Id.Should().Be(targetStatus.Id);
@@ -421,7 +421,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var archivedStatus = await response.Content.ReadFromJsonAsync<StatusDto>();
+		var archivedStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		archivedStatus.Should().NotBeNull();
 		archivedStatus!.Id.Should().Be(targetStatus.Id);
@@ -472,7 +472,7 @@ public sealed class StatusEndpointTests : IntegrationTestBase
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var archivedStatus = await response.Content.ReadFromJsonAsync<StatusDto>();
+		var archivedStatus = await response.Content.ReadFromJsonAsync<StatusDto>(JsonOptions);
 
 		archivedStatus.Should().NotBeNull();
 		archivedStatus!.ArchivedBy.Id.Should().Be(TestAuthHandler.TestUserId);
