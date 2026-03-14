@@ -1,112 +1,129 @@
 // Temporary diagnostic test to inspect MongoDB document structure
+using System.Linq.Expressions;
+using Domain.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver;
-using Xunit.Abstractions;
+using Persistence.MongoDb;
 
 namespace Web.Tests.Integration;
 
 [Collection("Integration")]
 public class DiagnosticTests : IntegrationTestBase
 {
-	private readonly ITestOutputHelper _output;
-
-	public DiagnosticTests(CustomWebApplicationFactory factory, ITestOutputHelper output)
+	public DiagnosticTests(CustomWebApplicationFactory factory)
 		: base(factory)
 	{
-		_output = output;
 	}
 
 	[Fact]
-	public async Task Diagnostic_InspectIssueBsonDocument()
+	public async Task BsonDocument_ShouldContain_StatusField()
 	{
-		// Seed data via EF Core
+		// Arrange - Seed via EF Core (same pattern as analytics tests)
 		var (categories, statuses) = await SeedTestDataAsync();
-		var issue = await SeedIssueAsync(categories[0], statuses[0]);
+		await SeedIssuesAsync(categories[0], statuses[0], 3);
 
-		_output.WriteLine($"Seeded Issue ID: {issue.Id}");
-		_output.WriteLine($"Issue.Status type: {issue.Status?.GetType().Name}");
-		_output.WriteLine($"Issue.Status.StatusName: {issue.Status?.StatusName}");
+		// Act - Read raw BSON via MongoDB driver
+		var client = new MongoClient(Factory.MongoConnectionString);
+		var database = client.GetDatabase(Factory.DatabaseName);
+		var collection = database.GetCollection<BsonDocument>("Issue");
+		var docs = await collection.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
 
-		// Read raw BsonDocument via MongoDB driver
+		// Assert - Document should have Status field
+		docs.Should().NotBeEmpty("Issues collection should contain seeded documents");
+
+		var firstDoc = docs[0];
+		var fieldNames = firstDoc.Elements.Select(e => e.Name).ToList();
+
+		// This assertion will SHOW the actual field names in the error message
+		firstDoc.Contains("Status").Should().BeTrue(
+			$"Issue document should contain 'Status' field. " +
+			$"Actual top-level fields: [{string.Join(", ", fieldNames)}]");
+	}
+
+	[Fact]
+	public async Task EfCore_ToListAsync_ShouldDeserializeIssues()
+	{
+		// Arrange - Seed via EF Core
+		var (categories, statuses) = await SeedTestDataAsync();
+		await SeedIssuesAsync(categories[0], statuses[0], 3);
+
+		// Act - Read back via EF Core ToListAsync (same as Repository.FindAsync)
+		await using var context = Factory.CreateDbContext();
+		var act = async () => await context.Issues.ToListAsync();
+
+		// Assert
+		var issues = await act.Should().NotThrowAsync(
+			"EF Core should be able to deserialize Issues written by EF Core");
+		issues.Subject.Should().HaveCount(3);
+	}
+
+	[Fact]
+	public async Task EfCore_WhereToListAsync_ShouldDeserializeIssues()
+	{
+		// Arrange - Seed via EF Core (exact pattern analytics uses)
+		var (categories, statuses) = await SeedTestDataAsync();
+		await SeedIssuesAsync(categories[0], statuses[0], 3);
+
+		var startDate = DateTime.UtcNow.AddDays(-1);
+		var endDate = DateTime.UtcNow.AddDays(1);
+
+		// Act - Read back via EF Core Where + ToListAsync (same as Repository.FindAsync)
+		await using var context = Factory.CreateDbContext();
+		var act = async () => await context.Issues
+			.Where(i => i.DateCreated >= startDate && i.DateCreated <= endDate)
+			.ToListAsync();
+
+		// Assert
+		var issues = await act.Should().NotThrowAsync(
+			"EF Core Where+ToListAsync should deserialize Issues. " +
+			"This is the exact pattern Repository.FindAsync uses.");
+		issues.Subject.Should().HaveCount(3);
+	}
+
+	[Fact]
+	public async Task BsonDocument_ShowFullStructure_OnFailure()
+	{
+		// Arrange - Seed via EF Core
+		var (categories, statuses) = await SeedTestDataAsync();
+		await SeedIssuesAsync(categories[0], statuses[0], 1);
+
+		// Act - Read raw BSON
 		var client = new MongoClient(Factory.MongoConnectionString);
 		var database = client.GetDatabase(Factory.DatabaseName);
 
-		// List all collection names first
-		var collectionNames = new List<string>();
-		using (var cursor = await database.ListCollectionNamesAsync())
+		// Try both "Issue" and "Issues" collection names
+		var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
+		var issueCollectionName = collectionNames.FirstOrDefault(n =>
+			n.Equals("Issue", StringComparison.OrdinalIgnoreCase) ||
+			n.Equals("Issues", StringComparison.OrdinalIgnoreCase));
+
+		issueCollectionName.Should().NotBeNull(
+			$"Should find an Issue/Issues collection. Available collections: [{string.Join(", ", collectionNames)}]");
+
+		var collection = database.GetCollection<BsonDocument>(issueCollectionName!);
+		var doc = await collection.Find(FilterDefinition<BsonDocument>.Empty).FirstOrDefaultAsync();
+		doc.Should().NotBeNull("Should have at least one seeded document");
+
+		// Build a detailed description of the document structure
+		var structure = new List<string>();
+		foreach (var element in doc!.Elements)
 		{
-			while (await cursor.MoveNextAsync())
+			if (element.Value.BsonType == BsonType.Document)
 			{
-				collectionNames.AddRange(cursor.Current);
+				var subdoc = element.Value.AsBsonDocument;
+				var subfields = string.Join(", ", subdoc.Elements.Select(e => $"{e.Name}:{e.Value.BsonType}"));
+				structure.Add($"'{element.Name}'(Document): {{{subfields}}}");
 			}
-		}
-		_output.WriteLine($"\n=== Collections in database ===");
-		foreach (var name in collectionNames)
-		{
-			_output.WriteLine($"  Collection: '{name}'");
-		}
-
-		// Try the collection EF Core uses (could be "Issues" or "Issue")
-		foreach (var collName in new[] { "Issues", "Issue", "issues", "issue" })
-		{
-			var collection = database.GetCollection<BsonDocument>(collName);
-			var count = await collection.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty);
-			if (count == 0) continue;
-
-			_output.WriteLine($"\n=== Collection '{collName}' has {count} documents ===");
-
-			using var cursor = await collection.FindAsync(FilterDefinition<BsonDocument>.Empty);
-			var documents = new List<BsonDocument>();
-			while (await cursor.MoveNextAsync())
+			else
 			{
-				documents.AddRange(cursor.Current);
-			}
-
-			foreach (var doc in documents)
-			{
-				_output.WriteLine($"\n--- Raw BsonDocument ---");
-				_output.WriteLine(doc.ToJson(new JsonWriterSettings { Indent = true }));
-
-				_output.WriteLine($"\n--- Top-level field names ---");
-				foreach (var element in doc.Elements)
-				{
-					_output.WriteLine($"  '{element.Name}' : {element.Value.BsonType}");
-					if (element.Value.BsonType == BsonType.Document)
-					{
-						var subdoc = element.Value.AsBsonDocument;
-						foreach (var sub in subdoc.Elements)
-						{
-							_output.WriteLine($"    '{sub.Name}' : {sub.Value.BsonType}");
-						}
-					}
-				}
+				structure.Add($"'{element.Name}'({element.Value.BsonType})");
 			}
 		}
 
-		// Also try reading back via EF Core to see what error occurs
-		try
-		{
-			await using var context = Factory.CreateDbContext();
-			var efIssues = new List<Domain.Models.Issue>();
-			await foreach (var item in context.Issues.AsAsyncEnumerable())
-			{
-				efIssues.Add(item);
-			}
-			_output.WriteLine($"\nEF Core read back: {efIssues.Count} issues");
-			foreach (var efIssue in efIssues)
-			{
-				_output.WriteLine($"  Issue: {efIssue.Title}, Status: {efIssue.Status?.StatusName}");
-			}
-		}
-		catch (Exception ex)
-		{
-			_output.WriteLine($"\nEF Core read error: {ex.GetType().Name}: {ex.Message}");
-			if (ex.InnerException is not null)
-			{
-				_output.WriteLine($"Inner: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
-			}
-			_output.WriteLine($"Stack: {ex.StackTrace}");
-		}
+		// This will always pass but shows the structure in test output
+		// If Status field is missing, BsonDocument_ShouldContain_StatusField will catch it
+		doc.ElementCount.Should().BeGreaterThan(0,
+			$"Document structure:\n{string.Join("\n", structure)}");
 	}
 }
