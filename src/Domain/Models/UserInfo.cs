@@ -22,8 +22,6 @@ public sealed class UserInfo
 	/// <value>
 	///   The identifier.
 	/// </value>
-	[BsonElement("Id")]
-	[BsonRepresentation(BsonType.String)]
 	public string Id { get; set; } = string.Empty;
 
 	/// <summary>
@@ -32,8 +30,6 @@ public sealed class UserInfo
 	/// <value>
 	///   The name.
 	/// </value>
-	[BsonElement("Name")]
-	[BsonRepresentation(BsonType.String)]
 	public string Name { get; set; } = string.Empty;
 
 	/// <summary>
@@ -42,8 +38,6 @@ public sealed class UserInfo
 	/// <value>
 	///   The email address.
 	/// </value>
-	[BsonElement("Email")]
-	[BsonRepresentation(BsonType.String)]
 	public string Email { get; set; } = string.Empty;
 
 	/// <summary>

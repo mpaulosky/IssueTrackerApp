@@ -38,7 +38,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 	{
 		try
 		{
-			var entity = await DbSet.FindAsync([id], cancellationToken);
+			if (!ObjectId.TryParse(id, out var objectId))
+			{
+				return Result.Fail<TEntity>(
+					$"Invalid ID format: '{id}'", ResultErrorCode.Validation);
+			}
+
+			var entity = await DbSet.FindAsync([objectId], cancellationToken);
 
 			return entity is null
 				? Result.Fail<TEntity>($"{typeof(TEntity).Name} with ID '{id}' was not found.", ResultErrorCode.NotFound)
@@ -168,7 +174,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 	{
 		try
 		{
-			var entity = await DbSet.FindAsync([id], cancellationToken);
+			if (!ObjectId.TryParse(id, out var objectId))
+			{
+				return Result.Fail<bool>(
+					$"Invalid ID format: '{id}'", ResultErrorCode.Validation);
+			}
+
+			var entity = await DbSet.FindAsync([objectId], cancellationToken);
 
 			if (entity is null)
 			{
