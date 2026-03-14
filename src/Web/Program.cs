@@ -33,8 +33,12 @@ builder.AddServiceDefaults();
 // Add MongoDB persistence layer
 builder.Services.AddMongoDbPersistence(builder.Configuration);
 
-// Add MongoDB connection from Aspire service discovery
-builder.AddMongoDBClient("mongodb");
+// Add MongoDB connection from Aspire service discovery (skip in test environment —
+// the EF Core provider handles the connection, and Aspire service discovery hangs without AppHost)
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+	builder.AddMongoDBClient("mongodb");
+}
 
 // Add MediatR for CQRS pattern
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DomainMarker).Assembly));
