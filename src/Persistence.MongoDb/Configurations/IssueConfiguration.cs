@@ -44,12 +44,9 @@ public class IssueConfiguration : IEntityTypeConfiguration<Issue>
 			c.Property(cat => cat.DateCreated).HasElementName("date_created");
 			c.Property(cat => cat.DateModified).HasElementName("date_modified");
 			c.Property(cat => cat.Archived).HasElementName("archived");
-			c.OwnsOne(cat => cat.ArchivedBy, cab =>
-			{
-				cab.Property(u => u.Id).HasElementName("id");
-				cab.Property(u => u.Name).HasElementName("name");
-				cab.Property(u => u.Email).HasElementName("email");
-			});
+			// Ignore nested ArchivedBy within embedded CategoryInfo —
+			// archival metadata belongs on the Category entity, not its embedded reference
+			c.Ignore(cat => cat.ArchivedBy);
 		});
 
 		builder.OwnsOne(i => i.Status, s =>
@@ -60,12 +57,9 @@ public class IssueConfiguration : IEntityTypeConfiguration<Issue>
 			s.Property(st => st.DateCreated).HasElementName("date_created");
 			s.Property(st => st.DateModified).HasElementName("date_modified");
 			s.Property(st => st.Archived).HasElementName("archived");
-			s.OwnsOne(st => st.ArchivedBy, sab =>
-			{
-				sab.Property(u => u.Id).HasElementName("id");
-				sab.Property(u => u.Name).HasElementName("name");
-				sab.Property(u => u.Email).HasElementName("email");
-			});
+			// Ignore nested ArchivedBy within embedded StatusInfo —
+			// archival metadata belongs on the Status entity, not its embedded reference
+			s.Ignore(st => st.ArchivedBy);
 		});
 	}
 }
