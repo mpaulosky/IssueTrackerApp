@@ -72,7 +72,7 @@ public sealed class ChangeIssueStatusCommandHandlerTests
 		// Assert
 		result.Success.Should().BeTrue();
 		result.Value.Should().NotBeNull();
-		result.Value!.Status.Should().Be(newStatus);
+		result.Value!.Status.Should().Be(StatusMapper.ToDto(newStatus));
 
 		capturedIssue.Should().NotBeNull();
 		capturedIssue!.Status.StatusName.Should().Be("In Progress");

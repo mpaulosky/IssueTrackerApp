@@ -74,7 +74,7 @@ public sealed class UpdateIssueCommandHandlerTests
 		result.Value.Should().NotBeNull();
 		result.Value!.Title.Should().Be("Updated Title");
 		result.Value.Description.Should().Be("Updated Description");
-		result.Value.Category.Should().Be(newCategory);
+		result.Value.Category.Should().Be(CategoryMapper.ToDto(newCategory));
 
 		await _issueRepository.Received(1).GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>());
 		await _issueRepository.Received(1).UpdateAsync(Arg.Any<Issue>(), Arg.Any<CancellationToken>());

@@ -67,6 +67,6 @@ public class ArchiveCategoryCommandHandlerTests
 		result.Success.Should().BeTrue();
 		capturedCategory.Should().NotBeNull();
 		capturedCategory!.Archived.Should().BeTrue();
-		capturedCategory.ArchivedBy.Should().Be(archivedByUser);
+		capturedCategory.ArchivedBy.Should().BeEquivalentTo(archivedByUser);
 	}
 }

@@ -72,7 +72,7 @@ public sealed class AddCommentCommandHandlerTests
 		result.Value.Should().NotBeNull();
 		result.Value!.Title.Should().Be("Comment Title");
 		result.Value.Description.Should().Be("Comment Description");
-		result.Value.Author.Should().Be(author);
+		result.Value.Author.Should().Be(new UserDto(author));
 	}
 
 	[Fact]

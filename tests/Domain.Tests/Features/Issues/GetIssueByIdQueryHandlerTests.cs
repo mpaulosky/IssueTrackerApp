@@ -157,9 +157,9 @@ public sealed class GetIssueByIdQueryHandlerTests
 		result.Value!.Id.Should().Be(issueId);
 		result.Value.Title.Should().Be("Complete Issue");
 		result.Value.Description.Should().Be("Complete Description");
-		result.Value.Category.Should().Be(category);
-		result.Value.Author.Should().Be(author);
-		result.Value.Status.Should().Be(status);
+		result.Value.Category.Should().Be(CategoryMapper.ToDto(category));
+		result.Value.Author.Should().Be(new UserDto(author));
+		result.Value.Status.Should().Be(StatusMapper.ToDto(status));
 		result.Value.ApprovedForRelease.Should().BeTrue();
 		result.Value.Archived.Should().BeFalse();
 	}

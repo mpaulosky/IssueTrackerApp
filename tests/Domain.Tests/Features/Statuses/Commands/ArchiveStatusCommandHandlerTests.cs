@@ -67,6 +67,6 @@ public class ArchiveStatusCommandHandlerTests
 		result.Success.Should().BeTrue();
 		capturedStatus.Should().NotBeNull();
 		capturedStatus!.Archived.Should().BeTrue();
-		capturedStatus.ArchivedBy.Should().Be(archivedByUser);
+		capturedStatus.ArchivedBy.Should().BeEquivalentTo(archivedByUser);
 	}
 }

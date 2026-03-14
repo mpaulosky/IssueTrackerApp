@@ -62,7 +62,7 @@ public sealed class DeleteIssueCommandHandlerTests
 
 		capturedIssue.Should().NotBeNull();
 		capturedIssue!.Archived.Should().BeTrue();
-		capturedIssue.ArchivedBy.Should().Be(archivedBy);
+		capturedIssue.ArchivedBy.Should().BeEquivalentTo(archivedBy);
 
 		await _issueRepository.Received(1).GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>());
 		await _issueRepository.Received(1).UpdateAsync(Arg.Any<Issue>(), Arg.Any<CancellationToken>());
