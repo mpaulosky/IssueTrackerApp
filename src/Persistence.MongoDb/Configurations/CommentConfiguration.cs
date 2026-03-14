@@ -44,5 +44,6 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
 			asb.Property(u => u.Name).HasElementName("name");
 			asb.Property(u => u.Email).HasElementName("email");
 		});
+
 	}
 }
