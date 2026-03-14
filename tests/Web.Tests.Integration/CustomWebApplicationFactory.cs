@@ -63,12 +63,21 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 		}
 
 		// Use Testcontainers for local development
+		// EF Core MongoDB provider requires a replica set for transactions
 		_mongoContainer = new MongoDbBuilder("mongo:7.0")
-
+			.WithCommand("mongod", "--replSet", "rs0", "--bind_ip_all")
 			.WithName($"mongodb-integration-test-{Guid.NewGuid():N}")
 			.Build();
 
 		await _mongoContainer.StartAsync();
+
+		// Initialize single-node replica set (required for SaveChangesAsync transactions)
+		await _mongoContainer.ExecScriptAsync(
+			"rs.initiate({_id:'rs0', members:[{_id:0, host:'localhost:27017'}]})");
+
+		// Wait for replica set to elect primary
+		await Task.Delay(3000);
+
 		_connectionString = _mongoContainer.GetConnectionString();
 	}
 
