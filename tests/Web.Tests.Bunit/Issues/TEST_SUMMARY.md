@@ -147,7 +147,7 @@ Tests inherit from `BunitTestBase` which provides:
 - Bunit test context
 
 ### Helper Methods Used
-- `RenderComponent<T>()` - Render Blazor components
+- `Render<T>()` - Render Blazor components
 - `FindAll()`, `Find()`, `FindComponent<T>()` - Query rendered DOM
 - `InvokeAsync()` - Execute async operations in tests
 - FluentAssertions for readable test assertions

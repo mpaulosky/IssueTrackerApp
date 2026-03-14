@@ -98,7 +98,7 @@ This directory contains comprehensive bUnit tests for the Theme components in Is
 3. **ColorSchemeSelector.razor** - Color scheme selection UI
 
 ### Testing Patterns
-- Component rendering with `RenderComponent<T>()`
+- Component rendering with `Render<T>()`
 - JavaScript interop mocking with `JSInterop.Setup<T>()`
 - DOM querying with `Find()`, `FindAll()`
 - User interactions with `ClickAsync()`
@@ -174,7 +174,7 @@ JSInterop.SetupVoid("method");
 
 ### Render Component with Provider
 ```csharp
-var component = RenderComponent<ThemeProvider>(parameters =>
+var component = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 

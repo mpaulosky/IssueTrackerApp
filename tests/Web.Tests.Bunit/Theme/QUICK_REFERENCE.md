@@ -43,7 +43,7 @@ JSInterop.Setup<string>("method").SetException(new JSException("error"));
 
 ### Render Component with Theme Provider
 ```csharp
-var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+var themeProvider = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 
@@ -129,7 +129,7 @@ using Web.Components.Theme;
 
 All tests inherit from `BunitTestBase` which provides:
 - `JSInterop` - Mock JavaScript interop setup
-- `RenderComponent<T>()` - Render Blazor components
+- `Render<T>()` - Render Blazor components
 - `FindAll()`, `Find()`, `FindComponent<T>()` - Query rendered components
 - Service mocks (Mediator, IssueService, etc.)
 

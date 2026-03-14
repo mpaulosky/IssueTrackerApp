@@ -33,7 +33,7 @@ public class ThemeProviderTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
 		// Act
-		var cut = RenderComponent<ThemeProvider>(parameters =>
+		var cut = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent("<div>Test Content</div>"));
 
 		// Assert
@@ -55,7 +55,7 @@ public class ThemeProviderTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
 		// Act
-		var cut = RenderComponent<ThemeProvider>(parameters =>
+		var cut = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<CascadingValueTestComponent>());
 
 		// Assert
@@ -81,7 +81,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -105,7 +105,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -128,7 +128,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -151,7 +151,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -175,7 +175,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -203,7 +203,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -230,7 +230,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 		JSInterop.SetupVoid("themeManager.setThemeMode");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -258,7 +258,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 		JSInterop.SetupVoid("themeManager.setThemeMode");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		var button = themeProvider.Find("button");
@@ -287,7 +287,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -310,7 +310,7 @@ public class ThemeToggleTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ThemeToggle>());
 
 		// Act
@@ -340,7 +340,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -364,7 +364,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -388,7 +388,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -417,7 +417,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -443,7 +443,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -469,7 +469,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 		JSInterop.SetupVoid("themeManager.setColorScheme");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -497,7 +497,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 		JSInterop.SetupVoid("themeManager.setColorScheme");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		var button = themeProvider.Find("button");
@@ -526,7 +526,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -551,7 +551,7 @@ public class ColorSchemeSelectorTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent<ColorSchemeSelector>());
 
 		// Act
@@ -582,7 +582,7 @@ public class ThemeIntegrationTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
 		// Act
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent(builder =>
 			{
 				builder.OpenComponent<ThemeToggle>(0);
@@ -608,7 +608,7 @@ public class ThemeIntegrationTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>(parameters =>
+		var themeProvider = Render<ThemeProvider>(parameters =>
 			parameters.AddChildContent(builder =>
 			{
 				builder.OpenComponent<ThemeToggle>(0);
@@ -639,14 +639,14 @@ public class ThemeIntegrationTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 		JSInterop.SetupVoid("themeManager.setThemeMode");
 
-		var themeProvider = RenderComponent<ThemeProvider>();
+		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
 
 		var eventTriggered = false;
 		provider.OnThemeChanged += () => eventTriggered = true;
 
-		// Act
-		await provider.SetThemeModeAsync("dark");
+		// Act - Must use InvokeAsync since SetThemeModeAsync calls StateHasChanged
+		await themeProvider.InvokeAsync(async () => await provider.SetThemeModeAsync("dark"));
 
 		// Assert
 		eventTriggered.Should().BeTrue();
@@ -665,12 +665,12 @@ public class ThemeIntegrationTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 		JSInterop.SetupVoid("themeManager.setThemeMode");
 
-		var themeProvider = RenderComponent<ThemeProvider>();
+		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
 		var originalColorScheme = provider.ColorScheme;
 
-		// Act
-		await provider.SetThemeModeAsync("dark");
+		// Act - Must use InvokeAsync since SetThemeModeAsync calls StateHasChanged
+		await themeProvider.InvokeAsync(async () => await provider.SetThemeModeAsync("dark"));
 
 		// Assert
 		provider.ColorScheme.Should().Be(originalColorScheme);
@@ -689,12 +689,12 @@ public class ThemeIntegrationTests : BunitTestBase
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 		JSInterop.SetupVoid("themeManager.setColorScheme");
 
-		var themeProvider = RenderComponent<ThemeProvider>();
+		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
 		var originalThemeMode = provider.ThemeMode;
 
-		// Act
-		await provider.SetColorSchemeAsync("green");
+		// Act - Must use InvokeAsync since SetColorSchemeAsync calls StateHasChanged
+		await themeProvider.InvokeAsync(async () => await provider.SetColorSchemeAsync("green"));
 
 		// Assert
 		provider.ThemeMode.Should().Be(originalThemeMode);
@@ -712,11 +712,11 @@ public class ThemeIntegrationTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>();
+		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
 
-		// Act
-		provider.OnSystemPreferenceChanged(true);
+		// Act - Must use InvokeAsync since OnSystemPreferenceChanged calls StateHasChanged
+		themeProvider.InvokeAsync(() => provider.OnSystemPreferenceChanged(true));
 
 		// Assert
 		provider.IsDarkMode.Should().BeTrue();
@@ -734,7 +734,7 @@ public class ThemeIntegrationTests : BunitTestBase
 		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
 
-		var themeProvider = RenderComponent<ThemeProvider>();
+		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
 		var originalDarkMode = provider.IsDarkMode;
 

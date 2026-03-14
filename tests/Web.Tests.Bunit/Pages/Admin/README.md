@@ -215,7 +215,7 @@ _categoryService.GetCategoriesAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>(
 
 ### Component Rendering
 ```csharp
-var cut = RenderComponent<Categories>();
+var cut = Render<Categories>();
 var rows = cut.FindAll("tbody tr");
 rows.Should().HaveCount(3);
 ```

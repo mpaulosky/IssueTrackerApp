@@ -203,7 +203,7 @@ All tests inherit from `BunitTestBase` and use mocked services provided by the b
 All tests follow the AAA pattern:
 ```csharp
 // Arrange - Set up component parameters
-var cut = RenderComponent<Component>(parameters => ...);
+var cut = Render<Component>(parameters => ...);
 
 // Act - Perform action (click, input, etc.)
 await button.Click();
