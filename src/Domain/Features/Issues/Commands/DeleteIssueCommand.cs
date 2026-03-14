@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands;
 
@@ -48,7 +49,7 @@ public sealed class DeleteIssueCommandHandler : IRequestHandler<DeleteIssueComma
 
 		var issue = existingResult.Value;
 		issue.Archived = true;
-		issue.ArchivedBy = request.ArchivedBy;
+		issue.ArchivedBy = UserMapper.ToInfo(request.ArchivedBy);
 		issue.DateModified = DateTime.UtcNow;
 
 		var result = await _repository.UpdateAsync(issue, cancellationToken);

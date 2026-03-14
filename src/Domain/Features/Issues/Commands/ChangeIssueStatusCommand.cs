@@ -9,6 +9,7 @@
 
 using Domain.Abstractions;
 using Domain.Events;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands;
 
@@ -55,7 +56,7 @@ public sealed class ChangeIssueStatusCommandHandler : IRequestHandler<ChangeIssu
 
 		var issue = existingResult.Value;
 		var oldStatus = issue.Status.StatusName;
-		issue.Status = request.NewStatus;
+		issue.Status = StatusMapper.ToInfo(request.NewStatus);
 		issue.DateModified = DateTime.UtcNow;
 
 		var result = await _repository.UpdateAsync(issue, cancellationToken);

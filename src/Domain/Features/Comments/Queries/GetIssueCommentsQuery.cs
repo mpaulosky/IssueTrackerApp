@@ -41,7 +41,7 @@ public sealed class GetIssueCommentsQueryHandler : IRequestHandler<GetIssueComme
 		var issueObjectId = ObjectId.Parse(request.IssueId);
 
 		var result = await _repository.FindAsync(
-			c => c.Issue.Id == issueObjectId && (request.IncludeArchived || !c.Archived),
+			c => c.IssueId == issueObjectId && (request.IncludeArchived || !c.Archived),
 			cancellationToken);
 
 		if (result.Failure)

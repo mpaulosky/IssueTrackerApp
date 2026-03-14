@@ -9,6 +9,7 @@
 
 using Domain.Abstractions;
 using Domain.Events;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands.Bulk;
 
@@ -110,10 +111,10 @@ public sealed class BulkUpdateStatusCommandHandler : IRequestHandler<BulkUpdateS
 				undoSnapshots.Add(new IssueUndoSnapshot(
 					issue.Id.ToString(),
 					BulkOperationType.StatusUpdate,
-					new StatusUpdateSnapshot(issue.Status)));
+					new StatusUpdateSnapshot(StatusMapper.ToDto(issue.Status))));
 
 				var oldStatus = issue.Status.StatusName;
-				issue.Status = request.NewStatus;
+				issue.Status = StatusMapper.ToInfo(request.NewStatus);
 				issue.DateModified = DateTime.UtcNow;
 
 				var updateResult = await _repository.UpdateAsync(issue, cancellationToken);

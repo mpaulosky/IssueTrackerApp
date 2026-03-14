@@ -65,7 +65,7 @@ public sealed class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentC
 			Title = request.Title,
 			Description = request.Description,
 			Author = existingComment.Author,
-			Issue = existingComment.Issue,
+			IssueId = existingComment.IssueId,
 			DateCreated = existingComment.DateCreated,
 			DateModified = DateTime.UtcNow,
 			UserVotes = existingComment.UserVotes,

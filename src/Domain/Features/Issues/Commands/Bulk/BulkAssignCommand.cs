@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands.Bulk;
 
@@ -100,11 +101,11 @@ public sealed class BulkAssignCommandHandler : IRequestHandler<BulkAssignCommand
 				undoSnapshots.Add(new IssueUndoSnapshot(
 					issue.Id.ToString(),
 					BulkOperationType.Assignment,
-					new AssignmentSnapshot(issue.Author)));
+					new AssignmentSnapshot(UserMapper.ToDto(issue.Author))));
 
 				// Note: Using Author field for assignment as the model doesn't have a separate Assignee
 				// In a real scenario, you'd want to add an Assignee field to the Issue model
-				issue.Author = request.Assignee;
+				issue.Author = UserMapper.ToInfo(request.Assignee);
 				issue.DateModified = DateTime.UtcNow;
 
 				var updateResult = await _repository.UpdateAsync(issue, cancellationToken);

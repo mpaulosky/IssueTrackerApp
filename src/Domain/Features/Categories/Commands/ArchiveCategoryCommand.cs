@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Categories.Commands;
 
@@ -50,7 +51,7 @@ public sealed class ArchiveCategoryCommandHandler : IRequestHandler<ArchiveCateg
 
 		var category = existingResult.Value;
 		category.Archived = request.Archive;
-		category.ArchivedBy = request.Archive ? request.ArchivedBy : UserDto.Empty;
+		category.ArchivedBy = request.Archive ? UserMapper.ToInfo(request.ArchivedBy) : UserInfo.Empty;
 		category.DateModified = DateTime.UtcNow;
 
 		var result = await _repository.UpdateAsync(category, cancellationToken);

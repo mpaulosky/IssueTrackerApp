@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Issues.Commands;
 
@@ -45,16 +46,18 @@ public sealed class CreateIssueCommandHandler : IRequestHandler<CreateIssueComma
 			Id = ObjectId.GenerateNewId(),
 			Title = request.Title,
 			Description = request.Description,
-			Category = request.Category,
-			Author = request.Author,
-			Status = new StatusDto(
-				ObjectId.Empty,
-				"Open",
-				"Issue is open and awaiting review",
-				DateTime.UtcNow,
-				null,
-				false,
-				UserDto.Empty),
+			Category = CategoryMapper.ToInfo(request.Category),
+			Author = UserMapper.ToInfo(request.Author),
+			Status = new StatusInfo
+			{
+				Id = ObjectId.Empty,
+				StatusName = "Open",
+				StatusDescription = "Issue is open and awaiting review",
+				DateCreated = DateTime.UtcNow,
+				DateModified = null,
+				Archived = false,
+				ArchivedBy = UserInfo.Empty
+			},
 			DateCreated = DateTime.UtcNow,
 			ApprovedForRelease = false,
 			Archived = false,

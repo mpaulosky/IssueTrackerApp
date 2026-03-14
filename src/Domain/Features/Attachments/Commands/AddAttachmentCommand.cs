@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+using Domain.Mappers;
 
 namespace Domain.Features.Attachments.Commands;
 
@@ -83,7 +84,7 @@ public sealed class AddAttachmentCommandHandler : IRequestHandler<AddAttachmentC
 				FileSize = request.FileSize,
 				BlobUrl = blobUrl,
 				ThumbnailUrl = thumbnailUrl,
-				UploadedBy = request.UploadedBy,
+				UploadedBy = UserMapper.ToInfo(request.UploadedBy),
 				UploadedAt = DateTime.UtcNow
 			};
 
