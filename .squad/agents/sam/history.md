@@ -544,3 +544,58 @@
 
 **Key Learning:** When models switch from DTOs to value objects, the conversion ripples through: handlers (fixed here), tests (need mapper calls in setup), and consuming services (need property name updates).
 
+
+---
+
+## 2025-06-12 — Azure Storage Test Projects Scaffolded
+
+**Task:** Created two new test projects for `Persistence.AzureStorage` which previously had zero test coverage.
+
+**Files Created:**
+1. `tests/Persistence.AzureStorage.Tests/` (Unit Tests)
+   - `Persistence.AzureStorage.Tests.csproj` — follows Domain.Tests pattern, includes NSubstitute for mocking
+   - `GlobalUsings.cs` — includes Azure.Storage.Blobs, testing frameworks, required Microsoft.Extensions packages
+
+2. `tests/Persistence.AzureStorage.Tests.Integration/` (Integration Tests)
+   - `Persistence.AzureStorage.Tests.Integration.csproj` — uses Testcontainers.Azurite for real Azure Blob Storage emulation
+   - `GlobalUsings.cs` — includes Testcontainers.Azurite, Azure.Storage.Blobs, testing frameworks
+
+**Package Management:**
+- Added `Testcontainers.Azurite` version `4.11.0` to `Directory.Packages.props` (aligns with Testcontainers.MongoDb version)
+- All PackageReference entries in csproj files use centralized versioning (NO version attributes in project files)
+
+**Solution Updates:**
+- Added `src/Persistence.AzureStorage/Persistence.AzureStorage.csproj` to `/src/` folder in `IssueTrackerApp.slnx`
+- Added both test projects to `/tests/` folder in `IssueTrackerApp.slnx`
+
+**Build Verification:**
+- `dotnet restore` succeeded for both projects
+- `dotnet build` succeeded for both projects with zero errors
+
+**Key Patterns:**
+- Copyright headers follow exact format: `// Copyright (c) 2025. All rights reserved.` with full file metadata
+- File-scoped namespaces enforced
+- Tab indentation (2 spaces per tab)
+- GlobalUsings organize imports by category: Testing → System → Microsoft Extensions → Azure → Project/Domain
+- Integration tests use Testcontainers for real Azure Storage emulation (not in-memory mocks)
+- Unit tests use NSubstitute for mocking BlobServiceClient and related Azure SDK types
+
+**Architecture Decision:** Integration tests use Azurite via Testcontainers rather than Azure Storage Emulator because Testcontainers provides cross-platform Docker-based testing with consistent behavior across dev/CI environments.
+
+---
+
+### Session: Azure Storage Test Coverage (2026-03-14)
+
+**Outcome:** ✅ Scaffolded and verified `Persistence.AzureStorage` test projects
+
+**Deliverables:**
+- `tests/Persistence.AzureStorage.Tests/` — Unit test project (ready for 33 tests by Gimli)
+- `tests/Persistence.AzureStorage.Tests.Integration/` — Integration test project (ready for 25+ tests by Gimli)
+- Updated `IssueTrackerApp.slnx` with new projects
+- Updated `Directory.Packages.props` with all dependencies
+
+**Learnings:**
+- Both test projects scaffold and build cleanly before test implementation
+- Testcontainers.Azurite is properly configured in CPM
+- Integration test project structure ready for fixture-based testing pattern
+- Architecture is ready for Gimli's parallel test implementation
