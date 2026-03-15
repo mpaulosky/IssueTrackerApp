@@ -29,18 +29,14 @@ public sealed class MongoDbFixture : IAsyncLifetime
 	public async Task InitializeAsync()
 	{
 		// MongoDB EF Core provider requires a replica set for transactions
+		// TestContainers defaults to no authentication, which is what we want for tests
 		_container = new MongoDbBuilder("mongo:7.0")
-			.WithCommand("mongod", "--replSet", "rs0", "--bind_ip_all")
-			.WithName($"mongodb-integration-test-{Guid.NewGuid():N}")
+			.WithReplicaSet("rs0")
 			.Build();
 
 		await _container.StartAsync();
 
-		// Initialize single-node replica set (required for SaveChangesAsync transactions)
-		await _container.ExecScriptAsync(
-			"rs.initiate({_id:'rs0', members:[{_id:0, host:'localhost:27017'}]})");
-
-		// Wait for replica set to elect primary
+		// Wait for replica set to initialize (TestContainers handles initialization)
 		await Task.Delay(3000);
 	}
 
@@ -60,6 +56,7 @@ public sealed class MongoDbFixture : IAsyncLifetime
 
 		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
 			.UseMongoDB(ConnectionString, databaseName)
+			.ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning))
 			.Options;
 
 		return new IssueTrackerDbContext(options, settings);

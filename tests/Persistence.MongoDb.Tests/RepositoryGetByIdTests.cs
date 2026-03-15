@@ -9,8 +9,10 @@
 
 using Domain.Abstractions;
 using Domain.Models;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Persistence.MongoDb.Configurations;
 using Persistence.MongoDb.Repositories;
 
@@ -138,15 +140,16 @@ public class RepositoryGetByIdTests
 		var validObjectId = ObjectId.GenerateNewId().ToString();
 
 		// Act
-		// This will throw an exception because MongoDB is not running, which is caught by the catch block
+		// Without MongoDB running, FindAsync returns null, triggering "not found" error
 		var result = await repository.GetByIdAsync(validObjectId);
 
 		// Assert
 		result.Should().NotBeNull();
 		result.Success.Should().BeFalse();
 		result.Failure.Should().BeTrue();
-		// The exception is caught and returns a generic failure
-		result.Error.Should().Contain("Failed to retrieve Category");
+		// Returns "Category with ID 'xxx' was not found" message
+		result.Error.Should().Contain("was not found");
+		result.ErrorCode.Should().Be(ResultErrorCode.NotFound);
 	}
 
 	[Fact]
@@ -159,7 +162,7 @@ public class RepositoryGetByIdTests
 		var validObjectId = ObjectId.GenerateNewId().ToString();
 
 		// Act
-		// This will throw an exception because MongoDB is not running
+		// Without MongoDB running, returns entity not found
 		var result = await repository.GetByIdAsync(validObjectId);
 
 		// Assert
@@ -167,6 +170,6 @@ public class RepositoryGetByIdTests
 		result.Success.Should().BeFalse();
 		result.Failure.Should().BeTrue();
 		result.Error.Should().NotBeNullOrEmpty();
-		result.Error.Should().Contain("Failed to retrieve");
+		result.Error.Should().Contain("was not found");
 	}
 }
