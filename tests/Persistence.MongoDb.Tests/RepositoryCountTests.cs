@@ -7,83 +7,110 @@
 // Project Name :  Persistence.MongoDb.Tests
 // =======================================================
 
-using Domain.Models;
-
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using Persistence.MongoDb.Configurations;
-using Persistence.MongoDb.Repositories;
-
 namespace Persistence.MongoDb.Tests;
 
 /// <summary>
 ///   Tests for Repository CountAsync method.
 /// </summary>
-public class RepositoryCountTests
+public class RepositoryCountTests : RepositoryTestBase<Category>
 {
-	/// <summary>
-	///   Helper method to create a test IssueTrackerDbContext.
-	/// </summary>
-	private static readonly string TestDbName = $"test-db-{Guid.NewGuid():N}";
-
-	private static IssueTrackerDbContext CreateTestContext()
+	[Fact]
+	public async Task CountAsync_WithMatchingData_Should_ReturnCorrectCount()
 	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", TestDbName)
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
+		// Arrange
+		var testData = new List<Category>
 		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = TestDbName
-		});
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Test1" },
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Test2" },
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Other" }
+		};
+		SetupDbSetWithData(testData);
+		Expression<Func<Category, bool>> predicate = c => c.CategoryName!.StartsWith("Test");
 
-		return new IssueTrackerDbContext(options, settings);
+		// Act
+		var result = await Sut.CountAsync(predicate);
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Value.Should().Be(2);
 	}
 
-	/// <summary>
-	///   Helper method to create a test logger.
-	/// </summary>
-	private static ILogger<Repository<Category>> CreateTestLogger()
+	[Fact]
+	public async Task CountAsync_WithNoMatchingData_Should_ReturnZero()
 	{
-		return Substitute.For<ILogger<Repository<Category>>>();
+		// Arrange
+		var testData = new List<Category>
+		{
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Category1" },
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Category2" }
+		};
+		SetupDbSetWithData(testData);
+		Expression<Func<Category, bool>> predicate = c => c.CategoryName == "NonExistent";
+
+		// Act
+		var result = await Sut.CountAsync(predicate);
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Value.Should().Be(0);
+	}
+
+	[Fact]
+	public async Task CountAsync_WithEmptyData_Should_ReturnZero()
+	{
+		// Arrange
+		SetupEmptyDbSet();
+		Expression<Func<Category, bool>> predicate = c => c.CategoryName == "Test";
+
+		// Act
+		var result = await Sut.CountAsync(predicate);
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Value.Should().Be(0);
+	}
+
+	[Fact]
+	public async Task CountAsync_WithNullPredicate_Should_ReturnTotalCount()
+	{
+		// Arrange
+		var testData = new List<Category>
+		{
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Category1" },
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Category2" },
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Category3" }
+		};
+		SetupDbSetWithData(testData);
+
+		// Act
+#pragma warning disable CS8625
+		var result = await Sut.CountAsync(null);
+#pragma warning restore CS8625
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Value.Should().Be(3);
 	}
 
 	[Fact]
 	public async Task CountAsync_WhenExceptionOccurs_Should_ReturnFail()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
+		SetupDbSetToThrow(new Exception("Database error"));
 		Expression<Func<Category, bool>> predicate = c => c.CategoryName == "Test";
 
 		// Act
-		// EF Core returns success with count of 0 when MongoDB is unavailable
-		var result = await repository.CountAsync(predicate);
+		var result = await Sut.CountAsync(predicate);
 
 		// Assert
 		result.Should().NotBeNull();
-		result.Success.Should().BeTrue();
-		result.Value.Should().Be(0);
-	}
-
-	[Fact]
-	public async Task CountAsync_WithNullPredicate_WhenExceptionOccurs_Should_ReturnFail()
-	{
-		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
-
-		// Act
-		// EF Core returns success with count of 0 when MongoDB is unavailable
-		var result = await repository.CountAsync(null);
-
-		// Assert
-		result.Should().NotBeNull();
-		result.Success.Should().BeTrue();
-		result.Value.Should().Be(0);
+		result.Failure.Should().BeTrue();
+		result.Success.Should().BeFalse();
+		result.Error.Should().Contain("Failed to count Category entities");
+		VerifyErrorLogged();
 	}
 }

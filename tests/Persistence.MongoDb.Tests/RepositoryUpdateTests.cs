@@ -7,6 +7,8 @@
 // Project Name :  Persistence.MongoDb.Tests
 // =======================================================
 
+using Persistence.MongoDb.Tests.Helpers;
+
 namespace Persistence.MongoDb.Tests;
 
 /// <summary>
@@ -14,28 +16,17 @@ namespace Persistence.MongoDb.Tests;
 /// </summary>
 public class RepositoryUpdateTests
 {
-	private static IssueTrackerDbContext CreateTestContext()
-	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", "test-db")
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
-		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = "test-db"
-		});
-
-		return new IssueTrackerDbContext(options, settings);
-	}
-
 	[Fact]
 	public async Task UpdateAsync_WhenExceptionOccurs_Should_ReturnFail()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>())
+			.Returns(Task.FromException<int>(new Exception("Database error")));
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		var category = new Category
 		{
@@ -58,9 +49,12 @@ public class RepositoryUpdateTests
 	public async Task UpdateAsync_Should_ReturnResultType()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		var category = new Category
 		{
@@ -75,5 +69,56 @@ public class RepositoryUpdateTests
 		// Assert
 		result.Should().NotBeNull();
 		result.Should().BeOfType<Result<Category>>();
+	}
+
+	[Fact]
+	public async Task UpdateAsync_WithValidEntity_Should_ReturnSuccess()
+	{
+		// Arrange
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
+
+		var category = new Category
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Updated Category",
+			CategoryDescription = "Updated Description"
+		};
+
+		// Act
+		var result = await repository.UpdateAsync(category);
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Value.Should().NotBeNull();
+		result.Value.Should().Be(category);
+	}
+
+	[Fact]
+	public async Task UpdateAsync_WithNullEntity_Should_ReturnFail()
+	{
+		// Arrange
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockDbSet.When(x => x.Update(null!))
+			.Do(_ => throw new ArgumentNullException("entity"));
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
+
+		// Act
+		var result = await repository.UpdateAsync(null!);
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Failure.Should().BeTrue();
+		result.Success.Should().BeFalse();
+		result.Error.Should().Contain("Failed to update Category");
 	}
 }

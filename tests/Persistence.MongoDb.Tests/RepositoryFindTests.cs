@@ -10,10 +10,9 @@
 using Domain.Models;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
-using Persistence.MongoDb.Configurations;
 using Persistence.MongoDb.Repositories;
+using Persistence.MongoDb.Tests.Helpers;
 
 namespace Persistence.MongoDb.Tests;
 
@@ -22,45 +21,18 @@ namespace Persistence.MongoDb.Tests;
 /// </summary>
 public class RepositoryFindTests
 {
-	/// <summary>
-	///   Helper method to create a test IssueTrackerDbContext.
-	/// </summary>
-	private static readonly string TestDbName = $"test-db-{Guid.NewGuid():N}";
-
-	private static IssueTrackerDbContext CreateTestContext()
-	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", TestDbName)
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
-		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = TestDbName
-		});
-
-		return new IssueTrackerDbContext(options, settings);
-	}
-
-	/// <summary>
-	///   Helper method to create a test logger.
-	/// </summary>
-	private static ILogger<Repository<Category>> CreateTestLogger()
-	{
-		return Substitute.For<ILogger<Repository<Category>>>();
-	}
-
 	[Fact]
-	public async Task FindAsync_WhenExceptionOccurs_Should_ReturnFail()
+	public async Task FindAsync_Should_ReturnEmptyList_WhenNoMatches()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 		Expression<Func<Category, bool>> predicate = c => c.CategoryName == "Test";
 
 		// Act
-		// EF Core returns success with empty collection when MongoDB is unavailable
 		var result = await repository.FindAsync(predicate);
 
 		// Assert
@@ -71,12 +43,21 @@ public class RepositoryFindTests
 	}
 
 	[Fact]
-	public async Task FindAsync_Should_ReturnResult()
+	public async Task FindAsync_Should_ReturnMatchingItems_WhenPredicateMatches()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
+		var categories = new List<Category>
+		{
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Test1", Archived = false },
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Test2", Archived = false },
+			new() { Id = ObjectId.GenerateNewId(), CategoryName = "Test3", Archived = true }
+		};
+
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet(categories);
+		mockContext.Set<Category>().Returns(mockDbSet);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 		Expression<Func<Category, bool>> predicate = c => c.Archived == false;
 
 		// Act
@@ -84,8 +65,9 @@ public class RepositoryFindTests
 
 		// Assert
 		result.Should().NotBeNull();
-		// EF Core returns success with empty collection when MongoDB is unavailable
 		result.Success.Should().BeTrue();
-		result.Value.Should().BeEmpty();
+		result.Value.Should().NotBeNull();
+		result.Value.Should().HaveCount(2);
+		result.Value.Should().OnlyContain(c => c.Archived == false);
 	}
 }

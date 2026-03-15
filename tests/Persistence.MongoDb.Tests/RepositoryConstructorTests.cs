@@ -9,8 +9,6 @@
 
 using Domain.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Persistence.MongoDb.Configurations;
 using Persistence.MongoDb.Repositories;
 
 namespace Persistence.MongoDb.Tests;
@@ -20,37 +18,12 @@ namespace Persistence.MongoDb.Tests;
 /// </summary>
 public class RepositoryConstructorTests
 {
-	/// <summary>
-	///   Helper method to create a test IssueTrackerDbContext.
-	/// </summary>
-	private static IssueTrackerDbContext CreateTestContext()
-	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", "test-db")
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
-		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = "test-db"
-		});
-
-		return new IssueTrackerDbContext(options, settings);
-	}
-
-	/// <summary>
-	///   Helper method to create a test logger.
-	/// </summary>
-	private static ILogger<Repository<Category>> CreateTestLogger()
-	{
-		return Substitute.For<ILogger<Repository<Category>>>();
-	}
 
 	[Fact]
 	public void Constructor_WithNullContext_Should_ThrowArgumentNullException()
 	{
 		// Arrange
-		var logger = CreateTestLogger();
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
 
 		// Act
 		Action act = () => new Repository<Category>(null!, logger);
@@ -64,10 +37,10 @@ public class RepositoryConstructorTests
 	public void Constructor_WithNullLogger_Should_ThrowArgumentNullException()
 	{
 		// Arrange
-		using var context = CreateTestContext();
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
 
 		// Act
-		Action act = () => new Repository<Category>(context, null!);
+		Action act = () => new Repository<Category>(mockContext, null!);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>()
@@ -78,11 +51,11 @@ public class RepositoryConstructorTests
 	public void Constructor_WithValidArguments_Should_NotThrow()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
 
 		// Act
-		Action act = () => new Repository<Category>(context, logger);
+		Action act = () => new Repository<Category>(mockContext, logger);
 
 		// Assert
 		act.Should().NotThrow();
@@ -92,40 +65,42 @@ public class RepositoryConstructorTests
 	public void Constructor_Should_SetContextProperty()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
 
 		// Act
-		var repository = new TestableRepository<Category>(context, logger);
+		var repository = new TestableRepository<Category>(mockContext, logger);
 
 		// Assert
-		repository.ExposedContext.Should().BeSameAs(context);
+		repository.ExposedContext.Should().BeSameAs(mockContext);
 	}
 
 	[Fact]
 	public void Constructor_Should_SetDbSetProperty()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = Substitute.For<DbSet<Category>>();
+		mockContext.Set<Category>().Returns(mockDbSet);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
 
 		// Act
-		var repository = new TestableRepository<Category>(context, logger);
+		var repository = new TestableRepository<Category>(mockContext, logger);
 
 		// Assert
 		repository.ExposedDbSet.Should().NotBeNull();
-		repository.ExposedDbSet.Should().BeSameAs(context.Set<Category>());
+		repository.ExposedDbSet.Should().BeSameAs(mockDbSet);
 	}
 
 	[Fact]
 	public void Constructor_Should_SetLoggerProperty()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
 
 		// Act
-		var repository = new TestableRepository<Category>(context, logger);
+		var repository = new TestableRepository<Category>(mockContext, logger);
 
 		// Assert
 		repository.ExposedLogger.Should().BeSameAs(logger);
@@ -136,12 +111,12 @@ public class RepositoryConstructorTests
 	/// </summary>
 	private class TestableRepository<TEntity> : Repository<TEntity> where TEntity : class
 	{
-		public TestableRepository(IssueTrackerDbContext context, ILogger<Repository<TEntity>> logger)
+		public TestableRepository(IIssueTrackerDbContext context, ILogger<Repository<TEntity>> logger)
 			: base(context, logger)
 		{
 		}
 
-		public IssueTrackerDbContext ExposedContext => Context;
+		public IIssueTrackerDbContext ExposedContext => Context;
 		public DbSet<TEntity> ExposedDbSet => DbSet;
 		public ILogger<Repository<TEntity>> ExposedLogger => Logger;
 	}

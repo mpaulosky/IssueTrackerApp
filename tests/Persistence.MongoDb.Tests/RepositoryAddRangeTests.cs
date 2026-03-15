@@ -7,6 +7,8 @@
 // Project Name :  Persistence.MongoDb.Tests
 // =======================================================
 
+using Persistence.MongoDb.Tests.Helpers;
+
 namespace Persistence.MongoDb.Tests;
 
 /// <summary>
@@ -14,28 +16,17 @@ namespace Persistence.MongoDb.Tests;
 /// </summary>
 public class RepositoryAddRangeTests
 {
-	private static IssueTrackerDbContext CreateTestContext()
-	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", "test-db")
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
-		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = "test-db"
-		});
-
-		return new IssueTrackerDbContext(options, settings);
-	}
-
 	[Fact]
 	public async Task AddRangeAsync_WhenExceptionOccurs_Should_ReturnFail()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>())
+			.Returns(Task.FromException<int>(new Exception("Database error")));
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		var categories = new List<Category>
 		{
@@ -58,9 +49,12 @@ public class RepositoryAddRangeTests
 	public async Task AddRangeAsync_Should_ReturnResultType()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		var categories = new List<Category>
 		{
@@ -79,9 +73,12 @@ public class RepositoryAddRangeTests
 	public async Task AddRangeAsync_WithEmptyCollection_Should_ReturnSuccess()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(0);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		var categories = new List<Category>();
 
@@ -91,5 +88,35 @@ public class RepositoryAddRangeTests
 		// Assert
 		result.Should().NotBeNull();
 		result.Should().BeOfType<Result<IEnumerable<Category>>>();
+		result.Success.Should().BeTrue();
+		result.Value.Should().BeEmpty();
+	}
+
+	[Fact]
+	public async Task AddRangeAsync_WithValidEntities_Should_ReturnSuccess()
+	{
+		// Arrange
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(3);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
+
+		var categories = new List<Category>
+		{
+			new() { CategoryName = "Category 1", CategoryDescription = "Description 1" },
+			new() { CategoryName = "Category 2", CategoryDescription = "Description 2" },
+			new() { CategoryName = "Category 3", CategoryDescription = "Description 3" }
+		};
+
+		// Act
+		var result = await repository.AddRangeAsync(categories);
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Value.Should().NotBeNull();
+		result.Value.Should().HaveCount(3);
 	}
 }

@@ -59,10 +59,17 @@ public sealed class BlobStorageThumbnailTests
 		// Act
 		var thumbnailUrl = await service.GenerateThumbnailAsync(blobUrl);
 
-		// Assert
+		// Assert - Azurite format: http://host/account/container/guid/filename
 		thumbnailUrl.Should().NotBeNull();
-		var thumbnailClient = new BlobClient(new Uri(thumbnailUrl!));
-		var exists = await thumbnailClient.ExistsAsync();
+		
+		var uri = new Uri(thumbnailUrl!);
+		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
+		
+		var blobServiceClient = _fixture.CreateBlobServiceClient();
+		var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainerName);
+		var blobClient = containerClient.GetBlobClient(blobName);
+		var exists = await blobClient.ExistsAsync();
 		exists.Value.Should().BeTrue();
 	}
 
@@ -148,10 +155,17 @@ public sealed class BlobStorageThumbnailTests
 		// Act
 		var thumbnailUrl = await service.GenerateThumbnailAsync(blobUrl);
 
-		// Assert
+		// Assert - Azurite format: http://host/account/container/guid/filename
 		thumbnailUrl.Should().NotBeNull();
-		var thumbnailClient = new BlobClient(new Uri(thumbnailUrl!));
-		var properties = await thumbnailClient.GetPropertiesAsync();
+		
+		var uri = new Uri(thumbnailUrl!);
+		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
+		
+		var blobServiceClient = _fixture.CreateBlobServiceClient();
+		var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainerName);
+		var blobClient = containerClient.GetBlobClient(blobName);
+		var properties = await blobClient.GetPropertiesAsync();
 		properties.Value.ContentType.Should().Be("image/jpeg");
 	}
 
