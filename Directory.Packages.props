@@ -29,8 +29,10 @@
     <!-- Email -->
     <PackageVersion Include="SendGrid" Version="9.29.3" />
     <!-- Microsoft Extensions -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.5" />
@@ -46,6 +48,7 @@
     <PackageVersion Include="coverlet.collector" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Playwright" Version="1.49.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.11.0" />
+    <PackageVersion Include="Testcontainers.Azurite" Version="4.11.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.5" />
     <!-- Aspire ServiceDefaults Dependencies -->
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.4.0" />
