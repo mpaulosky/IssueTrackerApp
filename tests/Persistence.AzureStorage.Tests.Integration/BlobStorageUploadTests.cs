@@ -52,13 +52,19 @@ public sealed class BlobStorageUploadTests
 		// Act
 		var blobUrl = await service.UploadAsync(content, fileName, contentType);
 
-		// Assert
+		// Assert - use authenticated client from fixture
 		var blobServiceClient = _fixture.CreateBlobServiceClient();
 		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 		var exists = await containerClient.ExistsAsync();
 		exists.Value.Should().BeTrue();
 
-		var blobClient = new BlobClient(new Uri(blobUrl));
+		// Extract blob name from URL - Azurite format: http://host/account/container/guid/filename
+		// Skip account name and container name to get blob path
+		var uri = new Uri(blobUrl);
+		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
+		
+		var blobClient = containerClient.GetBlobClient(blobName);
 		var blobExists = await blobClient.ExistsAsync();
 		blobExists.Value.Should().BeTrue();
 	}
@@ -76,8 +82,14 @@ public sealed class BlobStorageUploadTests
 		// Act
 		var blobUrl = await service.UploadAsync(content, fileName, contentType);
 
-		// Assert
-		var blobClient = new BlobClient(new Uri(blobUrl));
+		// Assert - Azurite format: http://host/account/container/guid/filename
+		var uri = new Uri(blobUrl);
+		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
+		
+		var blobServiceClient = _fixture.CreateBlobServiceClient();
+		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+		var blobClient = containerClient.GetBlobClient(blobName);
 		var properties = await blobClient.GetPropertiesAsync();
 		properties.Value.ContentType.Should().Be(contentType);
 	}

@@ -156,10 +156,17 @@ public sealed class BlobStorageConcurrencyTests
 		var deleteTasks = blobUrls.Select(url => service.DeleteAsync(url)).ToList();
 		await Task.WhenAll(deleteTasks);
 
-		// Assert
+		// Assert - Azurite format: http://host/account/container/guid/filename
+		var blobServiceClient = _fixture.CreateBlobServiceClient();
+		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+		
 		foreach (var blobUrl in blobUrls)
 		{
-			var blobClient = new BlobClient(new Uri(blobUrl));
+			var uri = new Uri(blobUrl);
+			var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+			var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
+			
+			var blobClient = containerClient.GetBlobClient(blobName);
 			var exists = await blobClient.ExistsAsync();
 			exists.Value.Should().BeFalse();
 		}

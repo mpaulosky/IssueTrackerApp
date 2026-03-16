@@ -36,8 +36,10 @@ public sealed class BlobStorageDeleteTests
 		// Act
 		await service.DeleteAsync(blobUrl);
 
-		// Assert
-		var blobClient = new BlobClient(new Uri(blobUrl));
+		// Assert - use authenticated client from fixture
+		var blobServiceClient = _fixture.CreateBlobServiceClient();
+		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+		var blobClient = containerClient.GetBlobClient(fileName);
 		var exists = await blobClient.ExistsAsync();
 		exists.Value.Should().BeFalse();
 	}
@@ -94,12 +96,23 @@ public sealed class BlobStorageDeleteTests
 		// Act
 		await service.DeleteAsync(blobUrl1);
 
-		// Assert
-		var blobClient1 = new BlobClient(new Uri(blobUrl1));
+		// Assert - Azurite format: http://host/account/container/guid/filename
+		var blobServiceClient = _fixture.CreateBlobServiceClient();
+		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+		
+		// Extract blob1 name from URL
+		var uri1 = new Uri(blobUrl1);
+		var segments1 = uri1.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		var blobName1 = string.Join("/", segments1.Skip(2)); // Skip account + container
+		var blobClient1 = containerClient.GetBlobClient(blobName1);
 		var exists1 = await blobClient1.ExistsAsync();
 		exists1.Value.Should().BeFalse();
 
-		var blobClient2 = new BlobClient(new Uri(blobUrl2));
+		// Extract blob2 name from URL
+		var uri2 = new Uri(blobUrl2);
+		var segments2 = uri2.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		var blobName2 = string.Join("/", segments2.Skip(2)); // Skip account + container
+		var blobClient2 = containerClient.GetBlobClient(blobName2);
 		var exists2 = await blobClient2.ExistsAsync();
 		exists2.Value.Should().BeTrue();
 	}
