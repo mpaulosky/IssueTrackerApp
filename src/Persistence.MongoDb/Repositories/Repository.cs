@@ -19,12 +19,12 @@ namespace Persistence.MongoDb.Repositories;
 /// <typeparam name="TEntity">The entity type.</typeparam>
 public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 {
-	protected readonly IssueTrackerDbContext Context;
+	protected readonly IIssueTrackerDbContext Context;
 	protected readonly DbSet<TEntity> DbSet;
 	protected readonly ILogger<Repository<TEntity>> Logger;
 
 	public Repository(
-		IssueTrackerDbContext context,
+		IIssueTrackerDbContext context,
 		ILogger<Repository<TEntity>> logger)
 	{
 		Context = context ?? throw new ArgumentNullException(nameof(context));

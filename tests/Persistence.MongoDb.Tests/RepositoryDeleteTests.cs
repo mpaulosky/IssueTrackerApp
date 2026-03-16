@@ -12,35 +12,17 @@ namespace Persistence.MongoDb.Tests;
 /// <summary>
 ///   Tests for Repository DeleteAsync method.
 /// </summary>
-public class RepositoryDeleteTests
+public class RepositoryDeleteTests : RepositoryTestBase<Category>
 {
-	private static IssueTrackerDbContext CreateTestContext()
-	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", "test-db")
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
-		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = "test-db"
-		});
-
-		return new IssueTrackerDbContext(options, settings);
-	}
-
 	[Fact]
 	public async Task DeleteAsync_WithInvalidObjectId_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
-
+		SetupEmptyDbSet();
 		var invalidId = "invalid-object-id";
 
 		// Act
-		var result = await repository.DeleteAsync(invalidId);
+		var result = await Sut.DeleteAsync(invalidId);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -48,20 +30,18 @@ public class RepositoryDeleteTests
 		result.Success.Should().BeFalse();
 		result.Error.Should().Contain("Invalid ID format");
 		result.ErrorCode.Should().Be(ResultErrorCode.Validation);
+		VerifySaveChangesNotCalled();
 	}
 
 	[Fact]
 	public async Task DeleteAsync_WithEmptyString_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
-
+		SetupEmptyDbSet();
 		var emptyId = string.Empty;
 
 		// Act
-		var result = await repository.DeleteAsync(emptyId);
+		var result = await Sut.DeleteAsync(emptyId);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -69,18 +49,17 @@ public class RepositoryDeleteTests
 		result.Success.Should().BeFalse();
 		result.Error.Should().Contain("Invalid ID format");
 		result.ErrorCode.Should().Be(ResultErrorCode.Validation);
+		VerifySaveChangesNotCalled();
 	}
 
 	[Fact]
 	public async Task DeleteAsync_WithNullId_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		SetupEmptyDbSet();
 
 		// Act
-		var result = await repository.DeleteAsync(null!);
+		var result = await Sut.DeleteAsync(null!);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -88,20 +67,18 @@ public class RepositoryDeleteTests
 		result.Success.Should().BeFalse();
 		result.Error.Should().Contain("Invalid ID format");
 		result.ErrorCode.Should().Be(ResultErrorCode.Validation);
+		VerifySaveChangesNotCalled();
 	}
 
 	[Fact]
 	public async Task DeleteAsync_WithWhitespace_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
-
+		SetupEmptyDbSet();
 		var whitespaceId = "   ";
 
 		// Act
-		var result = await repository.DeleteAsync(whitespaceId);
+		var result = await Sut.DeleteAsync(whitespaceId);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -109,25 +86,72 @@ public class RepositoryDeleteTests
 		result.Success.Should().BeFalse();
 		result.Error.Should().Contain("Invalid ID format");
 		result.ErrorCode.Should().Be(ResultErrorCode.Validation);
+		VerifySaveChangesNotCalled();
 	}
 
 	[Fact]
-	public async Task DeleteAsync_WithValidObjectId_WhenExceptionOccurs_Should_ReturnFail()
+	public async Task DeleteAsync_WithValidObjectId_WhenEntityNotFound_Should_ReturnFail()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
-
-		var validId = ObjectId.GenerateNewId().ToString();
+		var validId = ObjectId.GenerateNewId();
+		SetupDbSetWithFind(new List<Category>(), e => e.Id);
 
 		// Act
-		var result = await repository.DeleteAsync(validId);
+		var result = await Sut.DeleteAsync(validId.ToString());
 
 		// Assert
 		result.Should().NotBeNull();
 		result.Failure.Should().BeTrue();
 		result.Success.Should().BeFalse();
 		result.Error.Should().Contain("not found");
+		VerifySaveChangesNotCalled();
+	}
+
+	[Fact]
+	public async Task DeleteAsync_WithValidObjectId_WhenEntityExists_Should_ReturnSuccess()
+	{
+		// Arrange
+		var category = new Category
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Test Category",
+			CategoryDescription = "Test Description"
+		};
+		SetupDbSetWithFind(new List<Category> { category }, e => e.Id);
+		SetupSaveChangesAsync();
+
+		// Act
+		var result = await Sut.DeleteAsync(category.Id.ToString());
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Failure.Should().BeFalse();
+		VerifySaveChangesCalledOnce();
+	}
+
+	[Fact]
+	public async Task DeleteAsync_WhenSaveChangesFails_Should_ReturnFail()
+	{
+		// Arrange
+		var category = new Category
+		{
+			Id = ObjectId.GenerateNewId(),
+			CategoryName = "Test Category",
+			CategoryDescription = "Test Description"
+		};
+		SetupDbSetWithFind(new List<Category> { category }, e => e.Id);
+		SetupSaveChangesToThrow(new Exception("Database error"));
+
+		// Act
+		var result = await Sut.DeleteAsync(category.Id.ToString());
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Failure.Should().BeTrue();
+		result.Success.Should().BeFalse();
+		result.Error.Should().Contain("Database error");
+		VerifySaveChangesCalledOnce();
+		VerifyErrorLogged();
 	}
 }

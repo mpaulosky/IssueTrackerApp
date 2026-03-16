@@ -10,56 +10,25 @@
 using Domain.Abstractions;
 using Domain.Models;
 
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using Persistence.MongoDb.Configurations;
-using Persistence.MongoDb.Repositories;
+using Persistence.MongoDb.Tests.Helpers;
 
 namespace Persistence.MongoDb.Tests;
 
 /// <summary>
 ///   Tests for Repository GetByIdAsync method.
 /// </summary>
-public class RepositoryGetByIdTests
+public class RepositoryGetByIdTests : RepositoryTestBase<Category>
 {
-	/// <summary>
-	///   Helper method to create a test IssueTrackerDbContext.
-	/// </summary>
-	private static IssueTrackerDbContext CreateTestContext()
-	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", "test-db")
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
-		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = "test-db"
-		});
-
-		return new IssueTrackerDbContext(options, settings);
-	}
-
-	/// <summary>
-	///   Helper method to create a test logger.
-	/// </summary>
-	private static ILogger<Repository<Category>> CreateTestLogger()
-	{
-		return Substitute.For<ILogger<Repository<Category>>>();
-	}
 
 	[Fact]
 	public async Task GetByIdAsync_WithInvalidObjectId_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
+		SetupEmptyDbSet();
 		const string invalidId = "not-a-valid-objectid";
 
 		// Act
-		var result = await repository.GetByIdAsync(invalidId);
+		var result = await Sut.GetByIdAsync(invalidId);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -74,13 +43,11 @@ public class RepositoryGetByIdTests
 	public async Task GetByIdAsync_WithEmptyString_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
+		SetupEmptyDbSet();
 		var emptyId = string.Empty;
 
 		// Act
-		var result = await repository.GetByIdAsync(emptyId);
+		var result = await Sut.GetByIdAsync(emptyId);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -94,13 +61,11 @@ public class RepositoryGetByIdTests
 	public async Task GetByIdAsync_WithNullId_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
+		SetupEmptyDbSet();
 		string? nullId = null;
 
 		// Act
-		var result = await repository.GetByIdAsync(nullId!);
+		var result = await Sut.GetByIdAsync(nullId!);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -114,13 +79,11 @@ public class RepositoryGetByIdTests
 	public async Task GetByIdAsync_WithWhitespace_Should_ReturnFailWithValidationError()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
+		SetupEmptyDbSet();
 		const string whitespaceId = "   ";
 
 		// Act
-		var result = await repository.GetByIdAsync(whitespaceId);
+		var result = await Sut.GetByIdAsync(whitespaceId);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -134,20 +97,16 @@ public class RepositoryGetByIdTests
 	public async Task GetByIdAsync_WithValidObjectId_WhenEntityNotFound_Should_ReturnFailWithNotFoundError()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
-		var validObjectId = ObjectId.GenerateNewId().ToString();
+		var validObjectId = ObjectId.GenerateNewId();
+		SetupDbSetWithFind(Enumerable.Empty<Category>(), c => c.Id);
 
 		// Act
-		// Without MongoDB running, FindAsync returns null, triggering "not found" error
-		var result = await repository.GetByIdAsync(validObjectId);
+		var result = await Sut.GetByIdAsync(validObjectId.ToString());
 
 		// Assert
 		result.Should().NotBeNull();
 		result.Success.Should().BeFalse();
 		result.Failure.Should().BeTrue();
-		// Returns "Category with ID 'xxx' was not found" message
 		result.Error.Should().Contain("was not found");
 		result.ErrorCode.Should().Be(ResultErrorCode.NotFound);
 	}
@@ -156,14 +115,11 @@ public class RepositoryGetByIdTests
 	public async Task GetByIdAsync_WhenExceptionOccurs_Should_ReturnFail()
 	{
 		// Arrange
-		using var context = CreateTestContext();
-		var logger = CreateTestLogger();
-		var repository = new Repository<Category>(context, logger);
-		var validObjectId = ObjectId.GenerateNewId().ToString();
+		var validObjectId = ObjectId.GenerateNewId();
+		SetupDbSetWithFind(Enumerable.Empty<Category>(), c => c.Id);
 
 		// Act
-		// Without MongoDB running, returns entity not found
-		var result = await repository.GetByIdAsync(validObjectId);
+		var result = await Sut.GetByIdAsync(validObjectId.ToString());
 
 		// Assert
 		result.Should().NotBeNull();

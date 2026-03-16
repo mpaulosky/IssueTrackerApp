@@ -16,7 +16,7 @@ namespace Persistence.MongoDb;
 /// <summary>
 ///   Database context for IssueTracker application using MongoDB.
 /// </summary>
-public sealed class IssueTrackerDbContext : DbContext
+public sealed class IssueTrackerDbContext : DbContext, IIssueTrackerDbContext
 {
 	private readonly MongoDbSettings _settings;
 

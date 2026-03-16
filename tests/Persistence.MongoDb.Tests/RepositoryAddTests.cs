@@ -7,6 +7,8 @@
 // Project Name :  Persistence.MongoDb.Tests
 // =======================================================
 
+using Persistence.MongoDb.Tests.Helpers;
+
 namespace Persistence.MongoDb.Tests;
 
 /// <summary>
@@ -14,30 +16,17 @@ namespace Persistence.MongoDb.Tests;
 /// </summary>
 public class RepositoryAddTests
 {
-	private static readonly string TestDbName = $"test-db-{Guid.NewGuid():N}";
-
-	private static IssueTrackerDbContext CreateTestContext()
-	{
-		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", TestDbName)
-			.Options;
-
-		var settings = Options.Create(new MongoDbSettings
-		{
-			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = TestDbName
-		});
-
-		return new IssueTrackerDbContext(options, settings);
-	}
-
 	[Fact]
 	public async Task AddAsync_WhenExceptionOccurs_Should_ReturnFail()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>())
+			.Returns(Task.FromException<int>(new Exception("Database error")));
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		var category = new Category
 		{
@@ -49,19 +38,22 @@ public class RepositoryAddTests
 		var result = await repository.AddAsync(category);
 
 		// Assert
-		// EF Core returns success when MongoDB is unavailable
 		result.Should().NotBeNull();
-		result.Success.Should().BeTrue();
-		result.Value.Should().NotBeNull();
+		result.Failure.Should().BeTrue();
+		result.Success.Should().BeFalse();
+		result.Error.Should().Contain("Failed to add Category");
 	}
 
 	[Fact]
 	public async Task AddAsync_Should_ReturnResultType()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		var category = new Category
 		{
@@ -81,9 +73,14 @@ public class RepositoryAddTests
 	public async Task AddAsync_WithNullEntity_Should_ReturnFail()
 	{
 		// Arrange
-		var context = CreateTestContext();
-		var logger = NullLogger<Repository<Category>>.Instance;
-		var repository = new Repository<Category>(context, logger);
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockDbSet.When(x => x.AddAsync(null!, Arg.Any<CancellationToken>()))
+			.Do(_ => throw new ArgumentNullException("entity"));
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
 
 		// Act
 		var result = await repository.AddAsync(null!);
@@ -93,5 +90,32 @@ public class RepositoryAddTests
 		result.Failure.Should().BeTrue();
 		result.Success.Should().BeFalse();
 		result.Error.Should().Contain("Failed to add Category");
+	}
+
+	[Fact]
+	public async Task AddAsync_WithValidEntity_Should_ReturnSuccess()
+	{
+		// Arrange
+		var mockContext = Substitute.For<IIssueTrackerDbContext>();
+		var mockDbSet = MockDbSetHelper.CreateMockDbSet<Category>(new List<Category>());
+		mockContext.Set<Category>().Returns(mockDbSet);
+		mockContext.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+		var logger = Substitute.For<ILogger<Repository<Category>>>();
+		var repository = new Repository<Category>(mockContext, logger);
+
+		var category = new Category
+		{
+			CategoryName = "Test Category",
+			CategoryDescription = "Test Description"
+		};
+
+		// Act
+		var result = await repository.AddAsync(category);
+
+		// Assert
+		result.Should().NotBeNull();
+		result.Success.Should().BeTrue();
+		result.Value.Should().NotBeNull();
+		result.Value.Should().Be(category);
 	}
 }
