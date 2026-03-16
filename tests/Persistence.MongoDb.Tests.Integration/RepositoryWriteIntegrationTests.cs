@@ -209,13 +209,16 @@ public sealed class RepositoryWriteIntegrationTests
 	[Fact]
 	public async Task ConcurrentAdds_Should_NotConflict()
 	{
-		// Arrange - Each concurrent task gets its own DbContext to avoid race conditions
+		// Arrange - Initialize database once before concurrent operations
+		await using var initContext = _fixture.CreateDbContext();
+		await initContext.InitializeDatabaseAsync();
+
+		// Each concurrent task gets its own DbContext to avoid race conditions
 		// on SaveChangesAsync() calls. This simulates realistic concurrent operations
 		// where each request has its own scoped DbContext.
 		var tasks = Enumerable.Range(1, 5).Select(async i =>
 		{
 			await using var context = _fixture.CreateDbContext();
-			await context.InitializeDatabaseAsync();
 			var repository = _fixture.CreateRepository<Category>(context);
 			var category = new Category
 			{
