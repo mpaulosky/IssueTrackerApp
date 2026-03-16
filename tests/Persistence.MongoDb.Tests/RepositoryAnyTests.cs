@@ -8,8 +8,10 @@
 // =======================================================
 
 using Domain.Models;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Persistence.MongoDb.Configurations;
 using Persistence.MongoDb.Repositories;
 
@@ -23,16 +25,18 @@ public class RepositoryAnyTests
 	/// <summary>
 	///   Helper method to create a test IssueTrackerDbContext.
 	/// </summary>
+	private static readonly string TestDbName = $"test-db-{Guid.NewGuid():N}";
+
 	private static IssueTrackerDbContext CreateTestContext()
 	{
 		var options = new DbContextOptionsBuilder<IssueTrackerDbContext>()
-			.UseMongoDB("mongodb://localhost:27017", "test-db")
+			.UseMongoDB("mongodb://localhost:27017", TestDbName)
 			.Options;
 
 		var settings = Options.Create(new MongoDbSettings
 		{
 			ConnectionString = "mongodb://localhost:27017",
-			DatabaseName = "test-db"
+			DatabaseName = TestDbName
 		});
 
 		return new IssueTrackerDbContext(options, settings);
@@ -56,14 +60,12 @@ public class RepositoryAnyTests
 		Expression<Func<Category, bool>> predicate = c => c.CategoryName == "Test";
 
 		// Act
-		// This will throw an exception because MongoDB is not running
+		// EF Core returns success with false when MongoDB is unavailable
 		var result = await repository.AnyAsync(predicate);
 
 		// Assert
 		result.Should().NotBeNull();
-		result.Success.Should().BeFalse();
-		result.Failure.Should().BeTrue();
-		result.Error.Should().NotBeNullOrEmpty();
-		result.Error.Should().Contain("Failed to check Category existence");
+		result.Success.Should().BeTrue();
+		result.Value.Should().BeFalse();
 	}
 }

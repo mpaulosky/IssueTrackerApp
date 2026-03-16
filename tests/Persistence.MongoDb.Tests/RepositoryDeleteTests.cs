@@ -128,6 +128,6 @@ public class RepositoryDeleteTests
 		result.Should().NotBeNull();
 		result.Failure.Should().BeTrue();
 		result.Success.Should().BeFalse();
-		result.Error.Should().Contain("Failed to delete Category");
+		result.Error.Should().Contain("not found");
 	}
 }

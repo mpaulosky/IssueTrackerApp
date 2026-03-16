@@ -67,7 +67,10 @@ public class BlobStorageService : IFileStorageService
 	{
 		try
 		{
-			var blobClient = new BlobClient(new Uri(blobUrl));
+			var uri = new Uri(blobUrl);
+			var (containerName, blobName) = ParseBlobUrl(uri);
+			var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+			var blobClient = containerClient.GetBlobClient(blobName);
 			var response = await blobClient.DownloadStreamingAsync(cancellationToken: cancellationToken);
 
 			_logger.LogInformation("Downloaded blob from {BlobUrl}", blobUrl);
@@ -85,7 +88,10 @@ public class BlobStorageService : IFileStorageService
 	{
 		try
 		{
-			var blobClient = new BlobClient(new Uri(blobUrl));
+			var uri = new Uri(blobUrl);
+			var (containerName, blobName) = ParseBlobUrl(uri);
+			var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+			var blobClient = containerClient.GetBlobClient(blobName);
 			await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
 
 			_logger.LogInformation("Deleted blob at {BlobUrl}", blobUrl);
@@ -95,6 +101,31 @@ public class BlobStorageService : IFileStorageService
 			_logger.LogError(ex, "Failed to delete blob at {BlobUrl}", blobUrl);
 			throw;
 		}
+	}
+
+	/// <summary>
+	///   Parses a blob URL to extract the container name and blob name.
+	/// </summary>
+	/// <param name="blobUri">The blob URI to parse.</param>
+	/// <returns>A tuple containing the container name and blob name.</returns>
+	private static (string containerName, string blobName) ParseBlobUrl(Uri blobUri)
+	{
+		// URL format: https://{account}.blob.core.windows.net/{container}/{blobname}
+		// Or for Azurite: http://127.0.0.1:10000/{account}/{container}/{blobname}
+		var segments = blobUri.AbsolutePath.TrimStart('/').Split('/', 2);
+
+		if (segments.Length < 2)
+		{
+			throw new ArgumentException($"Invalid blob URL format: {blobUri}", nameof(blobUri));
+		}
+
+		// For Azurite, first segment is the account name, so we need to skip it
+		if (blobUri.Host.Contains("127.0.0.1") || blobUri.Host.Contains("localhost"))
+		{
+			segments = segments[1].Split('/', 2);
+		}
+
+		return (containerName: segments[0], blobName: segments[1]);
 	}
 
 	public async Task<string?> GenerateThumbnailAsync(
