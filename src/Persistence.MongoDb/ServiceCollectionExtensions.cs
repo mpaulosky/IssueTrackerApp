@@ -32,6 +32,9 @@ public static class ServiceCollectionExtensions
 				settings.DatabaseName);
 		});
 
+		// Register the interface so Repository<T> can resolve IIssueTrackerDbContext
+		services.AddScoped<IIssueTrackerDbContext>(sp => sp.GetRequiredService<IssueTrackerDbContext>());
+
 		// Register DbContext factory for scenarios requiring multiple contexts
 		services.AddDbContextFactory<IssueTrackerDbContext>((serviceProvider, options) =>
 		{
