@@ -209,16 +209,18 @@ public sealed class RepositoryWriteIntegrationTests
 	[Fact]
 	public async Task ConcurrentAdds_Should_NotConflict()
 	{
-		// Arrange - Initialize database once before concurrent operations
-		await using var initContext = _fixture.CreateDbContext();
+		// Arrange - Use a shared database name for all contexts in this test
+		var sharedDbName = $"concurrent-test-{Guid.NewGuid():N}";
+		
+		// Initialize database once before concurrent operations
+		await using var initContext = _fixture.CreateDbContext(sharedDbName);
 		await initContext.InitializeDatabaseAsync();
 
-		// Each concurrent task gets its own DbContext to avoid race conditions
-		// on SaveChangesAsync() calls. This simulates realistic concurrent operations
-		// where each request has its own scoped DbContext.
+		// Each concurrent task gets its own DbContext pointing to the SAME database
+		// to avoid SaveChangesAsync race conditions while sharing data.
 		var tasks = Enumerable.Range(1, 5).Select(async i =>
 		{
-			await using var context = _fixture.CreateDbContext();
+			await using var context = _fixture.CreateDbContext(sharedDbName);
 			var repository = _fixture.CreateRepository<Category>(context);
 			var category = new Category
 			{
@@ -235,8 +237,8 @@ public sealed class RepositoryWriteIntegrationTests
 		results.Should().AllSatisfy(r => r.Success.Should().BeTrue());
 		results.Should().OnlyHaveUniqueItems(r => r.Value!.Id);
 
-		// Verify all entities were persisted with a fresh context
-		await using var verifyContext = _fixture.CreateDbContext();
+		// Verify all entities were persisted with a fresh context pointing to same db
+		await using var verifyContext = _fixture.CreateDbContext(sharedDbName);
 		var repository = _fixture.CreateRepository<Category>(verifyContext);
 		var getAllResult = await repository.GetAllAsync();
 		getAllResult.Success.Should().BeTrue();
