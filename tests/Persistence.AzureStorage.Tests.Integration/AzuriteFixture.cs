@@ -14,15 +14,39 @@ namespace Persistence.AzureStorage.Tests.Integration;
 /// </summary>
 public sealed class AzuriteFixture : IAsyncLifetime
 {
-	private readonly AzuriteContainer _container;
+	private readonly AzuriteContainer? _container;
+	private readonly bool _useExternalAzurite;
 
 	public AzuriteFixture()
 	{
-		_container = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
-			.Build();
+		// Check if an external Azurite (e.g., CI environment) is available
+		var envConnString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+		if (!string.IsNullOrEmpty(envConnString))
+		{
+			_useExternalAzurite = true;
+			_container = null;
+		}
+		else
+		{
+			_useExternalAzurite = false;
+			_container = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
+				.Build();
+		}
 	}
 
-	public string ConnectionString => _container.GetConnectionString();
+	public string ConnectionString
+	{
+		get
+		{
+			// Use external Azurite from CI environment if available
+			var envConnString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+			if (!string.IsNullOrEmpty(envConnString))
+			{
+				return envConnString;
+			}
+			return _container!.GetConnectionString();
+		}
+	}
 
 	public BlobServiceClient CreateBlobServiceClient() => new(ConnectionString);
 
@@ -43,7 +67,19 @@ public sealed class AzuriteFixture : IAsyncLifetime
 			NullLogger<BlobStorageService>.Instance);
 	}
 
-	public async Task InitializeAsync() => await _container.StartAsync();
+	public async Task InitializeAsync()
+	{
+		if (!_useExternalAzurite && _container != null)
+		{
+			await _container.StartAsync();
+		}
+	}
 
-	public async Task DisposeAsync() => await _container.DisposeAsync();
+	public async Task DisposeAsync()
+	{
+		if (!_useExternalAzurite && _container != null)
+		{
+			await _container.DisposeAsync();
+		}
+	}
 }
