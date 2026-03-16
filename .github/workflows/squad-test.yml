@@ -707,6 +707,10 @@ jobs:
           echo "- **Architecture.Tests:** ${{ needs.test-architecture.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Web.Tests.Bunit:** ${{ needs.test-bunit.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Web.Tests.Integration:** ${{ needs.test-integration.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Persistence.MongoDb.Tests:** ${{ needs.test-persistence-mongodb.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Persistence.MongoDb.Tests.Integration:** ${{ needs.test-persistence-mongodb-integration.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Persistence.AzureStorage.Tests:** ${{ needs.test-persistence-azure.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Persistence.AzureStorage.Tests.Integration:** ${{ needs.test-persistence-azure-integration.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- Test results and coverage reports available in Actions artifacts" >> $GITHUB_STEP_SUMMARY
