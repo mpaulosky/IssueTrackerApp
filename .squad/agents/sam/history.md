@@ -599,3 +599,20 @@
 - Testcontainers.Azurite is properly configured in CPM
 - Integration test project structure ready for fixture-based testing pattern
 - Architecture is ready for Gimli's parallel test implementation
+
+### DI Lifetime Mismatch Fixes (2026-03-17)
+
+**Problem:** App crashed on startup with `System.AggregateException` due to two DI lifetime conflicts.
+
+**Fix 1 — DbContextFactory lifetime (`src/Persistence.MongoDb/ServiceCollectionExtensions.cs`):**
+- `AddDbContext` registers `DbContextOptions<IssueTrackerDbContext>` as **scoped** (default).
+- `AddDbContextFactory` was registered as **singleton** (default), which cannot consume scoped options.
+- Fix: Added `lifetime: ServiceLifetime.Scoped` parameter to `AddDbContextFactory`.
+
+**Fix 2 — BulkOperationBackgroundService (`src/Web/Services/BulkOperationBackgroundService.cs`):**
+- `BackgroundService` (singleton via `AddHostedService`) injected `INotificationService` (scoped).
+- Singleton cannot consume scoped service directly.
+- Fix: Removed `INotificationService` from constructor — it was stored but never used in any method.
+- Pattern: Background services must resolve scoped dependencies via `IServiceScopeFactory` per-operation.
+
+**Key Principle:** When mixing `AddDbContext` + `AddDbContextFactory`, always align lifetimes. Background services must never inject scoped services directly — use `IServiceScopeFactory` to create per-operation scopes.

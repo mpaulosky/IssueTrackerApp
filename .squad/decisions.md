@@ -240,6 +240,48 @@ Diagnosed performance issues in bUnit test suite (595 tests):
 
 ---
 
+#### bUnit Modal Button Selector Pattern (2026-03-15)
+**Author:** Legolas (Frontend Dev)
+
+**Problem:** When testing components with modals that share CSS classes with parent page buttons (e.g., both a header Delete button and a modal Confirm button use `bg-red-600`), `FindAll("button").FirstOrDefault(b => b.ClassList.Contains("bg-red-600"))` returns the first match in DOM order — typically the parent button, not the modal button.
+
+**Decision:** Always scope bUnit element queries for modal buttons to the modal's container element using structural selectors like `[role='dialog']`:
+
+```csharp
+// ✅ Scoped — finds the confirm button inside the modal dialog
+var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
+```
+
+**Rationale:** Modal buttons often reuse Tailwind utility classes as page-level buttons; DOM order puts page buttons before modal buttons. Scoping to `[role='dialog']` is semantically correct and resilient to DOM changes.
+
+**Impact:** Pattern established for all future bUnit tests involving modals.
+
+---
+
+### DI Lifetime & Dependency Resolution
+
+#### DI Lifetime Alignment for DbContextFactory and Background Services (2026-03-17)
+**Author:** Sam (Backend Developer)
+
+**Context:** Application crashed on startup with `System.AggregateException` due to two DI lifetime validation failures:
+1. `AddDbContext` registers options as scoped; `AddDbContextFactory` defaults to singleton → singleton factory cannot consume scoped options
+2. `BulkOperationBackgroundService` (singleton) injected `INotificationService` (scoped) directly via constructor
+
+**Decision:**
+
+*Fix 1: Scoped DbContextFactory*
+Pass `lifetime: ServiceLifetime.Scoped` to `AddDbContextFactory<IssueTrackerDbContext>()` so the factory matches the scoped options.
+
+*Fix 2: Remove unused scoped dependency from singleton*
+Removed `INotificationService` from constructor — it was stored as a field but never referenced. Service already uses `IServiceScopeFactory` to resolve scoped dependencies per-operation.
+
+**Consequences:**
+- App starts successfully without DI validation errors
+- **Team rule:** When combining `AddDbContext` + `AddDbContextFactory`, always align lifetimes explicitly
+- **Team rule:** Background services (singletons) must never inject scoped services directly; always resolve from `IServiceScopeFactory` within per-operation scopes
+
+---
+
 ## Summary of Key Principles
 
 1. **DTO-Model Separation:** Clear boundaries between persistence and API contracts
