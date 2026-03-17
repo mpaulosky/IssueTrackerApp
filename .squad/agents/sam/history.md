@@ -512,6 +512,28 @@
 
 **Remaining Compile Errors (29 errors in 15 Feature handler files — expected, for WI-5):**
 - Comment handlers: `AddCommentCommand`, `UpdateCommentCommand`, `DeleteCommentCommand` — need `UserMapper.ToInfo()` + `IssueId` instead of `Issue`
+
+---
+
+### 2026-03-19: Team Auth & DI Coordination (2026-03-17T18:54:25Z)
+
+**From Gandalf — Auth0 Role Claim Mapping:**
+- Fixed "Access Denied" authorization issue via `Auth0ClaimsTransformation`
+- Maps Auth0's custom namespaced role claims to standard `ClaimTypes.Role`
+- Configurable via `Auth0:RoleClaimNamespace` in user secrets
+- Includes idempotency check and structured logging
+- **For Sam:** Claims transformation integrates cleanly with existing DI; registered as scoped service in auth pipeline
+
+**From Legolas — Navigation Menu:**
+- Created `NavMenuComponent.razor` with role-based visibility
+- Updated layout and landing page
+- **For Sam:** Navigation respects authorization policies; integrates with your policy-based authorization pattern
+
+**DI Alignment Reminder:**
+- When combining `AddDbContext` + `AddDbContextFactory`, ensure lifetimes match (both scoped or both explicit)
+- Background services (singletons) must resolve scoped dependencies via `IServiceScopeFactory` — never inject scoped services directly into constructor
+
+---
 - Comment queries: `GetIssueCommentsQuery` — needs `IssueId` filter instead of `Issue.Id`
 - Issue commands: `CreateIssueCommand`, `UpdateIssueCommand`, `DeleteIssueCommand`, `ChangeIssueStatusCommand` — need mapper conversions
 - Bulk commands: `BulkAssignCommand`, `BulkDeleteCommand`, `BulkUpdateCategoryCommand`, `BulkUpdateStatusCommand`, `UndoBulkOperationCommand` — need mapper conversions

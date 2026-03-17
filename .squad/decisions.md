@@ -282,6 +282,107 @@ Removed `INotificationService` from constructor — it was stored as a field but
 
 ---
 
+### Auth0 Role Claim Mapping via IClaimsTransformation (2026-03-19)
+**Author:** Gandalf (Security Officer)
+
+Implement **IClaimsTransformation** to map Auth0's custom role claims to ASP.NET Core's standard `ClaimTypes.Role` claim type.
+
+**Problem:** Auth0 users with Admin and User roles were getting "Access Denied" when accessing protected pages despite having correct roles assigned. Root cause: Auth0 sends roles in a custom namespaced claim (e.g., `https://issuetracker.com/roles`), but ASP.NET Core's `RequireRole()` checks for claims with type `ClaimTypes.Role`.
+
+**Solution:** Created `Auth0ClaimsTransformation` service that:
+- Reads Auth0's custom role claim using configurable namespace
+- Handles multiple role formats (JSON arrays, CSV, single values)
+- Maps each role to standard `ClaimTypes.Role`
+- Includes idempotency check and detailed logging
+- Registered as scoped service in authentication pipeline
+
+**Consequences:**
+- ✅ Role-based authorization now works for Auth0 users
+- ✅ Claims transformation is reusable and testable
+- ✅ Configuration-driven design supports multiple environments
+- ⚠️ Requires manual configuration of `RoleClaimNamespace` per environment
+- ⚠️ Misconfiguration results in silent authorization failures (logs warning)
+
+**Team Guidelines:**
+1. Always configure `Auth0:RoleClaimNamespace` in user secrets (dev) or Key Vault (prod)
+2. Match the namespace to Auth0 tenant's role claim
+3. Check logs if users report "Access Denied"
+4. Test with real Auth0 users assigned to Admin and User roles
+
+---
+
+### Navigation Menu Architecture (2026-03-13)
+**Author:** Legolas (Frontend Developer)
+
+Implemented a role-based sidebar navigation menu.
+
+**Decision:** Built navigation around these patterns:
+- **Sidebar Navigation:** Fixed 256px width left sidebar (only shown when authenticated)
+- **Responsive Container:** Flex layout with header (top), sidebar (left), main content (right)
+- **Role-Based Visibility:** Menu items filtered by authorization policies
+
+**Technical Implementation:**
+- Created `NavMenuComponent.razor` as standalone navigation component
+- Integrated into `MainLayout.razor` within `<AuthorizeView>`
+- Uses nested `AuthorizeView` components with custom context naming to avoid Razor conflicts
+- User Policy items: Home, Dashboard, Issues, Create Issue
+- Admin Policy items: Admin Dashboard, Categories, Statuses, Analytics
+- Emoji icons for visual clarity (no icon library dependency)
+- Full dark mode support via TailwindCSS
+
+**Consequences:**
+- ✅ Users can now navigate the application
+- ✅ Clear separation between user and admin features
+- ✅ Consistent with Blazor conventions
+- ✅ Scalable pattern for adding more navigation items
+- ⚠️ Sidebar always visible when authenticated (could add collapse in future)
+
+---
+
+### Switch AppHost MongoDB from Container to Atlas Connection String (2026-03-18)
+**Author:** Boromir (DevOps)
+
+Replaced container-based MongoDB orchestration with connection string from Atlas.
+
+**Decision:** Replaced `AddMongoDB("mongodb")` with `builder.AddConnectionString("mongodb")` which reads `ConnectionStrings:mongodb` from AppHost User Secrets.
+
+**Changes Made:**
+1. Removed `AddMongoDB` + `WithMongoExpress` + `AddDatabase` from AppHost.cs
+2. Removed `.WaitFor(mongodb)` (no container to wait for)
+3. Removed `Aspire.Hosting.MongoDB` package reference
+
+**Configuration Required:**
+The Web project has two MongoDB connection paths that both need configuration:
+
+**AppHost project** (for Aspire service discovery):
+```
+dotnet user-secrets set "ConnectionStrings:mongodb" "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/issuetracker-db" --project src/AppHost
+```
+
+**Web project** (for `MongoDbSettings` → EF Core provider):
+```
+dotnet user-secrets set "MongoDB:ConnectionString" "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net" --project src/Web
+dotnet user-secrets set "MongoDB:DatabaseName" "issuetracker-db" --project src/Web
+```
+
+**Consequences:**
+- ✅ No Docker dependency for MongoDB in local development
+- ✅ Can use shared MongoDB Atlas cluster for team
+- ⚠️ MongoExpress UI no longer available (use MongoDB Compass or Atlas UI instead)
+- ⚠️ Both `ConnectionStrings:mongodb` and `MongoDB:ConnectionString` must be configured
+- 🔄 Future improvement: unify the two config paths to need only one connection string
+
+---
+
+### User Directive: MongoDB Atlas Connection (2026-03-17)
+**By:** Matthew Paulosky (via Copilot)
+
+**Directive:** MongoDB in AppHost must NOT use a container. Use a connection string to Atlas stored in User Secrets. Database names stay the same.
+
+**Rationale:** User request to simplify local development and enable shared cluster usage across team.
+
+---
+
 ## Summary of Key Principles
 
 1. **DTO-Model Separation:** Clear boundaries between persistence and API contracts
