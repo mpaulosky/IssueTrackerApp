@@ -371,4 +371,208 @@ public sealed class InMemoryBulkOperationQueueTests : IDisposable
 	}
 
 	#endregion
+
+	#region Edge Cases and Additional Coverage
+
+	[Fact]
+	public async Task QueueAsync_PreservesQueuedTimestamp()
+	{
+		// Arrange
+		var beforeQueue = DateTime.UtcNow;
+		var command = new BulkUpdateStatusCommand(["issue-1"], CreateTestStatus(), "user-1");
+
+		// Act
+		await _sut.QueueAsync(command);
+		var afterQueue = DateTime.UtcNow;
+		var operation = await _sut.DequeueAsync();
+
+		// Assert
+		operation!.QueuedAt.Should().BeOnOrAfter(beforeQueue);
+		operation.QueuedAt.Should().BeOnOrBefore(afterQueue);
+	}
+
+	[Fact]
+	public async Task QueueAsync_WithEmptyIssueIds_QueuedSuccessfully()
+	{
+		// Arrange
+		var command = new BulkUpdateStatusCommand([], CreateTestStatus(), "user-1");
+
+		// Act
+		var operationId = await _sut.QueueAsync(command);
+		var status = await _sut.GetStatusAsync(operationId);
+
+		// Assert
+		operationId.Should().NotBeNullOrEmpty();
+		status.Should().Be(BulkOperationStatus.Queued);
+	}
+
+	[Fact]
+	public async Task UpdateStatusAsync_MultipleTimesForSameOperation_UpdatesCorrectly()
+	{
+		// Arrange
+		var command = new BulkUpdateStatusCommand(["issue-1"], CreateTestStatus(), "user-1");
+		var operationId = await _sut.QueueAsync(command);
+
+		// Act
+		await _sut.UpdateStatusAsync(operationId, BulkOperationStatus.Processing);
+		var status1 = await _sut.GetStatusAsync(operationId);
+
+		await _sut.UpdateStatusAsync(operationId, BulkOperationStatus.Completed);
+		var status2 = await _sut.GetStatusAsync(operationId);
+
+		// Assert
+		status1.Should().Be(BulkOperationStatus.Processing);
+		status2.Should().Be(BulkOperationStatus.Completed);
+	}
+
+	[Fact]
+	public async Task UpdateStatusAsync_WithNullResult_DoesNotStoreResult()
+	{
+		// Arrange
+		var command = new BulkUpdateStatusCommand(["issue-1"], CreateTestStatus(), "user-1");
+		var operationId = await _sut.QueueAsync(command);
+
+		// Act
+		await _sut.UpdateStatusAsync(operationId, BulkOperationStatus.Processing, null);
+		var result = _sut.GetResult(operationId);
+
+		// Assert
+		result.Should().BeNull();
+	}
+
+	[Fact]
+	public async Task UpdateStatusAsync_ReplacesExistingResult()
+	{
+		// Arrange
+		var command = new BulkUpdateStatusCommand(["issue-1", "issue-2"], CreateTestStatus(), "user-1");
+		var operationId = await _sut.QueueAsync(command);
+		var firstResult = BulkOperationResult.Success(1, "undo-1");
+		var secondResult = BulkOperationResult.Success(2, "undo-2");
+
+		// Act
+		await _sut.UpdateStatusAsync(operationId, BulkOperationStatus.Processing, firstResult);
+		await _sut.UpdateStatusAsync(operationId, BulkOperationStatus.Completed, secondResult);
+		var storedResult = _sut.GetResult(operationId);
+
+		// Assert
+		storedResult!.SuccessCount.Should().Be(2);
+		storedResult.UndoToken.Should().Be("undo-2");
+	}
+
+	[Fact]
+	public async Task GetResult_AfterPartialFailure_ReturnsErrorDetails()
+	{
+		// Arrange
+		var command = new BulkUpdateStatusCommand(["issue-1", "issue-2", "issue-3"], CreateTestStatus(), "user-1");
+		var operationId = await _sut.QueueAsync(command);
+		var errors = new List<BulkOperationError>
+		{
+			new("issue-2", "Not found"),
+			new("issue-3", "Access denied")
+		};
+		var result = new BulkOperationResult(3, 1, 2, errors);
+
+		// Act
+		await _sut.UpdateStatusAsync(operationId, BulkOperationStatus.Failed, result);
+		var storedResult = _sut.GetResult(operationId);
+
+		// Assert
+		storedResult.Should().NotBeNull();
+		storedResult!.TotalRequested.Should().Be(3);
+		storedResult.SuccessCount.Should().Be(1);
+		storedResult.FailureCount.Should().Be(2);
+		storedResult.Errors.Should().HaveCount(2);
+	}
+
+	[Fact]
+	public async Task Reader_WaitForReadAsync_ReturnsTrue_WhenItemsAvailable()
+	{
+		// Arrange
+		var command = new BulkUpdateStatusCommand(["issue-1"], CreateTestStatus(), "user-1");
+		await _sut.QueueAsync(command);
+
+		// Act
+		var canRead = await _sut.Reader.WaitToReadAsync();
+
+		// Assert
+		canRead.Should().BeTrue();
+	}
+
+	[Fact]
+	public async Task Reader_CanReadMultipleQueuedItems()
+	{
+		// Arrange
+		var command1 = new BulkUpdateStatusCommand(["issue-1"], CreateTestStatus(), "user-1");
+		var command2 = new BulkUpdateStatusCommand(["issue-2"], CreateTestStatus(), "user-2");
+
+		// Act
+		await _sut.QueueAsync(command1);
+		await _sut.QueueAsync(command2);
+
+		// Dequeue to verify both items exist
+		var op1 = await _sut.Reader.ReadAsync();
+		var op2 = await _sut.Reader.ReadAsync();
+
+		// Assert
+		op1.Should().NotBeNull();
+		op2.Should().NotBeNull();
+		op1.CommandType.Should().Be("BulkUpdateStatusCommand");
+		op2.CommandType.Should().Be("BulkUpdateStatusCommand");
+	}
+
+	[Fact]
+	public async Task DequeueAsync_AfterMultipleQueueAndDequeue_MaintainsOrder()
+	{
+		// Arrange
+		var command1 = new BulkUpdateStatusCommand(["a"], CreateTestStatus(), "first");
+		var command2 = new BulkUpdateStatusCommand(["b"], CreateTestStatus(), "second");
+
+		await _sut.QueueAsync(command1);
+		var op1 = await _sut.DequeueAsync();
+
+		await _sut.QueueAsync(command2);
+		var op2 = await _sut.DequeueAsync();
+
+		// Assert
+		((BulkUpdateStatusCommand)op1!.Command).RequestedBy.Should().Be("first");
+		((BulkUpdateStatusCommand)op2!.Command).RequestedBy.Should().Be("second");
+	}
+
+	[Fact]
+	public async Task QueueAsync_WithLargeIssueList_HandlesCorrectly()
+	{
+		// Arrange
+		var issueIds = Enumerable.Range(1, 1000).Select(i => $"issue-{i}").ToList();
+		var command = new BulkUpdateStatusCommand(issueIds, CreateTestStatus(), "bulk-user");
+
+		// Act
+		var operationId = await _sut.QueueAsync(command);
+		var operation = await _sut.DequeueAsync();
+
+		// Assert
+		operationId.Should().NotBeNullOrEmpty();
+		var dequeued = (BulkUpdateStatusCommand)operation!.Command;
+		dequeued.IssueIds.Should().HaveCount(1000);
+	}
+
+	[Fact]
+	public void GetResult_WithDifferentOperationIds_ReturnsCorrectResults()
+	{
+		// Arrange
+		var result1 = BulkOperationResult.Success(5, "token-1");
+		var result2 = BulkOperationResult.Success(10, "token-2");
+
+		// Act
+		_sut.UpdateStatusAsync("op-1", BulkOperationStatus.Completed, result1);
+		_sut.UpdateStatusAsync("op-2", BulkOperationStatus.Completed, result2);
+
+		// Assert
+		var stored1 = _sut.GetResult("op-1");
+		var stored2 = _sut.GetResult("op-2");
+
+		stored1!.SuccessCount.Should().Be(5);
+		stored2!.SuccessCount.Should().Be(10);
+	}
+
+	#endregion
 }
