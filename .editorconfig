@@ -48,6 +48,9 @@ tab_width = 2
 [*.razor]
 indent_style = tab
 indent_size = 2
+# NOTE: Razor files should NOT have file headers/copyright comments.
+# Copyright headers are only required in *.cs files.
+file_header_template = unset
 
 ########################################
 # C# / .NET rules
