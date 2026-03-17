@@ -1001,7 +1001,11 @@ public class DetailsPageTests : BunitTestBase
 		await cut.InvokeAsync(() => confirmButton.Click());
 
 		// Assert
-		await IssueService.Received(1).DeleteIssueAsync(Arg.Any<string>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>());
+		await IssueService.Received(1).DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>());
+
+		// Assert navigation occurred
+		var navManager = Services.GetRequiredService<NavigationManager>();
+		navManager.Uri.Should().Contain("/issues");
 	}
 
 	[Fact]
@@ -1031,6 +1035,9 @@ public class DetailsPageTests : BunitTestBase
 		confirmButton.Should().NotBeNull("confirm button should be present in modal");
 
 		await cut.InvokeAsync(() => confirmButton.Click());
+
+		// Assert
+		await IssueService.Received(1).DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>());
 
 		// Assert - error message should be displayed and modal should be closed
 		cut.Markup.Should().Contain("Delete failed");

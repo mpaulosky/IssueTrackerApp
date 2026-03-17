@@ -22,4 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Web\Web.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
