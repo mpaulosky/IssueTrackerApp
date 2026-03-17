@@ -10,7 +10,9 @@
 using Domain.Abstractions;
 using Domain.DTOs.Analytics;
 using Domain.Features.Analytics.Queries;
+
 using MediatR;
+
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Web.Services;

@@ -49,7 +49,7 @@ public sealed class ServiceCollectionExtensionsTests
 		// Add a logger factory to satisfy BlobStorageService's ILogger dependency
 		services.AddSingleton<ILoggerFactory, NullLoggerFactory>();
 		services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-		
+
 		var configuration = new ConfigurationBuilder()
 			.AddInMemoryCollection(new Dictionary<string, string?>
 			{

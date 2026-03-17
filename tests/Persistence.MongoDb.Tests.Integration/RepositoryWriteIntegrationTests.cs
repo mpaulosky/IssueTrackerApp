@@ -211,7 +211,7 @@ public sealed class RepositoryWriteIntegrationTests
 	{
 		// Arrange - Use a shared database name for all contexts in this test
 		var sharedDbName = $"concurrent-test-{Guid.NewGuid():N}";
-		
+
 		// Initialize database once before concurrent operations
 		await using var initContext = _fixture.CreateDbContext(sharedDbName);
 		await initContext.InitializeDatabaseAsync();

@@ -1,11 +1,17 @@
 using Auth0.AspNetCore.Authentication;
+
 using Azure.Identity;
+
 using Domain;
+
 using FluentValidation;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+
 using Persistence.AzureStorage;
 using Persistence.MongoDb;
+
 using Web.Auth;
 using Web.Components;
 using Web.Data;
@@ -149,7 +155,7 @@ builder.Services.AddSignalR();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+		.AddInteractiveServerComponents();
 
 // Configure cascading authentication state
 builder.Services.AddCascadingAuthenticationState();
@@ -171,9 +177,9 @@ app.MapDefaultEndpoints();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+	app.UseExceptionHandler("/Error", createScopeForErrors: true);
+	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+	app.UseHsts();
 }
 // StatusCodePagesWithReExecute re-executes requests to /not-found (a Blazor page, GET-only).
 // This interferes with API PUT/DELETE responses by converting 401→405, so skip in Testing.
@@ -191,7 +197,7 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+		.AddInteractiveServerRenderMode();
 
 // Map SignalR hub endpoint
 app.MapHub<Web.Hubs.IssueHub>("/hubs/issues");
@@ -246,8 +252,8 @@ static bool IsLocalUrl(string url)
 
 	// Reject URLs with protocol schemes (http://, https://, //, etc.)
 	if (url.StartsWith("//", StringComparison.Ordinal) ||
-	    url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-	    url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+			url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+			url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
 	{
 		return false;
 	}

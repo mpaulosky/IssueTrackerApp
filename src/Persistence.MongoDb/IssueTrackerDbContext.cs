@@ -8,7 +8,9 @@
 // =======================================================
 
 using Domain.Models;
+
 using Microsoft.Extensions.Options;
+
 using Persistence.MongoDb.Configurations;
 
 namespace Persistence.MongoDb;

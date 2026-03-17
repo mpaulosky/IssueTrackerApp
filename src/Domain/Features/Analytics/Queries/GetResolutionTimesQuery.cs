@@ -10,6 +10,7 @@
 using Domain.Abstractions;
 using Domain.DTOs.Analytics;
 using Domain.Models;
+
 using Microsoft.Extensions.Logging;
 
 namespace Domain.Features.Analytics.Queries;
@@ -49,7 +50,7 @@ public sealed class GetResolutionTimesQueryHandler
 			var endDate = request.EndDate ?? DateTime.MaxValue;
 
 			var result = await _repository.FindAsync(
-				i => i.DateCreated >= startDate && 
+				i => i.DateCreated >= startDate &&
 					i.DateCreated <= endDate &&
 					i.DateModified.HasValue &&
 					(i.Status.StatusName.Equals("Closed", StringComparison.OrdinalIgnoreCase) || i.Archived),

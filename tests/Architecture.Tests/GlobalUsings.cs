@@ -8,20 +8,19 @@
 // =======================================================
 
 // Testing
-global using Xunit;
-global using FluentAssertions;
-global using NetArchTest.Rules;
-
 // System
 global using System;
 global using System.Linq;
 global using System.Reflection;
+// Domain
+global using Domain;
 
+global using FluentAssertions;
+// FluentValidation
+global using FluentValidation;
 // MediatR
 global using MediatR;
 
-// FluentValidation
-global using FluentValidation;
+global using NetArchTest.Rules;
 
-// Domain
-global using Domain;
+global using Xunit;

@@ -10,8 +10,11 @@
 using Domain.DTOs;
 using Domain.DTOs.Analytics;
 using Domain.Models;
+
 using MongoDB.Bson;
+
 using Persistence.MongoDb;
+
 using Web.Services;
 
 namespace Web.Tests.Integration;

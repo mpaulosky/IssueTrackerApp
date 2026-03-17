@@ -10,6 +10,7 @@
 using Domain.Abstractions;
 using Domain.DTOs.Analytics;
 using Domain.Models;
+
 using Microsoft.Extensions.Logging;
 
 namespace Domain.Features.Analytics.Queries;

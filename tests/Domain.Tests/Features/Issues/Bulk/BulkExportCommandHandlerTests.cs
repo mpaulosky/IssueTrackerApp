@@ -7,11 +7,14 @@
 // Project Name :  Domain.Tests
 // =======================================================
 
+using System.Text;
+
 using Domain.Abstractions;
 using Domain.Features.Issues.Commands.Bulk;
+
 using Microsoft.Extensions.Logging;
+
 using MongoDB.Bson;
-using System.Text;
 
 namespace Domain.Tests.Features.Issues.Bulk;
 

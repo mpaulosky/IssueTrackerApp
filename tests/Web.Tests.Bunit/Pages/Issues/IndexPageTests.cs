@@ -68,7 +68,7 @@ public class IndexPageTests : BunitTestBase
 		issues[0] = issues[0] with { Title = "First Issue" };
 		issues[1] = issues[1] with { Title = "Second Issue" };
 		issues[2] = issues[2] with { Title = "Third Issue" };
-		
+
 		var pagedResult = PagedResult<IssueDto>.Create(issues.AsReadOnly(), 3, 1, 10);
 		SetupSuccessfulSearch(pagedResult);
 
@@ -95,7 +95,7 @@ public class IndexPageTests : BunitTestBase
 			category: category,
 			status: status
 		);
-		
+
 		var pagedResult = PagedResult<IssueDto>.Create([issue], 1, 1, 10);
 		SetupSuccessfulSearch(pagedResult);
 
@@ -123,7 +123,7 @@ public class IndexPageTests : BunitTestBase
 		await cut.InvokeAsync(() => Task.Delay(100));
 
 		// Assert
-		var issueLink = cut.FindAll("a").FirstOrDefault(a => 
+		var issueLink = cut.FindAll("a").FirstOrDefault(a =>
 			a.GetAttribute("href")?.Contains($"/issues/{issue.Id}") == true);
 		issueLink.Should().NotBeNull();
 	}
@@ -135,7 +135,7 @@ public class IndexPageTests : BunitTestBase
 		var testDate = new DateTime(2024, 1, 15);
 		var issue = CreateTestIssue();
 		var issueWithDate = issue with { DateCreated = testDate };
-		
+
 		var pagedResult = PagedResult<IssueDto>.Create([issueWithDate], 1, 1, 10);
 		SetupSuccessfulSearch(pagedResult);
 
@@ -179,7 +179,7 @@ public class IndexPageTests : BunitTestBase
 		await cut.InvokeAsync(() => Task.Delay(100));
 
 		// Assert
-		var createButton = cut.FindAll("a").FirstOrDefault(a => 
+		var createButton = cut.FindAll("a").FirstOrDefault(a =>
 			a.GetAttribute("href") == "/issues/create");
 		createButton.Should().NotBeNull();
 		createButton!.TextContent.Should().Contain("Create Issue");

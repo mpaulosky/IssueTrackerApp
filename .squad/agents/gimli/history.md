@@ -237,3 +237,205 @@
 - Validates layer dependencies are correctly enforced
 
 **Overall:** Full test coverage complete with realistic testing (integration via Azurite), error path validation (unit), and architecture compliance (arch tests)
+
+---
+
+### 2026-03-14: Unit Tests for Services with Low Coverage
+
+**Task:** Extended/created unit tests for services with very low coverage:
+- `InMemoryBulkOperationQueue.cs` (22.5% → improved)
+- `SmtpEmailService.cs` (15.9% → newly tested)
+
+**Files Created/Modified:**
+- `SmtpEmailServiceTests.cs` — 17 new tests for email service covering constructor, SendAsync, SendTemplatedAsync, message variations, and settings configurations
+- Extended `InMemoryBulkOperationQueueTests.cs` — Added 11 new edge case tests for queue operations, status tracking, and result handling
+
+**Key Patterns Applied:**
+
+1. **SmtpEmailService Testing (SmtpClient Not Mockable):**
+   - SmtpClient uses `new SmtpClient()` directly — cannot be mocked with NSubstitute
+   - Test strategy: Focus on error paths (invalid host → connection failure returns `Result.Fail`)
+   - Test cancellation handling, logging verification, and settings variations
+   - SendTemplatedAsync calls SendAsync internally — verify warning log for unimplemented templating
+
+2. **Logger Verification with NSubstitute:**
+   ```csharp
+   _logger.Received().Log(
+       LogLevel.Error,
+       Arg.Any<EventId>(),
+       Arg.Any<object>(),
+       Arg.Any<Exception>(),
+       Arg.Any<Func<object, Exception?, string>>()
+   );
+   ```
+
+3. **Channel Reader Limitations:**
+   - `ChannelReader<T>.Count` throws `NotSupportedException` for unbounded channels
+   - Test alternative: Verify multiple items can be read from reader instead of counting
+
+4. **BulkOperationResult Record Structure:**
+   - Property is `TotalRequested`, not `TotalCount`
+   - No `PartiallyCompleted` status — only `Queued`, `Processing`, `Completed`, `Failed`
+
+**Test Results:**
+- SmtpEmailServiceTests: 17 tests all passing
+- InMemoryBulkOperationQueueTests: 27 tests all passing (16 existing + 11 new)
+- Total: 44 tests in filter, all passing
+
+**Key Takeaways:**
+- When a dependency cannot be mocked (SmtpClient), focus on testing error paths and behavior verification via logging
+- Always check actual record/enum definitions before writing assertions — naming may differ from assumptions
+- Unbounded channels don't support `Count` property — use actual read operations to verify queue contents
+
+---
+
+### 2026-03-16: Unit Tests for Mappers and CsvExportHelper
+
+**Task:** Created unit tests for files with 0% coverage:
+- `CsvExportHelper.cs` → `CsvExportHelperTests.cs`
+- `CommentMapper.cs` → `CommentMapperTests.cs`
+- `IssueMapper.cs` → `IssueMapperTests.cs`
+
+**Files Created:**
+- `tests/Web.Tests/Helpers/CsvExportHelperTests.cs` — 21 tests for CSV export functionality
+- `tests/Domain.Tests/Mappers/CommentMapperTests.cs` — 18 tests for Comment ↔ CommentDto conversions
+- `tests/Domain.Tests/Mappers/IssueMapperTests.cs` — 19 tests for Issue ↔ IssueDto conversions
+
+**Key Patterns Applied:**
+
+1. **Mapper Testing Strategy:**
+   - Test `ToDto()` with valid model, null model, and nested objects (Author, Category, Status)
+   - Test `ToModel()` with valid DTO, null DTO, and nested DTOs
+   - Test `ToDtoList()` with valid collection, null collection, empty collection
+   - Include roundtrip test: `ToDto()` → `ToModel()` preserves data
+
+2. **CSV Export Testing:**
+   - Test basic functionality: non-empty bytes, header generation, data rows
+   - Test null handling: null property values → empty strings
+   - Test special character escaping: commas, quotes, newlines, carriage returns
+   - Test complex types: DateTime, bool, decimal formatting
+   - Test edge cases: empty strings, whitespace, Unicode characters, large datasets
+
+3. **Test Model Classes for CsvExportHelper:**
+   - Created private sealed test model classes within test file
+   - Different models for different scenarios (nullable props, DateTime, bool, decimal)
+   - Avoids polluting production codebase with test-only types
+
+**Test Results:**
+- CommentMapperTests: 18 tests passing
+- IssueMapperTests: 19 tests passing
+- CsvExportHelperTests: 21 tests passing
+- Total: 58 new tests, all passing
+
+**Key Takeaways:**
+- Static mapper classes don't need mocking — test pure transformations directly
+- CSV export tests should cover the full escaping logic (commas, quotes, newlines)
+- Roundtrip tests catch subtle data loss during conversions
+- Private test models in test files keep production code clean
+
+---
+
+### 2026-03-16: Domain Mapper Unit Tests — Complete Coverage
+
+**Task:** Created comprehensive unit tests for Domain mappers with low coverage:
+- `CategoryMapper.cs` (46.1% → full coverage)
+- `StatusMapper.cs` (46.1% → full coverage)
+- `UserMapper.cs` (43.3% → full coverage)
+
+**Files Created:**
+- `tests/Domain.Tests/Mappers/UserMapperTests.cs` — 21 tests
+- `tests/Domain.Tests/Mappers/CategoryMapperTests.cs` — 23 tests
+- `tests/Domain.Tests/Mappers/StatusMapperTests.cs` — 23 tests
+
+**Key Patterns Applied:**
+
+1. **Mapper Test Coverage Strategy:**
+   - Test each mapping method: `ToDto(Model)`, `ToDto(Info)`, `ToModel(Dto)`, `ToInfo(Dto)`, `ToDtoList(IEnumerable)`
+   - Test with valid data, null inputs, empty inputs, and edge cases
+   - Test round-trip conversions to ensure data preservation
+
+2. **Record Equality Pitfall with DateTime.UtcNow:**
+   - `CategoryDto.Empty` and `StatusDto.Empty` use `DateTime.UtcNow` in their `Empty` property
+   - **INCORRECT:** `result.Should().Be(CategoryDto.Empty)` — fails due to different timestamps
+   - **CORRECT:** Assert individual properties: `result.Id.Should().Be(ObjectId.Empty); result.Name.Should().BeEmpty();`
+   - `UserDto.Empty` works with direct comparison (no DateTime fields)
+
+3. **Class-based Empty Values (Info types):**
+   - `CategoryInfo.Empty`, `StatusInfo.Empty`, `UserInfo.Empty` are class properties
+   - Each call to `.Empty` creates a new instance with `DateTime.UtcNow`
+   - Always assert properties, not object equality
+
+4. **Test Structure:**
+   - AAA pattern (Arrange/Act/Assert) with comment markers
+   - Organized by regions: `#region ToDto Tests`, `#region ToModel Tests`, etc.
+   - Shared test data via class fields: `_dateCreated`, `_dateModified`
+
+5. **Round-Trip Tests:**
+   - Verify `ToModel(ToDto(original))` preserves all data
+   - Verify `ToInfo(ToDto(originalInfo))` preserves all data
+   - Critical for ensuring bidirectional mapping consistency
+
+**Test Results:**
+- 67 mapper tests total (21 + 23 + 23), all passing
+- Combined with existing IssueMapper and CommentMapper tests: 97 total mapper tests passing
+
+**Key Takeaways:**
+- Records with `DateTime.UtcNow` in static properties cannot be compared for equality in tests
+- Always assert individual properties for Empty/default value comparisons
+- Round-trip tests catch mapping inconsistencies early
+
+---
+
+### 2026-03-17: bUnit Tests for Low-Coverage Blazor Components
+
+**Task:** Created comprehensive bUnit tests for Blazor components with <30% coverage:
+- `BulkActionToolbar.razor` (14.5% → improved)
+- `FileUpload.razor` (17.3% → improved)
+
+**Files Created:**
+- `tests/Web.Tests.Bunit/Components/Issues/BulkActionToolbarTests.cs` — 22 tests
+- `tests/Web.Tests.Bunit/Components/Shared/FileUploadTests.cs` — 24 tests
+
+**Key Patterns Applied:**
+
+1. **BulkActionToolbar Testing:**
+   - Test render behavior based on selection state (empty vs. populated)
+   - Test dropdown toggle behavior (status, category)
+   - Test event callback invocation (OnChangeStatus, OnChangeCategory, OnDelete, OnExport)
+   - Test admin-only features (Delete button visibility)
+   - Test selection count display (singular "issue" vs. plural "issues")
+   - Verify component disposes event handlers properly
+
+2. **FileUpload Testing:**
+   - Test InputFile component integration with bUnit's `UploadFiles()` helper
+   - Test file validation (size limits, content type validation)
+   - Test drag-and-drop events (DragEnter, DragLeave, Drop)
+   - Test upload progress indicator visibility
+   - Test error message display and clearing
+   - Theory-based tests for multiple file types (valid and invalid)
+
+3. **Component Method Invocation via Dispatcher:**
+   - Methods that call `StateHasChanged()` MUST be invoked via dispatcher
+   - **INCORRECT:** `cut.Instance.Reset()` — throws `InvalidOperationException`
+   - **CORRECT:** `await cut.InvokeAsync(() => cut.Instance.Reset())`
+
+4. **Test Namespace for Shared Components:**
+   - Components in `Web.Components.Shared` need explicit `using Web.Components.Shared;`
+   - GlobalUsings.cs includes `Web.Components.Issues` but not all Shared components
+   - Add specific using directive at test file top
+
+5. **BulkSelectionState Service Access:**
+   - Registered as singleton in `BunitTestBase`
+   - Access via `Services.GetRequiredService<BulkSelectionState>()`
+   - Manipulate selection state before rendering to test different scenarios
+
+**Test Results:**
+- BulkActionToolbarTests: 22 tests passing
+- FileUploadTests: 24 tests passing
+- Total: 46 new bUnit tests
+
+**Key Takeaways:**
+- bUnit's `InvokeAsync()` is required for any component method that triggers rendering
+- InputFile upload simulation uses `cut.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText(...))`
+- Test both happy paths (valid files) and error paths (invalid file types, oversized files)
+- Use Theory tests with InlineData for testing multiple file type validations

@@ -10,6 +10,7 @@
 using Domain.Abstractions;
 using Domain.DTOs.Analytics;
 using Domain.Models;
+
 using Microsoft.Extensions.Logging;
 
 namespace Domain.Features.Analytics.Queries;
@@ -68,7 +69,7 @@ public sealed class GetIssuesOverTimeQueryHandler
 
 			// Group by date (day) for closed issues (assuming Archived means closed)
 			var closedByDate = issues
-				.Where(i => i.DateModified.HasValue && 
+				.Where(i => i.DateModified.HasValue &&
 					(i.Status.StatusName.Equals("Closed", StringComparison.OrdinalIgnoreCase) || i.Archived))
 				.GroupBy(i => i.DateModified!.Value.Date)
 				.ToDictionary(g => g.Key, g => g.Count());

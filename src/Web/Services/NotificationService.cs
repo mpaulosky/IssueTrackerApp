@@ -10,8 +10,11 @@
 using Domain.Abstractions;
 using Domain.DTOs;
 using Domain.Events;
+
 using Microsoft.AspNetCore.SignalR;
+
 using MongoDB.Bson;
+
 using Web.Hubs;
 
 namespace Web.Services;
@@ -60,12 +63,12 @@ public sealed class NotificationService : INotificationService
 	{
 		_logger.LogInformation("Notifying clients of comment added to issue: {IssueId}", issueId);
 
-		var evt = new CommentAddedEvent 
-		{ 
-			IssueId = issueId, 
+		var evt = new CommentAddedEvent
+		{
+			IssueId = issueId,
 			IssueTitle = issueTitle,
 			IssueOwner = issueOwner,
-			Comment = comment 
+			Comment = comment
 		};
 
 		// Notify clients in the issue-specific group
@@ -77,11 +80,11 @@ public sealed class NotificationService : INotificationService
 	{
 		_logger.LogInformation("Notifying clients of issue assigned: {IssueId} to {Assignee}", issueId, assignee);
 
-		var evt = new IssueAssignedEvent 
-		{ 
-			IssueId = issueId, 
+		var evt = new IssueAssignedEvent
+		{
+			IssueId = issueId,
 			IssueTitle = issueTitle,
-			Assignee = assignee 
+			Assignee = assignee
 		};
 
 		// Notify clients in the issue-specific group

@@ -7,10 +7,12 @@
 // Project Name :  Domain
 // =======================================================
 
+using System.Text;
+
 using Domain.Abstractions;
 using Domain.Models;
+
 using Microsoft.Extensions.Logging;
-using System.Text;
 
 namespace Domain.Features.Analytics.Queries;
 

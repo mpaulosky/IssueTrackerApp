@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
 		services.AddDbContext<IssueTrackerDbContext>((serviceProvider, options) =>
 		{
 			var settings = serviceProvider.GetRequiredService<IOptions<MongoDbSettings>>().Value;
-			
+
 			options.UseMongoDB(
 				settings.ConnectionString,
 				settings.DatabaseName);
@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
 		services.AddDbContextFactory<IssueTrackerDbContext>((serviceProvider, options) =>
 		{
 			var settings = serviceProvider.GetRequiredService<IOptions<MongoDbSettings>>().Value;
-			
+
 			options.UseMongoDB(
 				settings.ConnectionString,
 				settings.DatabaseName);

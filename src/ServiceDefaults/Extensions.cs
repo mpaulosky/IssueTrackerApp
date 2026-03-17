@@ -1,3 +1,5 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
@@ -5,10 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ServiceDiscovery;
+
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -17,144 +19,144 @@ namespace Microsoft.Extensions.Hosting;
 // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
 public static class Extensions
 {
-    private const string HealthEndpointPath = "/health";
-    private const string AlivenessEndpointPath = "/alive";
+	private const string HealthEndpointPath = "/health";
+	private const string AlivenessEndpointPath = "/alive";
 
-    public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        builder.ConfigureOpenTelemetry();
+	public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+	{
+		builder.ConfigureOpenTelemetry();
 
-        builder.AddDefaultHealthChecks();
+		builder.AddDefaultHealthChecks();
 
-        builder.Services.AddServiceDiscovery();
+		builder.Services.AddServiceDiscovery();
 
-        builder.Services.ConfigureHttpClientDefaults(http =>
-        {
-            // Turn on resilience by default
-            http.AddStandardResilienceHandler();
+		builder.Services.ConfigureHttpClientDefaults(http =>
+		{
+			// Turn on resilience by default
+			http.AddStandardResilienceHandler();
 
-            // Turn on service discovery by default
-            http.AddServiceDiscovery();
-        });
+			// Turn on service discovery by default
+			http.AddServiceDiscovery();
+		});
 
-        // Uncomment the following to restrict the allowed schemes for service discovery.
-        // builder.Services.Configure<ServiceDiscoveryOptions>(options =>
-        // {
-        //     options.AllowedSchemes = ["https"];
-        // });
+		// Uncomment the following to restrict the allowed schemes for service discovery.
+		// builder.Services.Configure<ServiceDiscoveryOptions>(options =>
+		// {
+		//     options.AllowedSchemes = ["https"];
+		// });
 
-        return builder;
-    }
+		return builder;
+	}
 
-    public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        builder.Logging.AddOpenTelemetry(logging =>
-        {
-            logging.IncludeFormattedMessage = true;
-            logging.IncludeScopes = true;
-        });
+	public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+	{
+		builder.Logging.AddOpenTelemetry(logging =>
+		{
+			logging.IncludeFormattedMessage = true;
+			logging.IncludeScopes = true;
+		});
 
-        builder.Services.AddOpenTelemetry()
-            .WithMetrics(metrics =>
-            {
-                metrics.AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
-            })
-            .WithTracing(tracing =>
-            {
-                tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation(tracing =>
-                        // Exclude health check requests from tracing
-                        tracing.Filter = context =>
-                            !context.Request.Path.StartsWithSegments(HealthEndpointPath)
-                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
-                    )
-                    // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                    //.AddGrpcClientInstrumentation()
-                    .AddHttpClientInstrumentation();
-            });
+		builder.Services.AddOpenTelemetry()
+				.WithMetrics(metrics =>
+				{
+					metrics.AddAspNetCoreInstrumentation()
+									.AddHttpClientInstrumentation()
+									.AddRuntimeInstrumentation();
+				})
+				.WithTracing(tracing =>
+				{
+					tracing.AddSource(builder.Environment.ApplicationName)
+									.AddAspNetCoreInstrumentation(tracing =>
+											// Exclude health check requests from tracing
+											tracing.Filter = context =>
+													!context.Request.Path.StartsWithSegments(HealthEndpointPath)
+													&& !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
+									)
+									// Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
+									//.AddGrpcClientInstrumentation()
+									.AddHttpClientInstrumentation();
+				});
 
-        builder.AddOpenTelemetryExporters();
+		builder.AddOpenTelemetryExporters();
 
-        return builder;
-    }
+		return builder;
+	}
 
-    private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+	private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+	{
+		var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
-        if (useOtlpExporter)
-        {
-            builder.Services.AddOpenTelemetry().UseOtlpExporter();
-        }
+		if (useOtlpExporter)
+		{
+			builder.Services.AddOpenTelemetry().UseOtlpExporter();
+		}
 
-        // Enable Azure Monitor exporter if Application Insights connection string is configured
-        if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        {
-            builder.Services.AddOpenTelemetry()
-               .UseAzureMonitor();
-        }
+		// Enable Azure Monitor exporter if Application Insights connection string is configured
+		if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+		{
+			builder.Services.AddOpenTelemetry()
+				 .UseAzureMonitor();
+		}
 
-        return builder;
-    }
+		return builder;
+	}
 
-    public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        builder.Services.AddHealthChecks()
-            // Add a default liveness check to ensure app is responsive
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+	public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+	{
+		builder.Services.AddHealthChecks()
+				// Add a default liveness check to ensure app is responsive
+				.AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-        return builder;
-    }
+		return builder;
+	}
 
-    public static IHealthChecksBuilder AddMongoDbHealthCheck<TBuilder>(
-        this TBuilder builder, 
-        string connectionName = "mongodb") where TBuilder : IHostApplicationBuilder
-    {
-        var healthChecks = builder.Services.AddHealthChecks();
-        
-        var connectionString = builder.Configuration.GetConnectionString(connectionName);
-        if (!string.IsNullOrWhiteSpace(connectionString))
-        {
-            healthChecks.AddMongoDb(
-                sp => new MongoDB.Driver.MongoClient(connectionString),
-                name: "mongodb",
-                tags: new[] { "ready" });
-        }
-        
-        return healthChecks;
-    }
+	public static IHealthChecksBuilder AddMongoDbHealthCheck<TBuilder>(
+			this TBuilder builder,
+			string connectionName = "mongodb") where TBuilder : IHostApplicationBuilder
+	{
+		var healthChecks = builder.Services.AddHealthChecks();
 
-    public static IHealthChecksBuilder AddRedisHealthCheck<TBuilder>(
-        this TBuilder builder,
-        string connectionName = "redis") where TBuilder : IHostApplicationBuilder
-    {
-        var healthChecks = builder.Services.AddHealthChecks();
-        
-        var connectionString = builder.Configuration.GetConnectionString(connectionName);
-        if (!string.IsNullOrWhiteSpace(connectionString))
-        {
-            healthChecks.AddRedis(
-                connectionString,
-                name: "redis",
-                tags: new[] { "ready" });
-        }
-        
-        return healthChecks;
-    }
+		var connectionString = builder.Configuration.GetConnectionString(connectionName);
+		if (!string.IsNullOrWhiteSpace(connectionString))
+		{
+			healthChecks.AddMongoDb(
+					sp => new MongoDB.Driver.MongoClient(connectionString),
+					name: "mongodb",
+					tags: new[] { "ready" });
+		}
 
-    public static WebApplication MapDefaultEndpoints(this WebApplication app)
-    {
-        // All health checks must pass for app to be considered ready to accept traffic after starting
-        app.MapHealthChecks(HealthEndpointPath);
+		return healthChecks;
+	}
 
-        // Only health checks tagged with the "live" tag must pass for app to be considered alive
-        app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
-        {
-            Predicate = r => r.Tags.Contains("live")
-        });
+	public static IHealthChecksBuilder AddRedisHealthCheck<TBuilder>(
+			this TBuilder builder,
+			string connectionName = "redis") where TBuilder : IHostApplicationBuilder
+	{
+		var healthChecks = builder.Services.AddHealthChecks();
 
-        return app;
-    }
+		var connectionString = builder.Configuration.GetConnectionString(connectionName);
+		if (!string.IsNullOrWhiteSpace(connectionString))
+		{
+			healthChecks.AddRedis(
+					connectionString,
+					name: "redis",
+					tags: new[] { "ready" });
+		}
+
+		return healthChecks;
+	}
+
+	public static WebApplication MapDefaultEndpoints(this WebApplication app)
+	{
+		// All health checks must pass for app to be considered ready to accept traffic after starting
+		app.MapHealthChecks(HealthEndpointPath);
+
+		// Only health checks tagged with the "live" tag must pass for app to be considered alive
+		app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
+		{
+			Predicate = r => r.Tags.Contains("live")
+		});
+
+		return app;
+	}
 }

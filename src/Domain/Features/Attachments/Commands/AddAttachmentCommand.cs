@@ -93,7 +93,7 @@ public sealed class AddAttachmentCommandHandler : IRequestHandler<AddAttachmentC
 			if (result.Failure)
 			{
 				_logger.LogError("Failed to save attachment metadata: {Error}", result.Error);
-				
+
 				// Clean up uploaded file
 				try
 				{
