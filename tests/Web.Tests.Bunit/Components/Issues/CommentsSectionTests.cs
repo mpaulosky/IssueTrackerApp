@@ -8,7 +8,9 @@
 // =======================================================
 
 using System.Security.Claims;
+
 using Microsoft.AspNetCore.Components.Authorization;
+
 using Web.Auth;
 
 namespace Web.Tests.Bunit.Components.Issues;
@@ -778,10 +780,10 @@ public class CommentsSectionTests : BunitTestBase
 		deleteButton.Click();
 
 		// Act - Click confirm in modal (look for the delete button in modal)
-		var confirmButton = cut.FindAll("button").FirstOrDefault(b => 
-			b.ClassName?.Contains("bg-red") == true && 
+		var confirmButton = cut.FindAll("button").FirstOrDefault(b =>
+			b.ClassName?.Contains("bg-red") == true &&
 			(b.TextContent.Contains("Delete") || b.TextContent.Contains("Confirm")));
-		
+
 		if (confirmButton != null)
 		{
 			confirmButton.Click();
@@ -817,9 +819,9 @@ public class CommentsSectionTests : BunitTestBase
 		deleteButton.Click();
 
 		// Act
-		var confirmButton = cut.FindAll("button").FirstOrDefault(b => 
+		var confirmButton = cut.FindAll("button").FirstOrDefault(b =>
 			b.ClassName?.Contains("bg-red") == true);
-		
+
 		if (confirmButton != null)
 		{
 			confirmButton.Click();

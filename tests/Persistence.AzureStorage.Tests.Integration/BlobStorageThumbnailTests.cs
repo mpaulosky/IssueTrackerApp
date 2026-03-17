@@ -61,11 +61,11 @@ public sealed class BlobStorageThumbnailTests
 
 		// Assert - Azurite format: http://host/account/container/guid/filename
 		thumbnailUrl.Should().NotBeNull();
-		
+
 		var uri = new Uri(thumbnailUrl!);
 		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
-		
+
 		var blobServiceClient = _fixture.CreateBlobServiceClient();
 		var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainerName);
 		var blobClient = containerClient.GetBlobClient(blobName);
@@ -91,7 +91,7 @@ public sealed class BlobStorageThumbnailTests
 		thumbnailUrl.Should().NotBeNull();
 		var downloadStream = await service.DownloadAsync(thumbnailUrl!);
 		using var thumbnailImage = await Image.LoadAsync(downloadStream);
-		
+
 		thumbnailImage.Width.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_WIDTH);
 		thumbnailImage.Height.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_HEIGHT);
 	}
@@ -114,10 +114,10 @@ public sealed class BlobStorageThumbnailTests
 		thumbnailUrl.Should().NotBeNull();
 		var downloadStream = await service.DownloadAsync(thumbnailUrl!);
 		using var thumbnailImage = await Image.LoadAsync(downloadStream);
-		
+
 		thumbnailImage.Width.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_WIDTH);
 		thumbnailImage.Height.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_HEIGHT);
-		
+
 		var expectedRatio = 400.0 / 800.0;
 		var actualRatio = (double)thumbnailImage.Width / thumbnailImage.Height;
 		actualRatio.Should().BeApproximately(expectedRatio, 0.01);
@@ -157,11 +157,11 @@ public sealed class BlobStorageThumbnailTests
 
 		// Assert - Azurite format: http://host/account/container/guid/filename
 		thumbnailUrl.Should().NotBeNull();
-		
+
 		var uri = new Uri(thumbnailUrl!);
 		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
-		
+
 		var blobServiceClient = _fixture.CreateBlobServiceClient();
 		var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainerName);
 		var blobClient = containerClient.GetBlobClient(blobName);
@@ -173,7 +173,7 @@ public sealed class BlobStorageThumbnailTests
 	{
 		using var image = new Image<Rgba32>(width, height);
 		image.Mutate(x => x.BackgroundColor(Color.Blue));
-		
+
 		var stream = new MemoryStream();
 		await image.SaveAsJpegAsync(stream);
 		stream.Position = 0;

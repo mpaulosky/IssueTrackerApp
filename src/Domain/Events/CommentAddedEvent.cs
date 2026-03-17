@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.DTOs;
+
 using MongoDB.Bson;
 
 namespace Domain.Events;

@@ -69,7 +69,7 @@ public sealed class BlobStorageConcurrencyTests
 		// Assert
 		blobUrls.Should().HaveCount(10);
 		blobUrls.Should().OnlyHaveUniqueItems();
-		
+
 		var blobServiceClient = _fixture.CreateBlobServiceClient();
 		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 		var exists = await containerClient.ExistsAsync();
@@ -82,7 +82,7 @@ public sealed class BlobStorageConcurrencyTests
 		// Arrange
 		var containerName = $"test-{Guid.NewGuid():N}";
 		var service = _fixture.CreateBlobStorageService(containerName: containerName);
-		
+
 		var uploadTasks = Enumerable.Range(0, 5)
 			.Select(i =>
 			{
@@ -109,20 +109,20 @@ public sealed class BlobStorageConcurrencyTests
 		// Arrange
 		var containerName = $"test-{Guid.NewGuid():N}";
 		var service = _fixture.CreateBlobStorageService(containerName: containerName);
-		
+
 		var uploadContent = new MemoryStream("Upload and download test"u8.ToArray());
 		var blobUrl = await service.UploadAsync(uploadContent, "roundtrip.txt", "text/plain");
 
 		// Act
 		var tasks = new List<Task>();
-		
+
 		for (int i = 0; i < 5; i++)
 		{
 			var contentText = $"Upload {i}";
 			var content = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(contentText));
 			tasks.Add(service.UploadAsync(content, $"parallel-upload-{i}.txt", "text/plain"));
 		}
-		
+
 		for (int i = 0; i < 5; i++)
 		{
 			tasks.Add(service.DownloadAsync(blobUrl));
@@ -140,7 +140,7 @@ public sealed class BlobStorageConcurrencyTests
 		// Arrange
 		var containerName = $"test-{Guid.NewGuid():N}";
 		var service = _fixture.CreateBlobStorageService(containerName: containerName);
-		
+
 		var uploadTasks = Enumerable.Range(0, 5)
 			.Select(i =>
 			{
@@ -159,13 +159,13 @@ public sealed class BlobStorageConcurrencyTests
 		// Assert - Azurite format: http://host/account/container/guid/filename
 		var blobServiceClient = _fixture.CreateBlobServiceClient();
 		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-		
+
 		foreach (var blobUrl in blobUrls)
 		{
 			var uri = new Uri(blobUrl);
 			var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 			var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
-			
+
 			var blobClient = containerClient.GetBlobClient(blobName);
 			var exists = await blobClient.ExistsAsync();
 			exists.Value.Should().BeFalse();
@@ -178,13 +178,13 @@ public sealed class BlobStorageConcurrencyTests
 		// Arrange
 		var containerName = $"test-{Guid.NewGuid():N}";
 		var service = _fixture.CreateBlobStorageService(containerName: containerName);
-		
+
 		var uploadContent = new MemoryStream("Setup blob"u8.ToArray());
 		var setupBlobUrl = await service.UploadAsync(uploadContent, "setup.txt", "text/plain");
 
 		// Act
 		var tasks = new List<Task>();
-		
+
 		tasks.Add(service.UploadAsync(
 			new MemoryStream("Upload 1"u8.ToArray()),
 			"mixed-1.txt",

@@ -58,7 +58,7 @@ public static class CsvExportHelper
 
 		// Escape double quotes by doubling them
 		var escaped = value.Replace("\"", "\"\"");
-		
+
 		// Wrap in quotes if contains comma, newline, or quotes
 		if (escaped.Contains(',') || escaped.Contains('\n') || escaped.Contains('\r') || escaped.Contains('\"'))
 		{

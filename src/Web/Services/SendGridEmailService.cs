@@ -8,7 +8,9 @@
 // =======================================================
 
 using Domain.Abstractions;
+
 using Microsoft.Extensions.Options;
+
 using SendGrid;
 using SendGrid.Helpers.Mail;
 

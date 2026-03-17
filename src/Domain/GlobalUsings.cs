@@ -15,21 +15,16 @@ global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
 global using System.Threading;
 global using System.Threading.Tasks;
-
-// MongoDB
-global using MongoDB.Bson;
-global using MongoDB.Bson.Serialization.Attributes;
-
-// MediatR
-global using MediatR;
-
-// FluentValidation
-global using FluentValidation;
-
-// Microsoft Extensions
-global using Microsoft.Extensions.Logging;
-
 // Domain
 global using Domain.DTOs;
 global using Domain.Mappers;
 global using Domain.Models;
+// FluentValidation
+global using FluentValidation;
+// MediatR
+global using MediatR;
+// Microsoft Extensions
+global using Microsoft.Extensions.Logging;
+// MongoDB
+global using MongoDB.Bson;
+global using MongoDB.Bson.Serialization.Attributes;

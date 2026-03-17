@@ -7,11 +7,14 @@
 // Project Name :  Domain.Tests
 // =======================================================
 
+using System.Linq.Expressions;
+
 using Domain.Abstractions;
 using Domain.Features.Analytics.Queries;
+
 using Microsoft.Extensions.Logging;
+
 using MongoDB.Bson;
-using System.Linq.Expressions;
 
 namespace Domain.Tests.Features.Analytics;
 

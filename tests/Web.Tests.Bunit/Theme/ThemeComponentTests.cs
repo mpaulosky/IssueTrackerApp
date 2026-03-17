@@ -10,6 +10,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
+
 using Web.Components.Theme;
 
 namespace Web.Tests.Bunit.Theme;

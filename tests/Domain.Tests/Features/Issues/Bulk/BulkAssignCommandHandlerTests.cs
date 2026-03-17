@@ -9,7 +9,9 @@
 
 using Domain.Abstractions;
 using Domain.Features.Issues.Commands.Bulk;
+
 using Microsoft.Extensions.Logging;
+
 using MongoDB.Bson;
 
 namespace Domain.Tests.Features.Issues.Bulk;

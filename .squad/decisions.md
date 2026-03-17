@@ -220,6 +220,26 @@ Implemented **category-based organization** for `docs/LIBRARIES.md` package refe
 
 ---
 
+#### bUnit Test Suite Optimization (2026-03-17)
+**Author:** Gimli (Tester)
+
+Diagnosed performance issues in bUnit test suite (595 tests):
+
+**Problem:** Full suite execution hangs (~2+ minutes), while individual projects run in 1-7 seconds.
+
+**Solution Implemented:**
+- Created `tests/Web.Tests.Bunit/xunit.runner.json` with parallelization controls
+- Disabled cross-collection parallelization to reduce BunitContext state conflicts
+- Set `maxParallelThreads: 4` to balance throughput with resource usage
+
+**Outstanding Issue:** Two delete tests in DetailsPageTests fail due to EventCallback chain not completing when modal is embedded in Details page. Investigation ongoing.
+
+**Rationale:** Explicit parallelism control reduces test contention. EventCallback bug may reveal underlying resource leak affecting suite performance.
+
+**Consequence:** bUnit tests are more stable; full suite optimization deferred pending bug fix.
+
+---
+
 ## Summary of Key Principles
 
 1. **DTO-Model Separation:** Clear boundaries between persistence and API contracts
@@ -229,3 +249,4 @@ Implemented **category-based organization** for `docs/LIBRARIES.md` package refe
 5. **OpenTelemetry Observability:** Production-ready monitoring from day one
 6. **Auth0 Identity:** Enterprise-grade security without maintenance burden
 7. **Category-Based Documentation:** Developer-centric organization of resources
+8. **bUnit Test Optimization:** Explicit parallelism control; defer full suite optimization until failing tests fixed

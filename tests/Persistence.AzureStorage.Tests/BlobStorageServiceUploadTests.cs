@@ -152,7 +152,7 @@ public sealed class BlobStorageServiceUploadTests
 
 		mockBlobServiceClient.GetBlobContainerClient(Arg.Any<string>()).Returns(mockContainerClient);
 		mockContainerClient.GetBlobClient(Arg.Any<string>()).Returns(mockBlobClient);
-		
+
 		// Make UploadAsync throw an exception
 		mockBlobClient.UploadAsync(
 				Arg.Any<Stream>(),

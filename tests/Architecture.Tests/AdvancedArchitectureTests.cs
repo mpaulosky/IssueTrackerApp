@@ -8,6 +8,7 @@
 // =======================================================
 
 using Domain.Abstractions;
+
 using MongoDB.Bson;
 
 namespace Architecture.Tests;
@@ -40,7 +41,7 @@ public class AdvancedArchitectureTests
 		{
 			var namespacePath = commandType.Namespace ?? string.Empty;
 			var isValidLocation = namespacePath.Contains("Commands") ||
-			                      namespacePath.Contains("Notifications");
+														namespacePath.Contains("Notifications");
 			isValidLocation.Should().BeTrue(
 				$"Command '{commandType.Name}' should reside in Commands or Notifications folder but found in '{namespacePath}'");
 		}
@@ -81,7 +82,7 @@ public class AdvancedArchitectureTests
 			var namespacePath = type.Namespace ?? string.Empty;
 			// Allow types in Features or special locations like Notifications
 			var isInValidLocation = namespacePath.Contains("Features") ||
-			                        namespacePath.Contains("Notifications");
+															namespacePath.Contains("Notifications");
 			isInValidLocation.Should().BeTrue(
 				$"CQRS type '{type.Name}' should reside in Features namespace but found in '{namespacePath}'");
 		}
@@ -105,7 +106,7 @@ public class AdvancedArchitectureTests
 		{
 			var namespacePath = validatorType.Namespace ?? string.Empty;
 			var isValidLocation = namespacePath.Contains("Validators") ||
-			                      namespacePath.Contains("Commands");
+														namespacePath.Contains("Commands");
 			isValidLocation.Should().BeTrue(
 				$"Validator '{validatorType.Name}' should be in Validators folder or co-located with Commands, found in '{namespacePath}'");
 		}
@@ -135,7 +136,7 @@ public class AdvancedArchitectureTests
 			// Find the IRequestHandler<TRequest, TResponse> interface
 			var requestHandlerInterface = handlerType.GetInterfaces()
 				.FirstOrDefault(i => i.IsGenericType &&
-				                     i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
+														 i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
 
 			if (requestHandlerInterface != null)
 			{
@@ -172,7 +173,7 @@ public class AdvancedArchitectureTests
 			while (validatorBaseType != null && validatorBaseType != typeof(object))
 			{
 				if (validatorBaseType.IsGenericType &&
-				    validatorBaseType.GetGenericTypeDefinition() == typeof(AbstractValidator<>))
+						validatorBaseType.GetGenericTypeDefinition() == typeof(AbstractValidator<>))
 				{
 					var validatedType = validatorBaseType.GetGenericArguments()[0];
 					var expectedValidatorName = $"{validatedType.Name}Validator";
@@ -311,8 +312,8 @@ public class AdvancedArchitectureTests
 			.AreNotStatic()
 			.GetTypes()
 			.Where(t => !t.Name.Contains("Constants") &&
-			            !t.Name.Contains("Preferences") &&
-			            !t.IsEnum);
+									!t.Name.Contains("Preferences") &&
+									!t.IsEnum);
 
 		// Assert - Entities should have an Id property
 		foreach (var entityType in entityTypes)
@@ -337,8 +338,8 @@ public class AdvancedArchitectureTests
 			.AreNotStatic()
 			.GetTypes()
 			.Where(t => !t.Name.Contains("Constants") &&
-			            !t.Name.Contains("Preferences") &&
-			            !t.IsEnum);
+									!t.Name.Contains("Preferences") &&
+									!t.IsEnum);
 
 		// Assert - Entity IDs should be ObjectId type (MongoDB)
 		foreach (var entityType in entityTypes)
@@ -349,8 +350,8 @@ public class AdvancedArchitectureTests
 				var idType = idProperty.PropertyType;
 				// Accept ObjectId or string representations
 				var isValidIdType = idType == typeof(ObjectId) ||
-				                    idType == typeof(string) ||
-				                    idType.Name.Contains("ObjectId");
+														idType == typeof(string) ||
+														idType.Name.Contains("ObjectId");
 				isValidIdType.Should().BeTrue(
 					$"Entity '{entityType.Name}' Id property should be ObjectId or string, but was '{idType.Name}'");
 			}
@@ -392,8 +393,8 @@ public class AdvancedArchitectureTests
 			.AreNotStatic()
 			.GetTypes()
 			.Where(t => !t.Name.Contains("Constants") &&
-			            !t.Name.Contains("Preferences") &&
-			            !t.IsEnum);
+									!t.Name.Contains("Preferences") &&
+									!t.IsEnum);
 
 		// Assert - DateCreated should be init-only or readonly
 		foreach (var entityType in entityTypes)
@@ -458,7 +459,7 @@ public class AdvancedArchitectureTests
 		{
 			var returnType = method.ReturnType;
 			var isAsync = returnType.Name.Contains("Task") ||
-			              returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>);
+										returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>);
 
 			isAsync.Should().BeTrue(
 				$"Repository method '{method.Name}' should be async (return Task<T>)");
@@ -486,9 +487,9 @@ public class AdvancedArchitectureTests
 			{
 				// Data access methods should be async
 				if (method.Name.Contains("Get") || method.Name.Contains("Find") ||
-				    method.Name.Contains("Add") || method.Name.Contains("Update") ||
-				    method.Name.Contains("Delete") || method.Name.Contains("Count") ||
-				    method.Name.Contains("Any"))
+						method.Name.Contains("Add") || method.Name.Contains("Update") ||
+						method.Name.Contains("Delete") || method.Name.Contains("Count") ||
+						method.Name.Contains("Any"))
 				{
 					var returnType = method.ReturnType;
 					var isAsync = returnType.Name.Contains("Task");
@@ -539,7 +540,7 @@ public class AdvancedArchitectureTests
 		{
 			var requestInterface = queryType.GetInterfaces()
 				.FirstOrDefault(i => i.IsGenericType &&
-				                     i.GetGenericTypeDefinition() == typeof(IRequest<>));
+														 i.GetGenericTypeDefinition() == typeof(IRequest<>));
 
 			requestInterface.Should().NotBeNull(
 				$"Query '{queryType.Name}' should implement IRequest<T>");

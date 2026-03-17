@@ -99,7 +99,7 @@ public sealed class BlobStorageDeleteTests
 		// Assert - Azurite format: http://host/account/container/guid/filename
 		var blobServiceClient = _fixture.CreateBlobServiceClient();
 		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-		
+
 		// Extract blob1 name from URL
 		var uri1 = new Uri(blobUrl1);
 		var segments1 = uri1.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);

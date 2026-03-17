@@ -8,6 +8,7 @@
 // =======================================================
 
 using Microsoft.AspNetCore.SignalR.Client;
+
 using Web.Services;
 
 namespace Web.Services;
@@ -86,7 +87,7 @@ public sealed class SignalRClientService : IAsyncDisposable
 		try
 		{
 			var hubUrl = _navigationManager.ToAbsoluteUri("/hubs/issues");
-			
+
 			_hubConnection = new HubConnectionBuilder()
 				.WithUrl(hubUrl)
 				.WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) })
@@ -100,7 +101,7 @@ public sealed class SignalRClientService : IAsyncDisposable
 
 			await _hubConnection.StartAsync();
 			_isStarted = true;
-			
+
 			NotifyStateChanged();
 			_logger.LogInformation("SignalR connection established");
 			_toastService.ShowSuccess("Connected to real-time updates");
@@ -238,7 +239,7 @@ public sealed class SignalRClientService : IAsyncDisposable
 			_hubConnection.Reconnecting -= OnReconnecting;
 			_hubConnection.Reconnected -= OnReconnected;
 			_hubConnection.Closed -= OnClosed;
-			
+
 			await _hubConnection.DisposeAsync();
 		}
 	}

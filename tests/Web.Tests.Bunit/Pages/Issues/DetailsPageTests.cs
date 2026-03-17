@@ -435,8 +435,8 @@ public class DetailsPageTests : BunitTestBase
 		await cut.InvokeAsync(() => Task.Delay(100));
 
 		// Assert
-		var backLink = cut.FindAll("a").FirstOrDefault(a => 
-			a.GetAttribute("href") == "/issues" && 
+		var backLink = cut.FindAll("a").FirstOrDefault(a =>
+			a.GetAttribute("href") == "/issues" &&
 			a.TextContent.Contains("Back to Issues"));
 		backLink.Should().NotBeNull();
 	}
@@ -707,7 +707,7 @@ public class DetailsPageTests : BunitTestBase
 		await cut.InvokeAsync(() => Task.Delay(100));
 
 		// Simulate SignalR issue updated event
-		await cut.InvokeAsync(() => 
+		await cut.InvokeAsync(() =>
 		{
 			var signalRService = Services.GetService<SignalRClientService>();
 			return Task.CompletedTask;
@@ -756,12 +756,12 @@ public class DetailsPageTests : BunitTestBase
 
 		var newAttachment = CreateTestAttachment(fileName: "test.pdf");
 		AttachmentService.AddAttachmentAsync(
-			issueId, 
-			Arg.Any<Stream>(), 
-			"test.pdf", 
-			"application/pdf", 
-			1024, 
-			Arg.Any<UserDto>(), 
+			issueId,
+			Arg.Any<Stream>(),
+			"test.pdf",
+			"application/pdf",
+			1024,
+			Arg.Any<UserDto>(),
 			Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(newAttachment));
 
@@ -771,7 +771,7 @@ public class DetailsPageTests : BunitTestBase
 
 		// Simulate file upload by finding and testing FileUpload component
 		var fileUpload = cut.FindComponent<Web.Components.Shared.FileUpload>();
-		
+
 		// Assert
 		fileUpload.Should().NotBeNull();
 	}
@@ -785,12 +785,12 @@ public class DetailsPageTests : BunitTestBase
 		SetupIssueServiceSuccess(issueId, issue);
 
 		AttachmentService.AddAttachmentAsync(
-			Arg.Any<string>(), 
-			Arg.Any<Stream>(), 
-			Arg.Any<string>(), 
-			Arg.Any<string>(), 
-			Arg.Any<long>(), 
-			Arg.Any<UserDto>(), 
+			Arg.Any<string>(),
+			Arg.Any<Stream>(),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<long>(),
+			Arg.Any<UserDto>(),
 			Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<AttachmentDto>("Upload failed"));
 
@@ -817,9 +817,9 @@ public class DetailsPageTests : BunitTestBase
 
 		var attachment = CreateTestAttachment();
 		AttachmentService.DeleteAttachmentAsync(
-			attachment.Id, 
-			Arg.Any<string>(), 
-			Arg.Any<bool>(), 
+			attachment.Id,
+			Arg.Any<string>(),
+			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok(true)));
 
@@ -977,25 +977,35 @@ public class DetailsPageTests : BunitTestBase
 		var issueId = issue.Id.ToString();
 		SetupIssueServiceSuccess(issueId, issue);
 
-		IssueService.DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
+		IssueService.DeleteIssueAsync(Arg.Any<string>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok(true)));
 
 		// Act
 		var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
-		await cut.InvokeAsync(() => Task.Delay(100));
+		await cut.InvokeAsync(() => Task.CompletedTask);
 
+		// Verify the modal is not visible initially
+		cut.Markup.Should().NotContain("This action cannot be undone");
+
+		// Click the initial delete button to show the modal
 		var deleteButton = cut.FindAll("button").First(b => b.TextContent.Contains("Delete"));
 		await cut.InvokeAsync(() => deleteButton.Click());
 
-		// Find confirm button and click it
-		var confirmButton = cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Delete") && !b.TextContent.Contains("Cancel"));
-		if (confirmButton != null)
-		{
-			await cut.InvokeAsync(() => confirmButton.Click());
-		}
+		// Verify modal is now visible
+		cut.Markup.Should().Contain("This action cannot be undone");
+
+		// Find the confirm button INSIDE the modal dialog (not the header delete button)
+		var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
+		confirmButton.Should().NotBeNull("confirm button should be present in modal");
+
+		await cut.InvokeAsync(() => confirmButton.Click());
 
 		// Assert
 		await IssueService.Received(1).DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>());
+
+		// Assert navigation occurred
+		var navManager = Services.GetRequiredService<NavigationManager>();
+		navManager.Uri.Should().Contain("/issues");
 	}
 
 	[Fact]
@@ -1006,30 +1016,32 @@ public class DetailsPageTests : BunitTestBase
 		var issueId = issue.Id.ToString();
 		SetupIssueServiceSuccess(issueId, issue);
 
-		IssueService.DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
+		IssueService.DeleteIssueAsync(Arg.Any<string>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Fail<bool>("Delete failed")));
 
 		// Act
 		var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
-		await cut.InvokeAsync(() => Task.Delay(100));
+		await cut.InvokeAsync(() => Task.CompletedTask);
 
+		// Click the initial delete button to show the modal
 		var deleteButton = cut.FindAll("button").First(b => b.TextContent.Contains("Delete"));
 		await cut.InvokeAsync(() => deleteButton.Click());
 
-		// Find confirm button and click it
-		var confirmButton = cut.FindAll("button").FirstOrDefault(b => 
-			b.TextContent.Contains("Delete") && 
-			!b.TextContent.Contains("Cancel") &&
-			b.GetAttribute("type") != "button"); // Ensure it's the modal confirm button
+		// Verify modal is visible
+		cut.Markup.Should().Contain("This action cannot be undone");
 
-		if (confirmButton != null)
-		{
-			await cut.InvokeAsync(() => confirmButton.Click());
-			await cut.InvokeAsync(() => Task.Delay(50));
-		}
+		// Find the confirm button INSIDE the modal dialog (not the header delete button)
+		var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
+		confirmButton.Should().NotBeNull("confirm button should be present in modal");
+
+		await cut.InvokeAsync(() => confirmButton.Click());
 
 		// Assert
+		await IssueService.Received(1).DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>());
+
+		// Assert - error message should be displayed and modal should be closed
 		cut.Markup.Should().Contain("Delete failed");
+		cut.Markup.Should().NotContain("This action cannot be undone");
 	}
 
 	#endregion

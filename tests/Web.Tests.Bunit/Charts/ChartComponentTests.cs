@@ -112,7 +112,7 @@ public class PieChartTests : BunitTestBase
 	}
 
 	[Fact]
-public async Task PieChart_OnDispose_InvokesDestroyChart()
+	public async Task PieChart_OnDispose_InvokesDestroyChart()
 	{
 		// Arrange
 		var chartId = "pie-chart-3";
@@ -292,7 +292,7 @@ public class BarChartTests : BunitTestBase
 	}
 
 	[Fact]
-public async Task BarChart_OnDispose_InvokesDestroyChart()
+	public async Task BarChart_OnDispose_InvokesDestroyChart()
 	{
 		// Arrange
 		var chartId = "bar-chart-3";
@@ -506,7 +506,7 @@ public class LineChartTests : BunitTestBase
 	}
 
 	[Fact]
-public async Task LineChart_OnDispose_InvokesDestroyChart()
+	public async Task LineChart_OnDispose_InvokesDestroyChart()
 	{
 		// Arrange
 		var chartId = "line-chart-3";

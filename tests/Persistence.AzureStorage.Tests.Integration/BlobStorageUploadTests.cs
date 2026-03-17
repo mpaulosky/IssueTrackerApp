@@ -63,7 +63,7 @@ public sealed class BlobStorageUploadTests
 		var uri = new Uri(blobUrl);
 		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
-		
+
 		var blobClient = containerClient.GetBlobClient(blobName);
 		var blobExists = await blobClient.ExistsAsync();
 		blobExists.Value.Should().BeTrue();
@@ -86,7 +86,7 @@ public sealed class BlobStorageUploadTests
 		var uri = new Uri(blobUrl);
 		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
-		
+
 		var blobServiceClient = _fixture.CreateBlobServiceClient();
 		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 		var blobClient = containerClient.GetBlobClient(blobName);

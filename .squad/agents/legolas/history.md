@@ -94,6 +94,31 @@
 - PR #39 updated with frontend changes and marked ready for review
 - Commit message follows conventional commits format
 
+### 2026-03-15 - Fix Failing bUnit Delete Tests in DetailsPageTests.cs
+
+**Task:** Fix 2 failing tests: `Details_DeleteExecutionNavigatesToIndex` and `Details_DeleteFailureShowsError`
+
+**Root Cause:**
+After the delete confirmation modal opens, there are **two** buttons with `bg-red-600` in the DOM:
+1. The issue header's Delete button (triggers `ShowDeleteModal`)
+2. The modal's confirm Delete button (triggers `OnConfirmClick` → `HandleDelete`)
+
+The test used `FindAll("button").FirstOrDefault(b => b.ClassList.Contains("bg-red-600"))` which returned the header button (first in DOM order), not the modal's confirm button. Clicking the header button just re-triggered `ShowDeleteModal()` — a no-op since the modal was already visible. `HandleDelete()` was never invoked, so `DeleteIssueAsync` received 0 calls.
+
+**Fix Applied (test-only):**
+- Replaced the ambiguous `FindAll("button").FirstOrDefault(...)` selector with `cut.Find("[role='dialog'] .bg-red-600")` to scope the confirm button search to inside the modal dialog element
+- Removed artificial `Task.Delay` calls and used clean `await cut.InvokeAsync(() => button.Click())` pattern
+- No production code changes needed
+
+**Key bUnit Lesson:**
+When a page has a modal that reuses the same CSS classes as parent buttons (e.g., `bg-red-600`), always scope button selectors to the modal container using `[role='dialog']` or similar structural selector to avoid picking the wrong element.
+
+**Verification:**
+- ✅ Both previously-failing tests now pass
+- ✅ All 4 delete tests pass
+- ✅ All 51 DetailsPageTests pass
+- ✅ All 110 Issue page tests pass (no regressions)
+
 ---
 
 ## Notes

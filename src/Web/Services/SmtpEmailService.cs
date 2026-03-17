@@ -7,10 +7,12 @@
 // Project Name :  Web
 // =======================================================
 
-using Domain.Abstractions;
-using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
+
+using Domain.Abstractions;
+
+using Microsoft.Extensions.Options;
 
 namespace Web.Services;
 

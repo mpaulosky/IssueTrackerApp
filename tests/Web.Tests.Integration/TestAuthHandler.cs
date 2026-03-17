@@ -9,6 +9,7 @@
 
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -55,7 +56,7 @@ public sealed class TestAuthHandler : AuthenticationHandler<AuthenticationScheme
 	{
 		// Check if authentication should be skipped (anonymous request)
 		if (Context.Request.Headers.TryGetValue("X-Test-Anonymous", out var anonymous) &&
-		    anonymous.ToString().Equals("true", StringComparison.OrdinalIgnoreCase))
+				anonymous.ToString().Equals("true", StringComparison.OrdinalIgnoreCase))
 		{
 			return Task.FromResult(AuthenticateResult.NoResult());
 		}

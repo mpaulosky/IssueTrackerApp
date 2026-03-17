@@ -111,9 +111,9 @@ public class CodeStructureTests
 		{
 			var name = type.Name;
 			var isValidAbstractName = name.StartsWith("Abstract") ||
-			                          name.EndsWith("Base") ||
-			                          name.Contains("Abstract") ||
-			                          !name.EndsWith("Handler"); // Handlers shouldn't be abstract
+																name.EndsWith("Base") ||
+																name.Contains("Abstract") ||
+																!name.EndsWith("Handler"); // Handlers shouldn't be abstract
 
 			isValidAbstractName.Should().BeTrue(
 				$"Abstract class '{name}' should follow naming conventions (Abstract prefix, Base suffix, or descriptive name)");

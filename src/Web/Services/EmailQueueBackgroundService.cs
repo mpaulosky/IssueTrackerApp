@@ -65,8 +65,8 @@ public sealed class EmailQueueBackgroundService : BackgroundService
 
 		var emailsToProcess = pendingEmailsResult.Value
 			.Where(e => e.Status == EmailQueueStatus.Pending &&
-			           e.NextAttemptAt <= DateTime.UtcNow &&
-			           e.Attempts < e.MaxAttempts)
+								 e.NextAttemptAt <= DateTime.UtcNow &&
+								 e.Attempts < e.MaxAttempts)
 			.OrderBy(e => e.QueuedAt)
 			.Take(10) // Process up to 10 emails at a time
 			.ToList();
@@ -156,7 +156,7 @@ public sealed class EmailQueueBackgroundService : BackgroundService
 			email.Status = EmailQueueStatus.Pending;
 			var backoffMinutes = Math.Pow(2, email.Attempts - 1); // 1, 2, 4 minutes
 			email.NextAttemptAt = DateTime.UtcNow.AddMinutes(backoffMinutes);
-			_logger.LogWarning("Email {EmailId} failed (attempt {Attempts}/{MaxAttempts}). Retrying in {Minutes} minutes", 
+			_logger.LogWarning("Email {EmailId} failed (attempt {Attempts}/{MaxAttempts}). Retrying in {Minutes} minutes",
 				email.Id, email.Attempts, email.MaxAttempts, backoffMinutes);
 		}
 

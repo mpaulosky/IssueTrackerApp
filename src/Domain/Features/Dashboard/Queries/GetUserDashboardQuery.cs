@@ -60,11 +60,11 @@ public sealed class GetUserDashboardQueryHandler : IRequestHandler<GetUserDashbo
 
 		var openIssues = userIssues
 			.Count(i => i.Status.StatusName.Equals("Open", StringComparison.OrdinalIgnoreCase) ||
-			            i.Status.StatusName.Equals("In Progress", StringComparison.OrdinalIgnoreCase));
+									i.Status.StatusName.Equals("In Progress", StringComparison.OrdinalIgnoreCase));
 
 		var resolvedIssues = userIssues
 			.Count(i => i.Status.StatusName.Equals("Resolved", StringComparison.OrdinalIgnoreCase) ||
-			            i.Status.StatusName.Equals("Closed", StringComparison.OrdinalIgnoreCase));
+									i.Status.StatusName.Equals("Closed", StringComparison.OrdinalIgnoreCase));
 
 		var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
 		var thisWeekIssues = userIssues

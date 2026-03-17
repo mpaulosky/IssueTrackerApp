@@ -9,7 +9,9 @@
 
 using Domain.DTOs;
 using Domain.Models;
+
 using MongoDB.Bson;
+
 using Web.Endpoints;
 
 namespace Web.Tests.Integration;

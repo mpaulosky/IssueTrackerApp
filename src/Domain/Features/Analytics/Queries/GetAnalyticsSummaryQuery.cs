@@ -9,6 +9,7 @@
 
 using Domain.Abstractions;
 using Domain.DTOs.Analytics;
+
 using Microsoft.Extensions.Logging;
 
 namespace Domain.Features.Analytics.Queries;

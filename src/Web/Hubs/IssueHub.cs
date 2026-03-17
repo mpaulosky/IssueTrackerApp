@@ -29,10 +29,10 @@ public sealed class IssueHub : Hub
 	public override async Task OnConnectedAsync()
 	{
 		_logger.LogInformation("Client connected: {ConnectionId}", Context.ConnectionId);
-		
+
 		// Add client to "all" group for broadcast notifications
 		await Groups.AddToGroupAsync(Context.ConnectionId, "all");
-		
+
 		await base.OnConnectedAsync();
 	}
 
