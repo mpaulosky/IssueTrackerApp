@@ -58,24 +58,12 @@ public sealed class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentC
 			return Result.Fail<CommentDto>("Only the comment author can edit this comment", ResultErrorCode.Validation);
 		}
 
-		// Create updated comment (Description is init-only)
-		var updatedComment = new Comment
-		{
-			Id = existingComment.Id,
-			Title = request.Title,
-			Description = request.Description,
-			Author = existingComment.Author,
-			IssueId = existingComment.IssueId,
-			DateCreated = existingComment.DateCreated,
-			DateModified = DateTime.UtcNow,
-			UserVotes = existingComment.UserVotes,
-			Archived = existingComment.Archived,
-			ArchivedBy = existingComment.ArchivedBy,
-			IsAnswer = existingComment.IsAnswer,
-			AnswerSelectedBy = existingComment.AnswerSelectedBy
-		};
+		// Update the existing tracked entity in place
+		existingComment.Title = request.Title;
+		existingComment.Description = request.Description;
+		existingComment.DateModified = DateTime.UtcNow;
 
-		var updateResult = await _repository.UpdateAsync(updatedComment, cancellationToken);
+		var updateResult = await _repository.UpdateAsync(existingComment, cancellationToken);
 
 		if (updateResult.Failure)
 		{

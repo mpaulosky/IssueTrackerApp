@@ -137,7 +137,7 @@ public sealed class CommentEndpointTests : IntegrationTestBase
 	}
 
 	[Fact]
-	public async Task GetComments_ReturnsNotFound_WhenIssueDoesNotExist()
+	public async Task GetComments_ReturnsEmptyList_WhenIssueDoesNotExist()
 	{
 		// Arrange
 		var nonExistentIssueId = ObjectId.GenerateNewId().ToString();
@@ -146,8 +146,10 @@ public sealed class CommentEndpointTests : IntegrationTestBase
 		// Act
 		var response = await client.GetAsync($"/api/issues/{nonExistentIssueId}/comments");
 
-		// Assert
-		response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+		// Assert - endpoint returns empty list for non-existent issue (not 404)
+		response.StatusCode.Should().Be(HttpStatusCode.OK);
+		var comments = await response.Content.ReadFromJsonAsync<List<CommentDto>>(JsonOptions);
+		comments.Should().BeEmpty();
 	}
 
 	[Fact]

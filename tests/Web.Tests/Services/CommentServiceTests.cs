@@ -370,7 +370,7 @@ public sealed class CommentServiceTests
 			null,
 			ObjectId.GenerateNewId(),
 			CreateTestUserDto(),
-			new HashSet<string>(),
+			[],
 			false,
 			UserDto.Empty,
 			false,

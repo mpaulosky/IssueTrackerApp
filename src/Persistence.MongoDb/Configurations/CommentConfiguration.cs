@@ -45,10 +45,5 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
 			asb.Property(u => u.Email).HasElementName("email");
 		});
 
-		// Configure UserVotes as a primitive collection (string array in MongoDB)
-		builder.Property(c => c.UserVotes)
-			.HasConversion(
-				v => v.ToList(),
-				v => new HashSet<string>(v ?? new List<string>()));
 	}
 }
