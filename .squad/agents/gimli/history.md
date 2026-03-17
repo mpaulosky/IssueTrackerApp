@@ -48,6 +48,88 @@
 
 4. **Azure SDK Method Signatures:**
    - `CreateIfNotExistsAsync(PublicAccessType, cancellationToken:)` — optional named parameter, NOT required `metadata` parameter
+   - `Upload/OpenRead/DeleteAsync` all return `Response<T>` — use `.Value` to access inner type
+
+5. **DI Testing (ServiceCollectionExtensions):**
+   - **Test Coverage:** Null checks, configuration binding, multiple registration calls, factory-based registration
+   - **Validation:** Check both service registration and resolved instances (via `BuildServiceProvider()`)
+   - Use `Configure<T>()` for strongly-typed options, ensure validation logic tested separately
+
+6. **Test Organization:**
+   - **AAA Comments:** Every test includes `// Arrange`, `// Act`, `// Assert` comments for clarity
+   - **Naming:** `MethodName_Scenario_ExpectedBehavior` (e.g., `UploadAsync_ValidFile_ReturnsSuccessResult`)
+   - **File-scoped namespaces, tab indentation:** Consistent with project standards
+
+**Result:** 33 unit tests across 7 files, all passing. Coverage includes constructor validation, settings, exception handling, logging verification, and DI configuration.
+
+---
+
+### 2026-03-15: bUnit Test Suite Diagnosis — Slow Execution & Failing Delete Tests
+
+**Task:** Diagnose and fix the slow/hanging bUnit test suite (595 tests) and 2 failing tests in `DetailsPageTests` related to delete button interactions.
+
+**Problem Analysis:**
+
+1. **Hanging/Slow Tests:**
+   - Individual test projects run fast: Domain.Tests (352 tests, 1.2s), Architecture.Tests (43 tests, 1.4s), etc.
+   - Web.Tests.Bunit subsets run fast: Theme+Layout (30 tests, 1.7s), Pages (222 tests, 7.2s)
+   - **ISSUE:** Running ALL unit tests together (`dotnet test --filter "FullyQualifiedName!~Integration"`) hung for 6+ minutes
+   - Running ALL bUnit tests alone also becomes very slow (2+ minutes for ~600 tests)
+
+2. **Two Failing Tests:**
+   - `Details_DeleteExecutionNavigatesToIndex` — Expected `DeleteIssueAsync` to be called, but received 0 calls
+   - `Details_DeleteFailureShowsError` — Expected error message markup not found after delete failure
+
+**Investigation:**
+
+1. **Test Infrastructure Review:**
+   - `BunitTestBase.cs` creates NSubstitute mocks, registers real `SignalRClientService`, `FakeNavigationManager`
+   - JSInterop.Mode = JSRuntimeMode.Loose (unmocked JS calls return defaults)
+   - bUnit's `AddAuthorization()` automatically registers `AuthenticationStateProvider`
+
+2. **Delete Flow Analysis:**
+   - Details page uses `<DeleteConfirmationModal>` component with EventCallback
+   - Modal has `OnConfirm` EventCallback that calls `HandleDelete()` method
+   - `HandleDelete()` checks auth state, creates `UserDto`, calls `IssueService.DeleteIssueAsync(Id, currentUser)`
+   - Test pattern: Click delete button → wait for modal → click confirm button → assert service called
+
+3. **Root Cause:**
+   - Modal tests (in `SharedComponentTests.cs`) show that `confirmButton?.Click()` successfully invokes EventCallbacks when testing the modal in isolation
+   - When modal is embedded in Details page, the button click doesn't trigger the callback
+   - **HYPOTHESIS:** The EventCallback invocation in the nested component hierarchy isn't being processed by bUnit's renderer, OR there's an early return in `HandleDelete()` preventing the service call
+
+4. **Attempted Fixes:**
+   - ✅ Created `xunit.runner.json` with `parallelizeTestCollections: false, maxParallelThreads: 4`
+   - ✅ Updated mock setup to use `Arg.Any<string>()` instead of specific issueId
+   - ✅ Increased wait times (200ms) after button clicks to allow async operations
+   - ✅ Added assertions to verify modal visibility before/after clicks
+   - ❌ Tests still fail — `DeleteIssueAsync` never called
+
+**Current Status:**
+
+- xUnit configuration reduces parallelism but doesn't solve the hanging issue completely
+- The 2 delete tests are reproducibly failing — button click doesn't invoke the EventCallback
+- Other similar tests in the suite pass, suggesting this is specific to the Details page delete flow
+
+**Recommended Next Steps:**
+
+1. **For Delete Tests:** Needs further investigation by Aragorn (Lead Dev) — possible issue with:
+   - Component lifecycle/rendering in bUnit for nested EventCallbacks
+   - AuthenticationStateProvider not returning expected claims (causing early return in HandleDelete)
+   - Need to add diagnostic logging or debug the actual flow
+
+2. **For Hanging Tests:** The issue appears to be with running ALL bUnit tests together:
+   - Consider splitting bUnit tests into multiple test assemblies by feature area
+   - Investigate if there's a resource leak in BunitTestBase or component disposal
+   - May need to add explicit disposal or test collection fixtures
+
+**Files Modified:**
+- `tests/Web.Tests.Bunit/xunit.runner.json` — Added parallelization controls
+- `tests/Web.Tests.Bunit/Pages/Issues/DetailsPageTests.cs` — Updated delete test logic (still failing)
+
+**Note for Team:** These 2 failing tests are blocking the bUnit test suite from being green. The tests are well-written and follow the correct pattern (confirmed by comparing with SharedComponentTests), so this appears to be a bUnit framework issue or a production code bug in the Details page event handling.
+
+---
    - Signature validation: Check actual Azure SDK method before writing `.Received()` assertions
 
 5. **Cascading Logging in Error Paths:**

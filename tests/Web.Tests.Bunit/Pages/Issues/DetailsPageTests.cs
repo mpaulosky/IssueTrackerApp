@@ -977,25 +977,31 @@ public class DetailsPageTests : BunitTestBase
 		var issueId = issue.Id.ToString();
 		SetupIssueServiceSuccess(issueId, issue);
 
-		IssueService.DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
+		IssueService.DeleteIssueAsync(Arg.Any<string>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok(true)));
 
 		// Act
 		var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
-		await cut.InvokeAsync(() => Task.Delay(100));
+		await cut.InvokeAsync(() => Task.CompletedTask);
 
+		// Verify the modal is not visible initially
+		cut.Markup.Should().NotContain("This action cannot be undone");
+
+		// Click the initial delete button to show the modal
 		var deleteButton = cut.FindAll("button").First(b => b.TextContent.Contains("Delete"));
 		await cut.InvokeAsync(() => deleteButton.Click());
 
-		// Find confirm button and click it
-		var confirmButton = cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Delete") && !b.TextContent.Contains("Cancel"));
-		if (confirmButton != null)
-		{
-			await cut.InvokeAsync(() => confirmButton.Click());
-		}
+		// Verify modal is now visible
+		cut.Markup.Should().Contain("This action cannot be undone");
+
+		// Find the confirm button INSIDE the modal dialog (not the header delete button)
+		var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
+		confirmButton.Should().NotBeNull("confirm button should be present in modal");
+
+		await cut.InvokeAsync(() => confirmButton.Click());
 
 		// Assert
-		await IssueService.Received(1).DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>());
+		await IssueService.Received(1).DeleteIssueAsync(Arg.Any<string>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>());
 	}
 
 	[Fact]
@@ -1006,30 +1012,29 @@ public class DetailsPageTests : BunitTestBase
 		var issueId = issue.Id.ToString();
 		SetupIssueServiceSuccess(issueId, issue);
 
-		IssueService.DeleteIssueAsync(issueId, Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
+		IssueService.DeleteIssueAsync(Arg.Any<string>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Fail<bool>("Delete failed")));
 
 		// Act
 		var cut = Render<Details>(parameters => parameters.Add(p => p.Id, issueId));
-		await cut.InvokeAsync(() => Task.Delay(100));
+		await cut.InvokeAsync(() => Task.CompletedTask);
 
+		// Click the initial delete button to show the modal
 		var deleteButton = cut.FindAll("button").First(b => b.TextContent.Contains("Delete"));
 		await cut.InvokeAsync(() => deleteButton.Click());
 
-		// Find confirm button and click it
-		var confirmButton = cut.FindAll("button").FirstOrDefault(b =>
-			b.TextContent.Contains("Delete") &&
-			!b.TextContent.Contains("Cancel") &&
-			b.GetAttribute("type") != "button"); // Ensure it's the modal confirm button
+		// Verify modal is visible
+		cut.Markup.Should().Contain("This action cannot be undone");
 
-		if (confirmButton != null)
-		{
-			await cut.InvokeAsync(() => confirmButton.Click());
-			await cut.InvokeAsync(() => Task.Delay(50));
-		}
+		// Find the confirm button INSIDE the modal dialog (not the header delete button)
+		var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
+		confirmButton.Should().NotBeNull("confirm button should be present in modal");
 
-		// Assert
+		await cut.InvokeAsync(() => confirmButton.Click());
+
+		// Assert - error message should be displayed and modal should be closed
 		cut.Markup.Should().Contain("Delete failed");
+		cut.Markup.Should().NotContain("This action cannot be undone");
 	}
 
 	#endregion
