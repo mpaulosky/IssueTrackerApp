@@ -262,7 +262,7 @@ public class AttachmentListTests : BunitTestBase
 		// Arrange
 		var attachments = new List<AttachmentDto>
 		{
-			CreateTestAttachment("att-1"),
+			CreateTestAttachment(),
 			CreateTestAttachment("att-2")
 		};
 
@@ -278,7 +278,7 @@ public class AttachmentListTests : BunitTestBase
 	}
 
 	[Fact]
-	public async Task AttachmentList_OwnerCanDeleteAttachment()
+	public void AttachmentList_OwnerCanDeleteAttachment()
 	{
 		// Arrange
 		var userId = "user-1";
@@ -298,17 +298,11 @@ public class AttachmentListTests : BunitTestBase
 			)
 		};
 
-		var deletedId = string.Empty;
-
 		// Act
 		var cut = Render<AttachmentList>(parameters => parameters
 			.Add(p => p.Attachments, attachments)
 			.Add(p => p.CurrentUserId, userId)
 			.Add(p => p.IsAdmin, false)
-			.Add(p => p.OnAttachmentDeleted, EventCallback.Factory.Create<string>(
-				this,
-				id => deletedId = id
-			))
 		);
 
 		// Assert
@@ -544,24 +538,17 @@ public class BulkActionToolbarTests : BunitTestBase
 	}
 
 	[Fact]
-	public async Task BulkActionToolbar_OnStatusChange_CallsCallback()
+	public void BulkActionToolbar_OnStatusChange_CallsCallback()
 	{
 		// Arrange
 		var status = CreateTestStatus(name: "Resolved");
 		var statuses = new List<StatusDto> { status };
-		StatusDto? changedStatus = null;
 
 		var cut = Render<BulkActionToolbar>(parameters => parameters
 			.Add(p => p.Statuses, statuses)
 			.Add(p => p.Categories, new List<CategoryDto>())
 			.Add(p => p.IsAdmin, false)
-			.Add(p => p.OnChangeStatus, EventCallback.Factory.Create<StatusDto>(
-				this,
-				s =>
-				{
-					changedStatus = s;
-				}
-			))
+			.Add(p => p.OnChangeStatus, EventCallback.Factory.Create<StatusDto>(this, _ => { }))
 		);
 
 		// Assert
@@ -569,24 +556,17 @@ public class BulkActionToolbarTests : BunitTestBase
 	}
 
 	[Fact]
-	public async Task BulkActionToolbar_OnCategoryChange_CallsCallback()
+	public void BulkActionToolbar_OnCategoryChange_CallsCallback()
 	{
 		// Arrange
 		var category = CreateTestCategory(name: "Bug");
 		var categories = new List<CategoryDto> { category };
-		CategoryDto? changedCategory = null;
 
 		var cut = Render<BulkActionToolbar>(parameters => parameters
 			.Add(p => p.Statuses, new List<StatusDto>())
 			.Add(p => p.Categories, categories)
 			.Add(p => p.IsAdmin, false)
-			.Add(p => p.OnChangeCategory, EventCallback.Factory.Create<CategoryDto>(
-				this,
-				c =>
-				{
-					changedCategory = c;
-				}
-			))
+			.Add(p => p.OnChangeCategory, EventCallback.Factory.Create<CategoryDto>(this, _ => { }))
 		);
 
 		// Assert
@@ -594,7 +574,7 @@ public class BulkActionToolbarTests : BunitTestBase
 	}
 
 	[Fact]
-	public async Task BulkActionToolbar_DeleteButtonVisible_OnlyForAdmin()
+	public void BulkActionToolbar_DeleteButtonVisible_OnlyForAdmin()
 	{
 		// Arrange - non-admin
 		var cut1 = Render<BulkActionToolbar>(parameters => parameters
@@ -1055,6 +1035,83 @@ public class UndoToastTests : BunitTestBase
 
 		// Assert
 		cut.Markup.Should().Contain("10");
+	}
+
+	[Fact]
+	public async Task UndoToast_UndoClick_InvokesUndoAndDismissCallbacks()
+	{
+		// Arrange
+		var undoToken = string.Empty;
+		var dismissed = false;
+		var isVisible = true;
+
+		var cut = Render<UndoToast>(parameters => parameters
+			.Add(p => p.IsVisible, true)
+			.Add(p => p.UndoToken, "undo-token-123")
+			.Add(p => p.CountdownSeconds, 30)
+			.Add(p => p.OnUndo, EventCallback.Factory.Create<string>(this, token => undoToken = token))
+			.Add(p => p.OnDismissed, EventCallback.Factory.Create(this, () => dismissed = true))
+			.Add(p => p.IsVisibleChanged, EventCallback.Factory.Create<bool>(this, value => isVisible = value))
+		);
+
+		// Act
+		var undoButton = cut.FindAll("button")
+			.First(button => button.TextContent.Contains("Undo", StringComparison.OrdinalIgnoreCase));
+		await cut.InvokeAsync(() => undoButton.Click());
+
+		// Assert
+		undoToken.Should().Be("undo-token-123");
+		dismissed.Should().BeTrue();
+		isVisible.Should().BeFalse();
+	}
+
+	[Fact]
+	public async Task UndoToast_CloseClick_InvokesDismissCallbacks()
+	{
+		// Arrange
+		var dismissed = false;
+		var isVisible = true;
+
+		var cut = Render<UndoToast>(parameters => parameters
+			.Add(p => p.IsVisible, true)
+			.Add(p => p.CountdownSeconds, 30)
+			.Add(p => p.OnDismissed, EventCallback.Factory.Create(this, () => dismissed = true))
+			.Add(p => p.IsVisibleChanged, EventCallback.Factory.Create<bool>(this, value => isVisible = value))
+		);
+
+		// Act
+		var closeButton = cut.FindAll("button").Single();
+		await cut.InvokeAsync(() => closeButton.Click());
+
+		// Assert
+		dismissed.Should().BeTrue();
+		isVisible.Should().BeFalse();
+	}
+
+	[Fact]
+	public async Task UndoToast_CountdownExpires_AutoDismissesToast()
+	{
+		// Arrange
+		var dismissed = false;
+		var isVisible = true;
+
+		var cut = Render<UndoToast>(parameters => parameters
+			.Add(p => p.IsVisible, true)
+			.Add(p => p.UndoToken, "undo-token-123")
+			.Add(p => p.CountdownSeconds, 1)
+			.Add(p => p.OnDismissed, EventCallback.Factory.Create(this, () => dismissed = true))
+			.Add(p => p.IsVisibleChanged, EventCallback.Factory.Create<bool>(this, value => isVisible = value))
+		);
+
+		// Act
+		await Task.Delay(1500);
+
+		// Assert
+		cut.WaitForAssertion(() =>
+		{
+			dismissed.Should().BeTrue();
+			isVisible.Should().BeFalse();
+		});
 	}
 }
 

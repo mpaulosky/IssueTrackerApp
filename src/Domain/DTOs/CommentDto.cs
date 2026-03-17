@@ -22,7 +22,7 @@ public record CommentDto(
 	DateTime? DateModified,
 	ObjectId IssueId,
 	UserDto Author,
-	HashSet<string> UserVotes,
+	List<string> UserVotes,
 	bool Archived,
 	UserDto ArchivedBy,
 	bool IsAnswer,

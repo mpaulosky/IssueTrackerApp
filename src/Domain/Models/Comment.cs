@@ -38,7 +38,7 @@ public class Comment
 	/// <value>
 	///   The description.
 	/// </value>
-	public string Description { get; init; } = string.Empty;
+	public string Description { get; set; } = string.Empty;
 
 	/// <summary>
 	///   Gets or sets the date created.
@@ -78,7 +78,7 @@ public class Comment
 	/// <value>
 	///   The user votes.
 	/// </value>
-	public HashSet<string> UserVotes { get; set; } = [];
+	public List<string> UserVotes { get; set; } = [];
 
 	/// <summary>
 	///   Gets or sets a value indicating whether this <see cref="Comment" /> is archived.

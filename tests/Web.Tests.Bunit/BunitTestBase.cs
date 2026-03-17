@@ -7,16 +7,14 @@
 // Project Name :  Web.Tests.Bunit
 // =======================================================
 
-using Bunit.TestDoubles;
-using Domain.Abstractions;
-using Domain.DTOs;
+using System.Security.Claims;
+
 using MediatR;
-using Microsoft.AspNetCore.Components;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Security.Claims;
+
 using Web.Auth;
-using Web.Services;
 
 namespace Web.Tests.Bunit;
 
@@ -76,7 +74,7 @@ public abstract class BunitTestBase : BunitContext
 
 		// Register concrete services required by page components
 		var toastService = new ToastService();
-		var fakeNav = new FakeNavigationManager(this);
+		var fakeNav = new FakeNavigationManager();
 		Services.AddSingleton(toastService);
 		Services.AddSingleton(new BulkSelectionState());
 		Services.AddSingleton(new SignalRClientService(
@@ -88,9 +86,9 @@ public abstract class BunitTestBase : BunitContext
 		// unmocked calls return empty successful results instead of null
 		// (NSubstitute returns null for Task<T> by default which causes NRE).
 		LookupService.GetStatusesAsync(Arg.Any<CancellationToken>())
-			.Returns(Task.FromResult(Result.Ok<IEnumerable<StatusDto>>(Enumerable.Empty<StatusDto>())));
+			.Returns(Task.FromResult(Result.Ok(Enumerable.Empty<StatusDto>())));
 		LookupService.GetCategoriesAsync(Arg.Any<CancellationToken>())
-			.Returns(Task.FromResult(Result.Ok<IEnumerable<CategoryDto>>(Enumerable.Empty<CategoryDto>())));
+			.Returns(Task.FromResult(Result.Ok(Enumerable.Empty<CategoryDto>())));
 		AttachmentService.GetIssueAttachmentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<AttachmentDto>>(Array.Empty<AttachmentDto>())));
 		CommentService.GetCommentsAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
@@ -266,11 +264,8 @@ public abstract class BunitTestBase : BunitContext
 /// </summary>
 internal class FakeNavigationManager : NavigationManager
 {
-	private readonly BunitContext _context;
-
-	public FakeNavigationManager(BunitContext context)
+	public FakeNavigationManager()
 	{
-		_context = context;
 		Initialize("http://localhost/", "http://localhost/");
 	}
 
