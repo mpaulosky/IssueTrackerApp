@@ -2,7 +2,7 @@
 @implements IDisposable
 @inject ToastService ToastService
 
-<div class="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+<div class="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
 	@foreach (var toast in ToastService.Toasts)
 	{
 		<div class="@GetToastClasses(toast.Type) rounded-lg shadow-lg p-4 animate-slide-in-right flex items-start gap-3"

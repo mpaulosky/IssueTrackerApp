@@ -21,18 +21,15 @@ public sealed class BulkOperationBackgroundService : BackgroundService
 {
 	private readonly IServiceScopeFactory _scopeFactory;
 	private readonly InMemoryBulkOperationQueue _queue;
-	private readonly INotificationService _notificationService;
 	private readonly ILogger<BulkOperationBackgroundService> _logger;
 
 	public BulkOperationBackgroundService(
 		IServiceScopeFactory scopeFactory,
 		InMemoryBulkOperationQueue queue,
-		INotificationService notificationService,
 		ILogger<BulkOperationBackgroundService> logger)
 	{
 		_scopeFactory = scopeFactory;
 		_queue = queue;
-		_notificationService = notificationService;
 		_logger = logger;
 	}
 

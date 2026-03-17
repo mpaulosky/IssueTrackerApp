@@ -140,6 +140,11 @@ builder.Services
 		options.Scope = "openid profile email";
 	});
 
+// Register Auth0 claims transformation for role mapping
+// This maps Auth0's custom role claims (e.g., "https://issuetracker.com/roles")
+// to ASP.NET Core's standard ClaimTypes.Role so RequireRole() works correctly
+builder.Services.AddScoped<IClaimsTransformation, Auth0ClaimsTransformation>();
+
 // Configure authorization policies
 builder.Services.AddAuthorization(options =>
 {

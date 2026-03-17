@@ -1,0 +1,60 @@
+﻿@*
+ * Copyright (c) 2025 Matthew Paulosky. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ *@
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using Web.Auth
+
+<nav class="hidden md:flex items-center gap-1" aria-label="Main navigation">
+	<AuthorizeView Policy="@AuthorizationPolicies.UserPolicy">
+		<Authorized>
+			<NavLink href="/" Match="NavLinkMatch.All"
+				class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+				ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+				Home
+			</NavLink>
+			<NavLink href="/dashboard" Match="NavLinkMatch.All"
+				class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+				ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+				Dashboard
+			</NavLink>
+			<NavLink href="/issues" Match="NavLinkMatch.Prefix"
+				class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+				ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+				Issues
+			</NavLink>
+			<NavLink href="/issues/create" Match="NavLinkMatch.All"
+				class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+				ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+				Create
+			</NavLink>
+
+			<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy" Context="adminContext">
+				<Authorized>
+					<span class="h-5 w-px bg-gray-300 dark:bg-gray-600 mx-1"></span>
+					<NavLink href="/admin" Match="NavLinkMatch.All"
+						class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+						ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+						Admin
+					</NavLink>
+					<NavLink href="/admin/categories" Match="NavLinkMatch.All"
+						class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+						ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+						Categories
+					</NavLink>
+					<NavLink href="/admin/statuses" Match="NavLinkMatch.All"
+						class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+						ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+						Statuses
+					</NavLink>
+					<NavLink href="/admin/analytics" Match="NavLinkMatch.All"
+						class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+						ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+						Analytics
+					</NavLink>
+				</Authorized>
+			</AuthorizeView>
+		</Authorized>
+	</AuthorizeView>
+</nav>

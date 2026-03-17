@@ -147,12 +147,12 @@ public interface IIssueService
 public sealed class IssueService : IIssueService
 {
 	private readonly IMediator _mediator;
-	private readonly Domain.Abstractions.INotificationService _notificationService;
+	private readonly INotificationService _notificationService;
 	private readonly IBulkOperationQueue _bulkQueue;
 
 	public IssueService(
 		IMediator mediator,
-		Domain.Abstractions.INotificationService notificationService,
+		INotificationService notificationService,
 		IBulkOperationQueue bulkQueue)
 	{
 		_mediator = mediator;

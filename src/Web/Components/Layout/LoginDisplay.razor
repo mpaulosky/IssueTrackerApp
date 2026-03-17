@@ -5,7 +5,7 @@
 	<Authorized>
 		<div class="flex items-center gap-4">
 			<span class="text-sm text-gray-700">Hello, @context.User.Identity?.Name!</span>
-			<form method="post" action="/account/logout" class="inline">
+			<form method="post" action="/account/logout" data-enhance="false" class="inline">
 				<AntiforgeryToken />
 				<button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">Log out</button>
 			</form>

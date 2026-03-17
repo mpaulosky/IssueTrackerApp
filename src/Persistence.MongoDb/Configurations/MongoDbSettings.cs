@@ -15,7 +15,7 @@ public sealed class MongoDbSettings
 	/// <summary>
 	/// Database name.
 	/// </summary>
-	public string DatabaseName { get; init; } = "issuetracker-db";
+	public string DatabaseName { get; init; } = "issuetrackerdb";
 
 	/// <summary>
 	/// Maximum connection pool size.
