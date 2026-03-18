@@ -320,8 +320,8 @@ public class StatusBadgeTests : BunitTestBase
 			.Add(p => p.Status, status));
 
 		// Assert
-		cut.Find("span").GetAttribute("class").Should().Contain("bg-blue-100");
-		cut.Find("span").GetAttribute("class").Should().Contain("text-blue-800");
+		cut.Find("span").GetAttribute("class").Should().Contain("bg-primary-100");
+		cut.Find("span").GetAttribute("class").Should().Contain("text-primary-800");
 	}
 
 	[Fact]
@@ -456,12 +456,12 @@ public class CategoryBadgeTests : BunitTestBase
 			.Add(p => p.Category, category));
 
 		// Assert
-		cut.Find("span").GetAttribute("class").Should().Contain("bg-blue-100");
-		cut.Find("span").GetAttribute("class").Should().Contain("text-blue-800");
+		cut.Find("span").GetAttribute("class").Should().Contain("bg-primary-100");
+		cut.Find("span").GetAttribute("class").Should().Contain("text-primary-800");
 	}
 
 	[Fact]
-	public void CategoryBadge_QuestionCategory_AppliesPurpleColorClass()
+	public void CategoryBadge_QuestionCategory_AppliesPrimaryColorClass()
 	{
 		// Arrange
 		var category = CreateTestCategory(name: "Question");
@@ -471,8 +471,8 @@ public class CategoryBadgeTests : BunitTestBase
 			.Add(p => p.Category, category));
 
 		// Assert
-		cut.Find("span").GetAttribute("class").Should().Contain("bg-purple-100");
-		cut.Find("span").GetAttribute("class").Should().Contain("text-purple-800");
+		cut.Find("span").GetAttribute("class").Should().Contain("bg-primary-100");
+		cut.Find("span").GetAttribute("class").Should().Contain("text-primary-800");
 	}
 
 	[Fact]
@@ -757,7 +757,7 @@ public class ToastContainerTests : BunitTestBase
 
 		// Assert
 		cut.Markup.Should().Contain("Test Info Message");
-		cut.Markup.Should().Contain("bg-blue-50");
+		cut.Markup.Should().Contain("bg-primary-50");
 	}
 
 	[Fact]

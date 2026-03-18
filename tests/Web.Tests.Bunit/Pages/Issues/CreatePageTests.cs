@@ -673,9 +673,9 @@ public class CreatePageTests : BunitTestBase
 		var cut = Render<Create>();
 		await cut.InvokeAsync(() => Task.Delay(50));
 
-		// Assert
+		// Assert — form card uses the `card` utility class which encapsulates shadow via @apply
 		cut.Markup.Should().Contain("max-w-2xl");
-		cut.Markup.Should().Contain("shadow");
+		cut.Markup.Should().Contain("card");
 		cut.Markup.Should().Contain("rounded-lg");
 	}
 

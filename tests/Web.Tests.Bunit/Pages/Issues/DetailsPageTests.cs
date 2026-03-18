@@ -995,7 +995,7 @@ public class DetailsPageTests : BunitTestBase
 		cut.Markup.Should().Contain("This action cannot be undone");
 
 		// Find the confirm button INSIDE the modal dialog (not the header delete button)
-		var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
+		var confirmButton = cut.Find("[role='dialog'] .btn-danger");
 		confirmButton.Should().NotBeNull("confirm button should be present in modal");
 
 		await cut.InvokeAsync(() => confirmButton.Click());
@@ -1031,7 +1031,7 @@ public class DetailsPageTests : BunitTestBase
 		cut.Markup.Should().Contain("This action cannot be undone");
 
 		// Find the confirm button INSIDE the modal dialog (not the header delete button)
-		var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
+		var confirmButton = cut.Find("[role='dialog'] .btn-danger");
 		confirmButton.Should().NotBeNull("confirm button should be present in modal");
 
 		await cut.InvokeAsync(() => confirmButton.Click());
