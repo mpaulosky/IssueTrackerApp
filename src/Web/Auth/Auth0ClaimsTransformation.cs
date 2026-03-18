@@ -56,15 +56,8 @@ public sealed class Auth0ClaimsTransformation : IClaimsTransformation
 				return Task.FromResult(principal);
 			}
 
-			// Check if we've already added standard role claims to avoid duplication
-			var hasStandardRoleClaims = principal.HasClaim(c => c.Type == ClaimTypes.Role);
-			if (hasStandardRoleClaims)
-			{
-				// Already transformed
-				return Task.FromResult(principal);
-			}
-
-			// Add standard role claims for each Auth0 role
+			// Add standard role claims for each Auth0 role, skipping duplicates
+			var rolesAdded = 0;
 			foreach (var roleClaim in auth0RoleClaims)
 			{
 				var roleValue = roleClaim.Value;
@@ -78,12 +71,16 @@ public sealed class Auth0ClaimsTransformation : IClaimsTransformation
 					try
 					{
 						var roles = System.Text.Json.JsonSerializer.Deserialize<string[]>(roleValue);
-						if (roles != null)
+						if (roles is not null)
 						{
 							foreach (var role in roles)
 							{
-								identity.AddClaim(new Claim(ClaimTypes.Role, role));
-								_logger.LogDebug("Mapped Auth0 role '{Role}' to standard role claim.", role);
+								if (!identity.HasClaim(ClaimTypes.Role, role))
+								{
+									identity.AddClaim(new Claim(ClaimTypes.Role, role));
+									rolesAdded++;
+									_logger.LogDebug("Mapped Auth0 role '{Role}' to standard role claim.", role);
+								}
 							}
 						}
 					}
@@ -98,22 +95,33 @@ public sealed class Auth0ClaimsTransformation : IClaimsTransformation
 					var roles = roleValue.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 					foreach (var role in roles)
 					{
-						identity.AddClaim(new Claim(ClaimTypes.Role, role));
-						_logger.LogDebug("Mapped Auth0 role '{Role}' to standard role claim.", role);
+						if (!identity.HasClaim(ClaimTypes.Role, role))
+						{
+							identity.AddClaim(new Claim(ClaimTypes.Role, role));
+							rolesAdded++;
+							_logger.LogDebug("Mapped Auth0 role '{Role}' to standard role claim.", role);
+						}
 					}
 				}
 				else
 				{
 					// Single role value
-					identity.AddClaim(new Claim(ClaimTypes.Role, roleValue));
-					_logger.LogDebug("Mapped Auth0 role '{Role}' to standard role claim.", roleValue);
+					if (!identity.HasClaim(ClaimTypes.Role, roleValue))
+					{
+						identity.AddClaim(new Claim(ClaimTypes.Role, roleValue));
+						rolesAdded++;
+						_logger.LogDebug("Mapped Auth0 role '{Role}' to standard role claim.", roleValue);
+					}
 				}
 			}
 
-			_logger.LogInformation(
-				"Transformed {Count} Auth0 role claim(s) for user '{UserId}'.",
-				auth0RoleClaims.Count,
-				principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown");
+			if (rolesAdded > 0)
+			{
+				_logger.LogDebug(
+					"Transformed {Count} Auth0 role claim(s) for user '{UserId}'.",
+					rolesAdded,
+					principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown");
+			}
 		}
 
 		return Task.FromResult(principal);

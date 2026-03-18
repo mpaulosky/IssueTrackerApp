@@ -235,4 +235,23 @@ public class Auth0ClaimsTransformationTests
 		result.HasClaim(ClaimTypes.Role, "Admin").Should().BeTrue();
 		result.HasClaim(ClaimTypes.Role, "User").Should().BeTrue();
 	}
+
+	[Fact]
+	public async Task TransformAsync_WithPartialExistingRoles_AddsOnlyMissingRoles()
+	{
+		// Arrange — principal already has "Admin" role but Auth0 sends both "Admin" and "User"
+		var transformation = CreateTransformation();
+		var principal = CreatePrincipal(
+			new Claim(ClaimTypes.NameIdentifier, "user123"),
+			new Claim(TestNamespace, "[\"Admin\",\"User\"]"),
+			new Claim(ClaimTypes.Role, "Admin"));
+
+		// Act
+		var result = await transformation.TransformAsync(principal);
+
+		// Assert — "Admin" should not be duplicated, "User" should be added
+		result.FindAll(c => c.Type == ClaimTypes.Role && c.Value == "Admin")
+			.Should().HaveCount(1);
+		result.HasClaim(ClaimTypes.Role, "User").Should().BeTrue();
+	}
 }

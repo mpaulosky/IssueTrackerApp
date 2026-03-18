@@ -158,8 +158,8 @@ public class FooterComponentTests : BunitTestBase
 		var links = cut.FindAll("a[target='_blank']");
 		links.Should().HaveCountGreaterThanOrEqualTo(2);
 
-		// Version link should have a title attribute
-		var versionLink = links[0];
+		// Version link — select by href containing /releases/ for stability
+		var versionLink = cut.Find("a[href*='/releases']");
 		versionLink.GetAttribute("title").Should().Contain("View");
 	}
 }
