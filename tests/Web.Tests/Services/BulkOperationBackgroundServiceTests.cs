@@ -22,7 +22,6 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 {
 	private readonly IServiceScopeFactory _scopeFactory;
 	private readonly InMemoryBulkOperationQueue _queue;
-	private readonly INotificationService _notificationService;
 	private readonly IMediator _mediator;
 	private readonly IServiceScope _scope;
 	private readonly IServiceProvider _scopedServiceProvider;
@@ -30,7 +29,6 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 	public BulkOperationBackgroundServiceTests()
 	{
 		_mediator = Substitute.For<IMediator>();
-		_notificationService = Substitute.For<INotificationService>();
 
 		// Create a real queue with memory cache
 		var memoryCache = new MemoryCache(new MemoryCacheOptions());
@@ -59,7 +57,6 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		return new BulkOperationBackgroundService(
 			_scopeFactory,
 			_queue,
-			_notificationService,
 			NullLogger<BulkOperationBackgroundService>.Instance);
 	}
 
