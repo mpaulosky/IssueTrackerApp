@@ -847,7 +847,7 @@ public class SignalRConnectionTests : BunitTestBase
 		var cut = Render<SignalRConnection>();
 
 		// Assert
-		cut.Markup.Should().Contain("Reconnecting...");
+		cut.Markup.Should().Contain("Offline");
 	}
 
 	[Fact]
@@ -861,15 +861,15 @@ public class SignalRConnectionTests : BunitTestBase
 	}
 
 	[Fact]
-	public void SignalRConnection_FixedPositioning_AppliedCorrectly()
+	public void SignalRConnection_CompactLayout_HasNoFixedPositioning()
 	{
 		// Arrange & Act
 		var cut = Render<SignalRConnection>();
 
 		// Assert
-		cut.Find("div").GetAttribute("class").Should().Contain("fixed");
-		cut.Find("div").GetAttribute("class").Should().Contain("bottom-4");
-		cut.Find("div").GetAttribute("class").Should().Contain("right-4");
+		cut.Markup.Should().NotContain("fixed");
+		cut.Markup.Should().NotContain("bottom-4");
+		cut.Markup.Should().NotContain("right-4");
 	}
 }
 

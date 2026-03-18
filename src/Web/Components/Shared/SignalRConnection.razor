@@ -3,38 +3,33 @@
 @implements IAsyncDisposable
 @inject SignalRClientService SignalRClient
 
-<div class="fixed bottom-4 right-4 z-40">
-	@if (ConnectionState == HubConnectionState.Connected)
-	{
-		<div class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
-			title="Real-time updates active">
-			<span class="relative flex h-3 w-3">
-				<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-				<span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-			</span>
-			<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Connected</span>
-		</div>
-	}
-	else if (ConnectionState == HubConnectionState.Connecting || ConnectionState == HubConnectionState.Reconnecting)
-	{
-		<div class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-yellow-200 dark:border-yellow-700"
-			title="Connecting to real-time updates">
-			<span class="relative flex h-3 w-3">
-				<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-				<span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
-			</span>
-			<span class="text-sm font-medium text-yellow-700 dark:text-yellow-300">Connecting...</span>
-		</div>
-	}
-	else if (ConnectionState == HubConnectionState.Disconnected)
-	{
-		<div class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-red-200 dark:border-red-700"
-			title="Disconnected from real-time updates">
-			<span class="relative flex h-3 w-3 bg-red-500 rounded-full"></span>
-			<span class="text-sm font-medium text-red-700 dark:text-red-300">Reconnecting...</span>
-		</div>
-	}
-</div>
+@if (ConnectionState == HubConnectionState.Connected)
+{
+	<div class="flex items-center gap-1.5" title="Real-time updates active">
+		<span class="relative flex h-2.5 w-2.5">
+			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+		</span>
+		<span class="text-xs hidden sm:inline text-green-300 dark:text-green-700">Live</span>
+	</div>
+}
+else if (ConnectionState == HubConnectionState.Connecting || ConnectionState == HubConnectionState.Reconnecting)
+{
+	<div class="flex items-center gap-1.5" title="Connecting to real-time updates">
+		<span class="relative flex h-2.5 w-2.5">
+			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
+		</span>
+		<span class="text-xs hidden sm:inline text-yellow-300 dark:text-yellow-700">Connecting</span>
+	</div>
+}
+else if (ConnectionState == HubConnectionState.Disconnected)
+{
+	<div class="flex items-center gap-1.5" title="Disconnected from real-time updates">
+		<span class="flex h-2.5 w-2.5 bg-red-500 rounded-full"></span>
+		<span class="text-xs hidden sm:inline text-red-300 dark:text-red-700">Offline</span>
+	</div>
+}
 
 @code {
 	private HubConnectionState ConnectionState { get; set; } = HubConnectionState.Disconnected;
