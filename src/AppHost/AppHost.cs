@@ -1,12 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Add MongoDB container
-var mongoServer = builder.AddMongoDB("mongodb");
-if (builder.Environment.EnvironmentName == "Development")
-{
-	mongoServer = mongoServer.WithMongoExpress();
-}
-var mongodb = mongoServer.AddDatabase("issuetracker-db");
+// Reference MongoDB Atlas connection string from User Secrets (ConnectionStrings:mongodb)
+var mongodb = builder.AddConnectionString("mongodb");
 
 // Add Redis container
 var redis = builder.AddRedis("redis");
@@ -19,7 +14,6 @@ if (builder.Environment.EnvironmentName == "Development")
 builder.AddProject<Projects.Web>("web")
 	.WithReference(mongodb)
 	.WithReference(redis)
-	.WaitFor(mongodb)
 	.WaitFor(redis)
 	.WithHttpHealthCheck("/health");
 

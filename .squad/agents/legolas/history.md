@@ -476,6 +476,43 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 - Test date range filtering updates charts
 - Test dark mode theme switching
 - Consider adding chart legends to help colorblind users
+
+---
+
+### 2026-03-19: Navigation Menu & Landing Page (2026-03-17T18:54:25Z)
+
+**What I Built:**
+
+1. **NavMenuComponent.razor** - Role-based sidebar navigation
+   - Fixed 256px width left sidebar (visible when authenticated)
+   - Separated user-level navigation (Home, Dashboard, Issues, Create Issue)
+   - Admin-only navigation (Admin Dashboard, Categories, Statuses, Analytics)
+   - Nested AuthorizeView components with custom context naming
+   - Emoji icons for visual distinction
+   - TailwindCSS dark mode support
+   - Scalable pattern for adding new menu items
+
+2. **MainLayout.razor Updates**
+   - Integrated NavMenuComponent within AuthorizeView
+   - Responsive flex layout: header (top) + sidebar (left) + content (right)
+   - Clean separation of authenticated vs unauthenticated UI
+
+3. **Home.razor Redesign**
+   - Dual-state landing page
+   - Unauthenticated view: welcome message with call-to-action
+   - Authenticated view: brief dashboard preview with quick navigation links
+   - Proper semantic HTML and accessibility
+
+**Build Status:** ✅ Passes successfully
+
+**Key Technical Decisions:**
+- Used nested AuthorizeView with custom context naming to avoid Razor conflicts
+- Emoji icons (no external icon library dependency)
+- Sidebar always visible when authenticated (collapse feature deferred to future sprint)
+
+**Team Impact for Gandalf:** Claims transformation now properly integrates with role-based navigation — authorization policies work correctly.
+
+---
 - Consider adding data labels to charts for exact values
 - E2E tests for analytics workflows
 
@@ -494,5 +531,75 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 - Authorization at route level
 - Responsive design mobile-first
 - Dark mode consistency
+
+---
+
+### 2026-03-13 - Navigation Menu and Landing Page (Matthew Request)
+
+**Task:** Fix missing navigation menu for authenticated users and improve landing page
+
+**Problem:** 
+- No visible navigation menu when users logged in
+- Home page was a placeholder with no content
+- Users couldn't navigate to Dashboard, Issues, or Admin pages
+
+**What I Built:**
+1. **NavMenuComponent.razor** (`src/Web/Components/Layout/NavMenuComponent.razor`)
+   - Sidebar navigation with role-based menu items
+   - User role links: Home, Dashboard, Issues, Create Issue
+   - Admin role links: Admin Dashboard, Categories, Statuses, Analytics
+   - Used `<AuthorizeView>` with `UserPolicy` and `AdminPolicy`
+   - Nested `<AuthorizeView>` with custom context name (`Context="adminContext"`) to avoid naming conflict
+   - TailwindCSS styling: hover states, active states, dark mode support
+   - Icons using emoji for visual clarity
+
+2. **MainLayout.razor** Updates
+   - Added sidebar layout with flex container
+   - NavMenuComponent shown only for authenticated users
+   - Layout: header (top) → flex container → sidebar (left, 256px) + main content (right)
+   - Responsive overflow handling for sidebar and main content
+
+3. **Home.razor** Landing Page Improvements
+   - Dual experience: authenticated vs. unauthenticated
+   - **Authenticated View:**
+     - Personalized welcome with user name
+     - Quick action buttons (Dashboard, Create Issue)
+     - Three feature cards with links to main sections
+   - **Unauthenticated View:**
+     - Hero section with value proposition
+     - Feature highlights (4 key features with icons)
+     - Prominent "Log in to Get Started" CTA
+   - Full TailwindCSS styling with dark mode support
+
+**Key Technical Decisions:**
+- Used `Context="adminContext"` on nested AuthorizeView to prevent context name collision
+- `NavLink` with `Match="NavLinkMatch.All"` for exact matching on most routes
+- `Match="NavLinkMatch.Prefix"` for `/issues` to highlight when on sub-routes
+- Sidebar is 256px wide (w-64) and only visible when authenticated
+- Landing page uses centered hero for unauthenticated, dashboard-style cards for authenticated
+
+**File Paths:**
+- New: `src/Web/Components/Layout/NavMenuComponent.razor`
+- Modified: `src/Web/Components/Layout/MainLayout.razor`
+- Modified: `src/Web/Components/Pages/Home.razor`
+
+**Authorization Reference:**
+- `Web.Auth.AuthorizationPolicies.UserPolicy` - for standard authenticated users
+- `Web.Auth.AuthorizationPolicies.AdminPolicy` - for admin-only features
+- Policies defined in `src/Web/Auth/AuthorizationPolicies.cs`
+- Roles defined in `src/Web/Auth/AuthorizationRoles.cs`
+
+**Build Verification:**
+- Build succeeded: `dotnet build src\Web\Web.csproj` (7.3s)
+- Fixed nested AuthorizeView context conflict during build
+
+**Best Practices Applied:**
+- Copyright headers on all new files
+- Role-based access control with proper authorization views
+- Responsive design with Tailwind CSS
+- Dark mode support throughout
+- Semantic HTML and accessibility considerations
+- Component naming: `*Component.razor` convention
+- Page naming: `*Page.razor` convention (Home.razor existing pattern)
 
 ---

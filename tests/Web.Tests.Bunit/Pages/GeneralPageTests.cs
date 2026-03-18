@@ -178,8 +178,8 @@ public class HomePageTests : BunitTestBase
 
 		// Assert
 		var markup = cut.Markup;
-		markup.Should().Contain("Hello");
-		markup.Should().Contain("world");
+		markup.Should().Contain("Welcome to IssueTracker");
+		markup.Should().Contain("Log in to Get Started");
 	}
 
 	[Fact]
@@ -194,7 +194,8 @@ public class HomePageTests : BunitTestBase
 		// Assert
 		var markup = cut.Markup;
 		markup.Should().NotBeNull();
-		markup.Should().Contain("Hello");
+		markup.Should().Contain("Welcome back");
+		markup.Should().Contain("Jane Smith");
 	}
 
 	[Fact]

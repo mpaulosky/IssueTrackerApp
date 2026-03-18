@@ -98,7 +98,7 @@ public class MainLayoutTests : BunitTestBase
 		var cut = Render<MainLayout>();
 
 		// Assert - ToastContainer renders as a fixed div
-		cut.Markup.Should().Contain("fixed top-4 right-4 z-50");
+		cut.Markup.Should().Contain("fixed top-20 right-4 z-50");
 	}
 
 	[Fact]
@@ -213,7 +213,7 @@ public class LoginDisplayTests : BunitTestBase
 
 		// Assert
 		cut.Markup.Should().Contain("Log out");
-		cut.Markup.Should().Contain("bg-red-600");
+		cut.Markup.Should().Contain("btn-danger");
 	}
 
 	[Fact]
@@ -257,7 +257,7 @@ public class LoginDisplayTests : BunitTestBase
 
 		// Assert
 		cut.Markup.Should().Contain("Log in");
-		cut.Markup.Should().Contain("bg-blue-600");
+		cut.Markup.Should().Contain("btn-primary");
 	}
 
 	[Fact]
@@ -323,12 +323,9 @@ public class LoginDisplayTests : BunitTestBase
 		// Act
 		var cut = Render<LoginDisplay>();
 
-		// Assert
-		cut.Markup.Should().Contain("px-4");
-		cut.Markup.Should().Contain("py-2");
-		cut.Markup.Should().Contain("text-sm");
-		cut.Markup.Should().Contain("font-medium");
-		cut.Markup.Should().Contain("text-white");
+		// Assert — btn-danger utility class encapsulates button styling via @apply
+		cut.Markup.Should().Contain("btn-danger");
+		cut.Markup.Should().Contain("transition-colors");
 	}
 
 	[Fact]
@@ -340,17 +337,13 @@ public class LoginDisplayTests : BunitTestBase
 		// Act
 		var cut = Render<LoginDisplay>();
 
-		// Assert
-		cut.Markup.Should().Contain("px-4");
-		cut.Markup.Should().Contain("py-2");
-		cut.Markup.Should().Contain("text-sm");
-		cut.Markup.Should().Contain("font-medium");
-		cut.Markup.Should().Contain("text-white");
-		cut.Markup.Should().Contain("bg-blue-600");
+		// Assert — btn-primary utility class encapsulates button styling via @apply
+		cut.Markup.Should().Contain("btn-primary");
+		cut.Markup.Should().Contain("transition-colors");
 	}
 
 	[Fact]
-	public void LoginDisplay_LogoutButtonHasHoverEffect()
+	public void LoginDisplay_LogoutButtonUsesUtilityClass()
 	{
 		// Arrange
 		SetupAuthenticatedUser();
@@ -358,12 +351,13 @@ public class LoginDisplayTests : BunitTestBase
 		// Act
 		var cut = Render<LoginDisplay>();
 
-		// Assert
-		cut.Markup.Should().Contain("hover:bg-red-700");
+		// Assert — hover/focus states are encapsulated in the btn-danger utility class
+		var button = cut.Find("button[type='submit']");
+		button.GetAttribute("class").Should().Contain("btn-danger");
 	}
 
 	[Fact]
-	public void LoginDisplay_LoginButtonHasHoverEffect()
+	public void LoginDisplay_LoginButtonUsesUtilityClass()
 	{
 		// Arrange
 		SetupAnonymousUser();
@@ -371,8 +365,9 @@ public class LoginDisplayTests : BunitTestBase
 		// Act
 		var cut = Render<LoginDisplay>();
 
-		// Assert
-		cut.Markup.Should().Contain("hover:bg-blue-700");
+		// Assert — hover/focus states are encapsulated in the btn-primary utility class
+		var link = cut.Find("a");
+		link.GetAttribute("class").Should().Contain("btn-primary");
 	}
 
 	[Fact]

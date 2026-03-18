@@ -1,7 +1,109 @@
-﻿@page "/"
+﻿@*
+ * Copyright (c) 2025 Matthew Paulosky. All rights reserved.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ *@
 
-<PageTitle>Home</PageTitle>
+@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
 
-<h1 class="text-3xl font-bold text-gray-900 mb-4">Hello, world!</h1>
+<PageTitle>Home - IssueTracker</PageTitle>
 
-<p class="text-gray-600">Welcome to your new app.</p>
+<AuthorizeView>
+	<Authorized>
+		<div class="space-y-6">
+			<div class="card-bordered p-8">
+				<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+					Welcome back, @context.User.Identity?.Name! 👋
+				</h1>
+				<p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+					You're successfully logged in to IssueTracker. Use the navigation menu on the left to get started.
+				</p>
+				<div class="flex gap-4">
+					<a href="/dashboard" class="btn-primary px-6 py-3 transition-colors">
+						Go to Dashboard
+					</a>
+					<a href="/issues/create" class="btn-primary px-6 py-3 transition-colors">
+						Create New Issue
+					</a>
+				</div>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<div class="card-bordered p-6">
+					<div class="flex items-center mb-4">
+						<span class="text-3xl mr-3">📊</span>
+						<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h2>
+					</div>
+					<p class="text-gray-600 dark:text-gray-300 mb-4">
+						View analytics, metrics, and insights about your issues.
+					</p>
+					<a href="/dashboard" class="link-primary font-medium">
+						View Dashboard →
+					</a>
+				</div>
+
+				<div class="card-bordered p-6">
+					<div class="flex items-center mb-4">
+						<span class="text-3xl mr-3">📋</span>
+						<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Issues</h2>
+					</div>
+					<p class="text-gray-600 dark:text-gray-300 mb-4">
+						Browse, search, and manage all your issues in one place.
+					</p>
+					<a href="/issues" class="link-primary font-medium">
+						View Issues →
+					</a>
+				</div>
+
+				<div class="card-bordered p-6">
+					<div class="flex items-center mb-4">
+						<span class="text-3xl mr-3">➕</span>
+						<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Create</h2>
+					</div>
+					<p class="text-gray-600 dark:text-gray-300 mb-4">
+						Report a new issue and start tracking it immediately.
+					</p>
+					<a href="/issues/create" class="link-primary font-medium">
+						Create Issue →
+					</a>
+				</div>
+			</div>
+		</div>
+	</Authorized>
+	<NotAuthorized>
+		<div class="flex items-center justify-center min-h-[60vh]">
+			<div class="max-w-2xl mx-auto text-center card-bordered shadow-xl p-12">
+				<h1 class="text-5xl font-bold text-gray-900 dark:text-white mb-6">
+					Welcome to IssueTracker 🎯
+				</h1>
+				<p class="text-xl text-gray-600 dark:text-gray-300 mb-8">
+					Manage, track, and resolve issues efficiently with our modern issue tracking system.
+				</p>
+				<div class="space-y-4 mb-8">
+					<div class="flex items-center justify-center gap-3 text-gray-700 dark:text-gray-300">
+						<span class="text-2xl">✅</span>
+						<span class="text-lg">Track issues with rich details and categorization</span>
+					</div>
+					<div class="flex items-center justify-center gap-3 text-gray-700 dark:text-gray-300">
+						<span class="text-2xl">📊</span>
+						<span class="text-lg">View analytics and insights on your dashboard</span>
+					</div>
+					<div class="flex items-center justify-center gap-3 text-gray-700 dark:text-gray-300">
+						<span class="text-2xl">🔄</span>
+						<span class="text-lg">Real-time updates via SignalR</span>
+					</div>
+					<div class="flex items-center justify-center gap-3 text-gray-700 dark:text-gray-300">
+						<span class="text-2xl">🎨</span>
+						<span class="text-lg">Beautiful UI with dark mode support</span>
+					</div>
+				</div>
+				<a href="/account/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" 
+					class="btn-primary inline-block px-8 py-4 text-lg rounded-lg transition-colors shadow-lg">
+					Log in to Get Started
+				</a>
+			</div>
+		</div>
+	</NotAuthorized>
+</AuthorizeView>
+

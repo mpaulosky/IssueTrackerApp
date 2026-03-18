@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
 
 		services.AddSingleton<IValidateOptions<MongoDbSettings>, MongoDbSettingsValidator>();
 
-		// Register DbContext with MongoDB provider
+		// Register DbContext with a MongoDB provider
 		services.AddDbContext<IssueTrackerDbContext>((serviceProvider, options) =>
 		{
 			var settings = serviceProvider.GetRequiredService<IOptions<MongoDbSettings>>().Value;
@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IIssueTrackerDbContext>(sp => sp.GetRequiredService<IssueTrackerDbContext>());
 
 		// Register DbContext factory for scenarios requiring multiple contexts
+		// Use scoped lifetime to match the scoped DbContextOptions registered by AddDbContext
 		services.AddDbContextFactory<IssueTrackerDbContext>((serviceProvider, options) =>
 		{
 			var settings = serviceProvider.GetRequiredService<IOptions<MongoDbSettings>>().Value;
@@ -43,16 +44,16 @@ public static class ServiceCollectionExtensions
 			options.UseMongoDB(
 				settings.ConnectionString,
 				settings.DatabaseName);
-		});
+		}, lifetime: ServiceLifetime.Scoped);
 
-		// Register generic repository
+		// Register a generic repository
 		services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 		return services;
 	}
 
 	/// <summary>
-	/// Initializes the MongoDB database (creates database and applies indexes).
+	/// Initializes the MongoDB database (creates a database and applies indexes).
 	/// </summary>
 	public static async Task InitializeMongoDbAsync(this IServiceProvider serviceProvider)
 	{

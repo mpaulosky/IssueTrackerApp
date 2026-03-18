@@ -404,6 +404,33 @@
    - Avoids polluting production codebase with test-only types
 
 **Test Results:**
+
+---
+
+### 2026-03-19: Team Updates & Components to Test (2026-03-17T18:54:25Z)
+
+**From Gandalf — Auth0 Role Claim Mapping:**
+- Implemented `Auth0ClaimsTransformation` service to fix "Access Denied" for authenticated users
+- Maps Auth0 custom role claims to standard `ClaimTypes.Role`
+- Handles multiple role formats (JSON arrays, CSV, single values)
+- Includes comprehensive logging and idempotency checks
+
+**For Gimli:** New component to add to bUnit test coverage — test that claims transformation correctly maps roles from Auth0 JWT tokens. Focus on multiple role format handling (arrays, CSV strings, single values).
+
+**From Legolas — Navigation Menu & Landing Page:**
+- Created `NavMenuComponent.razor` with role-based sidebar
+- Updated `MainLayout.razor` for responsive layout
+- Redesigned `Home.razor` as dual-state landing page
+
+**For Gimli:** New Blazor components ready for bUnit test coverage:
+1. **NavMenuComponent.razor** — Test role-based visibility, navigation links, menu item visibility
+   - Remember established pattern: scope modal/dialog queries to `[role='dialog']` container
+2. **MainLayout.razor** — Test sidebar/header layout, responsive behavior
+3. **Home.razor** — Test authenticated/unauthenticated state rendering
+
+**Recommendation:** Use bUnit shared fixture pattern for complex component tests. Ensure proper disposal of DI containers between test runs.
+
+---
 - CommentMapperTests: 18 tests passing
 - IssueMapperTests: 19 tests passing
 - CsvExportHelperTests: 21 tests passing

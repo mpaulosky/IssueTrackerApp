@@ -1,13 +1,19 @@
 ﻿@inherits LayoutComponentBase
-@using Web.Components.Theme
-@using Web.Components.Shared
-@using Microsoft.AspNetCore.Components.Authorization
 
 <ThemeProvider>
 	<div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-		<header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-				<h1 class="text-xl font-semibold text-gray-900 dark:text-white">IssueTracker</h1>
+		<header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+				<div class="flex items-center gap-6">
+					<a href="/" class="text-xl font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors whitespace-nowrap">
+						IssueTracker
+					</a>
+					<AuthorizeView>
+						<Authorized>
+							<NavMenuComponent />
+						</Authorized>
+					</AuthorizeView>
+				</div>
 				<div class="flex items-center gap-2">
 					<ColorSchemeSelector />
 					<ThemeToggle />
@@ -15,9 +21,12 @@
 				</div>
 			</div>
 		</header>
-		<main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
-			@Body
+		<main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+			<div class="max-w-7xl mx-auto">
+				@Body
+			</div>
 		</main>
+		<FooterComponent />
 	</div>
 </ThemeProvider>
 
@@ -27,7 +36,6 @@
 		<SignalRConnection />
 	</Authorized>
 </AuthorizeView>
-
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
