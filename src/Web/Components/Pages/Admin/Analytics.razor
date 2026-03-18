@@ -12,7 +12,7 @@
 <AdminPageLayout Title="Analytics Dashboard" Description="View comprehensive analytics and insights about your issues">
 
 	<!-- Date Range Picker -->
-	<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
+	<div class="card-bordered mb-6 p-4">
 		<DateRangePicker StartDate="_startDate"
 		                 EndDate="_endDate"
 		                 OnRangeChanged="OnDateRangeChanged" />
@@ -25,7 +25,7 @@
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 				@for (int i = 0; i < 4; i++)
 				{
-					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+					<div class="card-bordered p-6 animate-pulse">
 						<div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
 						<div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
 					</div>
@@ -47,7 +47,7 @@
 			<SummaryCard Title="Total Issues"
 			             Value="@_analyticsData.TotalIssues.ToString()"
 			             Icon="@TotalIssuesIcon"
-			             IconBackgroundClass="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400" />
+			             IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400" />
 
 			<SummaryCard Title="Open Issues"
 			             Value="@_analyticsData.OpenIssues.ToString()"
@@ -63,14 +63,14 @@
 			             Value="@FormatResolutionTime(_analyticsData.AverageResolutionHours)"
 			             Subtitle="hours"
 			             Icon="@TimeIcon"
-			             IconBackgroundClass="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400" />
+			             IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400" />
 		</div>
 
 		<!-- Charts Grid -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			<!-- Issues by Status - Pie Chart -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Issues by Status</h3>
+			<div class="card-bordered p-6">
+				<h3 class="heading-section mb-4">Issues by Status</h3>
 				<div class="h-64">
 					<PieChart ChartId="statusChart"
 					          Labels="@_statusLabels"
@@ -81,8 +81,8 @@
 			</div>
 
 			<!-- Issues by Category - Bar Chart -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Issues by Category</h3>
+			<div class="card-bordered p-6">
+				<h3 class="heading-section mb-4">Issues by Category</h3>
 				<div class="h-64">
 					<BarChart ChartId="categoryChart"
 					          Labels="@_categoryLabels"
@@ -93,8 +93,8 @@
 			</div>
 
 			<!-- Issues Over Time - Line Chart -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 lg:col-span-2">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Issues Over Time</h3>
+			<div class="card-bordered p-6 lg:col-span-2">
+				<h3 class="heading-section mb-4">Issues Over Time</h3>
 				<div class="h-64">
 					<LineChart ChartId="timeChart"
 					           Labels="@_timeLabels"
@@ -104,8 +104,8 @@
 			</div>
 
 			<!-- Top Contributors - Bar Chart -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 lg:col-span-2">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Contributors</h3>
+			<div class="card-bordered p-6 lg:col-span-2">
+				<h3 class="heading-section mb-4">Top Contributors</h3>
 				<div class="h-64">
 					<BarChart ChartId="contributorsChart"
 					          Labels="@_contributorLabels"
@@ -120,7 +120,7 @@
 		<div class="mt-6 flex justify-end">
 			<button @onclick="ExportToCsv"
 			        disabled="@_isExporting"
-			        class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+			        class="btn-primary rounded-lg">
 				@if (_isExporting)
 				{
 					<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
