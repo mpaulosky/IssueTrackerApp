@@ -200,4 +200,92 @@
 	.form-floating > .form-control:focus::placeholder {
 		text-align: start;
 	}
+
+	/* ============================================
+	   Reusable Utility Classes
+	   Consolidates repeated Tailwind patterns
+	   ============================================ */
+
+	/* Buttons */
+	.btn-primary {
+		@apply inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+	}
+
+	.btn-secondary {
+		@apply inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+	}
+
+	.btn-danger {
+		@apply inline-flex items-center rounded-md border border-transparent bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+	}
+
+	.btn-icon {
+		@apply p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors;
+	}
+
+	/* Cards */
+	.card {
+		@apply bg-white dark:bg-gray-800 rounded-lg shadow;
+	}
+
+	.card-bordered {
+		@apply bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700;
+	}
+
+	.card-section {
+		@apply px-4 py-5 sm:p-6;
+	}
+
+	.card-footer {
+		@apply bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6;
+	}
+
+	/* Forms */
+	.form-input {
+		@apply block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+	}
+
+	.form-label {
+		@apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+	}
+
+	/* Badges */
+	.badge {
+		@apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+	}
+
+	/* Links */
+	.link-primary {
+		@apply text-primary-600 dark:text-primary-400 hover:underline;
+	}
+
+	.link-muted {
+		@apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300;
+	}
+
+	/* Headings */
+	.heading-page {
+		@apply text-2xl font-bold text-gray-900 dark:text-white;
+	}
+
+	.heading-section {
+		@apply text-lg font-medium text-gray-900 dark:text-white;
+	}
+
+	/* Modals */
+	.modal-overlay {
+		@apply fixed inset-0 z-50 overflow-y-auto;
+	}
+
+	.modal-backdrop {
+		@apply fixed inset-0 bg-gray-500/75 dark:bg-gray-900/75 transition-opacity;
+	}
+
+	.modal-panel {
+		@apply relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full;
+	}
+
+	.modal-body {
+		@apply bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4;
+	}
 }

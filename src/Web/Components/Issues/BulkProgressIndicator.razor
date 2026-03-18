@@ -4,14 +4,14 @@
 
 @if (IsVisible)
 {
-	<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="progress-title" role="dialog" aria-modal="true">
+	<div class="modal-overlay" aria-labelledby="progress-title" role="dialog" aria-modal="true">
 		<div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
 			<!-- Background overlay -->
-			<div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
+			<div class="modal-backdrop"
 				aria-hidden="true"></div>
 
 			<!-- Modal panel -->
-			<div class="relative inline-block bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+			<div class="modal-panel">
 				<div class="bg-white dark:bg-gray-800 px-6 py-6">
 					<div class="text-center">
 						<!-- Title -->
@@ -89,7 +89,7 @@
 					@if (!IsComplete && CanCancel)
 					{
 						<button type="button"
-							class="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+							class="btn-secondary justify-center"
 							@onclick="OnCancelOperation">
 							Cancel Operation
 						</button>
@@ -97,7 +97,7 @@
 					@if (IsComplete)
 					{
 						<button type="button"
-							class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+							class="btn-primary justify-center"
 							@onclick="OnClose">
 							Close
 						</button>

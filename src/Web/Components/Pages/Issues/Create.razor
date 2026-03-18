@@ -32,7 +32,7 @@
 				</li>
 			</ol>
 		</nav>
-		<h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Create New Issue</h1>
+		<h1 class="heading-page mt-4">Create New Issue</h1>
 		<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 			Fill out the form below to create a new issue.
 		</p>
@@ -58,17 +58,17 @@
 	<EditForm Model="@_model" OnValidSubmit="HandleSubmit" class="space-y-6">
 		<DataAnnotationsValidator />
 
-		<div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-			<div class="px-4 py-5 sm:p-6 space-y-6">
+		<div class="card sm:rounded-lg">
+			<div class="card-section space-y-6">
 				<!-- Title -->
 				<div>
-					<label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+					<label for="title" class="form-label">
 						Title <span class="text-red-500">*</span>
 					</label>
 					<div class="mt-1">
 						<InputText id="title"
 						           @bind-Value="_model.Title"
-						           class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+						           class="form-input"
 						           placeholder="Enter a descriptive title" />
 					</div>
 					<ValidationMessage For="@(() => _model.Title)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
@@ -76,14 +76,14 @@
 
 				<!-- Description -->
 				<div>
-					<label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+					<label for="description" class="form-label">
 						Description <span class="text-red-500">*</span>
 					</label>
 					<div class="mt-1">
 						<InputTextArea id="description"
 						               @bind-Value="_model.Description"
 						               rows="6"
-						               class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+						               class="form-input"
 						               placeholder="Describe the issue in detail..." />
 					</div>
 					<ValidationMessage For="@(() => _model.Description)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
@@ -91,13 +91,13 @@
 
 				<!-- Category -->
 				<div>
-					<label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+					<label for="category" class="form-label">
 						Category <span class="text-red-500">*</span>
 					</label>
 					<div class="mt-1">
 						<InputSelect id="category"
 						             @bind-Value="_model.CategoryId"
-						             class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+						             class="form-input">
 							<option value="">Select a category</option>
 							@if (_categories is not null)
 							{
@@ -115,12 +115,12 @@
 			<!-- Form Actions -->
 			<div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 flex justify-end space-x-3">
 				<a href="/issues"
-				   class="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+				   class="btn-secondary justify-center">
 					Cancel
 				</a>
 				<button type="submit"
 				        disabled="@_isSubmitting"
-				        class="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+				        class="btn-primary justify-center">
 					@if (_isSubmitting)
 					{
 						<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
