@@ -7,11 +7,11 @@
 			<span class="text-sm text-gray-700">Hello, @context.User.Identity?.Name!</span>
 			<form method="post" action="/account/logout" data-enhance="false" class="inline">
 				<AntiforgeryToken />
-				<button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">Log out</button>
+				<button type="submit" class="btn-danger transition-colors">Log out</button>
 			</form>
 		</div>
 	</Authorized>
 	<NotAuthorized>
-		<a href="/account/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">Log in</a>
+		<a href="/account/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" class="btn-primary transition-colors">Log in</a>
 	</NotAuthorized>
 </AuthorizeView>

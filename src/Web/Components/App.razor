@@ -1,30 +1,29 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
-
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en" class="light">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="/" />
-    <ResourcePreloader />
-    <link rel="stylesheet" href="@Assets["css/app.css"]" />
-    <link rel="stylesheet" href="@Assets["Web.styles.css"]" />
-    <ImportMap />
-    <HeadOutlet />
-    @* Initialize theme before page render to prevent flash of unstyled content *@
-    <script src="js/theme.js"></script>
-    @* Chart.js for analytics dashboard *@
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<base href="/"/>
+	<title>IssueTracker</title>
+	<ResourcePreloader/>
+	<link rel="stylesheet" href="@Assets["css/app.css"]"/>
+	<link rel="stylesheet" href="@Assets["Web.styles.css"]"/>
+	<ImportMap/>
+	<HeadOutlet/>
+	@* Initialize theme before page render to prevent flash of unstyled content *@
+	<script src="js/theme.js"></script>
+	@* Chart.js for analytics dashboard *@
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <CascadingAuthenticationState>
-        <Routes @rendermode="InteractiveServer" />
-    </CascadingAuthenticationState>
-    <ReconnectModal />
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
-    <script src="js/charts.js"></script>
+<CascadingAuthenticationState>
+	<Routes @rendermode="InteractiveServer"/>
+</CascadingAuthenticationState>
+<ReconnectModal/>
+<script src="@Assets["_framework/blazor.web.js"]"></script>
+<script src="js/charts.js"></script>
 </body>
 
 </html>

@@ -1,7 +1,4 @@
 ﻿@inherits LayoutComponentBase
-@using Web.Components.Theme
-@using Web.Components.Shared
-@using Microsoft.AspNetCore.Components.Authorization
 
 <ThemeProvider>
 	<div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -29,6 +26,7 @@
 				@Body
 			</div>
 		</main>
+		<FooterComponent />
 	</div>
 </ThemeProvider>
 
@@ -38,7 +36,6 @@
 		<SignalRConnection />
 	</Authorized>
 </AuthorizeView>
-
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>

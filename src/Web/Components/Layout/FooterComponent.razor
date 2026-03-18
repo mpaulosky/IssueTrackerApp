@@ -1,20 +1,20 @@
-<footer class="border-t border-[var(--border-color)] bg-[var(--bg-surface)] py-4" role="contentinfo">
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-[var(--text-muted)]">
+<footer class="border-t border-primary-500/30 bg-primary-50 dark:bg-gray-800 py-4" role="contentinfo">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-gray-500 dark:text-gray-400">
 
-		<span>&copy; @DateTime.Now.Year IssueManager &mdash; Built with .NET 10 &amp; Blazor</span>
+		<span>&copy; @DateTime.Now.Year IssueTracker &mdash; Built with .NET 10 &amp; Blazor</span>
 
 		<div class="flex items-center gap-4 font-mono text-xs">
 			<a href="@_releaseUrl"
 			   target="_blank"
 			   rel="noopener noreferrer"
-			   class="hover:text-[var(--color-primary)] transition-colors"
+			   class="hover:text-primary-500 transition-colors"
 			   title="View @BuildInfo.Version on GitHub">
 				@BuildInfo.Version
 			</a>
 			<a href="@_commitUrl"
 			   target="_blank"
 			   rel="noopener noreferrer"
-			   class="hover:text-[var(--color-primary)] transition-colors"
+			   class="hover:text-primary-500 transition-colors"
 			   title="View commit @BuildInfo.Commit on GitHub">
 				@BuildInfo.Commit
 			</a>
@@ -22,9 +22,8 @@
 
 	</div>
 </footer>
-
 @code {
-	private const string RepoBase = "https://github.com/mpaulosky/IssueManager";
+	private const string RepoBase = "https://github.com/mpaulosky/IssueTrackerApp";
 
 	private string _releaseUrl = $"{RepoBase}/releases";
 	private string _commitUrl = $"{RepoBase}/commits";
