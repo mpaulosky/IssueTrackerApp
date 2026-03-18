@@ -7,11 +7,13 @@
 ## What We're Building
 
 An issue tracking application that allows:
+
 - Users to raise issues with categories
 - Admin users to change issue status
 - Users to vote on issues to determine priority order
 
 ## Tech Stack
+
 - .NET 10 / C# 14
 - Blazor (Interactive Server Rendering)
 - .NET Aspire

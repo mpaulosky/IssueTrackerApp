@@ -381,3 +381,11 @@ MigrationBackup/
 **/.idea/**/libraries
 *.sw[a-p]
 .idea_modules/
+
+# IDE / local
+.vscode/
+
+# Test output
+coverage/
+full_test_output.txt
+test_results.txt

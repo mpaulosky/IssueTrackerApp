@@ -1,6 +1,7 @@
 # IssueTrackerApp Squad
 
 ## Project Context
+
 - **Project:** IssueTrackerApp
 - **Stack:** .NET 10, C# 14, Blazor (Interactive Server Rendering), MongoDB Atlas, MongoDBEntityFramework, Redis Cache, .NET Aspire, CPM, Vertical Slice Architecture, MediatR, Result Response Pattern, Auth0 (Authentication + Authorization with Roles)
 - **User:** Matthew Paulosky
@@ -26,6 +27,7 @@
 | @copilot | 🤖 Coding Agent | squad:copilot | Autonomous |
 
 ## Issue Source
+
 - **Repository:** mpaulosky/IssueTrackerApp
 - **Connected:** 2026-03-12
 - **Filters:** state: open, label: squad

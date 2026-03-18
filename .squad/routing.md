@@ -23,12 +23,15 @@
 | squad:copilot | @copilot | Auto-assign: false |
 
 ## Branching Policy
+
 - Squad work branches: `squad/{issue-number}-{slug}` — exempt from Protected Branch Guard
 - NEVER commit `.squad/` files on `feature/*` branches — guard will block the PR
 - Scribe commits `.squad/` changes on `squad/*` branches only
 
 ## Skill-Aware Routing
+
 Before spawning any agent, check `.squad/skills/` for relevant skills:
+
 - Any push/commit work → `.squad/skills/pre-push-test-gate/SKILL.md`
 - Any build/test failure → `.github/prompts/build-repair.prompt.md`
 - Any integration test work → `.squad/skills/pre-push-test-gate/SKILL.md` (Integration section)

@@ -9,9 +9,11 @@ This file records team decisions that affect architecture, scope, and process.
 ### Project Structure & Setup
 
 #### .NET Aspire Project Structure (2026-03-12)
+
 **Author:** Sam (Backend Developer)
 
 Implemented an Aspire-based solution structure:
+
 - **AppHost**: Orchestration with MongoDB and Redis containers
 - **ServiceDefaults**: Shared configurations for OpenTelemetry, service discovery, resilience
 - **Web**: Blazor Server with Interactive Server rendering
@@ -23,9 +25,11 @@ Implemented an Aspire-based solution structure:
 ---
 
 #### Aspire AppHost Configuration (2026-03-12)
+
 **Author:** Sam (Backend Developer)
 
 Enhanced AppHost with comprehensive orchestration:
+
 - Containerized MongoDB with MongoExpress UI
 - Containerized Redis with RedisCommander UI
 - OpenTelemetry configured with OTLP exporter for distributed tracing
@@ -39,9 +43,11 @@ Enhanced AppHost with comprehensive orchestration:
 ### Data Persistence
 
 #### MongoDB Persistence Setup (2026-03-12)
+
 **Author:** Sam (Backend Developer)
 
 Established MongoDB persistence patterns:
+
 1. **Result<T> pattern** for all repository operations (no exception-based control flow)
 2. **Generic IRepository<T>** with base implementation
 3. **MongoDB.EntityFrameworkCore** provider for EF Core patterns and LINQ support
@@ -54,9 +60,11 @@ Established MongoDB persistence patterns:
 ---
 
 #### Value Object & Mapper Infrastructure (2026-03-14)
+
 **Author:** Sam (Backend Developer)
 
 Foundation for DTO-Model separation:
+
 - **Value objects** (`UserInfo`, `CategoryInfo`, `StatusInfo`) as `sealed class` in `Domain.Models`
 - **Static mappers** in `Domain.Mappers` for entity ↔ DTO conversions
 - BSON attributes match current DTO serialization — no MongoDB migration needed
@@ -67,9 +75,11 @@ Foundation for DTO-Model separation:
 ---
 
 #### DTO–Model Separation (2026-03-14)
+
 **Author:** Aragorn (Lead Developer)
 
 Enforced strict DTO–Model separation across all layers:
+
 - **Models** interact with database (only persistence concern)
 - **DTOs** for inter-layer data transfer (immutable records)
 - **Mappers** provide explicit, testable bidirectional conversion
@@ -84,9 +94,11 @@ Enforced strict DTO–Model separation across all layers:
 ---
 
 #### Comment.Issue → Comment.IssueId Refactoring (2026-03-14)
+
 **Author:** Sam (Backend Developer)
 
 Replaced `IssueDto Issue` with `ObjectId IssueId` in Comment model:
+
 - Breaks circular dependency between Comment and Issue DTOs
 - Follows MongoDB best practice (reference by ID, not embedding full documents)
 - Simplifies serialization (ObjectId is primitive, no nested owned type config)
@@ -99,9 +111,11 @@ Replaced `IssueDto Issue` with `ObjectId IssueId` in Comment model:
 ### Security & Authentication
 
 #### Auth0 Authentication Implementation (2026-03-12)
+
 **Author:** Gandalf (Security Officer)
 
 Implemented Auth0 authentication with:
+
 - **OAuth2 Authorization Code flow** with PKCE
 - **JWT tokens** from Auth0
 - **Policy-based authorization** with roles (AdminPolicy, UserPolicy)
@@ -116,6 +130,7 @@ Implemented Auth0 authentication with:
 ✅ Placeholder configuration (no secrets in git)  
 
 **Alternatives Rejected:**
+
 - ASP.NET Core Identity (more maintenance burden)
 - Azure AD B2C (more complex configuration)
 - Self-hosted IdentityServer (operational overhead)
@@ -125,11 +140,13 @@ Implemented Auth0 authentication with:
 ### Testing
 
 #### Azure Storage Test Projects (2026-03-14)
+
 **Author:** Sam (Backend Developer)
 
 Chose **Testcontainers.Azurite** for integration testing:
 
 **Why Testcontainers.Azurite:**
+
 - ✅ Cross-platform (Linux, macOS, Windows)
 - ✅ Docker-based containers, clean isolation
 - ✅ Works in CI/CD pipelines
@@ -137,6 +154,7 @@ Chose **Testcontainers.Azurite** for integration testing:
 - ✅ Consistent with existing Testcontainers.MongoDb pattern
 
 **Alternatives Rejected:**
+
 - Azure Storage Emulator (Windows-only, deprecated)
 - In-memory mocks (doesn't test real SDK behavior)
 - Real Azure Storage (requires credentials, costs, slower)
@@ -144,11 +162,13 @@ Chose **Testcontainers.Azurite** for integration testing:
 ---
 
 #### Azure Storage Unit Test Strategy (2026-03-14)
+
 **Author:** Gimli (Tester)
 
 **Focus unit tests on mockable code paths; defer unmockable happy paths to integration tests.**
 
 Unit test coverage:
+
 1. Constructor validation (ArgumentNullException paths)
 2. Settings class defaults and property setters
 3. Upload operations with full mocking
@@ -162,11 +182,13 @@ Unit test coverage:
 ---
 
 #### Azure Blob Storage Integration Test Strategy (2026-03-14)
+
 **Author:** Gimli (Tester)
 
 **Chosen Approach:** Azurite TestContainers with xUnit shared fixture pattern
 
 Test isolation via unique container names per test. Coverage:
+
 - **Upload Tests:** 5 tests (blob creation, auto-creation, content-type, unique naming)
 - **Download Tests:** 4 tests (roundtrip, content verification, error handling)
 - **Delete Tests:** 4 tests (idempotent deletes, selective deletion)
@@ -180,16 +202,19 @@ Test isolation via unique container names per test. Coverage:
 ### Process & Team Dynamics
 
 #### PR Review Process (2026-03-12)
+
 **Directive:** When reviewing PRs for merge, valid suggestions from reviewers (human or automated) must be implemented before merging. Invalid suggestions require a response explaining why they weren't applied. Never ignore suggestions.
 
 ---
 
 #### Documentation Structure (2026-03-14)
+
 **Author:** Frodo (Tech Writer)
 
 Implemented **category-based organization** for `docs/LIBRARIES.md` package reference:
 
 **Categories:**
+
 - .NET Aspire Integration
 - Data Access
 - Application Patterns
@@ -206,7 +231,9 @@ Implemented **category-based organization** for `docs/LIBRARIES.md` package refe
 ---
 
 #### Frodo's Documentation Responsibilities (2026-03-12)
+
 **Directive:** Frodo (Tech Writer) monitors and documents project changes:
+
 1. Monitor changes and document them
 2. Update README.md with significant changes
 3. Maintain document listing all libraries and references used
@@ -216,11 +243,13 @@ Implemented **category-based organization** for `docs/LIBRARIES.md` package refe
 ### Architectural Directives
 
 #### DTO-Model Separation Architectural Pattern (2026-03-14)
+
 **Directive:** DTOs should only transfer records between application layers. Mappers must convert DTO ↔ Model. Only models interact with the database. This is a **mandatory architectural pattern** going forward.
 
 ---
 
 #### bUnit Test Suite Optimization (2026-03-17)
+
 **Author:** Gimli (Tester)
 
 Diagnosed performance issues in bUnit test suite (595 tests):
@@ -228,6 +257,7 @@ Diagnosed performance issues in bUnit test suite (595 tests):
 **Problem:** Full suite execution hangs (~2+ minutes), while individual projects run in 1-7 seconds.
 
 **Solution Implemented:**
+
 - Created `tests/Web.Tests.Bunit/xunit.runner.json` with parallelization controls
 - Disabled cross-collection parallelization to reduce BunitContext state conflicts
 - Set `maxParallelThreads: 4` to balance throughput with resource usage
@@ -241,6 +271,7 @@ Diagnosed performance issues in bUnit test suite (595 tests):
 ---
 
 #### bUnit Modal Button Selector Pattern (2026-03-15)
+
 **Author:** Legolas (Frontend Dev)
 
 **Problem:** When testing components with modals that share CSS classes with parent page buttons (e.g., both a header Delete button and a modal Confirm button use `bg-red-600`), `FindAll("button").FirstOrDefault(b => b.ClassList.Contains("bg-red-600"))` returns the first match in DOM order — typically the parent button, not the modal button.
@@ -261,9 +292,11 @@ var confirmButton = cut.Find("[role='dialog'] .bg-red-600");
 ### DI Lifetime & Dependency Resolution
 
 #### DI Lifetime Alignment for DbContextFactory and Background Services (2026-03-17)
+
 **Author:** Sam (Backend Developer)
 
 **Context:** Application crashed on startup with `System.AggregateException` due to two DI lifetime validation failures:
+
 1. `AddDbContext` registers options as scoped; `AddDbContextFactory` defaults to singleton → singleton factory cannot consume scoped options
 2. `BulkOperationBackgroundService` (singleton) injected `INotificationService` (scoped) directly via constructor
 
@@ -276,6 +309,7 @@ Pass `lifetime: ServiceLifetime.Scoped` to `AddDbContextFactory<IssueTrackerDbCo
 Removed `INotificationService` from constructor — it was stored as a field but never referenced. Service already uses `IServiceScopeFactory` to resolve scoped dependencies per-operation.
 
 **Consequences:**
+
 - App starts successfully without DI validation errors
 - **Team rule:** When combining `AddDbContext` + `AddDbContextFactory`, always align lifetimes explicitly
 - **Team rule:** Background services (singletons) must never inject scoped services directly; always resolve from `IServiceScopeFactory` within per-operation scopes
@@ -283,6 +317,7 @@ Removed `INotificationService` from constructor — it was stored as a field but
 ---
 
 ### Auth0 Role Claim Mapping via IClaimsTransformation (2026-03-19)
+
 **Author:** Gandalf (Security Officer)
 
 Implement **IClaimsTransformation** to map Auth0's custom role claims to ASP.NET Core's standard `ClaimTypes.Role` claim type.
@@ -290,6 +325,7 @@ Implement **IClaimsTransformation** to map Auth0's custom role claims to ASP.NET
 **Problem:** Auth0 users with Admin and User roles were getting "Access Denied" when accessing protected pages despite having correct roles assigned. Root cause: Auth0 sends roles in a custom namespaced claim (e.g., `https://issuetracker.com/roles`), but ASP.NET Core's `RequireRole()` checks for claims with type `ClaimTypes.Role`.
 
 **Solution:** Created `Auth0ClaimsTransformation` service that:
+
 - Reads Auth0's custom role claim using configurable namespace
 - Handles multiple role formats (JSON arrays, CSV, single values)
 - Maps each role to standard `ClaimTypes.Role`
@@ -297,6 +333,7 @@ Implement **IClaimsTransformation** to map Auth0's custom role claims to ASP.NET
 - Registered as scoped service in authentication pipeline
 
 **Consequences:**
+
 - ✅ Role-based authorization now works for Auth0 users
 - ✅ Claims transformation is reusable and testable
 - ✅ Configuration-driven design supports multiple environments
@@ -304,6 +341,7 @@ Implement **IClaimsTransformation** to map Auth0's custom role claims to ASP.NET
 - ⚠️ Misconfiguration results in silent authorization failures (logs warning)
 
 **Team Guidelines:**
+
 1. Always configure `Auth0:RoleClaimNamespace` in user secrets (dev) or Key Vault (prod)
 2. Match the namespace to Auth0 tenant's role claim
 3. Check logs if users report "Access Denied"
@@ -312,16 +350,19 @@ Implement **IClaimsTransformation** to map Auth0's custom role claims to ASP.NET
 ---
 
 ### Navigation Menu Architecture (2026-03-13)
+
 **Author:** Legolas (Frontend Developer)
 
 Implemented a role-based sidebar navigation menu.
 
 **Decision:** Built navigation around these patterns:
+
 - **Sidebar Navigation:** Fixed 256px width left sidebar (only shown when authenticated)
 - **Responsive Container:** Flex layout with header (top), sidebar (left), main content (right)
 - **Role-Based Visibility:** Menu items filtered by authorization policies
 
 **Technical Implementation:**
+
 - Created `NavMenuComponent.razor` as standalone navigation component
 - Integrated into `MainLayout.razor` within `<AuthorizeView>`
 - Uses nested `AuthorizeView` components with custom context naming to avoid Razor conflicts
@@ -331,6 +372,7 @@ Implemented a role-based sidebar navigation menu.
 - Full dark mode support via TailwindCSS
 
 **Consequences:**
+
 - ✅ Users can now navigate the application
 - ✅ Clear separation between user and admin features
 - ✅ Consistent with Blazor conventions
@@ -340,6 +382,7 @@ Implemented a role-based sidebar navigation menu.
 ---
 
 ### Switch AppHost MongoDB from Container to Atlas Connection String (2026-03-18)
+
 **Author:** Boromir (DevOps)
 
 Replaced container-based MongoDB orchestration with connection string from Atlas.
@@ -347,6 +390,7 @@ Replaced container-based MongoDB orchestration with connection string from Atlas
 **Decision:** Replaced `AddMongoDB("mongodb")` with `builder.AddConnectionString("mongodb")` which reads `ConnectionStrings:mongodb` from AppHost User Secrets.
 
 **Changes Made:**
+
 1. Removed `AddMongoDB` + `WithMongoExpress` + `AddDatabase` from AppHost.cs
 2. Removed `.WaitFor(mongodb)` (no container to wait for)
 3. Removed `Aspire.Hosting.MongoDB` package reference
@@ -355,17 +399,20 @@ Replaced container-based MongoDB orchestration with connection string from Atlas
 The Web project has two MongoDB connection paths that both need configuration:
 
 **AppHost project** (for Aspire service discovery):
+
 ```
 dotnet user-secrets set "ConnectionStrings:mongodb" "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/issuetracker-db" --project src/AppHost
 ```
 
 **Web project** (for `MongoDbSettings` → EF Core provider):
+
 ```
 dotnet user-secrets set "MongoDB:ConnectionString" "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net" --project src/Web
 dotnet user-secrets set "MongoDB:DatabaseName" "issuetracker-db" --project src/Web
 ```
 
 **Consequences:**
+
 - ✅ No Docker dependency for MongoDB in local development
 - ✅ Can use shared MongoDB Atlas cluster for team
 - ⚠️ MongoExpress UI no longer available (use MongoDB Compass or Atlas UI instead)
@@ -375,6 +422,7 @@ dotnet user-secrets set "MongoDB:DatabaseName" "issuetracker-db" --project src/W
 ---
 
 ### User Directive: MongoDB Atlas Connection (2026-03-17)
+
 **By:** Matthew Paulosky (via Copilot)
 
 **Directive:** MongoDB in AppHost must NOT use a container. Use a connection string to Atlas stored in User Secrets. Database names stay the same.
