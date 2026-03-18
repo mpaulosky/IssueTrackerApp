@@ -7,6 +7,8 @@
 // Project Name :  Domain.Tests
 // =======================================================
 
+using System.Linq.Expressions;
+
 using Domain.Abstractions;
 using Domain.Features.Issues.Commands;
 
@@ -22,14 +24,20 @@ namespace Domain.Tests.Features.Issues;
 public sealed class CreateIssueCommandHandlerTests
 {
 	private readonly IRepository<Issue> _issueRepository;
+	private readonly IRepository<Status> _statusRepository;
 	private readonly ILogger<CreateIssueCommandHandler> _logger;
 	private readonly CreateIssueCommandHandler _handler;
 
 	public CreateIssueCommandHandlerTests()
 	{
 		_issueRepository = Substitute.For<IRepository<Issue>>();
+		_statusRepository = Substitute.For<IRepository<Status>>();
 		_logger = Substitute.For<ILogger<CreateIssueCommandHandler>>();
-		_handler = new CreateIssueCommandHandler(_issueRepository, _logger);
+		_handler = new CreateIssueCommandHandler(_issueRepository, _statusRepository, _logger);
+
+		// Default: status lookup returns null (triggers fallback)
+		_statusRepository.FirstOrDefaultAsync(Arg.Any<Expression<Func<Status, bool>>>(), Arg.Any<CancellationToken>())
+			.Returns(Result.Ok<Status?>(null));
 	}
 
 	[Fact]
@@ -208,5 +216,71 @@ public sealed class CreateIssueCommandHandlerTests
 		capturedIssue!.Archived.Should().BeFalse();
 		capturedIssue.ApprovedForRelease.Should().BeFalse();
 		capturedIssue.Rejected.Should().BeFalse();
+	}
+
+	[Fact]
+	public async Task CreateIssue_WhenStatusExistsInDb_UsesDbStatus()
+	{
+		// Arrange
+		var dbStatusId = ObjectId.GenerateNewId();
+		var dbStatus = new Status
+		{
+			Id = dbStatusId,
+			StatusName = "Open",
+			StatusDescription = "Issue is open",
+			DateCreated = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+			Archived = false,
+			ArchivedBy = UserInfo.Empty
+		};
+
+		_statusRepository.FirstOrDefaultAsync(Arg.Any<Expression<Func<Status, bool>>>(), Arg.Any<CancellationToken>())
+			.Returns(Result.Ok<Status?>(dbStatus));
+
+		var command = new CreateIssueCommand("Test Issue", "Description", CategoryDto.Empty, UserDto.Empty);
+
+		Issue? capturedIssue = null;
+		_issueRepository.AddAsync(Arg.Any<Issue>(), Arg.Any<CancellationToken>())
+			.Returns(callInfo =>
+			{
+				capturedIssue = callInfo.Arg<Issue>();
+				return Result.Ok(capturedIssue);
+			});
+
+		// Act
+		var result = await _handler.Handle(command, CancellationToken.None);
+
+		// Assert
+		result.Success.Should().BeTrue();
+		capturedIssue.Should().NotBeNull();
+		capturedIssue!.Status.Id.Should().Be(dbStatusId);
+		capturedIssue.Status.StatusName.Should().Be("Open");
+		capturedIssue.Status.StatusDescription.Should().Be("Issue is open");
+	}
+
+	[Fact]
+	public async Task CreateIssue_WhenStatusLookupFails_UsesFallbackStatus()
+	{
+		// Arrange
+		_statusRepository.FirstOrDefaultAsync(Arg.Any<Expression<Func<Status, bool>>>(), Arg.Any<CancellationToken>())
+			.Returns(Result.Fail<Status?>("Database error"));
+
+		var command = new CreateIssueCommand("Test Issue", "Description", CategoryDto.Empty, UserDto.Empty);
+
+		Issue? capturedIssue = null;
+		_issueRepository.AddAsync(Arg.Any<Issue>(), Arg.Any<CancellationToken>())
+			.Returns(callInfo =>
+			{
+				capturedIssue = callInfo.Arg<Issue>();
+				return Result.Ok(capturedIssue);
+			});
+
+		// Act
+		var result = await _handler.Handle(command, CancellationToken.None);
+
+		// Assert
+		result.Success.Should().BeTrue();
+		capturedIssue.Should().NotBeNull();
+		capturedIssue!.Status.Id.Should().Be(ObjectId.Empty);
+		capturedIssue.Status.StatusName.Should().Be("Open");
 	}
 }

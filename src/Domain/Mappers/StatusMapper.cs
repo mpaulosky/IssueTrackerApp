@@ -95,6 +95,27 @@ public static class StatusMapper
 	}
 
 	/// <summary>
+	///   Converts a Status model to a StatusInfo value object.
+	/// </summary>
+	/// <param name="status">The status model.</param>
+	/// <returns>A StatusInfo instance.</returns>
+	public static StatusInfo ToInfo(Status? status)
+	{
+		if (status is null) { return StatusInfo.Empty; }
+
+		return new StatusInfo
+		{
+			Id = status.Id,
+			StatusName = status.StatusName,
+			StatusDescription = status.StatusDescription,
+			DateCreated = status.DateCreated,
+			DateModified = status.DateModified,
+			Archived = status.Archived,
+			ArchivedBy = status.ArchivedBy
+		};
+	}
+
+	/// <summary>
 	///   Converts a collection of Status models to a list of StatusDto instances.
 	/// </summary>
 	/// <param name="statuses">The status models.</param>

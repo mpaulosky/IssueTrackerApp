@@ -431,6 +431,89 @@ dotnet user-secrets set "MongoDB:DatabaseName" "issuetracker-db" --project src/W
 
 ---
 
+### Issue Creation Resolves Status from Database (2026-03-18)
+
+**Author:** Sam (Backend Developer)
+
+**Context:** `CreateIssueCommandHandler` hardcoded a `StatusInfo` with `ObjectId.Empty` and `StatusName = "Open"` when creating new issues. This meant issues were not linked to actual Status documents in MongoDB, breaking status filtering and reporting.
+
+**Decision:**
+
+- Inject `IRepository<Status>` into `CreateIssueCommandHandler`
+- Query for a non-archived Status with `StatusName == "Open"` via `FirstOrDefaultAsync`
+- Map the result using `StatusMapper.ToInfo(Status)` (new overload)
+- Fall back to the original hardcoded `StatusInfo` with a logged warning if the DB lookup fails
+
+**Consequences:**
+
+- ✅ Issues now reference real Status documents from the database
+- ✅ Backward compatible — fallback ensures no crash if Status collection is empty
+- ✅ Added `StatusMapper.ToInfo(Status?)` overload for direct model-to-value-object conversion
+- ⚠️ Requires an "Open" status to exist in the database for full functionality
+- ⚠️ Team should ensure seed data includes an "Open" status record
+
+**Files Changed:**
+
+- `src/Domain/Features/Issues/Commands/CreateIssueCommand.cs`
+- `src/Domain/Mappers/StatusMapper.cs`
+
+---
+
+### Theme-Aware Layout Backgrounds & Inline SignalR Indicator (2026-03-18)
+
+**Author:** Legolas (Frontend Developer)
+
+**Decision — Theme-Aware Backgrounds:** MainLayout and header backgrounds now use `bg-primary-*` utilities instead of static `bg-gray-*`. The page body uses primary-950 (light mode) / primary-50 (dark mode); the header uses primary-900 / primary-100.
+
+**Rationale:** Backgrounds visually respond to the selected color theme (blue/red/green/yellow). The extreme ends of the palette (950/50) produce a subtle tint without overwhelming content. This leverages the existing CSS custom property system — no new infrastructure needed.
+
+**Decision — SignalR Indicator Relocation:** `<SignalRConnection />` moved from a fixed bottom-right floating card into the header's right-side utility bar (after LoginDisplay). The component is now a compact inline dot with optional short text label.
+
+**Rationale:** A floating card in the bottom-right corner overlapped content and felt disconnected from the UI. An inline status dot in the nav bar is less intrusive, immediately visible, and consistent with common SaaS UI patterns.
+
+**Impact on Team:**
+
+- **Gimli (Tester):** bUnit tests for MainLayout and SignalRConnection updated to reflect theme-aware class names and inline positioning. CSS class assertions changed from `bg-gray-*` to `bg-primary-*`. SignalR component tests no longer query for `.fixed` positioning or floating card structure.
+- **Frodo (Docs):** README screenshots may need refreshing to show themed backgrounds.
+- No backend changes needed — the component still uses the same `SignalRClientService`.
+
+**Files Changed:**
+
+- `src/Web/Components/Layout/MainLayout.razor`
+- `src/Web/Components/Shared/SignalRConnection.razor`
+- `src/Web/Styles/app.css`
+
+---
+
+### Test Update Pattern: CreateIssueCommandHandler Status Resolution Mocking (2026-03-18)
+
+**Author:** Gimli (Tester)
+
+**Context:** The `CreateIssueCommandHandler` now accepts `IRepository<Status>` and resolves the "Open" status from the database at issue creation time. This introduces a new test mocking pattern for status resolution.
+
+**Decision:** All tests for `CreateIssueCommandHandler` must mock `IRepository<Status>.FirstOrDefaultAsync` with a default "not found" return (`Result.Ok<Status?>(null)`). Tests verifying specific status resolution behavior should override this default with the appropriate response.
+
+**Pattern:**
+
+```csharp
+// Default in constructor: status not found → fallback
+_statusRepository.FirstOrDefaultAsync(Arg.Any<Expression<Func<Status, bool>>>(), Arg.Any<CancellationToken>())
+    .Returns(Result.Ok<Status?>(null));
+
+// Override for specific test: status found in DB
+_statusRepository.FirstOrDefaultAsync(Arg.Any<Expression<Func<Status, bool>>>(), Arg.Any<CancellationToken>())
+    .Returns(Result.Ok<Status?>(dbStatus));
+```
+
+**Consequence:** Future tests that construct `CreateIssueCommandHandler` must provide the `IRepository<Status>` parameter. The fallback behavior (ObjectId.Empty with "Open" name) is the default test behavior.
+
+**Files Updated:**
+
+- `tests/Domain.Tests/Features/Issues/CreateIssueCommandHandlerTests.cs`
+- `tests/Domain.Tests/Mappers/StatusMapperTests.cs`
+
+---
+
 ## Summary of Key Principles
 
 1. **DTO-Model Separation:** Clear boundaries between persistence and API contracts

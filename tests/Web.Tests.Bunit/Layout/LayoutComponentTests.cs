@@ -70,8 +70,8 @@ public class MainLayoutTests : BunitTestBase
 
 		// Assert
 		cut.Find("header").Should().NotBeNull();
-		cut.Markup.Should().Contain("bg-white");
-		cut.Markup.Should().Contain("dark:bg-gray-800");
+		cut.Markup.Should().Contain("bg-primary-900");
+		cut.Markup.Should().Contain("dark:bg-primary-100");
 	}
 
 	[Fact]
@@ -165,9 +165,11 @@ public class MainLayoutTests : BunitTestBase
 		var cut = Render<MainLayout>();
 
 		// Assert
-		// Verify dark mode classes are present
-		cut.Markup.Should().Contain("dark:bg-gray-900");
-		cut.Markup.Should().Contain("dark:bg-gray-800");
+		// Verify theme-aware primary color classes are present
+		cut.Markup.Should().Contain("bg-primary-950");
+		cut.Markup.Should().Contain("dark:bg-primary-50");
+		cut.Markup.Should().Contain("bg-primary-900");
+		cut.Markup.Should().Contain("dark:bg-primary-100");
 	}
 
 	[Fact]
