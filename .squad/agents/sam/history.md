@@ -6,43 +6,37 @@
 
 ---
 
-## Learnings
+## Core Context
 
-### Issue #2 - Project Structure Setup (2026-03-12)
+Sam (Backend Developer) has established core architectural patterns for IssueTrackerApp:
 
-**Architecture Decisions:**
-- Used .NET Aspire 13.1.0 for orchestration (AppHost project)
-- Aspire.AppHost.Sdk projects must disable central package management (`ManagePackageVersionsCentrally=false`)
-- ServiceDefaults project reference in AppHost requires `IsAspireProjectResource="false"` to avoid warning
-- MongoDB.Driver 3.6.0 required to match MongoDB.EntityFrameworkCore 10.0.0 dependency
+**Aspire & Infrastructure:**
+- Orchestrated .NET 10 solution with MongoDB/Redis containers and OpenTelemetry tracing
+- Configured health checks, service discovery, and Application Insights integration
+- MongoDB.EntityFrameworkCore provider with Result<T> pattern for error handling
+- AppHost configuration: `ManagePackageVersionsCentrally=false` (Aspire SDK requirement)
 
-**Project Structure:**
-- `src/AppHost/` - Aspire orchestration with MongoDB and Redis containers
-- `src/ServiceDefaults/` - Shared Aspire configurations and extensions
-- `src/Web/` - Blazor Server with Interactive Server rendering
-- `src/Domain/` - Domain entities, CQRS with MediatR, FluentValidation
-- `src/Persistence.MongoDb/` - MongoDB repositories with EF Core
+**Data Access Patterns:**
+- Generic `IRepository<T>` with async-first operations and Result<T> error handling
+- MongoDB settings validation on startup via `IValidateOptions`
+- DbContext pooling and factory patterns for flexible context usage
+- Static mappers for entity ↔ DTO conversion (sealed classes for value objects)
 
-**Key Patterns:**
-- Vertical Slice Architecture folder structure (Features/ folders)
-- Repository pattern (Repositories/ in Persistence)
-- CQRS with MediatR (Domain layer)
-- Result<T> pattern for error handling
-- `public partial class Program {}` in Web/Program.cs for WebApplicationFactory testing
+**Domain Architecture:**
+- CQRS pattern with MediatR for feature-based organization
+- FluentValidation for command/query validation
+- Feature-based vertical slice folder structure
+- Strongly-typed configuration objects (MongoDB, Redis settings)
 
-**Package Management:**
-- Centralized versions in Directory.Packages.props
-- Aspire hosting packages (MongoDB, Redis) added to AppHost
-- OpenTelemetry packages (1.14.0) for ServiceDefaults
-
-**File Paths:**
-- Domain entities: `src/Domain/Entities/`
-- Domain features: `src/Domain/Features/`
-- Repositories: `src/Persistence.MongoDb/Repositories/`
-- Blazor pages: `src/Web/Components/Pages/`
-- GlobalUsings.cs in each project for common imports
+**Key Decisions:**
+- DTO-Model separation enforced across persistence and API layers
+- `Comment.Issue` → `Comment.IssueId` (ObjectId reference) breaks circular dependencies
+- Issue creation resolves "Open" status from database via `IRepository<Status>`
+- All git commands in MSBuild targets redirect stderr to prevent output contamination
 
 ---
+
+## Recent Learnings (2026-03-18 to 2026-03-19)
 
 ## Notes
 
@@ -618,23 +612,3 @@
 
 **Learnings:**
 - Both test projects scaffold and build cleanly before test implementation
-- Testcontainers.Azurite is properly configured in CPM
-- Integration test project structure ready for fixture-based testing pattern
-- Architecture is ready for Gimli's parallel test implementation
-
-### DI Lifetime Mismatch Fixes (2026-03-17)
-
-**Problem:** App crashed on startup with `System.AggregateException` due to two DI lifetime conflicts.
-
-**Fix 1 — DbContextFactory lifetime (`src/Persistence.MongoDb/ServiceCollectionExtensions.cs`):**
-- `AddDbContext` registers `DbContextOptions<IssueTrackerDbContext>` as **scoped** (default).
-- `AddDbContextFactory` was registered as **singleton** (default), which cannot consume scoped options.
-- Fix: Added `lifetime: ServiceLifetime.Scoped` parameter to `AddDbContextFactory`.
-
-**Fix 2 — BulkOperationBackgroundService (`src/Web/Services/BulkOperationBackgroundService.cs`):**
-- `BackgroundService` (singleton via `AddHostedService`) injected `INotificationService` (scoped).
-- Singleton cannot consume scoped service directly.
-- Fix: Removed `INotificationService` from constructor — it was stored but never used in any method.
-- Pattern: Background services must resolve scoped dependencies via `IServiceScopeFactory` per-operation.
-
-**Key Principle:** When mixing `AddDbContext` + `AddDbContextFactory`, always align lifetimes. Background services must never inject scoped services directly — use `IServiceScopeFactory` to create per-operation scopes.
