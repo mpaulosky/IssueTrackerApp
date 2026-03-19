@@ -1,11 +1,11 @@
 {
-  "name": "issuetracker-web",
+  "name": "issue-tracker-web",
   "version": "1.0.0",
   "description": "IssueTrackerApp Blazor Server UI with TailwindCSS",
   "private": true,
   "scripts": {
-    "css:build": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css --minify",
-    "css:watch": "tailwindcss -i ./Styles/app.css -o ./wwwroot/css/app.css --watch"
+    "css:build": "tailwindcss -i ./Styles/input.css -o ./wwwroot/css/app.css --minify",
+    "css:watch": "tailwindcss -i ./Styles/input.css -o ./wwwroot/css/app.css --watch"
   },
   "keywords": [
     "blazor",
