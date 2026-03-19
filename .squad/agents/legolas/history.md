@@ -6,6 +6,44 @@
 
 ---
 
+## Core Context
+
+Legolas (Frontend Developer) has established Blazor UI patterns for IssueTrackerApp:
+
+**Component Architecture:**
+- Blazor Server with Interactive Server rendering
+- Vertical slice organization with feature-based folder structure
+- Cascading parameters and render fragments for state sharing
+- Error boundaries for graceful failure handling
+
+**Styling & Theming:**
+- Tailwind CSS for utility-first styling
+- Dark/light theme support via data-theme attribute
+- SignalR-powered theme notification system with real-time sync
+- Themed backgrounds in MainLayout with inline connection indicator
+
+**Shared Components:**
+- `MainLayout.razor` — Root layout with theme toggle and SignalR connection
+- `SignalRConnection.razor` — Real-time theme/nav sync across browser tabs
+- Footer component with auto-generated build info (`BuildInfo.g.cs`)
+- Navigation menu responsive design
+
+**SignalR Integration:**
+- Real-time bi-directional communication for theme and navigation updates
+- Hub connection lifecycle management in shared components
+- Automatic reconnection and error recovery
+
+**Recent Work (2026-03-17 to 2026-03-19):**
+- Theme-aware layout backgrounds with inline SignalR indicator
+- Navigation menu architecture alignment with backend
+- Footer component displays auto-generated version (v0.1.0) and commit hash
+- BuildInfo.g.cs generation via MSBuild with stderr redirection fix
+
+---
+
+## Learnings (Condensed)
+
+
 ## Learnings
 
 ### 2026-03-12 - SignalR Frontend Integration (Issue #37)
@@ -573,33 +611,3 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 
 **Key Technical Decisions:**
 - Used `Context="adminContext"` on nested AuthorizeView to prevent context name collision
-- `NavLink` with `Match="NavLinkMatch.All"` for exact matching on most routes
-- `Match="NavLinkMatch.Prefix"` for `/issues` to highlight when on sub-routes
-- Sidebar is 256px wide (w-64) and only visible when authenticated
-- Landing page uses centered hero for unauthenticated, dashboard-style cards for authenticated
-
-**File Paths:**
-- New: `src/Web/Components/Layout/NavMenuComponent.razor`
-- Modified: `src/Web/Components/Layout/MainLayout.razor`
-- Modified: `src/Web/Components/Pages/Home.razor`
-
-**Authorization Reference:**
-- `Web.Auth.AuthorizationPolicies.UserPolicy` - for standard authenticated users
-- `Web.Auth.AuthorizationPolicies.AdminPolicy` - for admin-only features
-- Policies defined in `src/Web/Auth/AuthorizationPolicies.cs`
-- Roles defined in `src/Web/Auth/AuthorizationRoles.cs`
-
-**Build Verification:**
-- Build succeeded: `dotnet build src\Web\Web.csproj` (7.3s)
-- Fixed nested AuthorizeView context conflict during build
-
-**Best Practices Applied:**
-- Copyright headers on all new files
-- Role-based access control with proper authorization views
-- Responsive design with Tailwind CSS
-- Dark mode support throughout
-- Semantic HTML and accessibility considerations
-- Component naming: `*Component.razor` convention
-- Page naming: `*Page.razor` convention (Home.razor existing pattern)
-
----

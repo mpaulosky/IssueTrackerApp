@@ -17,6 +17,13 @@
 - **Key file paths**: `src/AppHost/AppHost.cs`, `src/AppHost/AppHost.csproj`, `src/Persistence.MongoDb/Configurations/MongoDbSettings.cs`, `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`
 - **AppHost UserSecretsId**: `27ff814c-e630-4d84-a864-c3a534dd5c93`
 
+### Git Describe Stderr Leak Fix (2026-03-18)
+- **Fixed `GetGitBuildInfo` MSBuild target** in `src/Web/Web.csproj` — git commands now redirect stderr to `/dev/null`
+- **Root cause**: When no git tags exist, `git describe --tags --abbrev=0` outputs `fatal: No names found, cannot describe anything.` to stderr. With `ConsoleToMSBuild="true"`, this error text was captured into `_RawGitTag`, preventing the `v0.0.0` fallback at line 66 from triggering.
+- **Fix applied**: Changed git commands from `git describe --tags --abbrev=0` → `git describe --tags --abbrev=0 2>/dev/null` and `git rev-parse --short HEAD` → `git rev-parse --short HEAD 2>/dev/null`
+- **Created initial tag**: `v0.1.0` so future builds return real version
+- **Verified**: BuildInfo.g.cs now correctly generates `Version = "v0.1.0"` and `Commit = "e4874a8"`
+
 ---
 
 ## Notes
@@ -24,3 +31,9 @@
 - Team transferred from IssueManager squad
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
 - Ready to begin development
+### BuildInfo Generation Pipeline — Stderr Redirection in MSBuild (2026-03-19)
+- **Issue:** MSBuild's `GetGitBuildInfo` target leaked git stderr into build constants
+- **Solution:** Redirected stderr in both `git describe` and `git rev-parse` commands using `2>/dev/null`
+- **Tag:** Created `v0.1.0` to seed version for future builds
+- **Verification:** Gimli confirmed BuildInfo.g.cs generates clean constants; footer displays correct version
+- **Related:** `.squad/decisions.md` entry on MSBuild Git Stderr Redirection Pattern

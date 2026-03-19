@@ -505,22 +505,32 @@ _statusRepository.FirstOrDefaultAsync(Arg.Any<Expression<Func<Status, bool>>>(),
     .Returns(Result.Ok<Status?>(dbStatus));
 ```
 
-**Consequence:** Future tests that construct `CreateIssueCommandHandler` must provide the `IRepository<Status>` parameter. The fallback behavior (ObjectId.Empty with "Open" name) is the default test behavior.
-
-**Files Updated:**
-
-- `tests/Domain.Tests/Features/Issues/CreateIssueCommandHandlerTests.cs`
-- `tests/Domain.Tests/Mappers/StatusMapperTests.cs`
-
 ---
 
-## Summary of Key Principles
+### Redirect Git Command Stderr in MSBuild Targets (2026-03-19)
 
-1. **DTO-Model Separation:** Clear boundaries between persistence and API contracts
-2. **Result<T> Pattern:** Explicit error handling without exceptions
-3. **Testcontainers for Integration:** Realistic testing without cloud dependencies
-4. **Aspire Orchestration:** Simplified local development with containerized dependencies
-5. **OpenTelemetry Observability:** Production-ready monitoring from day one
-6. **Auth0 Identity:** Enterprise-grade security without maintenance burden
-7. **Category-Based Documentation:** Developer-centric organization of resources
-8. **bUnit Test Optimization:** Explicit parallelism control; defer full suite optimization until failing tests fixed
+**Author:** Boromir (DevOps)  
+**Status:** Implemented
+
+The `GetGitBuildInfo` MSBuild target in `src/Web/Web.csproj` runs `git describe --tags --abbrev=0` to capture the latest git tag for build metadata. When no tags exist, git writes `fatal: No names found, cannot describe anything.` to stderr. With `ConsoleToMSBuild="true"`, MSBuild captures stderr into `ConsoleOutput`, causing the error message to leak into the `_RawGitTag` property. This prevents the fallback `v0.0.0` value from being set, and the footer displayed the raw error text instead of a version.
+
+**Decision:** All git commands in MSBuild `Exec` tasks that use `ConsoleToMSBuild="true"` must redirect stderr to `/dev/null` to prevent error messages from polluting output properties.
+
+**Implementation:**
+- Changed: `git describe --tags --abbrev=0` → `git describe --tags --abbrev=0 2>/dev/null`
+- Changed: `git rev-parse --short HEAD` → `git rev-parse --short HEAD 2>/dev/null`
+- Created initial tag: `v0.1.0`
+
+**Rationale:**
+1. `IgnoreExitCode="true"` handles command failures but doesn't suppress stderr
+2. Stderr contamination breaks fallback logic that depends on empty output
+3. Redirecting stderr is the standard Unix pattern for suppressing error messages
+4. This ensures `_RawGitTag` and `_RawGitCommit` are truly empty on failure, allowing fallbacks to work correctly
+
+**Impact:**
+- Footer now correctly displays `v0.1.0` instead of error messages
+- Future repos without tags will show `v0.0.0` as designed
+- BuildInfo.g.cs generates clean constants
+
+**Files Changed:** `src/Web/Web.csproj`, Git tag created
+

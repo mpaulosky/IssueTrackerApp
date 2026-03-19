@@ -6,6 +6,50 @@
 
 ---
 
+## Core Context
+
+Gimli (Tester) has established comprehensive test patterns for IssueTrackerApp:
+
+**Testing Framework Stack:**
+- **xUnit** for test execution
+- **NSubstitute** for mocking (NSubstitute works better than Moq for Azure SDK classes with virtual methods)
+- **FluentAssertions** for readable test assertions
+- **bUnit** for Blazor component testing
+- **Testcontainers** for MongoDB integration tests (realistic testing without cloud)
+
+**Unit Test Patterns:**
+- Async exception mocking: `Returns(Task.FromException<T>(ex))` (not `.Throws()`)
+- Azure SDK mocking: Chain `BlobServiceClient` → `BlobContainerClient` → `BlobClient` with virtual method mocking
+- Constructor parameter validation with null-check tests
+- Settings/configuration class tests for defaults and property setters
+- DI registration tests with multiple configuration scenarios
+
+**Integration Test Setup:**
+- Testcontainers for MongoDB (fixed container, no startup race conditions)
+- MongoDB.EntityFrameworkCore provider testing
+- Repository async operation verification
+
+**Blazor Component Tests (bUnit):**
+- Component lifecycle tests (OnInitializedAsync, OnParametersSet)
+- EventCallback parameter passing and event handling
+- Cascading parameter injection in child components
+- Render fragment content verification
+
+**Key Test Mocking Patterns:**
+- Status resolution in `CreateIssueCommandHandler`: mock `IRepository<Status>.FirstOrDefaultAsync` with fallback to null
+- Async repository methods return `Result<T>`
+- Expression-based LINQ queries require `Arg.Any<Expression<Func<T, bool>>>()`
+
+**Recent Work (2026-03-18 to 2026-03-19):**
+- Verified BuildInfo.g.cs generation with v0.1.0 tag and e4874a8 commit hash
+- Confirmed all 11 FooterComponent tests pass with generated build info
+- Created test patterns for status resolution mocking in issue creation handler
+
+---
+
+## Learnings (Condensed)
+
+
 ## Learnings
 
 ### 2026-03-14: Azure Storage Unit Tests — Mocking Azure SDK & DI Configuration
@@ -529,22 +573,3 @@
    - **CORRECT:** `await cut.InvokeAsync(() => cut.Instance.Reset())`
 
 4. **Test Namespace for Shared Components:**
-   - Components in `Web.Components.Shared` need explicit `using Web.Components.Shared;`
-   - GlobalUsings.cs includes `Web.Components.Issues` but not all Shared components
-   - Add specific using directive at test file top
-
-5. **BulkSelectionState Service Access:**
-   - Registered as singleton in `BunitTestBase`
-   - Access via `Services.GetRequiredService<BulkSelectionState>()`
-   - Manipulate selection state before rendering to test different scenarios
-
-**Test Results:**
-- BulkActionToolbarTests: 22 tests passing
-- FileUploadTests: 24 tests passing
-- Total: 46 new bUnit tests
-
-**Key Takeaways:**
-- bUnit's `InvokeAsync()` is required for any component method that triggers rendering
-- InputFile upload simulation uses `cut.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText(...))`
-- Test both happy paths (valid files) and error paths (invalid file types, oversized files)
-- Use Theory tests with InlineData for testing multiple file type validations
