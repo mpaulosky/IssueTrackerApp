@@ -534,3 +534,33 @@ The `GetGitBuildInfo` MSBuild target in `src/Web/Web.csproj` runs `git describe 
 
 **Files Changed:** `src/Web/Web.csproj`, Git tag created
 
+
+---
+
+### MongoDB Connection String Fallback (2025-03-21)
+
+**Author:** Sam (Backend Developer)  
+**Status:** Implemented
+
+The Web project crashed at startup with `System.TimeoutException` because the EF Core MongoDB provider reads `MongoDB:ConnectionString` (hardcoded to `mongodb://localhost:27017` in appsettings.Development.json), while the actual Atlas connection string lives in `ConnectionStrings:mongodb` (user secrets / Aspire injection). These two config paths never intersect.
+
+**Decision:** Added fallback logic in `AddMongoDbPersistence` that bridges the gap:
+
+1. Before binding `MongoDbSettings`, check if `MongoDB:ConnectionString` is empty or equals `mongodb://localhost:27017`
+2. If so, read `ConnectionStrings:mongodb` and overlay it into the MongoDB config section  
+3. Changed `appsettings.Development.json` to use empty string instead of the localhost default
+
+**Priority order:**
+- Explicit `MongoDB:ConnectionString` → used as-is
+- Empty/localhost → falls back to `ConnectionStrings:mongodb` (Aspire-injected or user secrets)
+
+**Impact:**
+- **Aspire AppHost:** Works — Aspire injects `ConnectionStrings:mongodb` as env var, fallback picks it up
+- **Standalone + user secrets:** Works — user secret `ConnectionStrings:mongodb` is read as fallback
+- **Explicit config:** Works — non-empty, non-localhost `MongoDB:ConnectionString` takes priority
+- **Tests:** Unaffected — `Testing` environment skips `AddMongoDBClient` and tests use TestContainers
+
+**Files Changed:** `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`, `src/Web/appsettings.Development.json`
+
+**Rationale:** When two config systems disagree (Aspire vs raw appsettings), bridge them at the DI registration layer using configuration overlay before binding Options.
+
