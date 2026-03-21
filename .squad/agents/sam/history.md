@@ -612,3 +612,37 @@ Sam (Backend Developer) has established core architectural patterns for IssueTra
 
 **Learnings:**
 - Both test projects scaffold and build cleanly before test implementation
+
+## Learnings
+
+### MongoDB Connection String Fallback (2025-07-17)
+- **Problem:** EF Core MongoDB provider reads `MongoDB:ConnectionString` from appsettings, but Aspire injects Atlas connection string into `ConnectionStrings:mongodb`. These two config paths never intersect, causing `TimeoutException` against localhost.
+- **Solution:** Added fallback logic in `AddMongoDbPersistence` that checks `ConnectionStrings:mongodb` when `MongoDB:ConnectionString` is empty or equals the localhost default. Set via `IConfigurationSection` indexer before Options binding.
+- **Key files:** `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`, `src/Web/appsettings.Development.json`
+- **Pattern:** When two config systems disagree (Aspire vs raw appsettings), bridge them at the DI registration layer using configuration overlay before binding Options.
+
+---
+
+### Session: MongoDB Config Fallback Fix (2025-03-21)
+
+**Outcome:** ✅ Fixed TimeoutException in Web project startup
+
+**Problem:** EF Core MongoDB provider reads `MongoDB:ConnectionString` from appsettings.Development.json (hardcoded to localhost), but Aspire injects real Atlas connection string into `ConnectionStrings:mongodb`. These paths never intersect, causing timeout when connecting to localhost.
+
+**Solution:** Added fallback logic in `AddMongoDbPersistence`:
+1. Check if `MongoDB:ConnectionString` is empty or equals `mongodb://localhost:27017`
+2. If so, read `ConnectionStrings:mongodb` and overlay into MongoDB config
+3. Cleared localhost default from `appsettings.Development.json`
+
+**Impact:**
+- AppHost runs clean — Aspire injection works
+- Standalone + user secrets works  
+- Explicit config takes priority
+- Tests unaffected (TestContainers)
+
+**Deliverables:**
+- Updated `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`
+- Updated `src/Web/appsettings.Development.json`
+- Added decision entry to `.squad/decisions.md`
+
+**Pattern Established:** When two config systems disagree, bridge them at DI registration layer using config overlay before binding Options.

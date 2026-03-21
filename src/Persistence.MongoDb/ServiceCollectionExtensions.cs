@@ -8,6 +8,8 @@ namespace Persistence.MongoDb;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+	private const string LocalhostDefault = "mongodb://localhost:27017";
+
 	/// <summary>
 	/// Adds MongoDB persistence services to the service collection.
 	/// </summary>
@@ -15,6 +17,21 @@ public static class ServiceCollectionExtensions
 		this IServiceCollection services,
 		IConfiguration configuration)
 	{
+		// Fallback: when MongoDB:ConnectionString is empty or the localhost default,
+		// use ConnectionStrings:mongodb (injected by Aspire or stored in user secrets).
+		var mongoSection = configuration.GetSection(MongoDbSettings.SectionName);
+		var configuredConnectionString = mongoSection[nameof(MongoDbSettings.ConnectionString)];
+
+		if (string.IsNullOrWhiteSpace(configuredConnectionString)
+			|| configuredConnectionString.Equals(LocalhostDefault, StringComparison.OrdinalIgnoreCase))
+		{
+			var fallback = configuration.GetConnectionString("mongodb");
+			if (!string.IsNullOrWhiteSpace(fallback))
+			{
+				mongoSection[nameof(MongoDbSettings.ConnectionString)] = fallback;
+			}
+		}
+
 		// Register and validate MongoDB settings
 		services.AddOptions<MongoDbSettings>()
 			.Bind(configuration.GetSection(MongoDbSettings.SectionName))
