@@ -3,6 +3,8 @@ using Auth0.AspNetCore.Authentication;
 using Azure.Identity;
 
 using Domain;
+using Domain.Abstractions;
+using Domain.Features.Issues.Commands.Bulk;
 
 using FluentValidation;
 
@@ -18,6 +20,7 @@ using Web.Data;
 using Web.Endpoints;
 using Web.Features;
 using Web.Helpers;
+using Web.Hubs;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,21 +71,21 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
-builder.Services.AddScoped<Domain.Abstractions.INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Configure Email Service (SendGrid or SMTP fallback)
 var sendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
 if (!string.IsNullOrEmpty(sendGridApiKey))
 {
-	// Use SendGrid if API key is configured
+	// Use SendGrid if an API key is configured
 	builder.Services.Configure<SendGridSettings>(builder.Configuration.GetSection("SendGrid"));
-	builder.Services.AddSingleton<Domain.Abstractions.IEmailService, SendGridEmailService>();
+	builder.Services.AddSingleton<IEmailService, SendGridEmailService>();
 }
 else
 {
 	// Fallback to SMTP for development/testing
 	builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
-	builder.Services.AddSingleton<Domain.Abstractions.IEmailService, SmtpEmailService>();
+	builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 }
 
 // Add Email Queue Background Service
@@ -92,13 +95,13 @@ builder.Services.AddHostedService<EmailQueueBackgroundService>();
 var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
 if (!string.IsNullOrEmpty(blobConnectionString))
 {
-	// Use Azure Blob Storage if connection string is configured
+	// Use Azure Blob Storage if the connection string is configured
 	builder.Services.AddAzureBlobStorage(builder.Configuration);
 }
 else
 {
 	// Fallback to local file storage for development
-	builder.Services.AddScoped<Domain.Abstractions.IFileStorageService, LocalFileStorageService>();
+	builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 }
 
 // Add real-time notification services
@@ -111,17 +114,17 @@ builder.Services.AddMemoryCache();
 // Add bulk operations services
 builder.Services.AddScoped<BulkSelectionState>();
 builder.Services.AddSingleton<InMemoryBulkOperationQueue>();
-builder.Services.AddSingleton<Domain.Features.Issues.Commands.Bulk.IBulkOperationQueue>(sp =>
+builder.Services.AddSingleton<IBulkOperationQueue>(sp =>
 	sp.GetRequiredService<InMemoryBulkOperationQueue>());
-builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.IUndoService, InMemoryUndoService>();
+builder.Services.AddScoped<IUndoService, InMemoryUndoService>();
 builder.Services.AddScoped<IBulkOperationService, BulkOperationService>();
 builder.Services.AddHostedService<BulkOperationBackgroundService>();
 
 // Register bulk operation handlers for background processing
-builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkUpdateStatusCommandHandler>();
-builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkUpdateCategoryCommandHandler>();
-builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkAssignCommandHandler>();
-builder.Services.AddScoped<Domain.Features.Issues.Commands.Bulk.BulkDeleteCommandHandler>();
+builder.Services.AddScoped<BulkUpdateStatusCommandHandler>();
+builder.Services.AddScoped<BulkUpdateCategoryCommandHandler>();
+builder.Services.AddScoped<BulkAssignCommandHandler>();
+builder.Services.AddScoped<BulkDeleteCommandHandler>();
 
 // Add data seeder
 builder.Services.AddDataSeeder();
@@ -205,7 +208,7 @@ app.MapRazorComponents<App>()
 		.AddInteractiveServerRenderMode();
 
 // Map SignalR hub endpoint
-app.MapHub<Web.Hubs.IssueHub>("/hubs/issues");
+app.MapHub<IssueHub>("/hubs/issues");
 
 // Map API endpoints
 app.MapAttachmentEndpoints();
@@ -237,7 +240,7 @@ app.MapGet("/account/login", async (HttpContext context, string returnUrl = "/")
 
 // Use POST for logout to prevent CSRF attacks
 // Antiforgery validation is handled by UseAntiforgery() middleware for form submissions
-app.MapPost("/account/logout", async (HttpContext context) =>
+app.MapPost("/account/logout", async context =>
 {
 	var authenticationProperties = new AuthenticationProperties
 	{
