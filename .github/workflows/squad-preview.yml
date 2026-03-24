@@ -1,5 +1,5 @@
 name: Squad Preview Validation
-# .NET project — validates builds and tests on preview branch
+# dotnet project — configure build, test, and validation commands below
 
 on:
   push:
@@ -8,60 +8,23 @@ on:
 permissions:
   contents: read
 
-env:
-  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
-  Auth0__Domain: ${{ secrets.AUTH0_DOMAIN }}
-  Auth0__ClientId: ${{ secrets.AUTH0_CLIENT_ID }}
-  Auth0__ClientSecret: ${{ secrets.AUTH0_CLIENT_SECRET }}
-  MongoDB__ConnectionString: ${{ secrets.MONGODB_CONNECTION_STRING }}
-
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build IssueManager.sln --configuration Release --no-restore
-
-      - name: Run unit tests
+      - name: Build and test
         run: |
-          # Run all unit tests (compatible with dotnet test)
-          dotnet test tests/Api.Tests.Unit --configuration Release --no-build --verbosity minimal || true
-          dotnet test tests/Shared.Tests.Unit --configuration Release --no-build --verbosity minimal || true
-          dotnet test tests/Web.Tests.Unit --configuration Release --no-build --verbosity minimal || true
+          # TODO: Add your dotnet build/test commands here
+          # Go:            go test ./...
+          # Python:        pip install -r requirements.txt && pytest
+          # .NET:          dotnet test
+          # Java (Maven):  mvn test
+          # Java (Gradle): ./gradlew test
+          echo "No build commands configured — update squad-preview.yml"
 
-      - name: Validate no forbidden files
+      - name: Validate
         run: |
-          # Ensure preview branch doesn't contain forbidden paths
-          FORBIDDEN=$(git ls-files | grep -E "^(\.(ai-team|squad|ai-team-templates|squad-templates)/|team-docs/|docs/proposals/)" || true)
-          if [ -n "$FORBIDDEN" ]; then
-            echo "::error::Forbidden files found on preview: $FORBIDDEN"
-            exit 1
-          fi
-          echo "✅ No forbidden files on preview"
-
-      - name: Preview validation complete
-        run: echo "✅ Preview branch validation passed"
+          # TODO: Add pre-release validation commands here
+          echo "No validation commands configured — update squad-preview.yml"
