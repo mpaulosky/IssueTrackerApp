@@ -18,7 +18,7 @@ jobs:
     name: Promote dev → preview
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -36,7 +36,7 @@ jobs:
           echo "=== dev HEAD ===" && git log origin/dev -1 --oneline
           echo "=== preview HEAD ===" && git log origin/preview -1 --oneline
           echo "=== Files that would be stripped ==="
-          git diff origin/preview..origin/dev --name-only | grep -E "^(\.(ai-team|squad|ai-team-templates|squad-templates)|team-docs/|docs/proposals/)" || echo "(none)"
+          git diff origin/preview..origin/dev --name-only | grep -E "^(\.(ai-team|squad|ai-team-templates)|team-docs/|docs/proposals/)" || echo "(none)"
 
       - name: Merge dev → preview (strip forbidden paths)
         if: ${{ inputs.dry_run == 'false' }}
@@ -49,15 +49,12 @@ jobs:
             .ai-team/ \
             .squad/ \
             .ai-team-templates/ \
-            .squad-templates/ \
             team-docs/ \
             "docs/proposals/" || true
 
           # Commit if there are staged changes
           if ! git diff --cached --quiet; then
-            # Get version from Directory.Build.props or use default
-            VERSION=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props 2>/dev/null || echo "0.1.0")
-            git commit -m "chore: promote dev → preview (v${VERSION})"
+            git commit -m "chore: promote dev → preview (v$(node -e "console.log(require('./package.json').version)"))"
             git push origin preview
             echo "✅ Pushed preview branch"
           else
@@ -73,7 +70,7 @@ jobs:
     needs: dev-to-preview
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -90,15 +87,12 @@ jobs:
         run: |
           echo "=== preview HEAD ===" && git log origin/preview -1 --oneline
           echo "=== main HEAD ===" && git log origin/main -1 --oneline
-          # Get version from Directory.Build.props or use default
-          VERSION=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props 2>/dev/null || echo "0.1.0")
-          echo "=== Version ===" && echo "v${VERSION}"
+          echo "=== Version ===" && node -e "console.log('v' + require('./package.json').version)"
 
       - name: Validate preview is release-ready
         run: |
           git checkout preview
-          # Get version from Directory.Build.props or use default
-          VERSION=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props 2>/dev/null || echo "0.1.0")
+          VERSION=$(node -e "console.log(require('./package.json').version)")
           if ! grep -q "## \[$VERSION\]" CHANGELOG.md 2>/dev/null; then
             echo "::error::Version $VERSION not found in CHANGELOG.md — update before releasing"
             exit 1
@@ -106,7 +100,7 @@ jobs:
           echo "✅ Version $VERSION has CHANGELOG entry"
 
           # Verify no forbidden files on preview
-          FORBIDDEN=$(git ls-files | grep -E "^(\.(ai-team|squad|ai-team-templates|squad-templates)/|team-docs/|docs/proposals/)" || true)
+          FORBIDDEN=$(git ls-files | grep -E "^(\.(ai-team|squad|ai-team-templates)/|team-docs/|docs/proposals/)" || true)
           if [ -n "$FORBIDDEN" ]; then
             echo "::error::Forbidden files found on preview: $FORBIDDEN"
             exit 1
@@ -117,9 +111,7 @@ jobs:
         if: ${{ inputs.dry_run == 'false' }}
         run: |
           git checkout main
-          # Get version from Directory.Build.props or use default
-          VERSION=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props 2>/dev/null || echo "0.1.0")
-          git merge origin/preview --no-ff -m "chore: promote preview → main (v${VERSION})"
+          git merge origin/preview --no-ff -m "chore: promote preview → main (v$(node -e "console.log(require('./package.json').version)"))"
           git push origin main
           echo "✅ Pushed main — squad-release.yml will tag and publish the release"
 

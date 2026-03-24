@@ -1,5 +1,5 @@
 name: Squad Insider Release
-# .NET project — creates pre-releases from insider branch
+# dotnet project — configure build, test, and insider release commands below
 
 on:
   push:
@@ -8,71 +8,27 @@ on:
 permissions:
   contents: write
 
-env:
-  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
-  Auth0__Domain: ${{ secrets.AUTH0_DOMAIN }}
-  Auth0__ClientId: ${{ secrets.AUTH0_CLIENT_ID }}
-  Auth0__ClientSecret: ${{ secrets.AUTH0_CLIENT_SECRET }}
-  MongoDB__ConnectionString: ${{ secrets.MONGODB_CONNECTION_STRING }}
-
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build IssueManager.sln --configuration Release --no-restore
-
-      - name: Run unit tests
+      - name: Build and test
         run: |
-          dotnet test tests/Api.Tests.Unit --configuration Release --no-build --verbosity minimal || true
-          dotnet test tests/Shared.Tests.Unit --configuration Release --no-build --verbosity minimal || true
-          dotnet test tests/Web.Tests.Unit --configuration Release --no-build --verbosity minimal || true
-
-      - name: Get version
-        id: version
-        run: |
-          # Get version from Directory.Build.props or use default
-          VERSION=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props 2>/dev/null || echo "0.1.0")
-          # Generate insider version with timestamp
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          INSIDER_VERSION="${VERSION}-insider.${TIMESTAMP}"
-          echo "version=$INSIDER_VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Insider Version: $INSIDER_VERSION"
+          # TODO: Add your dotnet build/test commands here
+          # Go:            go test ./...
+          # Python:        pip install -r requirements.txt && pytest
+          # .NET:          dotnet test
+          # Java (Maven):  mvn test
+          # Java (Gradle): ./gradlew test
+          echo "No build commands configured — update squad-insider-release.yml"
 
       - name: Create insider release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Insider Release v${{ steps.version.outputs.version }}
-          generate_release_notes: true
-          draft: false
-          prerelease: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Insider release complete
-        run: echo "✅ Insider release v${{ steps.version.outputs.version }} created successfully"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # TODO: Add your insider/pre-release commands here
+          echo "No release commands configured — update squad-insider-release.yml"

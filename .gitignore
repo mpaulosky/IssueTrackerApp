@@ -398,3 +398,8 @@ test_results.txt
 .claude/
 .junie/
 skills-lock.json
+.squad/orchestration-log/
+.squad/log/
+.squad/decisions/inbox/
+.squad/sessions/
+.squad-workstream
