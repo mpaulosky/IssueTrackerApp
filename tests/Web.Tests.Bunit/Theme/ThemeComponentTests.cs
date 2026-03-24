@@ -17,10 +17,17 @@ namespace Web.Tests.Bunit.Theme;
 
 /// <summary>
 /// bUnit tests for theme-related Blazor components.
-/// Tests the ThemeProvider, ThemeToggle, and ColorSchemeSelector components.
+/// Tests the ThemeProvider and ThemeSelector components.
 /// </summary>
 public class ThemeProviderTests : BunitTestBase
 {
+	private void SetupJsInterop(string color = "blue", string brightness = "light")
+	{
+		JSInterop.Setup<string>("themeManager.getColor").SetResult(color);
+		JSInterop.Setup<string>("themeManager.getBrightness").SetResult(brightness);
+		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+	}
+
 	/// <summary>
 	/// Test: ThemeProvider renders without errors
 	/// </summary>
@@ -28,10 +35,7 @@ public class ThemeProviderTests : BunitTestBase
 	public void ThemeProvider_RendersSuccessfully()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("system");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop();
 
 		// Act
 		var cut = Render<ThemeProvider>(parameters =>
@@ -42,7 +46,6 @@ public class ThemeProviderTests : BunitTestBase
 		cut.Find("div").TextContent.Should().Contain("Test Content");
 	}
 
-
 	/// <summary>
 	/// Test: ThemeProvider cascades itself to child components
 	/// </summary>
@@ -50,10 +53,7 @@ public class ThemeProviderTests : BunitTestBase
 	public void ThemeProvider_CascadesValueToChildren()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("dark");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("red");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop("red", "dark");
 
 		// Act
 		var cut = Render<ThemeProvider>(parameters =>
@@ -65,498 +65,221 @@ public class ThemeProviderTests : BunitTestBase
 }
 
 /// <summary>
-/// bUnit tests for ThemeToggle component.
-/// Tests theme mode switching (light/dark/system) and UI interactions.
+/// bUnit tests for ThemeSelector component.
+/// Tests combined color and brightness selection with pill buttons.
 /// </summary>
-public class ThemeToggleTests : BunitTestBase
+public class ThemeSelectorTests : BunitTestBase
 {
+	private void SetupJsInterop(string color = "blue", string brightness = "light")
+	{
+		JSInterop.Setup<string>("themeManager.getColor").SetResult(color);
+		JSInterop.Setup<string>("themeManager.getBrightness").SetResult(brightness);
+		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+	}
+
 	/// <summary>
-	/// Test: ThemeToggle renders button with icon
+	/// Test: ThemeSelector renders section with heading
 	/// </summary>
 	[Fact]
-	public void ThemeToggle_RendersWithButton()
+	public void ThemeSelector_RendersWithHeading()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop();
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var button = themeProvider.Find("button");
+		var heading = themeProvider.Find("h2");
 
 		// Assert
-		button.Should().NotBeNull();
-		button.GetAttribute("aria-label").Should().Be("Toggle theme");
-		button.GetAttribute("type").Should().Be("button");
+		heading.Should().NotBeNull();
+		heading.TextContent.Should().Contain("Choose Your Theme");
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle shows sun icon in light mode
+	/// Test: ThemeSelector displays all four color buttons
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_ShowsSunIcon_InLightMode()
+	public void ThemeSelector_DisplaysAllColorButtons()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop();
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var svgs = themeProvider.FindAll("svg");
+		var buttons = themeProvider.FindAll("button");
+		var buttonTexts = buttons.Select(b => b.TextContent.Trim()).ToList();
 
 		// Assert
-		svgs.Should().NotBeEmpty();
-		// Sun icon should be rendered in light mode
+		buttonTexts.Should().Contain("Red");
+		buttonTexts.Should().Contain("Blue");
+		buttonTexts.Should().Contain("Green");
+		buttonTexts.Should().Contain("Yellow");
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle shows moon icon in dark mode
+	/// Test: ThemeSelector displays brightness buttons
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_ShowsMoonIcon_InDarkMode()
+	public void ThemeSelector_DisplaysBrightnessButtons()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("dark");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop();
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var svgs = themeProvider.FindAll("svg");
+		var buttons = themeProvider.FindAll("button");
+		var buttonTexts = buttons.Select(b => b.TextContent.Trim()).ToList();
 
 		// Assert
-		svgs.Should().NotBeEmpty();
-		// Moon icon should be rendered in dark mode
+		buttonTexts.Should().Contain("Light(Pastel)");
+		buttonTexts.Should().Contain("Dark(Rich)");
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle dropdown opens when button is clicked
+	/// Test: ThemeSelector shows current theme label
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_DropdownOpens_OnButtonClick()
+	public void ThemeSelector_ShowsCurrentThemeLabel()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop("blue", "light");
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
+		var section = themeProvider.Find("section");
 
 		// Assert
-		var menuDiv = themeProvider.FindAll("div[role='menu']").FirstOrDefault();
-		menuDiv.Should().NotBeNull();
+		section.TextContent.Should().Contain("Current:");
+		section.TextContent.Should().Contain("BLUE Light");
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle dropdown contains light, dark, and system options
+	/// Test: ThemeSelector highlights active color button
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_DropdownContains_AllThemeModes()
+	public void ThemeSelector_HighlightsActiveColorButton()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop("red", "light");
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
+		var buttons = themeProvider.FindAll("button");
+		var redButton = buttons.FirstOrDefault(b => b.TextContent.Trim() == "Red");
 
 		// Assert
-		menuItems.Should().HaveCount(3);
-		menuItems[0].TextContent.Should().Contain("Light");
-		menuItems[1].TextContent.Should().Contain("Dark");
-		menuItems[2].TextContent.Should().Contain("System");
+		redButton.Should().NotBeNull();
+		redButton!.GetAttribute("class").Should().Contain("ring-2");
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle highlights current theme mode
+	/// Test: ThemeSelector highlights active brightness button
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_HighlightsCurrentTheme()
+	public void ThemeSelector_HighlightsActiveBrightnessButton()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("dark");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop("blue", "dark");
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
-		var darkModeButton = menuItems[1]; // Dark mode is the second button
+		var buttons = themeProvider.FindAll("button");
+		var darkButton = buttons.FirstOrDefault(b => b.TextContent.Trim() == "Dark(Rich)");
 
 		// Assert
-		darkModeButton.GetAttribute("class").Should().Contain("text-primary");
+		darkButton.Should().NotBeNull();
+		darkButton!.GetAttribute("class").Should().Contain("ring-2");
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle calls SetThemeModeAsync when option is selected
+	/// Test: ThemeSelector calls setColor when color button is clicked
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_CallsSetThemeModeAsync_OnSelection()
+	public async Task ThemeSelector_CallsSetColor_OnColorButtonClick()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-		JSInterop.SetupVoid("themeManager.setThemeMode");
+		SetupJsInterop();
+		JSInterop.SetupVoid("themeManager.setColor");
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
-		var darkModeButton = menuItems[1];
-		await darkModeButton.ClickAsync(new());
+		var buttons = themeProvider.FindAll("button");
+		var redButton = buttons.First(b => b.TextContent.Trim() == "Red");
+		await redButton.ClickAsync(new());
 
 		// Assert
-		JSInterop.VerifyInvoke("themeManager.setThemeMode", calledTimes: 1);
+		JSInterop.VerifyInvoke("themeManager.setColor", calledTimes: 1);
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle closes dropdown after selection
+	/// Test: ThemeSelector calls setBrightness when brightness button is clicked
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_ClosesDropdown_AfterSelection()
+	public async Task ThemeSelector_CallsSetBrightness_OnBrightnessButtonClick()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-		JSInterop.SetupVoid("themeManager.setThemeMode");
+		SetupJsInterop();
+		JSInterop.SetupVoid("themeManager.setBrightness");
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
-
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new()); // Open
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
-		await menuItems[1].ClickAsync(new()); // Select dark mode
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		themeProvider.Render();
+		var buttons = themeProvider.FindAll("button");
+		var darkButton = buttons.First(b => b.TextContent.Trim() == "Dark(Rich)");
+		await darkButton.ClickAsync(new());
 
 		// Assert
-		var menu = themeProvider.FindAll("div[role='menu']").FirstOrDefault();
-		menu.Should().BeNull();
+		JSInterop.VerifyInvoke("themeManager.setBrightness", calledTimes: 1);
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle title reflects current theme mode
+	/// Test: ThemeSelector shows color dot indicators
 	/// </summary>
 	[Fact]
-	public async Task ThemeToggle_TitleReflectsCurrentMode()
+	public void ThemeSelector_ShowsColorDotIndicators()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("dark");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop();
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var button = themeProvider.Find("button");
-		var title = button.GetAttribute("title");
+		var dots = themeProvider.FindAll("span[class*='rounded-full']");
 
 		// Assert
-		title.Should().Be("Dark mode");
+		dots.Should().HaveCount(4);
 	}
 
 	/// <summary>
-	/// Test: ThemeToggle disposes event handler
+	/// Test: ThemeSelector disposes event handler
 	/// </summary>
 	[Fact]
-	public void ThemeToggle_DisposesEventHandler()
+	public void ThemeSelector_DisposesEventHandler()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop();
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ThemeToggle>());
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
-		var toggle = themeProvider.FindComponent<ThemeToggle>();
-		toggle.Instance.Dispose();
-
-		// Assert - should not throw
-		toggle.Should().NotBeNull();
-	}
-}
-
-/// <summary>
-/// bUnit tests for ColorSchemeSelector component.
-/// Tests color scheme selection (Red, Blue, Green, Yellow) and UI interactions.
-/// </summary>
-public class ColorSchemeSelectorTests : BunitTestBase
-{
-	/// <summary>
-	/// Test: ColorSchemeSelector renders button with icon
-	/// </summary>
-	[Fact]
-	public void ColorSchemeSelector_RendersWithButton()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var button = themeProvider.Find("button");
-
-		// Assert
-		button.Should().NotBeNull();
-		button.GetAttribute("aria-label").Should().Be("Change color scheme");
-		button.GetAttribute("type").Should().Be("button");
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector dropdown opens when button is clicked
-	/// </summary>
-	[Fact]
-	public async Task ColorSchemeSelector_DropdownOpens_OnButtonClick()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		// Assert
-		var menuDiv = themeProvider.FindAll("div[role='menu']").FirstOrDefault();
-		menuDiv.Should().NotBeNull();
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector dropdown contains all color scheme options
-	/// </summary>
-	[Fact]
-	public async Task ColorSchemeSelector_DropdownContains_AllColorSchemes()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
-
-		// Assert
-		menuItems.Should().HaveCount(4);
-		menuItems[0].TextContent.Should().Contain("Blue");
-		menuItems[1].TextContent.Should().Contain("Red");
-		menuItems[2].TextContent.Should().Contain("Green");
-		menuItems[3].TextContent.Should().Contain("Yellow");
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector highlights current color scheme
-	/// </summary>
-	[Fact]
-	public async Task ColorSchemeSelector_HighlightsCurrentScheme()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("red");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
-		var redSchemeButton = menuItems[1]; // Red is the second button
-
-		// Assert
-		redSchemeButton.GetAttribute("class").Should().Contain("ring-2");
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector displays color swatches
-	/// </summary>
-	[Fact]
-	public async Task ColorSchemeSelector_DisplaysColorSwatches()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var swatches = themeProvider.FindAll("span[class*='rounded-full']");
-
-		// Assert
-		swatches.Should().HaveCount(4);
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector calls SetColorSchemeAsync when option is selected
-	/// </summary>
-	[Fact]
-	public async Task ColorSchemeSelector_CallsSetColorSchemeAsync_OnSelection()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-		JSInterop.SetupVoid("themeManager.setColorScheme");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
-		var redSchemeButton = menuItems[1];
-		await redSchemeButton.ClickAsync(new());
-
-		// Assert
-		JSInterop.VerifyInvoke("themeManager.setColorScheme", calledTimes: 1);
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector closes dropdown after selection
-	/// </summary>
-	[Fact]
-	public async Task ColorSchemeSelector_ClosesDropdown_AfterSelection()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-		JSInterop.SetupVoid("themeManager.setColorScheme");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new()); // Open
-
-		var menuItems = themeProvider.FindAll("button[role='menuitem']");
-		await menuItems[1].ClickAsync(new()); // Select red scheme
-
-		// Act
-		themeProvider.Render();
-
-		// Assert
-		var menu = themeProvider.FindAll("div[role='menu']").FirstOrDefault();
-		menu.Should().BeNull();
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector displays color scheme label
-	/// </summary>
-	[Fact]
-	public async Task ColorSchemeSelector_DisplaysColorSchemeLabel()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var button = themeProvider.Find("button");
-		await button.ClickAsync(new());
-
-		var label = themeProvider.Find("p");
-
-		// Assert
-		label.TextContent.Should().Contain("Color Theme");
-	}
-
-	/// <summary>
-	/// Test: ColorSchemeSelector disposes event handler
-	/// </summary>
-	[Fact]
-	public void ColorSchemeSelector_DisposesEventHandler()
-	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent<ColorSchemeSelector>());
-
-		// Act
-		var selector = themeProvider.FindComponent<ColorSchemeSelector>();
+		var selector = themeProvider.FindComponent<ThemeSelector>();
 		selector.Instance.Dispose();
 
 		// Assert - should not throw
@@ -566,79 +289,66 @@ public class ColorSchemeSelectorTests : BunitTestBase
 
 /// <summary>
 /// Integration tests for Theme components working together.
-/// Tests theme state changes and persistence across components.
+/// Tests theme state changes and persistence.
 /// </summary>
 public class ThemeIntegrationTests : BunitTestBase
 {
-	/// <summary>
-	/// Test: Both ThemeToggle and ColorSchemeSelector render together
-	/// </summary>
-	[Fact]
-	public void Theme_BothComponents_RenderTogether()
+	private void SetupJsInterop(string color = "blue", string brightness = "light")
 	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
+		JSInterop.Setup<string>("themeManager.getColor").SetResult(color);
+		JSInterop.Setup<string>("themeManager.getBrightness").SetResult(brightness);
 		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-
-		// Act
-		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent(builder =>
-			{
-				builder.OpenComponent<ThemeToggle>(0);
-				builder.CloseComponent();
-				builder.OpenComponent<ColorSchemeSelector>(1);
-				builder.CloseComponent();
-			}));
-
-		// Assert
-		var buttons = themeProvider.FindAll("button");
-		buttons.Should().HaveCountGreaterThanOrEqualTo(2);
 	}
 
 	/// <summary>
-	/// Test: Theme state is shared between ThemeToggle and ColorSchemeSelector
+	/// Test: ThemeSelector renders within ThemeProvider
 	/// </summary>
 	[Fact]
-	public async Task Theme_StateIsShared_BetweenComponents()
+	public void Theme_ThemeSelector_RendersWithinProvider()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop();
+
+		// Act
+		var themeProvider = Render<ThemeProvider>(parameters =>
+			parameters.AddChildContent<ThemeSelector>());
+
+		// Assert
+		var buttons = themeProvider.FindAll("button");
+		buttons.Should().HaveCountGreaterThanOrEqualTo(6); // 4 colors + 2 brightness
+	}
+
+	/// <summary>
+	/// Test: Theme state is accessible via ThemeProvider
+	/// </summary>
+	[Fact]
+	public void Theme_StateIsAccessible_ViaProvider()
+	{
+		// Arrange
+		SetupJsInterop("red", "dark");
 
 		var themeProvider = Render<ThemeProvider>(parameters =>
-			parameters.AddChildContent(builder =>
-			{
-				builder.OpenComponent<ThemeToggle>(0);
-				builder.CloseComponent();
-				builder.OpenComponent<ColorSchemeSelector>(1);
-				builder.CloseComponent();
-			}));
+			parameters.AddChildContent<ThemeSelector>());
 
 		// Act
 		var provider = themeProvider.Instance;
 
 		// Assert
 		provider.Should().NotBeNull();
-		provider.ThemeMode.Should().Be("light");
-		provider.ColorScheme.Should().Be("blue");
+		provider.Color.Should().Be("red");
+		provider.Brightness.Should().Be("dark");
+		provider.IsDarkMode.Should().BeTrue();
 	}
 
 	/// <summary>
-	/// Test: OnThemeChanged event is triggered when theme changes
+	/// Test: OnThemeChanged event is triggered when color changes
 	/// </summary>
 	[Fact]
-	public async Task Theme_OnThemeChanged_TriggeredOnThemeChange()
+	public async Task Theme_OnThemeChanged_TriggeredOnColorChange()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-		JSInterop.SetupVoid("themeManager.setThemeMode");
+		SetupJsInterop();
+		JSInterop.SetupVoid("themeManager.setColor");
 
 		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
@@ -646,104 +356,114 @@ public class ThemeIntegrationTests : BunitTestBase
 		var eventTriggered = false;
 		provider.OnThemeChanged += () => eventTriggered = true;
 
-		// Act - Must use InvokeAsync since SetThemeModeAsync calls StateHasChanged
-		await themeProvider.InvokeAsync(async () => await provider.SetThemeModeAsync("dark"));
+		// Act
+		await themeProvider.InvokeAsync(async () => await provider.SetColorAsync("red"));
 
 		// Assert
 		eventTriggered.Should().BeTrue();
 	}
 
 	/// <summary>
-	/// Test: ColorScheme persists across theme mode changes
+	/// Test: OnThemeChanged event is triggered when brightness changes
 	/// </summary>
 	[Fact]
-	public async Task Theme_ColorScheme_PersistsAcrossThemeModeChanges()
+	public async Task Theme_OnThemeChanged_TriggeredOnBrightnessChange()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("red");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-		JSInterop.SetupVoid("themeManager.setThemeMode");
+		SetupJsInterop();
+		JSInterop.SetupVoid("themeManager.setBrightness");
 
 		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
-		var originalColorScheme = provider.ColorScheme;
 
-		// Act - Must use InvokeAsync since SetThemeModeAsync calls StateHasChanged
-		await themeProvider.InvokeAsync(async () => await provider.SetThemeModeAsync("dark"));
+		var eventTriggered = false;
+		provider.OnThemeChanged += () => eventTriggered = true;
+
+		// Act
+		await themeProvider.InvokeAsync(async () => await provider.SetBrightnessAsync("dark"));
 
 		// Assert
-		provider.ColorScheme.Should().Be(originalColorScheme);
+		eventTriggered.Should().BeTrue();
 	}
 
 	/// <summary>
-	/// Test: ThemeMode persists across color scheme changes
+	/// Test: Color persists across brightness changes
 	/// </summary>
 	[Fact]
-	public async Task Theme_ThemeMode_PersistsAcrossColorSchemeChanges()
+	public async Task Theme_Color_PersistsAcrossBrightnessChanges()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("dark");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(true);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
-		JSInterop.SetupVoid("themeManager.setColorScheme");
+		SetupJsInterop("red", "light");
+		JSInterop.SetupVoid("themeManager.setBrightness");
 
 		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
-		var originalThemeMode = provider.ThemeMode;
+		var originalColor = provider.Color;
 
-		// Act - Must use InvokeAsync since SetColorSchemeAsync calls StateHasChanged
-		await themeProvider.InvokeAsync(async () => await provider.SetColorSchemeAsync("green"));
+		// Act
+		await themeProvider.InvokeAsync(async () => await provider.SetBrightnessAsync("dark"));
 
 		// Assert
-		provider.ThemeMode.Should().Be(originalThemeMode);
+		provider.Color.Should().Be(originalColor);
 	}
 
 	/// <summary>
-	/// Test: SystemPreferenceChanged callback updates IsDarkMode
+	/// Test: Brightness persists across color changes
 	/// </summary>
 	[Fact]
-	public void Theme_SystemPreferenceChanged_UpdatesIsDarkMode()
+	public async Task Theme_Brightness_PersistsAcrossColorChanges()
 	{
 		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("system");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		SetupJsInterop("blue", "dark");
+		JSInterop.SetupVoid("themeManager.setColor");
+
+		var themeProvider = Render<ThemeProvider>();
+		var provider = themeProvider.Instance;
+		var originalBrightness = provider.Brightness;
+
+		// Act
+		await themeProvider.InvokeAsync(async () => await provider.SetColorAsync("green"));
+
+		// Assert
+		provider.Brightness.Should().Be(originalBrightness);
+	}
+
+	/// <summary>
+	/// Test: SystemPreferenceChanged callback triggers event
+	/// </summary>
+	[Fact]
+	public void Theme_SystemPreferenceChanged_TriggersEvent()
+	{
+		// Arrange
+		SetupJsInterop();
 
 		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
 
-		// Act - Must use InvokeAsync since OnSystemPreferenceChanged calls StateHasChanged
+		var eventTriggered = false;
+		provider.OnThemeChanged += () => eventTriggered = true;
+
+		// Act
 		themeProvider.InvokeAsync(() => provider.OnSystemPreferenceChanged(true));
 
 		// Assert
-		provider.IsDarkMode.Should().BeTrue();
+		eventTriggered.Should().BeTrue();
 	}
 
 	/// <summary>
-	/// Test: SystemPreferenceChanged is ignored when theme mode is not system
+	/// Test: IsDarkMode reflects brightness state
 	/// </summary>
 	[Fact]
-	public void Theme_SystemPreferenceChanged_IgnoredInNonSystemMode()
+	public void Theme_IsDarkMode_ReflectsBrightness()
 	{
-		// Arrange
-		JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
-		JSInterop.Setup<string>("themeManager.getColorScheme").SetResult("blue");
-		JSInterop.Setup<bool>("themeManager.shouldUseDarkMode").SetResult(false);
-		JSInterop.SetupVoid("themeManager.watchSystemPreference");
+		// Arrange - light brightness
+		SetupJsInterop("blue", "light");
 
 		var themeProvider = Render<ThemeProvider>();
 		var provider = themeProvider.Instance;
-		var originalDarkMode = provider.IsDarkMode;
-
-		// Act
-		provider.OnSystemPreferenceChanged(true);
 
 		// Assert
-		provider.IsDarkMode.Should().Be(originalDarkMode);
+		provider.IsDarkMode.Should().BeFalse();
 	}
 }
 

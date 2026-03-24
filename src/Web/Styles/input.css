@@ -10,80 +10,6 @@
 /* Dark mode configuration */
 @variant dark (&:where(.dark, .dark *));
 
-/* ============================================
-   Color Scheme Custom Properties
-   Defines primary color palette for theming
-   ============================================ */
-
-/* Default: Blue theme (light mode) */
-:root {
-	--color-primary-50: oklch(97% 0.01 250);
-	--color-primary-100: oklch(93% 0.03 250);
-	--color-primary-200: oklch(87% 0.06 250);
-	--color-primary-300: oklch(78% 0.10 250);
-	--color-primary-400: oklch(68% 0.15 250);
-	--color-primary-500: oklch(58% 0.19 250);
-	--color-primary-600: oklch(50% 0.18 250);
-	--color-primary-700: oklch(43% 0.15 250);
-	--color-primary-800: oklch(37% 0.12 250);
-	--color-primary-900: oklch(32% 0.09 250);
-	--color-primary-950: oklch(24% 0.06 250);
-	--color-primary: var(--color-primary-600);
-}
-
-/* Red theme (light mode) */
-[data-theme="red"] {
-	--color-primary-50: oklch(97% 0.01 25);
-	--color-primary-100: oklch(93% 0.03 25);
-	--color-primary-200: oklch(87% 0.08 25);
-	--color-primary-300: oklch(78% 0.14 25);
-	--color-primary-400: oklch(68% 0.19 25);
-	--color-primary-500: oklch(58% 0.22 25);
-	--color-primary-600: oklch(50% 0.20 25);
-	--color-primary-700: oklch(43% 0.17 25);
-	--color-primary-800: oklch(37% 0.14 25);
-	--color-primary-900: oklch(32% 0.10 25);
-	--color-primary-950: oklch(24% 0.07 25);
-	--color-primary: var(--color-primary-600);
-}
-
-/* Green theme (light mode) */
-[data-theme="green"] {
-	--color-primary-50: oklch(97% 0.01 145);
-	--color-primary-100: oklch(93% 0.03 145);
-	--color-primary-200: oklch(87% 0.07 145);
-	--color-primary-300: oklch(78% 0.12 145);
-	--color-primary-400: oklch(68% 0.16 145);
-	--color-primary-500: oklch(58% 0.18 145);
-	--color-primary-600: oklch(50% 0.16 145);
-	--color-primary-700: oklch(43% 0.13 145);
-	--color-primary-800: oklch(37% 0.10 145);
-	--color-primary-900: oklch(32% 0.08 145);
-	--color-primary-950: oklch(24% 0.05 145);
-	--color-primary: var(--color-primary-600);
-}
-
-/* Yellow/Amber theme (light mode) */
-[data-theme="yellow"] {
-	--color-primary-50: oklch(97% 0.02 85);
-	--color-primary-100: oklch(93% 0.05 85);
-	--color-primary-200: oklch(87% 0.10 85);
-	--color-primary-300: oklch(80% 0.15 85);
-	--color-primary-400: oklch(73% 0.18 85);
-	--color-primary-500: oklch(65% 0.19 85);
-	--color-primary-600: oklch(55% 0.18 85);
-	--color-primary-700: oklch(47% 0.15 85);
-	--color-primary-800: oklch(40% 0.12 85);
-	--color-primary-900: oklch(34% 0.09 85);
-	--color-primary-950: oklch(26% 0.06 85);
-	--color-primary: var(--color-primary-600);
-}
-
-/* Dark mode adjustments - use lighter shades as primary */
-.dark {
-	--color-primary: var(--color-primary-400);
-}
-
 /* Tailwind custom theme extension using CSS variables */
 @theme {
 	--color-primary-50: var(--color-primary-50);
@@ -97,6 +23,25 @@
 	--color-primary-800: var(--color-primary-800);
 	--color-primary-900: var(--color-primary-900);
 	--color-primary-950: var(--color-primary-950);
+	--color-accent-100: var(--color-accent-100);
+	--color-accent-300: var(--color-accent-300);
+	--color-accent-400: var(--color-accent-400);
+	--color-accent-500: var(--color-accent-500);
+	--color-accent-600: var(--color-accent-600);
+	--color-accent-700: var(--color-accent-700);
+	--color-accent-800: var(--color-accent-800);
+	--color-accent-900: var(--color-accent-900);
+	--color-neutral-50: var(--color-neutral-50);
+	--color-neutral-100: var(--color-neutral-100);
+	--color-neutral-200: var(--color-neutral-200);
+	--color-neutral-300: var(--color-neutral-300);
+	--color-neutral-400: var(--color-neutral-400);
+	--color-neutral-500: var(--color-neutral-500);
+	--color-neutral-600: var(--color-neutral-600);
+	--color-neutral-700: var(--color-neutral-700);
+	--color-neutral-800: var(--color-neutral-800);
+	--color-neutral-900: var(--color-neutral-900);
+	--color-neutral-950: var(--color-neutral-950);
 }
 
 /* Custom Application Styles */
@@ -104,12 +49,6 @@
 	/* Focus styles */
 	h1:focus {
 		outline: none;
-	}
-
-	/* Dark mode base styles */
-	.dark body {
-		background-color: var(--color-primary-50);
-		color: #111827; /* gray-900 */
 	}
 }
 

@@ -8,7 +8,7 @@ using Microsoft.JSInterop;
 namespace Web.Components.Theme;
 
 /// <summary>
-/// Provides theme management capabilities including dark mode and color scheme switching.
+/// Provides theme management capabilities including color and brightness switching.
 /// Uses JavaScript interop to persist preferences in localStorage.
 /// </summary>
 public partial class ThemeProvider : IAsyncDisposable
@@ -17,25 +17,24 @@ public partial class ThemeProvider : IAsyncDisposable
 	private IJSRuntime JsRuntime { get; set; } = default!;
 
 	private DotNetObjectReference<ThemeProvider>? _dotNetRef;
-	private string _themeMode = "system";
-	private string _colorScheme = "blue";
-	private bool _isDarkMode;
+	private string _color = "blue";
+	private string _brightness = "light";
 	private bool _isInitialized;
 
 	/// <summary>
-	/// Gets the current theme mode (light, dark, or system)
+	/// Gets the current color (blue, red, green, or yellow)
 	/// </summary>
-	public string ThemeMode => _themeMode;
+	public string Color => _color;
 
 	/// <summary>
-	/// Gets the current color scheme (blue, red, green, or yellow)
+	/// Gets the current brightness (light or dark)
 	/// </summary>
-	public string ColorScheme => _colorScheme;
+	public string Brightness => _brightness;
 
 	/// <summary>
 	/// Gets whether dark mode is currently active
 	/// </summary>
-	public bool IsDarkMode => _isDarkMode;
+	public bool IsDarkMode => _brightness == "dark";
 
 	/// <summary>
 	/// Event triggered when the theme changes
@@ -56,9 +55,8 @@ public partial class ThemeProvider : IAsyncDisposable
 	{
 		try
 		{
-			_themeMode = await JsRuntime.InvokeAsync<string>("themeManager.getThemeMode");
-			_colorScheme = await JsRuntime.InvokeAsync<string>("themeManager.getColorScheme");
-			_isDarkMode = await JsRuntime.InvokeAsync<bool>("themeManager.shouldUseDarkMode");
+			_color = await JsRuntime.InvokeAsync<string>("themeManager.getColor");
+			_brightness = await JsRuntime.InvokeAsync<string>("themeManager.getBrightness");
 
 			// Watch for system preference changes
 			await JsRuntime.InvokeVoidAsync("themeManager.watchSystemPreference", _dotNetRef);
@@ -74,36 +72,37 @@ public partial class ThemeProvider : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Sets the theme mode and persists it
+	/// Sets the color and persists it
 	/// </summary>
-	/// <param name="mode">The theme mode: "light", "dark", or "system"</param>
-	public async Task SetThemeModeAsync(string mode)
+	/// <param name="color">The color: "blue", "red", "green", or "yellow"</param>
+	public async Task SetColorAsync(string color)
 	{
 		if (!_isInitialized)
 		{
 			return;
 		}
 
-		_themeMode = mode;
-		await JsRuntime.InvokeVoidAsync("themeManager.setThemeMode", mode);
-		_isDarkMode = await JsRuntime.InvokeAsync<bool>("themeManager.shouldUseDarkMode");
+		_color = color;
+		await JsRuntime.InvokeVoidAsync("themeManager.setColor", color);
+		_brightness = await JsRuntime.InvokeAsync<string>("themeManager.getBrightness");
 		OnThemeChanged?.Invoke();
 		StateHasChanged();
 	}
 
 	/// <summary>
-	/// Sets the color scheme and persists it
+	/// Sets the brightness and persists it
 	/// </summary>
-	/// <param name="scheme">The color scheme: "blue", "red", "green", or "yellow"</param>
-	public async Task SetColorSchemeAsync(string scheme)
+	/// <param name="brightness">The brightness: "light" or "dark"</param>
+	public async Task SetBrightnessAsync(string brightness)
 	{
 		if (!_isInitialized)
 		{
 			return;
 		}
 
-		_colorScheme = scheme;
-		await JsRuntime.InvokeVoidAsync("themeManager.setColorScheme", scheme);
+		_brightness = brightness;
+		await JsRuntime.InvokeVoidAsync("themeManager.setBrightness", brightness);
+		_color = await JsRuntime.InvokeAsync<string>("themeManager.getColor");
 		OnThemeChanged?.Invoke();
 		StateHasChanged();
 	}
@@ -115,12 +114,9 @@ public partial class ThemeProvider : IAsyncDisposable
 	[JSInvokable]
 	public void OnSystemPreferenceChanged(bool isDark)
 	{
-		if (_themeMode == "system")
-		{
-			_isDarkMode = isDark;
-			OnThemeChanged?.Invoke();
-			StateHasChanged();
-		}
+		// System preference callback - could auto-switch if desired
+		OnThemeChanged?.Invoke();
+		StateHasChanged();
 	}
 
 	/// <inheritdoc />

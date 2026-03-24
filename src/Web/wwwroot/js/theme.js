@@ -1,75 +1,116 @@
 // Copyright (c) 2024-2025. IssueTracker Project.
-// Theme management for dark mode and color schemes
+// Theme management for color and brightness preferences
 // SPDX-License-Identifier: MIT
 
 /**
- * Theme Manager - Handles dark mode and color scheme preferences
- * Stores preferences in localStorage and applies them to the DOM
+ * Theme Manager - Handles color + brightness theme combinations
+ * 4 colors (blue, red, green, yellow) × 2 brightness (light, dark) = 8 themes
+ * Stores preferences in localStorage and applies classes to the DOM
  */
 window.themeManager = {
+	THEMES: [
+		'theme-blue-light', 'theme-blue-dark',
+		'theme-red-light', 'theme-red-dark',
+		'theme-green-light', 'theme-green-dark',
+		'theme-yellow-light', 'theme-yellow-dark'
+	],
+
+	COLORS: ['blue', 'red', 'green', 'yellow'],
+	BRIGHTNESS: ['light', 'dark'],
+	STORAGE_KEY: 'theme-color-brightness',
+	DEFAULT_THEME: 'theme-blue-light',
+
 	/**
-	 * Gets the current theme mode from localStorage
-	 * @returns {'light' | 'dark' | 'system'} The current theme mode
+	 * Gets the current color from localStorage
+	 * @returns {string} The current color (blue, red, green, yellow)
 	 */
-	getThemeMode: function () {
-		return localStorage.getItem('theme-mode') || 'system';
+	getColor: function () {
+		var theme = this.getCurrentTheme();
+		var parts = theme.replace('theme-', '').split('-');
+		return parts[0] || 'blue';
 	},
 
 	/**
-	 * Sets the theme mode and applies it
-	 * @param {'light' | 'dark' | 'system'} mode - The theme mode to set
+	 * Gets the current brightness from localStorage
+	 * @returns {string} The current brightness (light, dark)
 	 */
-	setThemeMode: function (mode) {
-		localStorage.setItem('theme-mode', mode);
-		this.applyTheme();
+	getBrightness: function () {
+		var theme = this.getCurrentTheme();
+		var parts = theme.replace('theme-', '').split('-');
+		return parts[1] || 'light';
 	},
 
 	/**
-	 * Gets the current color scheme from localStorage
-	 * @returns {'blue' | 'red' | 'green' | 'yellow'} The current color scheme
+	 * Gets the full current theme name
+	 * @returns {string} The current theme (e.g., 'theme-blue-light')
 	 */
-	getColorScheme: function () {
-		return localStorage.getItem('theme-color') || 'blue';
+	getCurrentTheme: function () {
+		return localStorage.getItem(this.STORAGE_KEY) || this.DEFAULT_THEME;
 	},
 
 	/**
-	 * Sets the color scheme and applies it
-	 * @param {'blue' | 'red' | 'green' | 'yellow'} scheme - The color scheme to set
+	 * Determines if dark mode is active
+	 * @returns {boolean} True if brightness is 'dark'
 	 */
-	setColorScheme: function (scheme) {
-		localStorage.setItem('theme-color', scheme);
-		this.applyTheme();
+	isDarkMode: function () {
+		return this.getBrightness() === 'dark';
 	},
 
 	/**
-	 * Determines if dark mode should be active based on mode and system preference
-	 * @returns {boolean} True if dark mode should be active
+	 * Sets the color while preserving current brightness
+	 * @param {string} color - The color: 'blue', 'red', 'green', 'yellow'
 	 */
-	shouldUseDarkMode: function () {
-		const mode = this.getThemeMode();
-		if (mode === 'dark') return true;
-		if (mode === 'light') return false;
-		// System mode - check system preference
-		return window.matchMedia('(prefers-color-scheme: dark)').matches;
+	setColor: function (color) {
+		var brightness = this.getBrightness();
+		this.setTheme('theme-' + color + '-' + brightness);
 	},
 
 	/**
-	 * Applies the current theme settings to the DOM
+	 * Sets the brightness while preserving current color
+	 * @param {string} brightness - The brightness: 'light' or 'dark'
 	 */
-	applyTheme: function () {
-		const html = document.documentElement;
-		const isDark = this.shouldUseDarkMode();
-		const colorScheme = this.getColorScheme();
+	setBrightness: function (brightness) {
+		var color = this.getColor();
+		this.setTheme('theme-' + color + '-' + brightness);
+	},
 
-		// Apply dark mode class
-		if (isDark) {
-			html.classList.add('dark');
-		} else {
-			html.classList.remove('dark');
+	/**
+	 * Sets the full theme and applies it
+	 * @param {string} themeName - Full theme name (e.g., 'theme-blue-light')
+	 */
+	setTheme: function (themeName) {
+		if (this.THEMES.indexOf(themeName) === -1) {
+			themeName = this.DEFAULT_THEME;
 		}
 
-		// Apply color scheme data attribute
-		html.setAttribute('data-theme', colorScheme);
+		var html = document.documentElement;
+
+		// Remove all theme classes
+		for (var i = 0; i < this.THEMES.length; i++) {
+			html.classList.remove(this.THEMES[i]);
+		}
+
+		// Add the selected theme class
+		html.classList.add(themeName);
+		localStorage.setItem(this.STORAGE_KEY, themeName);
+
+		// Sync dark/light class for Tailwind dark: variant
+		var isDark = themeName.includes('-dark');
+		if (isDark) {
+			html.classList.add('dark');
+			html.classList.remove('light');
+		} else {
+			html.classList.remove('dark');
+			html.classList.add('light');
+		}
+	},
+
+	/**
+	 * Applies the saved theme from localStorage
+	 */
+	applyTheme: function () {
+		var theme = this.getCurrentTheme();
+		this.setTheme(theme);
 	},
 
 	/**
@@ -77,30 +118,34 @@ window.themeManager = {
 	 * @param {object} dotNetHelper - The DotNet object reference for callbacks
 	 */
 	watchSystemPreference: function (dotNetHelper) {
-		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+		var self = this;
+		var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-		const handler = (e) => {
-			// Only apply if we're in system mode
-			if (this.getThemeMode() === 'system') {
-				this.applyTheme();
-				if (dotNetHelper) {
-					dotNetHelper.invokeMethodAsync('OnSystemPreferenceChanged', e.matches);
-				}
+		var handler = function (e) {
+			if (dotNetHelper) {
+				dotNetHelper.invokeMethodAsync('OnSystemPreferenceChanged', e.matches);
 			}
 		};
 
-		// Modern browsers
 		if (mediaQuery.addEventListener) {
 			mediaQuery.addEventListener('change', handler);
 		} else {
-			// Fallback for older browsers
 			mediaQuery.addListener(handler);
 		}
 	},
 
 	/**
+	 * Gets the display-friendly current theme label
+	 * @returns {string} e.g., "BLUE Light"
+	 */
+	getCurrentLabel: function () {
+		var color = this.getColor().toUpperCase();
+		var brightness = this.getBrightness();
+		return color + ' ' + brightness.charAt(0).toUpperCase() + brightness.slice(1);
+	},
+
+	/**
 	 * Initializes the theme on page load
-	 * Should be called as early as possible to prevent flash
 	 */
 	initialize: function () {
 		this.applyTheme();

@@ -564,3 +564,50 @@ The Web project crashed at startup with `System.TimeoutException` because the EF
 
 **Rationale:** When two config systems disagree (Aspire vs raw appsettings), bridge them at the DI registration layer using configuration overlay before binding Options.
 
+1. **DTO-Model Separation:** Clear boundaries between persistence and API contracts
+2. **Result<T> Pattern:** Explicit error handling without exceptions
+3. **Testcontainers for Integration:** Realistic testing without cloud dependencies
+4. **Aspire Orchestration:** Simplified local development with containerized dependencies
+5. **OpenTelemetry Observability:** Production-ready monitoring from day one
+6. **Auth0 Identity:** Enterprise-grade security without maintenance burden
+7. **Category-Based Documentation:** Developer-centric organization of resources
+8. **bUnit Test Optimization:** Explicit parallelism control; defer full suite optimization until failing tests fixed
+
+
+---
+
+# Decision: Pre-Commit Review — Package Bumps, CSS Migration, ThemeToggle
+
+**Author:** Aragorn (Lead Developer)
+**Date:** 2025-07-23
+**Status:** APPROVED
+
+## Summary
+
+Reviewed all uncommitted working directory changes. The changeset includes NuGet package version bumps, Aspire SDK bump, CSS class migration (`gray-*` → `neutral-*`), ThemeToggle component extraction, dead CSS cleanup, and test updates.
+
+## Verdict: APPROVE
+
+All changes are architecturally sound, complete, and consistent. The `gray-*` → `neutral-*` migration has zero remaining references. The ThemeToggle extraction follows proper Blazor patterns (IDisposable, CascadingParameter, event lifecycle).
+
+## Action Required Before Commit
+
+Add these to `.gitignore`:
+- `.agents/`
+- `.claude/`
+- `.junie/`
+- `skills-lock.json`
+
+These are IDE/agent configuration directories that must not be committed to source control.
+
+## Decision: `docs/research/` Commitment
+
+Team should decide whether `docs/research/` (contains `github-github-sdk.md`, `tailwindcss-com.md`) should be committed or gitignored. These are research notes, not production code.
+
+## Patterns Reinforced
+
+- Tailwind neutral-* is the project standard for neutral/gray colors
+- ThemeProvider cascading parameter pattern is the approved theme mechanism
+- AppHost manages its own Aspire package versions (`ManagePackageVersionsCentrally=false`)
+- Bootstrap CSS has been fully deprecated — no references remain
+

@@ -1,80 +1,76 @@
 @* Copyright (c) 2024-2025. IssueTracker Project. *@
-@* Theme Toggle - Dark/Light mode switch component *@
+@* Theme Toggle - Compact header control for brightness and color switching *@
 @* SPDX-License-Identifier: MIT *@
 
 @implements IDisposable
 
-<div class="relative">
+<div class="flex items-center gap-1">
+	<!-- Brightness toggle -->
 	<button
 		type="button"
-		@onclick="ToggleDropdown"
-		class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-		aria-label="Toggle theme"
-		title="@GetCurrentModeTitle()">
+		@onclick="ToggleBrightnessAsync"
+		class="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+		aria-label="Toggle brightness"
+		title="@(ThemeProvider?.IsDarkMode == true ? "Switch to light mode" : "Switch to dark mode")">
 		@if (ThemeProvider?.IsDarkMode == true)
 		{
-			<!-- Moon icon for dark mode -->
-			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+			<!-- Sun icon - shown in dark mode (click to switch to light) -->
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
 			</svg>
 		}
 		else
 		{
-			<!-- Sun icon for light mode -->
-			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+			<!-- Moon icon - shown in light mode (click to switch to dark) -->
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
 			</svg>
 		}
 	</button>
 
-	@if (_isOpen)
-	{
-		<div class="absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
-			<div class="py-1" role="menu" aria-orientation="vertical">
-				<button
-					type="button"
-					@onclick="() => SetThemeMode(ThemeModeLight)"
-					class="@GetMenuItemClasses(ThemeModeLight)"
-					role="menuitem">
-					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-					</svg>
-					Light
-				</button>
-				<button
-					type="button"
-					@onclick="() => SetThemeMode(ThemeModeDark)"
-					class="@GetMenuItemClasses(ThemeModeDark)"
-					role="menuitem">
-					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-					</svg>
-					Dark
-				</button>
-				<button
-					type="button"
-					@onclick="() => SetThemeMode(ThemeModeSystem)"
-					class="@GetMenuItemClasses(ThemeModeSystem)"
-					role="menuitem">
-					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-					</svg>
-					System
-				</button>
+	<!-- Color picker -->
+	<div class="relative">
+		<button
+			type="button"
+			@onclick="ToggleColorPicker"
+			@onclick:stopPropagation="true"
+			class="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+			aria-label="Choose color theme"
+			title="Choose color theme">
+			<span class="w-4 h-4 rounded-full bg-primary-500 block ring-1 ring-neutral-300 dark:ring-neutral-600"></span>
+		</button>
+
+		@if (_showColorPicker)
+		{
+			<div class="absolute right-0 top-full mt-2 p-2 bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 flex gap-2 z-50">
+				@foreach (var color in _colors)
+				{
+					<button
+						type="button"
+						@onclick="() => SelectColorAsync(color.Key)"
+						class="w-7 h-7 rounded-full @color.Value transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 @(ThemeProvider?.Color == color.Key ? "ring-2 ring-offset-1 ring-neutral-900 dark:ring-white scale-110" : "")"
+						title="@(char.ToUpper(color.Key[0]) + color.Key[1..]) theme"
+						aria-label="@(char.ToUpper(color.Key[0]) + color.Key[1..]) color theme">
+					</button>
+				}
 			</div>
-		</div>
-	}
+		}
+	</div>
 </div>
 
 @code {
-	private const string ThemeModeLight = "light";
-	private const string ThemeModeDark = "dark";
-	private const string ThemeModeSystem = "system";
+	private bool _showColorPicker;
+
+	private static readonly Dictionary<string, string> _colors = new()
+	{
+		["red"] = "bg-red-500",
+		["blue"] = "bg-blue-500",
+		["green"] = "bg-green-500",
+		["yellow"] = "bg-amber-500"
+	};
 
 	[CascadingParameter]
 	private ThemeProvider? ThemeProvider { get; set; }
-
-	private bool _isOpen;
 
 	/// <inheritdoc />
 	protected override void OnInitialized()
@@ -90,38 +86,28 @@
 		InvokeAsync(StateHasChanged);
 	}
 
-	private void ToggleDropdown()
-	{
-		_isOpen = !_isOpen;
-	}
-
-	private async Task SetThemeMode(string mode)
+	private async Task ToggleBrightnessAsync()
 	{
 		if (ThemeProvider is not null)
 		{
-			await ThemeProvider.SetThemeModeAsync(mode);
+			var newBrightness = ThemeProvider.IsDarkMode ? "light" : "dark";
+			await ThemeProvider.SetBrightnessAsync(newBrightness);
 		}
-		_isOpen = false;
 	}
 
-	private string GetCurrentModeTitle()
+	private void ToggleColorPicker()
 	{
-		return ThemeProvider?.ThemeMode switch
+		_showColorPicker = !_showColorPicker;
+	}
+
+	private async Task SelectColorAsync(string color)
+	{
+		if (ThemeProvider is not null)
 		{
-			ThemeModeLight => "Light mode",
-			ThemeModeDark => "Dark mode",
-			_ => "System theme"
-		};
-	}
+			await ThemeProvider.SetColorAsync(color);
+		}
 
-	private string GetMenuItemClasses(string mode)
-	{
-		var isSelected = ThemeProvider?.ThemeMode == mode;
-		var baseClasses = "flex items-center w-full px-4 py-2 text-sm";
-		var stateClasses = isSelected
-			? "text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20"
-			: "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700";
-		return $"{baseClasses} {stateClasses}";
+		_showColorPicker = false;
 	}
 
 	/// <inheritdoc />
