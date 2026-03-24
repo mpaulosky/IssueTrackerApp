@@ -392,3 +392,9 @@ MigrationBackup/
 coverage/
 full_test_output.txt
 test_results.txt
+
+# AI agent configs
+.agents/
+.claude/
+.junie/
+skills-lock.json
