@@ -1,5 +1,7 @@
 ﻿@using Web.Auth
+@implements IDisposable
 
+@* Desktop navigation — horizontal bar, hidden on mobile *@
 <nav class="hidden md:flex items-center gap-1" aria-label="Main navigation">
 	<AuthorizeView Policy="@AuthorizationPolicies.UserPolicy">
 		<Authorized>
@@ -52,3 +54,91 @@
 		</Authorized>
 	</AuthorizeView>
 </nav>
+
+@* Mobile navigation — dropdown panel, hidden on desktop *@
+@if (_mobileMenuOpen)
+{
+	<div class="md:hidden absolute left-0 right-0 top-full bg-primary-900 dark:bg-primary-100 border-t border-primary-800 dark:border-primary-200 shadow-lg z-50">
+		<nav class="flex flex-col px-4 py-3 space-y-1" aria-label="Mobile navigation">
+			<AuthorizeView Policy="@AuthorizationPolicies.UserPolicy">
+				<Authorized>
+					<NavLink href="/" Match="NavLinkMatch.All"
+						class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+						ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+						Home
+					</NavLink>
+					<NavLink href="/dashboard" Match="NavLinkMatch.All"
+						class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+						ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+						Dashboard
+					</NavLink>
+					<NavLink href="/issues" Match="NavLinkMatch.Prefix"
+						class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+						ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+						Issues
+					</NavLink>
+					<NavLink href="/issues/create" Match="NavLinkMatch.All"
+						class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+						ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+						Create
+					</NavLink>
+
+					<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy" Context="adminMobileContext">
+						<Authorized>
+							<hr class="border-primary-700 dark:border-primary-300 my-1" />
+							<NavLink href="/admin" Match="NavLinkMatch.All"
+								class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+								ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+								Admin
+							</NavLink>
+							<NavLink href="/admin/categories" Match="NavLinkMatch.All"
+								class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+								ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+								Categories
+							</NavLink>
+							<NavLink href="/admin/statuses" Match="NavLinkMatch.All"
+								class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+								ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+								Statuses
+							</NavLink>
+							<NavLink href="/admin/analytics" Match="NavLinkMatch.All"
+								class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
+								ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+								Analytics
+							</NavLink>
+						</Authorized>
+					</AuthorizeView>
+				</Authorized>
+			</AuthorizeView>
+		</nav>
+	</div>
+}
+
+@code {
+	[Parameter] public bool MobileMenuOpen { get => _mobileMenuOpen; set => _mobileMenuOpen = value; }
+	[Parameter] public EventCallback<bool> MobileMenuOpenChanged { get; set; }
+
+	private bool _mobileMenuOpen;
+
+	[Inject] private NavigationManager Navigation { get; set; } = default!;
+
+	protected override void OnInitialized()
+	{
+		Navigation.LocationChanged += OnLocationChanged;
+	}
+
+	private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+	{
+		if (_mobileMenuOpen)
+		{
+			_mobileMenuOpen = false;
+			MobileMenuOpenChanged.InvokeAsync(false);
+			StateHasChanged();
+		}
+	}
+
+	public void Dispose()
+	{
+		Navigation.LocationChanged -= OnLocationChanged;
+	}
+}
