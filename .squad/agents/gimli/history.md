@@ -52,6 +52,32 @@ Gimli (Tester) has established comprehensive test patterns for IssueTrackerApp:
 
 ## Learnings
 
+### Skipped Test Audit — All Skip Reasons Still Valid
+
+**Task:** Reviewed all skipped tests across the entire test suite for validity.
+
+**Findings:** 8 skipped tests found across 2 files. All have valid skip reasons — none removed.
+
+**Skipped Tests — KEPT (skip reason still valid):**
+
+1. `IssueEndpointTests.cs` — 3 tests (lines 280, 301, 415):
+   - `CreateIssue_WithEmptyTitle_ReturnsValidationError`
+   - `CreateIssue_WithEmptyDescription_ReturnsValidationError`
+   - `UpdateIssue_WithEmptyTitle_ReturnsValidationError`
+   - **Skip reason:** "Requires MediatR ValidationBehavior pipeline — validators exist but are not wired into the pipeline"
+   - **Still valid:** No `ValidationBehavior` class exists anywhere in `src/`. Validators (FluentValidation) exist but the MediatR pipeline behavior to enforce them at the handler level is not implemented yet. These tests will fail until that pipeline behavior is added.
+
+2. `AuthEndpointSecurityTests.cs` — 5 tests (lines 88, 101, 117, 130, 147):
+   - `Login_Endpoint_ShouldExist`
+   - `Logout_WithGetMethod_ShouldBeRejected`
+   - `Logout_WithPostMethod_WithoutAuth_ShouldRequireAuthentication`
+   - `Logout_WithPostMethod_WithoutAntiforgeryToken_ShouldReturn400`
+   - `Logout_Endpoint_ShouldOnlyAcceptPost`
+   - **Skip reason:** "Requires Auth0 configuration - deferred to Sprint 6"
+   - **Still valid:** `TestWebApplicationFactory` has partial Auth0 mocking (dummy config + TestAuthHandler), but endpoints explicitly use `Auth0Constants.AuthenticationScheme`. The test auth handler registers as scheme "Test" not as Auth0's scheme, so endpoint challenges would fail. The TODO comment in the class confirms this is a known gap.
+
+**No tests removed. No changes committed.**
+
 ### 2026-03-14: Azure Storage Unit Tests — Mocking Azure SDK & DI Configuration
 
 **Task:** Created comprehensive unit tests for `Persistence.AzureStorage` layer covering service constructor, settings, upload/download/delete/thumbnail operations, and DI registration.
