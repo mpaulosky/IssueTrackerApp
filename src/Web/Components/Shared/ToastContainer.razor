@@ -53,23 +53,34 @@
 
 	protected override void OnInitialized()
 	{
-		ToastService.OnChange += StateHasChanged;
-		
+		ToastService.OnChange += HandleChange;
+
 		_timer = new System.Timers.Timer(100);
 		_timer.Elapsed += CheckExpiredToasts;
 		_timer.Start();
 	}
 
-	private void CheckExpiredToasts(object? sender, System.Timers.ElapsedEventArgs e)
+	private async void HandleChange()
+	{
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async void CheckExpiredToasts(object? sender, System.Timers.ElapsedEventArgs e)
 	{
 		var now = DateTime.UtcNow;
 		var expiredToasts = ToastService.Toasts
 			.Where(t => (now - t.CreatedAt).TotalMilliseconds >= t.DurationMs)
 			.ToList();
 
-		foreach (var toast in expiredToasts)
+		if (expiredToasts.Count > 0)
 		{
-			ToastService.RemoveToast(toast.Id);
+			await InvokeAsync(() =>
+			{
+				foreach (var toast in expiredToasts)
+				{
+					ToastService.RemoveToast(toast.Id);
+				}
+			});
 		}
 	}
 
@@ -92,7 +103,7 @@
 
 	public void Dispose()
 	{
-		ToastService.OnChange -= StateHasChanged;
+		ToastService.OnChange -= HandleChange;
 		_timer?.Stop();
 		_timer?.Dispose();
 	}
