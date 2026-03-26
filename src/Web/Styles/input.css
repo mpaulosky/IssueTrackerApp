@@ -188,11 +188,11 @@
 
 	/* Cards */
 	.card {
-		@apply bg-white dark:bg-gray-800 rounded-lg shadow;
+		@apply bg-primary-400 dark:bg-primary-900 rounded-lg shadow;
 	}
 
 	.card-bordered {
-		@apply bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700;
+		@apply bg-primary-400 dark:bg-primary-900 rounded-lg shadow-md border border-primary-300 dark:border-primary-800;
 	}
 
 	.card-section {
@@ -200,7 +200,7 @@
 	}
 
 	.card-footer {
-		@apply bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6;
+		@apply bg-primary-300 dark:bg-primary-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6;
 	}
 
 	/* Forms */
