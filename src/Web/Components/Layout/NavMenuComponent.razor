@@ -1,4 +1,4 @@
-﻿@using Web.Auth
+@using Web.Auth
 @implements IDisposable
 
 <header class="bg-primary-900 dark:bg-primary-100 shadow-sm border-b border-primary-800 dark:border-primary-200 sticky top-0 z-40 relative">
@@ -8,7 +8,7 @@
 				<Authorized>
 					<button type="button"
 						@onclick="ToggleMobileMenu"
-						class="md:hidden p-2 rounded-lg text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						class="md:hidden p-2 rounded-lg text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
 						aria-label="@(_mobileMenuOpen ? "Close menu" : "Open menu")"
 						aria-expanded="@_mobileMenuOpen">
 						@if (_mobileMenuOpen)
@@ -26,7 +26,7 @@
 					</button>
 				</Authorized>
 			</AuthorizeView>
-			<a href="/" class="text-xl font-semibold text-white dark:text-gray-900 hover:text-primary-300 dark:hover:text-primary-600 transition-colors whitespace-nowrap">
+			<a href="/" class="text-xl font-semibold text-white dark:text-neutral-900 hover:text-primary-300 dark:hover:text-primary-600 transition-colors whitespace-nowrap">
 				IssueTracker
 			</a>
 			@* Desktop navigation — horizontal bar, hidden on mobile *@
@@ -34,46 +34,46 @@
 				<AuthorizeView Policy="@AuthorizationPolicies.UserPolicy">
 					<Authorized>
 						<NavLink href="/" Match="NavLinkMatch.All"
-							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 							ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 							Home
 						</NavLink>
 						<NavLink href="/dashboard" Match="NavLinkMatch.All"
-							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 							ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 							Dashboard
 						</NavLink>
 						<NavLink href="/issues" Match="NavLinkMatch.Prefix"
-							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 							ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 							Issues
 						</NavLink>
 						<NavLink href="/issues/create" Match="NavLinkMatch.All"
-							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+							class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 							ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 							Create
 						</NavLink>
 
 						<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy" Context="adminContext">
 							<Authorized>
-								<span class="h-5 w-px bg-gray-300 dark:bg-gray-600 mx-1"></span>
+								<span class="h-5 w-px bg-neutral-300 dark:bg-neutral-600 mx-1"></span>
 								<NavLink href="/admin" Match="NavLinkMatch.All"
-									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 									ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 									Admin
 								</NavLink>
 								<NavLink href="/admin/categories" Match="NavLinkMatch.All"
-									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 									ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 									Categories
 								</NavLink>
 								<NavLink href="/admin/statuses" Match="NavLinkMatch.All"
-									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 									ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 									Statuses
 								</NavLink>
 								<NavLink href="/admin/analytics" Match="NavLinkMatch.All"
-									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+									class="px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white"
 									ActiveClass="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
 									Analytics
 								</NavLink>
@@ -102,23 +102,23 @@
 				<AuthorizeView Policy="@AuthorizationPolicies.UserPolicy">
 					<Authorized>
 						<NavLink href="/" Match="NavLinkMatch.All"
-							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 							Home
 						</NavLink>
 						<NavLink href="/dashboard" Match="NavLinkMatch.All"
-							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 							Dashboard
 						</NavLink>
 						<NavLink href="/issues" Match="NavLinkMatch.Prefix"
-							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 							Issues
 						</NavLink>
 						<NavLink href="/issues/create" Match="NavLinkMatch.All"
-							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+							class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+							ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 							Create
 						</NavLink>
 
@@ -126,23 +126,23 @@
 							<Authorized>
 								<hr class="border-primary-700 dark:border-primary-300 my-1" />
 								<NavLink href="/admin" Match="NavLinkMatch.All"
-									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 									Admin
 								</NavLink>
 								<NavLink href="/admin/categories" Match="NavLinkMatch.All"
-									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 									Categories
 								</NavLink>
 								<NavLink href="/admin/statuses" Match="NavLinkMatch.All"
-									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 									Statuses
 								</NavLink>
 								<NavLink href="/admin/analytics" Match="NavLinkMatch.All"
-									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-gray-300 dark:text-gray-600 hover:bg-primary-800 dark:hover:bg-gray-200 hover:text-white dark:hover:text-gray-900"
-									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-gray-900">
+									class="block px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-neutral-300 dark:text-neutral-600 hover:bg-primary-800 dark:hover:bg-neutral-200 hover:text-white dark:hover:text-neutral-900"
+									ActiveClass="bg-primary-800 dark:bg-primary-200 text-white dark:text-neutral-900">
 									Analytics
 								</NavLink>
 							</Authorized>

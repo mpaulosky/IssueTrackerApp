@@ -134,7 +134,7 @@ public class NavMenuComponentTests : BunitTestBase
 		var cut = Render<NavMenuComponent>();
 
 		// Assert — admin section has a visual separator
-		cut.Markup.Should().Contain("bg-gray-300",
+		cut.Markup.Should().Contain("bg-neutral-300",
 			"admin section should have a separator line");
 	}
 
