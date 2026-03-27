@@ -92,3 +92,24 @@
 
 **Build:** `dotnet build tests/AppHost.Tests/AppHost.Tests.csproj --no-restore` — 0 errors, 0 warnings ✅
 
+
+---
+
+### 2026-03-27 — PR Review Session: Pippin (#84) & Legolas (#83)
+
+**Role:** Lead Reviewer
+
+**PRs Reviewed:**
+
+1. **PR #84 (Pippin):** Test fixes for #78, #79, #80
+   - TimeoutException semantics in `WaitForWebReadyAsync`
+   - `DisableDashboard = true` in `EnvVarTests.cs`
+   - Specific assertion on Admin dashboard heading
+   - **Verdict:** ✅ Approved — all fixes semantically correct and well-scoped
+
+2. **PR #83 (Legolas):** `/Account/AccessDenied` Blazor page (#77)
+   - Public, unauthorized page for Auth0 redirect flow
+   - Consistent layout, friendly copy, Tailwind styling
+   - **Verdict:** ✅ Approved — proper auth flow design, UX improvement
+
+**Team Coordination:** Both PRs merged same session; squad decisions recorded and deduplicated.
