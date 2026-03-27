@@ -7,10 +7,6 @@
 // Project Name :  AppHost.Tests
 // =============================================
 
-// Note: These tests require PLAYWRIGHT_TEST_EMAIL and PLAYWRIGHT_TEST_PASSWORD
-// environment variables to be set with valid Auth0 credentials.
-// If those env vars are not set, every test in this class skips gracefully.
-
 using AppHost.Tests.Infrastructure;
 using FluentAssertions;
 using Microsoft.Playwright;
@@ -19,7 +15,8 @@ namespace AppHost.Tests;
 
 /// <summary>
 /// Playwright E2E tests for the Web application layout visible to authenticated users.
-/// Tests are skipped automatically when Auth0 credentials are not configured.
+/// Authentication is performed via the Testing environment's <c>/test/login?role=user</c>
+/// cookie endpoint — no Auth0 or external credentials required.
 /// </summary>
 public class LayoutAuthenticatedTests : BasePlaywrightTests
 {

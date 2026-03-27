@@ -7,10 +7,6 @@
 // Project Name :  AppHost.Tests
 // =============================================
 
-// Note: These tests require PLAYWRIGHT_TEST_ADMIN_EMAIL and PLAYWRIGHT_TEST_ADMIN_PASSWORD
-// environment variables set with valid Auth0 credentials for an Admin-role account.
-// Tests skip gracefully when admin credentials are absent.
-
 using AppHost.Tests.Infrastructure;
 using FluentAssertions;
 using Microsoft.Playwright;
@@ -19,8 +15,8 @@ namespace AppHost.Tests;
 
 /// <summary>
 /// Playwright E2E tests for the Admin section of the Web application.
-/// All tests require an Admin-role Auth0 account and skip gracefully when
-/// <c>PLAYWRIGHT_TEST_ADMIN_EMAIL</c> / <c>PLAYWRIGHT_TEST_ADMIN_PASSWORD</c> are not set.
+/// Authentication is performed via the Testing environment's <c>/test/login?role=admin</c>
+/// cookie endpoint — no Auth0 or external credentials required.
 /// </summary>
 public class AdminPageTests : BasePlaywrightTests
 {
@@ -99,9 +95,9 @@ public class AdminPageTests : BasePlaywrightTests
 			await page.GotoAsync("/admin");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			// Assert — should be redirected away (to login, home, or access-denied)
-			page.Url.Should().NotContain("/admin",
-				"a non-admin user should not be able to access the admin section");
+			// Assert — non-admin should be redirected to the access-denied path
+			page.Url.Should().Contain("/Account/AccessDenied",
+				"a non-admin user should be redirected to the access-denied page");
 		});
 	}
 }

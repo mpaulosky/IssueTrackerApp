@@ -37,7 +37,7 @@ public class AspireManager : IAsyncLifetime
 				args: [],
 				configureBuilder: static (options, _) =>
 				{
-					options.DisableDashboard = false;
+					options.DisableDashboard = true;
 				});
 
 		builder.Configuration["ASPIRE_ALLOW_UNSECURED_TRANSPORT"] = "true";

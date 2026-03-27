@@ -30,12 +30,12 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 	// CI cold-start can take up to 2 min; local dev is typically ~10 s
 	private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(120);
 
-	private IBrowserContext? _context;
+	private readonly List<IBrowserContext> _contexts = new();
 
 	/// <summary>
 	/// Runs <paramref name="test"/> against a fresh anonymous browser context.
 	/// </summary>
-	public async Task InteractWithPageAsync(
+	protected async Task InteractWithPageAsync(
 		string serviceName,
 		Func<IPage, Task> test,
 		ViewportSize? size = null)
@@ -107,7 +107,7 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 
 	private async Task<IPage> CreatePageAsync(Uri uri, ViewportSize? size = null)
 	{
-		_context = await PlaywrightManager.Browser.NewContextAsync(new BrowserNewContextOptions
+		var context = await PlaywrightManager.Browser.NewContextAsync(new BrowserNewContextOptions
 		{
 			IgnoreHTTPSErrors = true,
 			ColorScheme = ColorScheme.Dark,
@@ -115,7 +115,8 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 			BaseURL = uri.ToString()
 		});
 
-		return await _context.NewPageAsync();
+		_contexts.Add(context);
+		return await context.NewPageAsync();
 	}
 
 	/// <summary>
@@ -157,10 +158,8 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 	{
 		GC.SuppressFinalize(this);
 
-		if (_context is not null)
-		{
-			await _context.DisposeAsync();
-		}
+		foreach (var context in _contexts)
+			await context.DisposeAsync();
 	}
 }
 

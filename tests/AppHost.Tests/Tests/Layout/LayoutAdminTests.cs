@@ -7,10 +7,6 @@
 // Project Name :  AppHost.Tests
 // =============================================
 
-// Note: These tests require PLAYWRIGHT_TEST_ADMIN_EMAIL and PLAYWRIGHT_TEST_ADMIN_PASSWORD
-// environment variables to be set with valid Auth0 credentials for an Admin-role account.
-// If those env vars are not set, every test in this class skips gracefully.
-
 using AppHost.Tests.Infrastructure;
 using FluentAssertions;
 using Microsoft.Playwright;
@@ -19,7 +15,8 @@ namespace AppHost.Tests;
 
 /// <summary>
 /// Playwright E2E tests for the Web application layout visible only to Admin-role users.
-/// Tests are skipped automatically when admin Auth0 credentials are not configured.
+/// Authentication is performed via the Testing environment's <c>/test/login?role=admin</c>
+/// cookie endpoint — no Auth0 or external credentials required.
 /// </summary>
 public class LayoutAdminTests : BasePlaywrightTests
 {
