@@ -1,11 +1,11 @@
-# Deploys docs/ to GitHub Pages on every push to main that changes docs content
+# Deploys docs/blog/ to GitHub Pages on every push to main that changes blog content
 name: Deploy static content to Pages
 
 on:
   push:
     branches: ["main"]
     paths:
-      - 'docs/**'
+      - 'docs/blog/**'
       - '.github/workflows/static.yml'
   workflow_dispatch:
 
@@ -32,8 +32,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload docs/ folder only — blog and project documentation
-          path: 'docs'
+          # Upload docs/blog/ only — keeps SECRETS.md and other internal docs off the web
+          path: 'docs/blog'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

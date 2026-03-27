@@ -26,13 +26,29 @@
 - **Participants:** all
 - **Purpose:** What went well, what didn't, action items
 
-### Code Review
+### PR Review Gate
 
-- **Trigger:** automatic, when PR is opened
-- **When:** after
+- **Trigger:** automatic, when any PR is ready for review (CI checks passing)
+- **When:** after (CI passes)
 - **Facilitator:** Aragorn
-- **Participants:** Aragorn (reviewer), original author (locked out of their own revision if rejected)
-- **Purpose:** Quality gate before merge
+- **Participants:** Aragorn (always) + domain specialists based on PR content:
+  - DevOps/CI workflow changes → Boromir
+  - Security-relevant changes (auth, permissions, secrets, endpoints) → Gandalf
+  - Test file changes → Gimli and/or Pippin
+  - Backend/API changes → Sam
+  - Frontend/Blazor changes → Legolas
+  - Blog/docs changes → Bilbo (author) or Frodo
+- **Purpose:** Quality and security gate before merge
+- **Protocol:**
+  1. Wait for ALL CI checks to pass
+  2. Spawn Aragorn + relevant domain reviewers in parallel
+  3. Collect all verdicts — ALL must approve (unanimous)
+  4. If ANY reviewer rejects: route fixes to a DIFFERENT agent (strict lockout — PR author cannot self-revise)
+  5. Push fixes to PR branch → wait for CI to re-pass → repeat review cycle
+  6. All approved + CI green → squash merge
+- **Merge command:** `gh pr merge {N} --squash --delete-branch`
+- **Post-merge:** `git checkout main && git pull origin main && git fetch --prune`
+- **Lockout rule:** Rejected artifact's original author is locked out of that revision cycle. Fixes must come from a different team member.
 
 ### Standard Task Workflow
 
@@ -95,15 +111,36 @@
 
 ##### Phase 4: Review & Merge
 
-1. Create PR:
+1. **CI must pass first.** Do not request review while checks are pending or failing.
+   - Poll: `gh pr checks {N}` — wait for all green
 
+2. **Spawn reviewers in parallel** (Aragorn always + domain specialists):
+   - Aragorn — lead review (scope, architecture, correctness, naming conventions)
+   - Boromir — if any `.github/workflows/` or CI config changed
+   - Gandalf — if any auth, permissions, secrets, or security-relevant code changed
+   - Gimli/Pippin — if test files changed
+   - Sam — if backend/domain/persistence code changed
+   - Legolas — if Blazor components or frontend changed
+
+3. **Unanimous approval required.** All spawned reviewers must approve.
+   - If rejected: identify fixes → route to a DIFFERENT agent (not the PR author, lockout enforced) → push fixes → wait for CI → repeat from step 1
+
+4. **Merge (squash):**
    ```bash
-   gh pr create --title "..." --body "Closes #{issue-number}" --base main
+   gh pr merge {N} --squash --delete-branch
    ```
 
-2. Wait for CI checks to pass
-3. Address any review comments
-4. Once approved and green, merge (prefer squash merge for clean history)
+5. **Update local main:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git fetch --prune
+   ```
+
+6. **Clean up orphan local branches:**
+   ```bash
+   git branch --merged main | grep -v "^\* main" | xargs git branch -d
+   ```
 
 ##### Phase 5: Cleanup
 
