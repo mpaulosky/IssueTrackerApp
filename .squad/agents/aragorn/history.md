@@ -44,3 +44,23 @@
 - Team transferred from IssueManager squad
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
 - Ready to begin development
+### 2026-03-27: AppHost Template Rewrite & Integration Test Refactoring
+
+**Session:** AppHost.Tests Playwright E2E tests (Team Gimli, Boromir, Aragorn)
+
+**Accomplishments:**
+- Rewrote AppHost project template code to remove weather-specific logic
+- Created IssueTrackerApp-specific integration test scenarios
+- Fixed and validated all ProjectReference paths in AppHost.Tests
+
+**Changes:**
+1. **AppHost Program Template:** Removed weather-related services; replaced with infrastructure setup
+2. **Integration Tests:** Updated scenarios from weather domain to issue tracker domain
+3. **ProjectReferences:** Verified relative paths to Web, Domain, Persistence projects
+
+**Files Modified:**
+- `src/AppHost/AppHost.cs` — template rewrite
+- `tests/AppHost.Tests/AppHost.Tests.csproj` — ProjectReference path corrections
+
+**Build Status:** Clean; all references resolve; no path warnings
+**Architecture:** Integration tests now aligned with application domain (issues, dashboard, auth)

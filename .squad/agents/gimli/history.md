@@ -619,3 +619,31 @@ layout, pages, and theme toggle / color scheme components.
 | `button[title="Blue"]` / `"Red"` / `"Green"` / `"Yellow"` | Color swatch buttons |
 
 **Build Result:** 0 errors, 0 warnings.
+
+### 2026-03-27: Playwright E2E Test Suite Integration & Auth0 Pattern Confirmation
+
+**Session:** AppHost.Tests Playwright E2E tests (Team Gimli, Boromir, Aragorn)
+
+**Accomplishments:**
+- Finalized 10 Playwright E2E test files with comprehensive coverage
+- Documented Theme DOM selectors (`classList.contains('dark')`, `getAttribute('data-theme')`) in decision
+- Confirmed Auth0 login pattern: Single cached login → reused via storage state JSON
+
+**Test Coverage:**
+- 4 Layout tests (anonymous): header, footer, nav, theme toggles
+- 4 Layout tests (authenticated): nav links, footer, login link visibility
+- 4 Home page tests: guest/auth headings, buttons, navigation
+- 3 Dashboard tests (auth): load, heading, stat cards
+- 2 Not-found tests: heading, helpful messages
+- 2 Issues page tests (auth): load, title
+- 4 Theme toggle tests: visibility, dropdown, dark/light class
+- 4 Color scheme tests: visibility, selector, red, default blue
+
+**Tech Details:**
+- `AuthStateManager`: Thread-safe one-time login with `SemaphoreSlim(1,1)`
+- Storage state cached to `Path.GetTempPath() + "issuetracker-playwright-auth.json"`
+- Tests skip gracefully when `PLAYWRIGHT_TEST_EMAIL`/`PLAYWRIGHT_TEST_PASSWORD` absent
+- DOM selectors validated and documented in `.squad/decisions.md`
+
+**Build:** 0 errors, 0 warnings
+**Decision:** Added to decisions.md: "Playwright Theme DOM Assertions & Auth0 State Pattern"

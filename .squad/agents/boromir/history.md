@@ -37,3 +37,23 @@
 - **Tag:** Created `v0.1.0` to seed version for future builds
 - **Verification:** Gimli confirmed BuildInfo.g.cs generates clean constants; footer displays correct version
 - **Related:** `.squad/decisions.md` entry on MSBuild Git Stderr Redirection Pattern
+
+### 2026-03-27: Central Package Management for AppHost.Tests
+
+**Session:** AppHost.Tests Playwright E2E tests (Team Gimli, Boromir, Aragorn)
+
+**Accomplishments:**
+- Converted AppHost.Tests.csproj to Central Package Management (CPM)
+- Added Aspire.Hosting.Testing v13.1.2 to Directory.Packages.props
+- Removed all inline version specifications from AppHost.Tests
+
+**Dependencies Managed:**
+- `Aspire.Hosting.Testing`: 13.1.2 (new)
+- All transitive dependencies now sourced from Directory.Packages.props
+
+**Files Modified:**
+- `Directory.Packages.props` — added `Aspire.Hosting.Testing` package entry
+- `tests/AppHost.Tests/AppHost.Tests.csproj` — removed inline versions, now references CPM
+
+**Build Status:** Clean, no version conflicts
+**Pattern:** Reinforces IssueTrackerApp convention: centralized version management across all projects
