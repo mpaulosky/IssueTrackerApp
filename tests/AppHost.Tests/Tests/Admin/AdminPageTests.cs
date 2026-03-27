@@ -51,7 +51,7 @@ public class AdminPageTests : BasePlaywrightTests
 			var heading = page.Locator("h1");
 			await heading.WaitForAsync();
 			var text = await heading.InnerTextAsync();
-			text.Should().NotBeNullOrWhiteSpace();
+			text.Should().Be("Admin Dashboard");
 		});
 	}
 
