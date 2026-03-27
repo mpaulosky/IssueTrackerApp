@@ -20,6 +20,7 @@
 | Pippin | Tester (E2E & Aspire) | squad:pippin | 🧪 Tester |
 | Boromir | DevOps | squad:boromir | ⚙️ DevOps |
 | Frodo | Tech Writer | squad:frodo | 📝 Docs |
+| Bilbo | Tech Blogger | squad:bilbo | 📝 Blog |
 | Gandalf | Security Officer | squad:gandalf | 🔒 Security |
 | Scribe | (silent) | — | 📋 Scribe |
 | Ralph | Work Monitor | — | 🔄 Monitor |

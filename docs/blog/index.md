@@ -1,8 +1,4 @@
----
-title: IssueTrackerApp Dev Blog
-layout: page
-permalink: /blog/
----
+# IssueTrackerApp Dev Blog
 
 # IssueTrackerApp Dev Blog
 

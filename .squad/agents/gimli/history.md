@@ -687,3 +687,20 @@ layout, pages, and theme toggle / color scheme components.
 - `EnvironmentCallbackAnnotation` needed to force env vars into Aspire child processes (parent process env alone is not sufficient — DCP overrides it)
 - `FixWebEndpointPort` with `IsProxied = false` pins the HTTPS port for predictable Auth0 redirect URIs
 - `WaitForFunctionAsync("document.documentElement.getAttribute('data-theme-ready') === 'true'")` to wait for Blazor SSR ThemeProvider initialization before clicking theme buttons
+
+### PR #76 Re-review — All 6 Blockers Resolved (squad/apphost-tests-clean)
+
+**Task:** Re-reviewed PR #76 after Aragorn applied all 6 fixes from Gimli's rejection.
+
+**Outcome:** All 6 blocking issues confirmed resolved. Approval comment posted on PR #76 (GitHub prevented a formal approval review as self-approval is blocked on this repo).
+
+**Fixes Confirmed:**
+1. `InteractWithPageAsync` → now `protected` ✅
+2. `List<IBrowserContext>` with `foreach` dispose in `DisposeAsync` (no context leak) ✅
+3. `AspireManager.cs`: `options.DisableDashboard = true` ✅
+4. `AdminPageTests.cs`: false skip comments removed; redirect assertion uses `.Contain("/Account/AccessDenied")` ✅
+5. `LayoutAdminTests.cs`: false skip comments removed ✅
+6. `LayoutAuthenticatedTests.cs`: false skip comments removed ✅
+7. `EnvVarTests.cs`: EOF newline present (final byte `0a`) ✅
+
+**Note on self-approval:** GitHub's API blocks `gh pr review --approve` when the reviewer owns the PR. Used `--comment` instead with full verdict. Future squad reviews on this repo should route to a different team member for formal approval.
