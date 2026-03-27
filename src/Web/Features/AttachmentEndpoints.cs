@@ -13,6 +13,7 @@ using Domain.Abstractions;
 using Domain.DTOs;
 using Domain.Models;
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using Web.Services;
@@ -147,9 +148,9 @@ public static class AttachmentEndpoints
 
 	private static async Task<IResult> DownloadAttachmentAsync(
 		string id,
-		IAttachmentService attachmentService,
-		IFileStorageService fileStorageService,
-		Persistence.MongoDb.IssueTrackerDbContext dbContext,
+		[FromServices] IAttachmentService attachmentService,
+		[FromServices] IFileStorageService fileStorageService,
+		[FromServices] Persistence.MongoDb.IssueTrackerDbContext dbContext,
 		CancellationToken cancellationToken)
 	{
 		// Get attachment metadata from database
