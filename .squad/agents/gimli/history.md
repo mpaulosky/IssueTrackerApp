@@ -704,3 +704,19 @@ layout, pages, and theme toggle / color scheme components.
 7. `EnvVarTests.cs`: EOF newline present (final byte `0a`) ✅
 
 **Note on self-approval:** GitHub's API blocks `gh pr review --approve` when the reviewer owns the PR. Used `--comment` instead with full verdict. Future squad reviews on this repo should route to a different team member for formal approval.
+
+---
+
+### 2026-03-27 — PR #84 Review: Pippin Test Fixes
+
+**Role:** QA Reviewer
+
+**PR:** #84 (Fixes #78, #79, #80)
+
+**Review Focus:**
+
+- Exception semantics: `TimeoutException` vs. `OperationCanceledException` in `WaitForWebReadyAsync` ✅
+- Test env config: `DisableDashboard = true` in all Aspire test builders ✅
+- Assertion specificity: Exact string match vs. non-assertions ✅
+
+**Verdict:** ✅ Approved — fixes address root causes, not symptoms; tests now more deterministic.

@@ -641,3 +641,61 @@ Principle of least privilege: only the build job requires `pages: write` permiss
 ## Consequence
 
 GitHub Pages now publishes only contents of `docs/` directory, protecting sensitive files and source code.
+
+---
+
+### Test Quality & Semantics
+
+#### Test Fixes #78, #79, #80 (2026-03-27)
+
+**Author:** Pippin (E2E & Aspire Tester)
+**PR:** #84
+**Issues Closed:** #78, #79, #80
+
+**Fixes:**
+
+1. **#78 — TimeoutException semantics in WaitForWebReadyAsync**
+   - **Problem:** Polling loop in `BasePlaywrightTests.cs` let `OperationCanceledException` escape on deadline expiry
+   - **Fix:** Wrap loop body in `try/catch(OperationCanceledException)` to throw `TimeoutException`
+   - **Rationale:** `OperationCanceledException` signals cooperative cancellation; `TimeoutException` signals deadline expiry—distinct concerns
+
+2. **#79 — EnvVarTests.cs missing DisableDashboard configuration**
+   - **Problem:** Only test missing `DisableDashboard = true` in `DistributedApplicationTestingBuilder.CreateAsync`
+   - **Fix:** Added config pattern used by `AspireManager.cs`
+   - **Rationale:** Prevents Aspire dashboard resource waste in CI environments
+
+3. **#80 — Admin dashboard heading assertion too weak**
+   - **Problem:** Used `Should().NotBeNullOrWhiteSpace()` (any non-empty string passes, not specific)
+   - **Fix:** Replaced with `Should().Be("Admin Dashboard")` (exact match)
+   - **Rationale:** Per charter rule—assertions must be specific, not permissive
+
+**Consequence:** E2E test suite now has correct exception semantics, consistent env configuration, and specific assertions.
+
+---
+
+### Frontend: Authorization Error Handling
+
+#### Add /Account/AccessDenied Blazor Page (2026-03-27)
+
+**Author:** Legolas (Frontend Developer)
+**PR:** #83
+**Issue Closed:** #77
+
+**Context:** Auth0 redirects users failing authorization to `/Account/AccessDenied` (ASP.NET Core `AccessDeniedPath` convention). App had no Blazor component at this route, causing 404 UX.
+
+**Decision:** Create `src/Web/Components/Pages/Account/AccessDenied.razor`:
+- Route: `@page "/Account/AccessDenied"`
+- Layout: `@layout MainLayout` (consistent with non-auth pages like `NotFound.razor`)
+- Auth: No `[Authorize]` attribute (user just denied; would create redirect loop)
+- Styling: Tailwind `neutral-*` palette
+- Copy: Friendly error message + link to home
+
+**Alternatives Rejected:**
+- Razor Page (`.cshtml`): Inconsistent with Blazor-first architecture
+- Redirect + toast: Loses explicit "denied" signal; not accessible to bots/screenreaders
+
+**Consequences:**
+- Users denied access now see branded error page instead of 404
+- `src/Web/Components/Pages/Account/` directory ready for future pages (login callbacks, etc.)
+- Zero middleware changes—purely UI addition
+
