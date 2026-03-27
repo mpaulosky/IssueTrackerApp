@@ -6,6 +6,7 @@
     <!-- Aspire -->
     <PackageVersion Include="Aspire.MongoDB.Driver" Version="13.1.2" />
     <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.1.2" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.2" />
     <!-- MongoDB -->
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
