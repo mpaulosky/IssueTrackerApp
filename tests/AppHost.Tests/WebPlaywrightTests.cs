@@ -22,7 +22,6 @@ public class WebPlaywrightTests : BasePlaywrightTests
 	[Fact]
 	public async Task WebHomePageLoads()
 	{
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -36,7 +35,6 @@ public class WebPlaywrightTests : BasePlaywrightTests
 	[Fact]
 	public async Task WebHomePageHasContent()
 	{
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{

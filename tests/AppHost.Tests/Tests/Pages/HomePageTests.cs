@@ -24,7 +24,6 @@ public class HomePageTests : BasePlaywrightTests
 	public async Task HomePage_GuestView_ShowsWelcomeHeading()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -45,7 +44,6 @@ public class HomePageTests : BasePlaywrightTests
 	public async Task HomePage_GuestView_ShowsLoginButton()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{

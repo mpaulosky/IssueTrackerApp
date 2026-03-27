@@ -14,8 +14,10 @@ using Microsoft.Playwright;
 namespace AppHost.Tests;
 
 /// <summary>
-/// Playwright E2E tests for the ColorSchemeSelector component (blue / red / green / yellow).
+/// Playwright E2E tests for the color-scheme swatch picker in the ThemeToggle header control.
 /// All tests run as anonymous users — no authentication required.
+/// Theme is applied as a CSS class on <c>&lt;html&gt;</c> (e.g., <c>theme-blue-light</c>),
+/// stored in localStorage under the key <c>theme-color-brightness</c>.
 /// </summary>
 public class ColorSchemeTests : BasePlaywrightTests
 {
@@ -25,7 +27,6 @@ public class ColorSchemeTests : BasePlaywrightTests
 	public async Task ColorScheme_ButtonIsVisibleInHeader()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -33,7 +34,7 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var schemeBtn = page.Locator("button[aria-label=\"Change color scheme\"]");
+			var schemeBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
 			await schemeBtn.WaitForAsync();
 
 			// Assert
@@ -46,7 +47,6 @@ public class ColorSchemeTests : BasePlaywrightTests
 	public async Task ColorScheme_OpenDropdownShowsColorOptions()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -54,21 +54,18 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var schemeBtn = page.Locator("button[aria-label=\"Change color scheme\"]");
+			var schemeBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
 			await schemeBtn.WaitForAsync();
 			await schemeBtn.ClickAsync();
 
-			var blueOption = page.Locator("button[title=\"Blue\"]");
-			var redOption = page.Locator("button[title=\"Red\"]");
-			var greenOption = page.Locator("button[title=\"Green\"]");
-			var yellowOption = page.Locator("button[title=\"Yellow\"]");
+			// Color swatch buttons: title="Blue theme", title="Red theme", etc.
+			var blueOption = page.Locator("button[aria-label=\"Blue color theme\"]");
+			var redOption = page.Locator("button[aria-label=\"Red color theme\"]");
+			var greenOption = page.Locator("button[aria-label=\"Green color theme\"]");
+			var yellowOption = page.Locator("button[aria-label=\"Yellow color theme\"]");
 
 			// Assert
 			await blueOption.WaitForAsync();
-			await redOption.WaitForAsync();
-			await greenOption.WaitForAsync();
-			await yellowOption.WaitForAsync();
-
 			(await blueOption.IsVisibleAsync()).Should().BeTrue();
 			(await redOption.IsVisibleAsync()).Should().BeTrue();
 			(await greenOption.IsVisibleAsync()).Should().BeTrue();
@@ -80,7 +77,6 @@ public class ColorSchemeTests : BasePlaywrightTests
 	public async Task ColorScheme_SelectRed_AppliesRedTheme()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -88,17 +84,28 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var schemeBtn = page.Locator("button[aria-label=\"Change color scheme\"]");
+			var schemeBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
 			await schemeBtn.WaitForAsync();
 			await schemeBtn.ClickAsync();
 
-			var redOption = page.Locator("button[title=\"Red\"]");
+			// Wait for ThemeProvider to initialize — the default blue swatch gets scale-110 class
+			// only after ThemeProvider._isInitialized = true and StateHasChanged propagates.
+			await page.WaitForFunctionAsync(
+				"document.querySelector('button[aria-label=\"Blue color theme\"]')?.classList.contains('scale-110')",
+				new PageWaitForFunctionOptions { Timeout = 15000 });
+
+			var redOption = page.Locator("button[aria-label=\"Red color theme\"]");
 			await redOption.WaitForAsync();
 			await redOption.ClickAsync();
 
-			// Assert
-			var theme = await page.EvaluateAsync<string>("document.documentElement.getAttribute('data-theme')");
-			theme.Should().Be("red");
+			// Wait for red theme to be persisted in localStorage (source of truth)
+			await page.WaitForFunctionAsync(
+				"(localStorage.getItem('theme-color-brightness') || '').startsWith('theme-red-')",
+				new PageWaitForFunctionOptions { Timeout = 15000 });
+
+			// Assert via localStorage (source of truth for the theme engine)
+			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('theme-color-brightness')");
+			themeValue.Should().StartWith("theme-red-");
 		});
 	}
 
@@ -106,19 +113,22 @@ public class ColorSchemeTests : BasePlaywrightTests
 	public async Task ColorScheme_DefaultThemeIsBlue()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
-			// Act — navigate fresh (clear localStorage so we get the default)
+			// Act — clear saved theme (key: 'theme-color-brightness') to get the default
 			await page.GotoAsync("/");
-			await page.EvaluateAsync("localStorage.removeItem('color-scheme')");
+			await page.EvaluateAsync("localStorage.removeItem('theme-color-brightness')");
 			await page.ReloadAsync();
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
+			// Default is theme-blue-light (applied as a CSS class on <html>)
+			var hasBlueTheme = await page.EvaluateAsync<bool>(
+				"[...document.documentElement.classList].some(c => c.startsWith('theme-blue-'))");
+
 			// Assert
-			var theme = await page.EvaluateAsync<string>("document.documentElement.getAttribute('data-theme')");
-			theme.Should().Be("blue");
+			hasBlueTheme.Should().BeTrue();
 		});
 	}
 }
+

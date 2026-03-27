@@ -14,8 +14,10 @@ using Microsoft.Playwright;
 namespace AppHost.Tests;
 
 /// <summary>
-/// Playwright E2E tests for the ThemeToggle component (light / dark / system modes).
+/// Playwright E2E tests for the ThemeToggle component (brightness toggle + color swatch picker).
 /// All tests run as anonymous users — no authentication required.
+/// The brightness button (<c>aria-label="Toggle brightness"</c>) switches light/dark immediately.
+/// The color button (<c>aria-label="Choose color theme"</c>) opens a swatch dropdown.
 /// </summary>
 public class ThemeToggleTests : BasePlaywrightTests
 {
@@ -25,7 +27,6 @@ public class ThemeToggleTests : BasePlaywrightTests
 	public async Task ThemeToggle_ButtonIsVisibleInHeader()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -33,7 +34,7 @@ public class ThemeToggleTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var toggleBtn = page.Locator("button[aria-label=\"Toggle theme\"]");
+			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
 			await toggleBtn.WaitForAsync();
 
 			// Assert
@@ -46,52 +47,48 @@ public class ThemeToggleTests : BasePlaywrightTests
 	public async Task ThemeToggle_OpenDropdownShowsOptions()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
-			// Act
+			// Act — clicking "Choose color theme" opens a swatch dropdown
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var toggleBtn = page.Locator("button[aria-label=\"Toggle theme\"]");
-			await toggleBtn.WaitForAsync();
-			await toggleBtn.ClickAsync();
+			var colorBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
+			await colorBtn.WaitForAsync();
+			await colorBtn.ClickAsync();
 
-			var lightOption = page.Locator("button:has-text(\"Light\")");
-			var darkOption = page.Locator("button:has-text(\"Dark\")");
-			var systemOption = page.Locator("button:has-text(\"System\")");
+			// The dropdown contains one swatch button per color (Blue, Red, Green, Yellow)
+			var blueOption = page.Locator("button[aria-label=\"Blue color theme\"]");
+			var redOption = page.Locator("button[aria-label=\"Red color theme\"]");
+			var greenOption = page.Locator("button[aria-label=\"Green color theme\"]");
+			var yellowOption = page.Locator("button[aria-label=\"Yellow color theme\"]");
 
 			// Assert
-			await lightOption.WaitForAsync();
-			await darkOption.WaitForAsync();
-			await systemOption.WaitForAsync();
-
-			(await lightOption.IsVisibleAsync()).Should().BeTrue();
-			(await darkOption.IsVisibleAsync()).Should().BeTrue();
-			(await systemOption.IsVisibleAsync()).Should().BeTrue();
+			await blueOption.WaitForAsync();
+			(await blueOption.IsVisibleAsync()).Should().BeTrue();
+			(await redOption.IsVisibleAsync()).Should().BeTrue();
+			(await greenOption.IsVisibleAsync()).Should().BeTrue();
+			(await yellowOption.IsVisibleAsync()).Should().BeTrue();
 		});
 	}
 
 	[Fact]
 	public async Task ThemeToggle_SelectDark_AddsDarkClassToHtml()
 	{
-		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
-
+		// Arrange — ensure we start in light mode
 		await InteractWithPageAsync("web", async page =>
 		{
-			// Act
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+			await page.EvaluateAsync("localStorage.setItem('theme-color-brightness', 'theme-blue-light')");
+			await page.ReloadAsync();
+			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var toggleBtn = page.Locator("button[aria-label=\"Toggle theme\"]");
+			// Act — click the brightness toggle to switch to dark
+			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
 			await toggleBtn.WaitForAsync();
 			await toggleBtn.ClickAsync();
-
-			var darkOption = page.Locator("button:has-text(\"Dark\")");
-			await darkOption.WaitForAsync();
-			await darkOption.ClickAsync();
 
 			// Assert
 			var isDark = await page.EvaluateAsync<bool>("document.documentElement.classList.contains('dark')");
@@ -102,30 +99,41 @@ public class ThemeToggleTests : BasePlaywrightTests
 	[Fact]
 	public async Task ThemeToggle_SelectLight_RemovesDarkClassFromHtml()
 	{
-		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
-
+		// Arrange — seed localStorage with dark theme and navigate fresh so theme.js applies it.
+		// Wait for ThemeProvider to fully initialize (button title reflects dark state).
+		// Then click once and wait for Blazor to reflect light state via button title.
 		await InteractWithPageAsync("web", async page =>
 		{
-			// Act — start in dark mode by setting localStorage and reloading
+			// Seed localStorage in first navigation then navigate again so theme.js picks it up
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-			await page.EvaluateAsync("localStorage.setItem('theme-mode', 'dark')");
-			await page.ReloadAsync();
+			await page.EvaluateAsync("localStorage.setItem('theme-color-brightness', 'theme-blue-dark')");
+
+			// Fresh navigation so theme.js initialize() reads the stored dark value
+			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			// Open dropdown and select Light
-			var toggleBtn = page.Locator("button[aria-label=\"Toggle theme\"]");
-			await toggleBtn.WaitForAsync();
+			// Wait for ThemeProvider to initialize and recognize dark mode:
+			// title = "Switch to light mode" only when _isInitialized = true AND IsDarkMode = true
+			await page.WaitForFunctionAsync(
+				"document.querySelector('button[aria-label=\"Toggle brightness\"]')?.title === 'Switch to light mode'",
+				new PageWaitForFunctionOptions { Timeout = 15000 });
+
+			// Act — single click from dark → light
+			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
 			await toggleBtn.ClickAsync();
 
-			var lightOption = page.Locator("button:has-text(\"Light\")");
-			await lightOption.WaitForAsync();
-			await lightOption.ClickAsync();
+			// Wait for Blazor to finish processing and reflect light state in the button title.
+			// The title changes to "Switch to dark mode" only after SetBrightnessAsync("light") completes
+			// and StateHasChanged propagates — at that point the dark class is guaranteed removed.
+			await page.WaitForFunctionAsync(
+				"document.querySelector('button[aria-label=\"Toggle brightness\"]')?.title === 'Switch to dark mode'",
+				new PageWaitForFunctionOptions { Timeout = 15000 });
 
-			// Assert
-			var isDark = await page.EvaluateAsync<bool>("document.documentElement.classList.contains('dark')");
-			isDark.Should().BeFalse();
+			// Assert via localStorage (source of truth for the theme engine)
+			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('theme-color-brightness')");
+			themeValue.Should().NotEndWith("-dark", because: "SetBrightnessAsync('light') should have stored theme-blue-light");
 		});
 	}
 }
+

@@ -24,7 +24,6 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 	public async Task Layout_Header_ShowsBrandLink()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -45,7 +44,6 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 	public async Task Layout_Header_ShowsLoginLinkWhenNotAuthenticated()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -53,7 +51,8 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var loginLink = page.Locator("a[href*=\"/account/login\"]");
+			// Scope to header to avoid matching the home-page CTA login button
+			var loginLink = page.Locator("header a[href*=\"/account/login\"]").First;
 			await loginLink.WaitForAsync();
 
 			// Assert
@@ -66,7 +65,6 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 	public async Task Layout_NavMenu_IsHiddenWhenNotAuthenticated()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -74,10 +72,12 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var navCount = await page.Locator("nav[aria-label=\"Main navigation\"]").CountAsync();
+			// The <nav> element is always present but its links are wrapped in <AuthorizeView>.
+			// For anonymous users the nav is empty — no NavLink anchors inside it.
+			var navLinkCount = await page.Locator("nav[aria-label=\"Main navigation\"] a").CountAsync();
 
 			// Assert
-			navCount.Should().Be(0);
+			navLinkCount.Should().Be(0);
 		});
 	}
 
@@ -85,7 +85,6 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 	public async Task Layout_Footer_ShowsCopyrightText()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -106,7 +105,6 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 	public async Task Layout_ThemeToggleButton_IsVisible()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -114,7 +112,8 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var toggleBtn = page.Locator("button[aria-label=\"Toggle theme\"]");
+			// The brightness toggle button is always rendered in the header
+			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
 			await toggleBtn.WaitForAsync();
 
 			// Assert
@@ -127,7 +126,6 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 	public async Task Layout_ColorSchemeButton_IsVisible()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -135,7 +133,8 @@ public class LayoutAnonymousTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var schemeBtn = page.Locator("button[aria-label=\"Change color scheme\"]");
+			// The color-picker button is always rendered in the header
+			var schemeBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
 			await schemeBtn.WaitForAsync();
 
 			// Assert

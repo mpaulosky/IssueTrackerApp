@@ -7,7 +7,6 @@
 // Project Name :  AppHost.Tests
 // =============================================
 
-using Aspire.Hosting;
 using AppHost.Tests.Infrastructure;
 using Microsoft.Playwright;
 
@@ -15,10 +14,11 @@ namespace AppHost.Tests;
 
 /// <summary>
 /// Base class for Playwright tests, providing common functionality and setup for Playwright testing with ASP.NET Core.
+/// All derived classes share a single <see cref="AspireManager"/> instance via the
+/// <see cref="AppHostTestCollection"/> collection fixture — AppHost starts once per test run.
 /// </summary>
-/// <typeparam name="TFixture"></typeparam>
-/// <param name="aspireManager"></param>
-public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsyncDisposable
+[Collection(AppHostTestCollection.Name)]
+public abstract class BasePlaywrightTests : IAsyncDisposable
 {
 
 	protected BasePlaywrightTests(AspireManager aspireManager) =>
@@ -26,58 +26,27 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 
 	AspireManager AspireManager { get; }
 	PlaywrightManager PlaywrightManager => AspireManager.PlaywrightManager;
-	public string? DashboardUrl { get; private set; }
-	public string DashboardLoginToken { get; private set; } = "";
+
 	// CI cold-start can take up to 2 min; local dev is typically ~10 s
 	private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(120);
 
 	private IBrowserContext? _context;
 	private IBrowserContext? _authContext;
 
-	public Task<DistributedApplication> ConfigureAsync<TEntryPoint>(
-			string[]? args = null,
-			Action<IDistributedApplicationTestingBuilder>? configureBuilder = null) where TEntryPoint : class =>
-			AspireManager.ConfigureAsync<TEntryPoint>(args, builder =>
-			{
-				var aspNetCoreUrls = builder.Configuration["ASPNETCORE_URLS"];
-				var urls = aspNetCoreUrls is not null ? aspNetCoreUrls.Split(";") : [];
-
-				DashboardUrl = urls.FirstOrDefault();
-				DashboardLoginToken = builder.Configuration["AppHost:BrowserToken"] ?? "";
-
-				configureBuilder?.Invoke(builder);
-			});
-
 	public async Task InteractWithPageAsync(string serviceName,
 		Func<IPage, Task> test,
 		ViewportSize? size = null)
 	{
-
-		Uri urlSought;
 		var cancellationToken = new CancellationTokenSource(DefaultTimeout).Token;
 
-		// Empty string means the dashboard URL
-		if (!string.IsNullOrEmpty(serviceName))
-		{
-			var endpoint = AspireManager.App?.GetEndpoint(serviceName);
-			if (endpoint is null)
-			{
-				throw new InvalidOperationException($"Service '{serviceName}' not found in the application endpoints");
-			}
+		var endpoint = AspireManager.App?.GetEndpoint(serviceName, "https")
+			?? throw new InvalidOperationException($"Service '{serviceName}' not found in the application endpoints");
 
-			urlSought = endpoint;
-		}
-		else
-		{
-			urlSought = new Uri(DashboardUrl ?? throw new InvalidOperationException("Dashboard URL is not available"));
-		}
+		await AspireManager.App!.ResourceNotifications
+			.WaitForResourceHealthyAsync(serviceName, cancellationToken)
+			.WaitAsync(DefaultTimeout, cancellationToken);
 
-		if (AspireManager.App is not null)
-		{
-			await AspireManager.App.ResourceNotifications.WaitForResourceHealthyAsync(serviceName, cancellationToken).WaitAsync(DefaultTimeout, cancellationToken);
-		}
-
-		var page = await CreateNewPageAsync(urlSought, size);
+		var page = await CreateNewPageAsync(endpoint, size);
 
 		try
 		{
@@ -161,11 +130,9 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 		bool adminRole,
 		ViewportSize? size = null)
 	{
-		await ConfigureAsync<Projects.AppHost>();
-
 		var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(120)).Token;
 
-		var endpoint = AspireManager.App?.GetEndpoint(serviceName)
+		var endpoint = AspireManager.App?.GetEndpoint(serviceName, "https")
 			?? throw new InvalidOperationException($"Service '{serviceName}' not found");
 
 		await AspireManager.App!.ResourceNotifications
@@ -203,3 +170,5 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 		}
 	}
 }
+
+

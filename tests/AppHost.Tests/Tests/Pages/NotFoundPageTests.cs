@@ -24,7 +24,6 @@ public class NotFoundPageTests : BasePlaywrightTests
 	public async Task NotFoundPage_ShowsNotFoundHeading()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
@@ -48,7 +47,6 @@ public class NotFoundPageTests : BasePlaywrightTests
 	public async Task NotFoundPage_ShowsHelpfulMessage()
 	{
 		// Arrange
-		await ConfigureAsync<Projects.AppHost>();
 
 		await InteractWithPageAsync("web", async page =>
 		{
