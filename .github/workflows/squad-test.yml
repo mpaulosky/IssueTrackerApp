@@ -580,6 +580,89 @@ jobs:
           name: persistence-azure-integration-test-results
           path: test-results
 
+  test-apphost:
+    name: "AppHost.Tests (Aspire + Playwright E2E)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build
+
+    env:
+      ASPIRE_ALLOW_UNSECURED_TRANSPORT: "true"
+      ConnectionStrings__mongodb: "mongodb://localhost:27017"
+
+    steps:
+      - name: Start MongoDB Replica Set
+        run: |
+          docker run -d --name mongodb -p 27017:27017 mongo:7.0 mongod --replSet rs0
+          for i in {1..30}; do
+            if docker exec mongodb mongosh --quiet --eval "db.runCommand({ ping: 1 })" 2>/dev/null; then
+              echo "MongoDB accepting connections"
+              break
+            fi
+            echo "Waiting for MongoDB... attempt $i"
+            sleep 2
+          done
+          docker exec mongodb mongosh --quiet --eval \
+            "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
+          for i in {1..30}; do
+            if docker exec mongodb mongosh --quiet --eval "rs.isMaster().ismaster" 2>/dev/null | grep -q true; then
+              echo "Replica set primary ready"
+              break
+            fi
+            echo "Waiting for primary... attempt $i"
+            sleep 2
+          done
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build AppHost.Tests
+        run: dotnet build tests/AppHost.Tests --configuration Release --no-restore
+
+      - name: Install Playwright browsers
+        run: |
+          pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps
+
+      - name: Run AppHost.Tests
+        id: apphost-tests
+        run: |
+          mkdir -p test-results
+          dotnet test tests/AppHost.Tests \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --logger "trx;LogFileName=apphost.trx" \
+            --results-directory "$GITHUB_WORKSPACE/test-results" \
+            --collect:"XPlat Code Coverage"
+          exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::AppHost.Tests failed"
+          fi
+          exit $exit_code
+
+      - name: Upload AppHost Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: apphost-test-results
+          path: test-results
+
   coverage:
     name: Coverage Analysis
     runs-on: ubuntu-latest
@@ -594,6 +677,7 @@ jobs:
       - test-persistence-mongodb-integration
       - test-persistence-azure
       - test-persistence-azure-integration
+      - test-apphost
     if: always()
 
     steps:
@@ -663,6 +747,7 @@ jobs:
       - test-persistence-mongodb-integration
       - test-persistence-azure
       - test-persistence-azure-integration
+      - test-apphost
     if: always()
 
     steps:
@@ -700,6 +785,7 @@ jobs:
           echo "- **Persistence.MongoDb.Tests.Integration:** ${{ needs.test-persistence-mongodb-integration.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Persistence.AzureStorage.Tests:** ${{ needs.test-persistence-azure.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Persistence.AzureStorage.Tests.Integration:** ${{ needs.test-persistence-azure-integration.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **AppHost.Tests (Aspire + Playwright E2E):** ${{ needs.test-apphost.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- Test results and coverage reports available in Actions artifacts" >> $GITHUB_STEP_SUMMARY
@@ -717,12 +803,13 @@ jobs:
           mongodb_int_status="${{ needs.test-persistence-mongodb-integration.result }}"
           azure_status="${{ needs.test-persistence-azure.result }}"
           azure_int_status="${{ needs.test-persistence-azure-integration.result }}"
+          apphost_status="${{ needs.test-apphost.result }}"
 
           if [[ "$build_status" == "failure" || "$domain_status" == "failure" || "$web_status" == "failure" || \
                 "$arch_status" == "failure" || "$bunit_status" == "failure" || \
                 "$integration_status" == "failure" || "$mongodb_status" == "failure" || \
                 "$mongodb_int_status" == "failure" || "$azure_status" == "failure" || \
-                "$azure_int_status" == "failure" ]]; then
+                "$azure_int_status" == "failure" || "$apphost_status" == "failure" ]]; then
             echo "❌ **Overall Status:** FAILED" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ **Overall Status:** PASSED" >> $GITHUB_STEP_SUMMARY
