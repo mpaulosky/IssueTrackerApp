@@ -588,42 +588,11 @@ jobs:
 
     env:
       ASPIRE_ALLOW_UNSECURED_TRANSPORT: "true"
+      # Required by AppHost builder.AddConnectionString("mongodb") even though
+      # the web app ignores it in Testing mode (no real DB connection is made).
       ConnectionStrings__mongodb: "mongodb://localhost:27017"
-      # Override the workflow-level Atlas URL so the web app falls back to the local MongoDB container
-      MongoDB__ConnectionString: ""
-      Auth0__Domain: ${{ secrets.AUTH0_DOMAIN }}
-      Auth0__ClientId: ${{ secrets.AUTH0_CLIENT_ID }}
-      Auth0__ClientSecret: ${{ secrets.AUTH0_CLIENT_SECRET }}
-      # Playwright test-user credentials (User role)
-      PLAYWRIGHT_TEST_EMAIL: ${{ secrets.PLAYWRIGHT_TEST_EMAIL }}
-      PLAYWRIGHT_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_PASSWORD }}
-      # Playwright admin-user credentials (Admin role)
-      PLAYWRIGHT_TEST_ADMIN_EMAIL: ${{ secrets.PLAYWRIGHT_TEST_ADMIN_EMAIL }}
-      PLAYWRIGHT_TEST_ADMIN_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_ADMIN_PASSWORD }}
 
     steps:
-      - name: Start MongoDB Replica Set
-        run: |
-          docker run -d --name mongodb -p 27017:27017 mongo:7.0 mongod --replSet rs0
-          for i in {1..30}; do
-            if docker exec mongodb mongosh --quiet --eval "db.runCommand({ ping: 1 })" 2>/dev/null; then
-              echo "MongoDB accepting connections"
-              break
-            fi
-            echo "Waiting for MongoDB... attempt $i"
-            sleep 2
-          done
-          docker exec mongodb mongosh --quiet --eval \
-            "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
-          for i in {1..30}; do
-            if docker exec mongodb mongosh --quiet --eval "rs.isMaster().ismaster" 2>/dev/null | grep -q true; then
-              echo "Replica set primary ready"
-              break
-            fi
-            echo "Waiting for primary... attempt $i"
-            sleep 2
-          done
-
       - name: Checkout code
         uses: actions/checkout@v6
 

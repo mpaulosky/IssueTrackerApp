@@ -10,8 +10,6 @@
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 
-using Microsoft.Extensions.Configuration;
-
 namespace AppHost.Tests.Infrastructure;
 
 /// <summary>
@@ -30,10 +28,10 @@ public class AspireManager : IAsyncLifetime
 	/// </summary>
 	private async Task StartAppAsync()
 	{
-		// Forward Auth0 credentials to child processes (web subprocess runs in "Testing"
-		// environment where user secrets are not auto-loaded, so we propagate them via
-		// environment variables which are inherited by all Aspire-launched subprocesses).
-		ForwardAuth0ConfigToChildProcesses();
+		// Propagate ASPNETCORE_ENVIRONMENT=Testing to all Aspire-launched child processes.
+		// In Testing mode the web app uses in-memory fake repositories, Cookie auth, and
+		// skips background DB services — making E2E tests fast and self-contained.
+		Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
 		var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.AppHost>(
 				args: [],
@@ -44,39 +42,11 @@ public class AspireManager : IAsyncLifetime
 
 		builder.Configuration["ASPIRE_ALLOW_UNSECURED_TRANSPORT"] = "true";
 
-		// Fix the web project's HTTPS port so the Auth0 callback URL is predictable.
-		// Auth0 Allowed Callback URLs must include: https://localhost:7043/callback
+		// Fix the web project's HTTPS port so the test base URL is predictable.
 		FixWebEndpointPort(builder, "https", 7043);
 
 		App = await builder.BuildAsync();
 		await App.StartAsync();
-	}
-
-	/// <summary>
-	/// Reads Auth0 configuration from this test project's user secrets (or existing environment
-	/// variables) and sets them as process-level environment variables so that Aspire-launched
-	/// subprocesses (e.g. the <c>web</c> service) inherit them.
-	/// </summary>
-	private static void ForwardAuth0ConfigToChildProcesses()
-	{
-		// Build a config from the test project's own user secrets + current env vars
-		var localConfig = new ConfigurationBuilder()
-			.AddUserSecrets(typeof(AspireManager).Assembly, optional: true)
-			.AddEnvironmentVariables()
-			.Build();
-
-		var auth0Keys = new[] { "Domain", "ClientId", "ClientSecret", "RoleClaimNamespace" };
-		foreach (var key in auth0Keys)
-		{
-			var envKey = $"Auth0__{key}";
-			// Skip if already set as an environment variable (CI sets these directly)
-			if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(envKey)))
-				continue;
-
-			var value = localConfig[$"Auth0:{key}"];
-			if (!string.IsNullOrEmpty(value))
-				Environment.SetEnvironmentVariable(envKey, value);
-		}
 	}
 
 	/// <summary>

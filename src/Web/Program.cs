@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 using Auth0.AspNetCore.Authentication;
 
 using Azure.Identity;
@@ -5,6 +7,7 @@ using Azure.Identity;
 using Domain;
 using Domain.Abstractions;
 using Domain.Features.Issues.Commands.Bulk;
+using Domain.Models;
 
 using FluentValidation;
 
@@ -22,6 +25,7 @@ using Web.Features;
 using Web.Helpers;
 using Web.Hubs;
 using Web.Services;
+using Web.Testing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,8 +50,15 @@ if (!builder.Environment.IsDevelopment())
 // Add service defaults (OpenTelemetry, service discovery, resilience, health checks)
 builder.AddServiceDefaults();
 
-// Add MongoDB persistence layer
-builder.Services.AddMongoDbPersistence(builder.Configuration);
+// Add MongoDB persistence layer — or lightweight in-memory fakes for E2E testing
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+	builder.Services.AddMongoDbPersistence(builder.Configuration);
+}
+else
+{
+	RegisterFakeRepositories(builder.Services);
+}
 
 // Add MongoDB connection from Aspire service discovery (skip in test environment —
 // the EF Core provider handles the connection, and Aspire service discovery hangs without AppHost)
@@ -88,8 +99,11 @@ else
 	builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 }
 
-// Add Email Queue Background Service
-builder.Services.AddHostedService<EmailQueueBackgroundService>();
+// Add Email Queue Background Service (skip in Testing — it polls MongoDB every 10 s)
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+	builder.Services.AddHostedService<EmailQueueBackgroundService>();
+}
 
 // Configure File Storage (Azure Blob or Local)
 var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
@@ -118,7 +132,12 @@ builder.Services.AddSingleton<IBulkOperationQueue>(sp =>
 	sp.GetRequiredService<InMemoryBulkOperationQueue>());
 builder.Services.AddScoped<IUndoService, InMemoryUndoService>();
 builder.Services.AddScoped<IBulkOperationService, BulkOperationService>();
-builder.Services.AddHostedService<BulkOperationBackgroundService>();
+
+// Skip the bulk background worker in Testing — it uses IRepository<Issue> and runs continuously
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+	builder.Services.AddHostedService<BulkOperationBackgroundService>();
+}
 
 // Register bulk operation handlers for background processing
 builder.Services.AddScoped<BulkUpdateStatusCommandHandler>();
@@ -129,24 +148,35 @@ builder.Services.AddScoped<BulkDeleteCommandHandler>();
 // Add data seeder
 builder.Services.AddDataSeeder();
 
-// Configure Auth0 authentication
-var auth0Options = builder.Configuration.GetSection("Auth0").Get<Auth0Options>()
-	?? throw new InvalidOperationException("Auth0 configuration is missing.");
+// Configure authentication — Cookie-only in Testing mode; Auth0 OIDC in all other environments
+if (builder.Environment.IsEnvironment("Testing"))
+{
+	// Use simple Cookie auth for E2E testing — no Auth0, no external dependencies.
+	// Tests authenticate by navigating to GET /test/login?role=user|admin which sets the cookie.
+	builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+		.AddCookie(opts => opts.LoginPath = "/test/login");
+}
+else
+{
+	// Configure Auth0 authentication
+	var auth0Options = builder.Configuration.GetSection("Auth0").Get<Auth0Options>()
+		?? throw new InvalidOperationException("Auth0 configuration is missing.");
 
-builder.Services
-	.AddAuth0WebAppAuthentication(options =>
-	{
-		options.Domain = auth0Options.Domain;
-		options.ClientId = auth0Options.ClientId;
-		options.ClientSecret = auth0Options.ClientSecret;
-		// Use Authorization Code flow with PKCE for enhanced security
-		options.Scope = "openid profile email";
-	});
+	builder.Services
+		.AddAuth0WebAppAuthentication(options =>
+		{
+			options.Domain = auth0Options.Domain;
+			options.ClientId = auth0Options.ClientId;
+			options.ClientSecret = auth0Options.ClientSecret;
+			// Use Authorization Code flow with PKCE for enhanced security
+			options.Scope = "openid profile email";
+		});
 
-// Register Auth0 claims transformation for role mapping
-// This maps Auth0's custom role claims (e.g., "https://issuetracker.com/roles")
-// to ASP.NET Core's standard ClaimTypes.Role so RequireRole() works correctly
-builder.Services.AddScoped<IClaimsTransformation, Auth0ClaimsTransformation>();
+	// Register Auth0 claims transformation for role mapping
+	// This maps Auth0's custom role claims (e.g., "https://issuetracker.com/roles")
+	// to ASP.NET Core's standard ClaimTypes.Role so RequireRole() works correctly
+	builder.Services.AddScoped<IClaimsTransformation, Auth0ClaimsTransformation>();
+}
 
 // Configure authorization policies
 builder.Services.AddAuthorization(options =>
@@ -223,7 +253,7 @@ app.MapCommentEndpoints();
 app.MapStatusEndpoints();
 
 // Map Auth0 login/logout endpoints
-app.MapGet("/account/login", async (HttpContext context, string returnUrl = "/") =>
+app.MapGet("/account/login", async (HttpContext context, IWebHostEnvironment env, string returnUrl = "/") =>
 {
 	// Validate returnUrl is local to prevent open redirect attacks
 	// See: https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
@@ -231,24 +261,54 @@ app.MapGet("/account/login", async (HttpContext context, string returnUrl = "/")
 		? returnUrl
 		: "/";
 
-	var authenticationProperties = new AuthenticationProperties
+	if (env.IsEnvironment("Testing"))
 	{
-		RedirectUri = validReturnUrl
-	};
+		// Redirect to test login endpoint so the cookie-auth challenge resolves gracefully
+		return Results.Redirect($"/test/login?role=user&returnUrl={Uri.EscapeDataString(validReturnUrl)}");
+	}
+
+	var authenticationProperties = new AuthenticationProperties { RedirectUri = validReturnUrl };
 	await context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
+	return Results.Empty;
 }).AllowAnonymous();
 
 // Use POST for logout to prevent CSRF attacks
 // Antiforgery validation is handled by UseAntiforgery() middleware for form submissions
-app.MapPost("/account/logout", async context =>
+app.MapPost("/account/logout", async (HttpContext context, IWebHostEnvironment env) =>
 {
-	var authenticationProperties = new AuthenticationProperties
+	var authenticationProperties = new AuthenticationProperties { RedirectUri = "/" };
+
+	if (!env.IsEnvironment("Testing"))
 	{
-		RedirectUri = "/"
-	};
-	await context.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
+		await context.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
+	}
+
 	await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 }).RequireAuthorization();
+
+// Testing-only: lightweight login endpoint that signs in via Cookie auth with fake claims.
+// Playwright tests navigate here instead of going through the Auth0 OIDC flow.
+if (app.Environment.IsEnvironment("Testing"))
+{
+	app.MapGet("/test/login", async (HttpContext ctx, string role = "user", string returnUrl = "/") =>
+	{
+		var isAdmin = role.Equals("admin", StringComparison.OrdinalIgnoreCase);
+
+		var claims = new List<Claim>
+		{
+			new(ClaimTypes.NameIdentifier, isAdmin ? "auth0|test-admin" : "auth0|test-user"),
+			new(ClaimTypes.Name,           isAdmin ? "Test Admin"       : "Test User"),
+			new(ClaimTypes.Email,          isAdmin ? "admin@test.com"   : "user@test.com"),
+			new(ClaimTypes.Role,           isAdmin ? "Admin"            : "User"),
+		};
+
+		var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+		await ctx.SignInAsync(new ClaimsPrincipal(identity));
+
+		var safeReturn = !string.IsNullOrEmpty(returnUrl) && IsLocalUrl(returnUrl) ? returnUrl : "/";
+		return Results.Redirect(safeReturn);
+	}).AllowAnonymous();
+}
 
 // Helper method to validate local URLs (prevents open redirect)
 static bool IsLocalUrl(string url)
@@ -268,6 +328,22 @@ static bool IsLocalUrl(string url)
 
 	// Accept relative URLs that start with /
 	return url.StartsWith("/", StringComparison.Ordinal) && !url.StartsWith("//", StringComparison.Ordinal);
+}
+
+// Registers lightweight in-memory fake repositories for all entity types.
+// Used in the Testing environment instead of the real MongoDB-backed repositories.
+static void RegisterFakeRepositories(IServiceCollection services)
+{
+	var issues      = new FakeRepository<Issue>(FakeSeedData.Issues);
+	var statuses    = new FakeRepository<Status>(FakeSeedData.Statuses);
+	var categories  = new FakeRepository<Category>(FakeSeedData.Categories);
+
+	services.AddSingleton<IRepository<Issue>>(issues);
+	services.AddSingleton<IRepository<Status>>(statuses);
+	services.AddSingleton<IRepository<Category>>(categories);
+	services.AddSingleton<IRepository<Comment>>(new FakeRepository<Comment>());
+	services.AddSingleton<IRepository<Attachment>>(new FakeRepository<Attachment>());
+	services.AddSingleton<IRepository<EmailQueueItem>>(new FakeRepository<EmailQueueItem>());
 }
 
 app.Run();
