@@ -28,7 +28,8 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 	PlaywrightManager PlaywrightManager => AspireManager.PlaywrightManager;
 	public string? DashboardUrl { get; private set; }
 	public string DashboardLoginToken { get; private set; } = "";
-	private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
+	// CI cold-start can take up to 2 min; local dev is typically ~10 s
+	private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(120);
 
 	private IBrowserContext? _context;
 	private IBrowserContext? _authContext;
@@ -139,14 +140,14 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 	{
 		await ConfigureAsync<Projects.AppHost>();
 
-		var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
+		var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(120)).Token;
 
 		var endpoint = AspireManager.App?.GetEndpoint(serviceName)
 			?? throw new InvalidOperationException($"Service '{serviceName}' not found");
 
 		await AspireManager.App!.ResourceNotifications
 			.WaitForResourceHealthyAsync(serviceName, cancellationToken)
-			.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+			.WaitAsync(TimeSpan.FromSeconds(120), cancellationToken);
 
 		var (page, hasAuth) = await CreateAuthenticatedPageAsync(endpoint);
 

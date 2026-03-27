@@ -583,12 +583,17 @@ jobs:
   test-apphost:
     name: "AppHost.Tests (Aspire + Playwright E2E)"
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     needs: build
 
     env:
       ASPIRE_ALLOW_UNSECURED_TRANSPORT: "true"
       ConnectionStrings__mongodb: "mongodb://localhost:27017"
+      # Override the workflow-level Atlas URL so the web app falls back to the local MongoDB container
+      MongoDB__ConnectionString: ""
+      Auth0__Domain: ${{ secrets.AUTH0_DOMAIN }}
+      Auth0__ClientId: ${{ secrets.AUTH0_CLIENT_ID }}
+      Auth0__ClientSecret: ${{ secrets.AUTH0_CLIENT_SECRET }}
 
     steps:
       - name: Start MongoDB Replica Set
