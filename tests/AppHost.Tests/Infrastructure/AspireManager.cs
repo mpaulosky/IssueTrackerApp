@@ -42,11 +42,39 @@ public class AspireManager : IAsyncLifetime
 
 		builder.Configuration["ASPIRE_ALLOW_UNSECURED_TRANSPORT"] = "true";
 
+		// Explicitly inject ASPNETCORE_ENVIRONMENT=Testing into the web resource via
+		// EnvironmentCallbackAnnotation. Setting it on the parent process alone is not
+		// sufficient — Aspire DCP may override ASPNETCORE_ENVIRONMENT based on its own
+		// EnvironmentName when launching child processes. The annotation guarantees the
+		// value is applied at subprocess launch time, after DCP finishes its own setup.
+		SetWebEnvironmentVariable(builder, "ASPNETCORE_ENVIRONMENT", "Testing");
+
 		// Fix the web project's HTTPS port so the test base URL is predictable.
 		FixWebEndpointPort(builder, "https", 7043);
 
 		App = await builder.BuildAsync();
 		await App.StartAsync();
+	}
+
+	/// <summary>
+	/// Adds an <see cref="EnvironmentCallbackAnnotation"/> to the named web resource so
+	/// that <paramref name="key"/> is set to <paramref name="value"/> when Aspire DCP
+	/// launches the child process.  This takes effect AFTER DCP injects its own
+	/// environment variables, ensuring our value wins over DCP defaults.
+	/// </summary>
+	private static void SetWebEnvironmentVariable(
+		IDistributedApplicationTestingBuilder builder,
+		string key,
+		string value)
+	{
+		var webResource = builder.Resources
+			.OfType<IResourceWithEnvironment>()
+			.FirstOrDefault(r => r.Name == "web");
+
+		if (webResource is null) return;
+
+		webResource.Annotations.Add(new EnvironmentCallbackAnnotation(
+			ctx => ctx.EnvironmentVariables[key] = value));
 	}
 
 	/// <summary>

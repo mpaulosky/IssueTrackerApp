@@ -64,6 +64,11 @@ public partial class ThemeProvider : IAsyncDisposable
 			_isInitialized = true;
 			OnThemeChanged?.Invoke();
 			StateHasChanged();
+
+			// Signal to E2E tests that ThemeProvider is interactive.
+			// Playwright tests wait on data-theme-ready="true" before clicking theme controls
+			// to avoid clicking before SetBrightnessAsync / SetColorAsync are enabled.
+			await JsRuntime.InvokeVoidAsync("themeManager.markInitialized");
 		}
 		catch (JSException)
 		{

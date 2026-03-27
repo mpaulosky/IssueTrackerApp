@@ -84,15 +84,16 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
+			// Wait for ThemeProvider to initialize — SetColorAsync checks _isInitialized and
+			// returns early if called before JS interop has completed on the server.
+			// data-theme-ready is set by themeManager.markInitialized() after initialization.
+			await page.WaitForFunctionAsync(
+				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
+				new PageWaitForFunctionOptions { Timeout = 15000 });
+
 			var schemeBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
 			await schemeBtn.WaitForAsync();
 			await schemeBtn.ClickAsync();
-
-			// Wait for ThemeProvider to initialize — the default blue swatch gets scale-110 class
-			// only after ThemeProvider._isInitialized = true and StateHasChanged propagates.
-			await page.WaitForFunctionAsync(
-				"document.querySelector('button[aria-label=\"Blue color theme\"]')?.classList.contains('scale-110')",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
 
 			var redOption = page.Locator("button[aria-label=\"Red color theme\"]");
 			await redOption.WaitForAsync();

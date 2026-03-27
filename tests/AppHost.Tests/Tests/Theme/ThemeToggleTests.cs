@@ -88,7 +88,20 @@ public class ThemeToggleTests : BasePlaywrightTests
 			// Act — click the brightness toggle to switch to dark
 			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
 			await toggleBtn.WaitForAsync();
+
+			// Wait for ThemeProvider to initialize — SetBrightnessAsync checks _isInitialized and
+			// returns early (no-op) if called before JS interop has run on the server.
+			// data-theme-ready is set by themeManager.markInitialized() after initialization.
+			await page.WaitForFunctionAsync(
+				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
+				new PageWaitForFunctionOptions { Timeout = 15000 });
+
 			await toggleBtn.ClickAsync();
+
+			// Wait for Blazor to process the event and JS to apply the dark class
+			await page.WaitForFunctionAsync(
+				"document.documentElement.classList.contains('dark')",
+				new PageWaitForFunctionOptions { Timeout = 15000 });
 
 			// Assert
 			var isDark = await page.EvaluateAsync<bool>("document.documentElement.classList.contains('dark')");

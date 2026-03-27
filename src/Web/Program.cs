@@ -29,6 +29,14 @@ using Web.Testing;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// In Testing mode (launched by AppHost.Tests), the app runs from build output rather than published
+// output. Static web assets are only auto-loaded in Development, so enable them explicitly here so
+// that Blazor interactive mode, scoped CSS, and JS assets are served correctly during E2E tests.
+if (builder.Environment.IsEnvironment("Testing"))
+{
+	builder.WebHost.UseStaticWebAssets();
+}
+
 // Configure JSON serialization for MongoDB ObjectId
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -99,8 +107,8 @@ else
 	builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 }
 
-// Add Email Queue Background Service (skip in Testing — it polls MongoDB every 10 s)
-if (!builder.Environment.IsEnvironment("Testing"))
+// Add Email Queue Background Service (skip in Testing and IntegrationTesting — it polls MongoDB every 10 s)
+if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvironment("IntegrationTesting"))
 {
 	builder.Services.AddHostedService<EmailQueueBackgroundService>();
 }
@@ -133,8 +141,8 @@ builder.Services.AddSingleton<IBulkOperationQueue>(sp =>
 builder.Services.AddScoped<IUndoService, InMemoryUndoService>();
 builder.Services.AddScoped<IBulkOperationService, BulkOperationService>();
 
-// Skip the bulk background worker in Testing — it uses IRepository<Issue> and runs continuously
-if (!builder.Environment.IsEnvironment("Testing"))
+// Skip the bulk background worker in Testing and IntegrationTesting — it uses IRepository<Issue> and runs continuously
+if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvironment("IntegrationTesting"))
 {
 	builder.Services.AddHostedService<BulkOperationBackgroundService>();
 }
@@ -200,8 +208,8 @@ builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
 
-// Initialize MongoDB database (skip in Testing environment)
-if (!app.Environment.IsEnvironment("Testing"))
+// Initialize MongoDB database (skip in Testing and IntegrationTesting environments - tests manage their own data)
+if (!app.Environment.IsEnvironment("Testing") && !app.Environment.IsEnvironment("IntegrationTesting"))
 {
 	await app.Services.InitializeMongoDbAsync();
 
@@ -220,8 +228,8 @@ if (!app.Environment.IsDevelopment())
 	app.UseHsts();
 }
 // StatusCodePagesWithReExecute re-executes requests to /not-found (a Blazor page, GET-only).
-// This interferes with API PUT/DELETE responses by converting 401→405, so skip in Testing.
-if (!app.Environment.IsEnvironment("Testing"))
+// This interferes with API PUT/DELETE responses by converting 401→405, so skip in Testing and IntegrationTesting.
+if (!app.Environment.IsEnvironment("Testing") && !app.Environment.IsEnvironment("IntegrationTesting"))
 {
 	app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 }
@@ -334,9 +342,9 @@ static bool IsLocalUrl(string url)
 // Used in the Testing environment instead of the real MongoDB-backed repositories.
 static void RegisterFakeRepositories(IServiceCollection services)
 {
-	var issues      = new FakeRepository<Issue>(FakeSeedData.Issues);
-	var statuses    = new FakeRepository<Status>(FakeSeedData.Statuses);
-	var categories  = new FakeRepository<Category>(FakeSeedData.Categories);
+	var issues = new FakeRepository<Issue>(FakeSeedData.Issues);
+	var statuses = new FakeRepository<Status>(FakeSeedData.Statuses);
+	var categories = new FakeRepository<Category>(FakeSeedData.Categories);
 
 	services.AddSingleton<IRepository<Issue>>(issues);
 	services.AddSingleton<IRepository<Status>>(statuses);

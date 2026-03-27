@@ -66,10 +66,10 @@ public class DashboardPageTests : BasePlaywrightTests
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
 			// Assert — all four stat card labels must be present
-			var totalIssues = page.Locator("text=Total Issues");
-			var openIssues = page.Locator("text=Open Issues");
-			var resolvedIssues = page.Locator("text=Resolved Issues");
-			var thisWeek = page.Locator("text=This Week");
+			var totalIssues = page.Locator("dt:has-text('Total Issues')");
+			var openIssues = page.Locator("dt:has-text('Open Issues')");
+			var resolvedIssues = page.Locator("dt:has-text('Resolved Issues')");
+			var thisWeek = page.Locator("dt:has-text('This Week')");
 
 			await totalIssues.WaitForAsync();
 			await openIssues.WaitForAsync();
