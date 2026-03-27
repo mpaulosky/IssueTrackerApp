@@ -17,6 +17,7 @@
 | Legolas | Frontend Dev | squad:legolas | ⚛️ Frontend |
 | Sam | Backend Dev | squad:sam | 🔧 Backend |
 | Gimli | Tester | squad:gimli | 🧪 Tester |
+| Pippin | Tester (E2E & Aspire) | squad:pippin | 🧪 Tester |
 | Boromir | DevOps | squad:boromir | ⚙️ DevOps |
 | Frodo | Tech Writer | squad:frodo | 📝 Docs |
 | Gandalf | Security Officer | squad:gandalf | 🔒 Security |
