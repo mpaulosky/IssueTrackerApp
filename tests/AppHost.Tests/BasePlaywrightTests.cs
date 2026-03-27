@@ -104,7 +104,16 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 	}
 
 	/// <summary>Creates an authenticated browser context page using stored Auth0 state.</summary>
-	protected async Task<(IPage Page, bool HasAuth)> CreateAuthenticatedPageAsync(Uri uri)
+	protected async Task<(IPage Page, bool HasAuth)> CreateAuthenticatedPageAsync(Uri uri) =>
+		await CreateContextPageAsync(uri, AuthStateManager.GetStorageStatePathAsync);
+
+	/// <summary>Creates an admin-authenticated browser context page using stored Auth0 admin state.</summary>
+	protected async Task<(IPage Page, bool HasAuth)> CreateAdminAuthenticatedPageAsync(Uri uri) =>
+		await CreateContextPageAsync(uri, AuthStateManager.GetAdminStorageStatePathAsync);
+
+	private async Task<(IPage Page, bool HasAuth)> CreateContextPageAsync(
+		Uri uri,
+		Func<IPage, string, Task<string?>> getStatePath)
 	{
 		var loginContext = await PlaywrightManager.Browser.NewContextAsync(new BrowserNewContextOptions
 		{
@@ -113,7 +122,7 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 		});
 		var loginPage = await loginContext.NewPageAsync();
 
-		var statePath = await AuthStateManager.GetStorageStatePathAsync(loginPage, uri.ToString());
+		var statePath = await getStatePath(loginPage, uri.ToString());
 		await loginContext.CloseAsync();
 
 		if (statePath is null)
@@ -133,9 +142,23 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 	}
 
 	/// <summary>Runs test with an authenticated page. Skips gracefully if credentials not configured.</summary>
-	protected async Task InteractWithAuthenticatedPageAsync(
+	protected Task InteractWithAuthenticatedPageAsync(
 		string serviceName,
 		Func<IPage, Task> test,
+		ViewportSize? size = null) =>
+		InteractWithRolePageAsync(serviceName, test, adminRole: false, size);
+
+	/// <summary>Runs test with an admin-authenticated page. Skips gracefully if admin credentials not configured.</summary>
+	protected Task InteractWithAdminPageAsync(
+		string serviceName,
+		Func<IPage, Task> test,
+		ViewportSize? size = null) =>
+		InteractWithRolePageAsync(serviceName, test, adminRole: true, size);
+
+	private async Task InteractWithRolePageAsync(
+		string serviceName,
+		Func<IPage, Task> test,
+		bool adminRole,
 		ViewportSize? size = null)
 	{
 		await ConfigureAsync<Projects.AppHost>();
@@ -149,7 +172,9 @@ public abstract class BasePlaywrightTests : IClassFixture<AspireManager>, IAsync
 			.WaitForResourceHealthyAsync(serviceName, cancellationToken)
 			.WaitAsync(TimeSpan.FromSeconds(120), cancellationToken);
 
-		var (page, hasAuth) = await CreateAuthenticatedPageAsync(endpoint);
+		var (page, hasAuth) = adminRole
+			? await CreateAdminAuthenticatedPageAsync(endpoint)
+			: await CreateAuthenticatedPageAsync(endpoint);
 
 		if (!hasAuth)
 		{
