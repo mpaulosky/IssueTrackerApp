@@ -149,6 +149,16 @@ window.themeManager = {
 	 */
 	initialize: function () {
 		this.applyTheme();
+	},
+
+	/**
+	 * Marks ThemeProvider as fully initialized and interactive.
+	 * Called by the Blazor ThemeProvider component after its OnAfterRenderAsync JS interop
+	 * succeeds, signalling that SetColorAsync / SetBrightnessAsync are safe to call.
+	 * E2E tests can wait on data-theme-ready="true" before triggering theme interactions.
+	 */
+	markInitialized: function () {
+		document.documentElement.setAttribute('data-theme-ready', 'true');
 	}
 };
 

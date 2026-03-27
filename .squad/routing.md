@@ -7,9 +7,11 @@
 | Architecture, scope, decisions, code review, PR review | Aragorn | Lead |
 | Blazor, Razor, UI, frontend, components, CSS | Legolas | Frontend |
 | MongoDB, repositories, API endpoints, backend services, MediatR handlers | Sam | Backend |
-| Tests, quality, edge cases, test failures, test review | Gimli | Tester |
+| Unit tests, bUnit, MongoDB integration tests, test quality review | Gimli | Tester |
+| Playwright E2E tests, Aspire integration tests, test infrastructure | Pippin | Tester (E2E) |
 | CI/CD, GitHub Actions, NuGet, deployment, Aspire infra, protected branch | Boromir | DevOps |
 | Docs, README, XML docs, comments, CONTRIBUTING | Frodo | Docs |
+| Blog posts, GitHub Pages, project announcements, changelog posts, feature write-ups | Bilbo | Tech Blogger |
 | Auth0, authentication, authorization, JWT, RBAC, security audit, vulnerabilities, injection, XSS, CSRF, secrets, HTTPS, CORS, security headers, security review | Gandalf | Security |
 | GitHub board, issues, PRs, backlog, work queue | Ralph | Work Monitor |
 | Untriaged issues (squad label, no squad:* sub-label) | Aragorn | Lead triages |
@@ -17,8 +19,10 @@
 | squad:legolas | Legolas | — |
 | squad:sam | Sam | — |
 | squad:gimli | Gimli | — |
+| squad:pippin | Pippin | — |
 | squad:boromir | Boromir | — |
 | squad:frodo | Frodo | — |
+| squad:bilbo | Bilbo | — |
 | squad:gandalf | Gandalf | — |
 | squad:copilot | @copilot | Auto-assign: false |
 

@@ -599,3 +599,108 @@ Gimli (Tester) has established comprehensive test patterns for IssueTrackerApp:
    - **CORRECT:** `await cut.InvokeAsync(() => cut.Instance.Reset())`
 
 4. **Test Namespace for Shared Components:**
+
+---
+
+### 2026: Playwright E2E Tests for Web Layout, Pages, and Theme Components
+
+**Task:** Added comprehensive Playwright E2E test suite to `tests/AppHost.Tests/` covering the Web app's
+layout, pages, and theme toggle / color scheme components.
+
+**New Files Created:**
+
+| File | Purpose |
+|------|---------|
+| `tests/AppHost.Tests/Infrastructure/AuthStateManager.cs` | Thread-safe Auth0 login with cached storage state |
+| `tests/AppHost.Tests/Tests/Layout/LayoutAnonymousTests.cs` | 6 layout tests (no auth): header, footer, nav, toggles |
+| `tests/AppHost.Tests/Tests/Layout/LayoutAuthenticatedTests.cs` | 4 layout tests (auth): nav links, footer, login link hidden |
+| `tests/AppHost.Tests/Tests/Pages/HomePageTests.cs` | 4 home page tests: guest heading, login btn, auth heading, dashboard link |
+| `tests/AppHost.Tests/Tests/Pages/DashboardPageTests.cs` | 3 dashboard tests (auth): load, heading, 4 stat cards |
+| `tests/AppHost.Tests/Tests/Pages/NotFoundPageTests.cs` | 2 not-found tests: heading, helpful message |
+| `tests/AppHost.Tests/Tests/Pages/Issues/IssueIndexPageTests.cs` | 2 issues page tests (auth): load without redirect, title |
+| `tests/AppHost.Tests/Tests/Theme/ThemeToggleTests.cs` | 4 theme toggle tests: visible, dropdown, dark class, light class |
+| `tests/AppHost.Tests/Tests/Theme/ColorSchemeTests.cs` | 4 color scheme tests: visible, dropdown, red theme, default blue |
+
+**Modified Files:**
+
+| File | Changes |
+|------|---------|
+| `tests/AppHost.Tests/BasePlaywrightTests.cs` | Added `_authContext` field, `CreateAuthenticatedPageAsync`, `InteractWithAuthenticatedPageAsync`, updated `DisposeAsync` |
+
+**Auth State Approach:**
+- `AuthStateManager` performs Auth0 login once per test run, caches cookies+localStorage to a JSON file
+- `SemaphoreSlim(1,1)` ensures thread-safe one-time initialization
+- Tests skip gracefully when `PLAYWRIGHT_TEST_EMAIL` / `PLAYWRIGHT_TEST_PASSWORD` are not set
+- Subsequent authenticated tests reuse stored state via `StorageStatePath` in browser context options
+
+**DOM Selectors Used for Theme Assertions:**
+
+| Selector | Purpose |
+|----------|---------|
+| `document.documentElement.classList.contains('dark')` | Detect dark mode active |
+| `document.documentElement.getAttribute('data-theme')` | Read current color scheme (`blue`\|`red`\|`green`\|`yellow`) |
+| `button[aria-label="Toggle theme"]` | ThemeToggle button in header |
+| `button[aria-label="Change color scheme"]` | ColorSchemeSelector button in header |
+| `button:has-text("Light")` / `"Dark"` / `"System"` | Theme dropdown options |
+| `button[title="Blue"]` / `"Red"` / `"Green"` / `"Yellow"` | Color swatch buttons |
+
+**Build Result:** 0 errors, 0 warnings.
+
+### 2026-07-14: PR #76 Review — AppHost.Tests Aspire Integration + Playwright E2E
+
+**Task:** Test quality review of PR #76 — new `tests/AppHost.Tests/` project with Aspire integration tests and Playwright E2E tests.
+
+**Verdict:** REJECTED — 6 blocking issues identified.
+
+**Files Reviewed (16 new C# test files):**
+- Infrastructure: `AspireManager.cs`, `PlaywrightManager.cs`, `AppHostTestCollection.cs`
+- Base: `BasePlaywrightTests.cs`
+- Tests: `EnvVarTests.cs`, `WebPlaywrightTests.cs`, `AdminPageTests.cs`, `LayoutAdminTests.cs`, `LayoutAnonymousTests.cs`, `LayoutAuthenticatedTests.cs`, `DashboardPageTests.cs`, `HomePageTests.cs`, `IssueIndexPageTests.cs`, `NotFoundPageTests.cs`, `ColorSchemeTests.cs`, `ThemeToggleTests.cs`
+
+**Passing:**
+- All 16 C# files have correct copyright block headers ✅
+- All assertions use FluentAssertions `.Should()` ✅
+- File-scoped namespaces used throughout ✅
+- Tab indentation consistent ✅
+- PascalCase descriptive test names ✅
+- AAA pattern with comments (mostly) ✅
+- `AppHostTestCollection` ICollectionFixture pattern correct ✅
+- `WaitForWebReadyAsync` health polling with `CancellationTokenSource` — no hardcoded `Task.Delay` loops ✅
+- `/test/login?role=` pattern for cookie-based E2E auth is clean and avoids Auth0 dependency ✅
+
+**Blocking Issues Found:**
+1. **False "skip gracefully" docstrings** — `AdminPageTests`, `LayoutAdminTests`, `LayoutAuthenticatedTests` claim tests skip when Auth0 env vars absent, but NO skip logic exists. Tests use `/test/login?role=` (no Auth0 needed). Stale comments from an older approach.
+2. **`InteractWithPageAsync` is `public` instead of `protected`** — all sibling methods are `protected`; inconsistent API surface on the base class.
+3. **`_context` leak in `BasePlaywrightTests`** — `_context` field is always overwritten without disposing previous contexts; `DisposeAsync` only cleans up the last one. Should collect all contexts in a list.
+4. **Fragile `AdminPage_RedirectsNonAdminUser` assertion** — `page.Url.Should().NotContain("/admin")` is a false negative if app redirects to e.g. `/admin/access-denied`. Should assert a specific expected redirect path.
+5. **`EnvVarTests.cs` missing newline at EOF** — `\ No newline at end of file` in diff.
+6. **`DisableDashboard = false` in `AspireManager.StartAppAsync`** — enables the Aspire Dashboard in CI tests, wastes resources; should be `true`.
+
+**Nits (non-blocking):**
+- `WebPlaywrightTests.cs` lacks AAA comments inside lambda (inconsistent with rest of suite)
+- `EnvVarTests.cs` builder never disposed after env var query
+- `WebPlaywrightTests.cs` two smoke tests largely superseded by `HomePageTests.cs`
+- `ThemeToggleTests.cs` / `ColorSchemeTests.cs` use 15s `WaitForFunctionAsync` timeouts; well-commented but noteworthy for CI timing
+
+**Key Patterns for E2E / Aspire Tests (for future reference):**
+- `ICollectionFixture<AspireManager>` → single AppHost startup for the whole collection
+- `EnvironmentCallbackAnnotation` needed to force env vars into Aspire child processes (parent process env alone is not sufficient — DCP overrides it)
+- `FixWebEndpointPort` with `IsProxied = false` pins the HTTPS port for predictable Auth0 redirect URIs
+- `WaitForFunctionAsync("document.documentElement.getAttribute('data-theme-ready') === 'true'")` to wait for Blazor SSR ThemeProvider initialization before clicking theme buttons
+
+### PR #76 Re-review — All 6 Blockers Resolved (squad/apphost-tests-clean)
+
+**Task:** Re-reviewed PR #76 after Aragorn applied all 6 fixes from Gimli's rejection.
+
+**Outcome:** All 6 blocking issues confirmed resolved. Approval comment posted on PR #76 (GitHub prevented a formal approval review as self-approval is blocked on this repo).
+
+**Fixes Confirmed:**
+1. `InteractWithPageAsync` → now `protected` ✅
+2. `List<IBrowserContext>` with `foreach` dispose in `DisposeAsync` (no context leak) ✅
+3. `AspireManager.cs`: `options.DisableDashboard = true` ✅
+4. `AdminPageTests.cs`: false skip comments removed; redirect assertion uses `.Contain("/Account/AccessDenied")` ✅
+5. `LayoutAdminTests.cs`: false skip comments removed ✅
+6. `LayoutAuthenticatedTests.cs`: false skip comments removed ✅
+7. `EnvVarTests.cs`: EOF newline present (final byte `0a`) ✅
+
+**Note on self-approval:** GitHub's API blocks `gh pr review --approve` when the reviewer owns the PR. Used `--comment` instead with full verdict. Future squad reviews on this repo should route to a different team member for formal approval.

@@ -44,3 +44,51 @@
 - Team transferred from IssueManager squad
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
 - Ready to begin development
+---
+
+### 2026-07-23 — PR #76 Review: AppHost.Tests — Aspire integration + Playwright E2E tests
+
+**Verdict:** APPROVED (posted as comment — GitHub prevented self-approval by PR author)
+
+**PR:** `feat(tests): AppHost.Tests — Aspire integration + Playwright E2E tests`  
+**Branch:** `squad/apphost-tests-clean`  
+**Files reviewed:** 37 changed files (18 new C# files, test infrastructure, Program.cs, CI)
+
+**Key findings:**
+- All 18 new C# files carry the required copyright block ✅
+- `.squad/` files on a `squad/*` branch — permissible per charter (prohibition is `feature/*` only) ✅
+- xUnit collection structure correct: `[Collection]` on abstract `BasePlaywrightTests` inherits to all derived test classes ✅
+- `AspireManager` lifecycle correct: chains `PlaywrightManager.InitializeAsync()` + `StartAppAsync()` ✅
+- Testing-environment seam in `Program.cs` (cookie auth, fake repos, skipped background services) is the right Aspire E2E pattern ✅
+- `EnvironmentCallbackAnnotation` to inject `ASPNETCORE_ENVIRONMENT=Testing` past DCP override — sophisticated and correct ✅
+- Fixed HTTPS port 7043 with `IsProxied = false` — predictable base URL ✅
+
+**Nits flagged (non-blocking):**
+1. `EnvVarTests.cs`: Add a TODO alongside `#pragma warning disable CS0618` for the obsolete `GetEnvironmentVariableValuesAsync` API
+2. `FakeRepository.cs` / `FakeSeedData.cs` in `src/Web/Testing/`: decorate with `[ExcludeFromCodeCoverage]` to avoid coverage inflation
+3. `WebPlaywrightTests.cs` home-page tests overlap with `HomePageTests.cs` — remove in follow-up
+
+**Decision recorded:** `.squad/decisions/inbox/aragorn-pr76-review.md`
+
+---
+
+### 2026-07-23 — PR #76 Fixes: Gimli Blocking Issues Resolved
+
+**Trigger:** Gimli (Tester) rejected PR #76 with 6 blocking issues.
+
+**Fixes applied on `squad/apphost-tests-clean`:**
+
+1. **False "skip gracefully" docs (3 files)** — `AdminPageTests.cs`, `LayoutAdminTests.cs`, `LayoutAuthenticatedTests.cs` had file-top comments and class summary docstrings claiming tests skip when `PLAYWRIGHT_TEST_*` env vars are absent. This is factually wrong — the tests use `/test/login?role=...` cookie auth and always run. Removed all misleading comments; rewrote docstrings to describe the actual cookie-based auth mechanism.
+
+2. **`InteractWithPageAsync` visibility** — Changed from `public` to `protected` in `BasePlaywrightTests.cs` to match all sibling helper methods.
+
+3. **`IBrowserContext` leak** — `CreatePageAsync` was overwriting a single `_context` field on every call, leaking all but the last context. Replaced with `private readonly List<IBrowserContext> _contexts = new()` and `foreach` disposal in `DisposeAsync`.
+
+4. **Fragile redirect assertion** — `AdminPage_RedirectsNonAdminUser` used `NotContain("/admin")` which is brittle. Replaced with `Contain("/Account/AccessDenied")` — the redirect destination set by ASP.NET Core cookie auth when `AccessDeniedPath` is not explicitly overridden (default: `/Account/AccessDenied`).
+
+5. **Missing EOF newline** — `EnvVarTests.cs` was missing the trailing newline. Fixed.
+
+6. **`DisableDashboard = false → true`** — The Aspire dashboard should be disabled in tests to avoid unnecessary resource usage and port conflicts.
+
+**Build:** `dotnet build tests/AppHost.Tests/AppHost.Tests.csproj --no-restore` — 0 errors, 0 warnings ✅
+
