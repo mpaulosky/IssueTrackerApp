@@ -22,7 +22,12 @@ public class EnvVarTests
 	{
 		// Arrange
 		var appHost = await DistributedApplicationTestingBuilder
-			.CreateAsync<Projects.AppHost>();
+			.CreateAsync<Projects.AppHost>(
+				args: [],
+				configureBuilder: static (options, _) =>
+				{
+					options.DisableDashboard = true;
+				});
 
 		var webResource = (IResourceWithEnvironment)appHost.Resources
 			.Single(static r => r.Name == "web");
@@ -42,7 +47,12 @@ public class EnvVarTests
 	{
 		// Arrange
 		var appHost = await DistributedApplicationTestingBuilder
-			.CreateAsync<Projects.AppHost>();
+			.CreateAsync<Projects.AppHost>(
+				args: [],
+				configureBuilder: static (options, _) =>
+				{
+					options.DisableDashboard = true;
+				});
 
 		var webResource = (IResourceWithEnvironment)appHost.Resources
 			.Single(static r => r.Name == "web");

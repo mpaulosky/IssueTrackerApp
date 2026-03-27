@@ -135,23 +135,30 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 
 		using var cts = new CancellationTokenSource(timeout);
 
-		while (!cts.Token.IsCancellationRequested)
+		try
 		{
-			try
+			while (!cts.Token.IsCancellationRequested)
 			{
-				var response = await client.GetAsync("/health", cts.Token);
-				if (response.IsSuccessStatusCode)
-					return;
-			}
-			catch (Exception) when (!cts.Token.IsCancellationRequested)
-			{
-				// Connection refused / SSL error during startup — keep polling
-			}
+				try
+				{
+					var response = await client.GetAsync("/health", cts.Token);
+					if (response.IsSuccessStatusCode)
+						return;
+				}
+				catch (Exception) when (!cts.Token.IsCancellationRequested)
+				{
+					// Connection refused / SSL error during startup — keep polling
+				}
 
-			await Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
+				await Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			// timeout fired — fall through to TimeoutException below
 		}
 
-		throw new TimeoutException($"Web resource at {endpoint} did not become healthy within {timeout}.");
+		throw new TimeoutException($"Web app at {endpoint} was not ready after {timeout.TotalSeconds}s");
 	}
 
 	public async ValueTask DisposeAsync()
