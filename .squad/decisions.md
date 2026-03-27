@@ -611,3 +611,33 @@ Team should decide whether `docs/research/` (contains `github-github-sdk.md`, `t
 - AppHost manages its own Aspire package versions (`ManagePackageVersionsCentrally=false`)
 - Bootstrap CSS has been fully deprecated — no references remain
 
+
+---
+
+# Decision: GitHub Pages Deployment Path Scoping
+
+**Author:** Boromir (DevOps)
+**Date:** 2026-03-27
+**Status:** APPROVED
+
+## Summary
+
+GitHub Pages workflow artifact path must be scoped to `docs/` directory, not `.` (repository root).
+
+## Issue
+
+Publishing artifact from `.` exposes SECRETS.md and full source tree to public GitHub Pages endpoint—unacceptable security risk.
+
+## Resolution
+
+- **Path:** Changed from `.` to `docs/` in workflow configuration
+- **Permissions:** Moved from workflow level to job level (defense in depth)
+- **squad-docs.yml:** Removed workflow-level `pages: write` permission block
+
+## Rationale
+
+Principle of least privilege: only the build job requires `pages: write` permission. Workflow-level permissions are unnecessarily broad and increase attack surface.
+
+## Consequence
+
+GitHub Pages now publishes only contents of `docs/` directory, protecting sensitive files and source code.
