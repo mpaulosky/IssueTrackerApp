@@ -8,6 +8,7 @@
     <Project Path="src/Web/Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/AppHost.Tests/AppHost.Tests.csproj" />
     <Project Path="tests/Architecture.Tests/Architecture.Tests.csproj" />
     <Project Path="tests/Domain.Tests/Domain.Tests.csproj" />
     <Project Path="tests/Persistence.AzureStorage.Tests/Persistence.AzureStorage.Tests.csproj" />

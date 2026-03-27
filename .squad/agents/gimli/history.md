@@ -599,3 +599,49 @@ Gimli (Tester) has established comprehensive test patterns for IssueTrackerApp:
    - **CORRECT:** `await cut.InvokeAsync(() => cut.Instance.Reset())`
 
 4. **Test Namespace for Shared Components:**
+
+---
+
+### 2026: Playwright E2E Tests for Web Layout, Pages, and Theme Components
+
+**Task:** Added comprehensive Playwright E2E test suite to `tests/AppHost.Tests/` covering the Web app's
+layout, pages, and theme toggle / color scheme components.
+
+**New Files Created:**
+
+| File | Purpose |
+|------|---------|
+| `tests/AppHost.Tests/Infrastructure/AuthStateManager.cs` | Thread-safe Auth0 login with cached storage state |
+| `tests/AppHost.Tests/Tests/Layout/LayoutAnonymousTests.cs` | 6 layout tests (no auth): header, footer, nav, toggles |
+| `tests/AppHost.Tests/Tests/Layout/LayoutAuthenticatedTests.cs` | 4 layout tests (auth): nav links, footer, login link hidden |
+| `tests/AppHost.Tests/Tests/Pages/HomePageTests.cs` | 4 home page tests: guest heading, login btn, auth heading, dashboard link |
+| `tests/AppHost.Tests/Tests/Pages/DashboardPageTests.cs` | 3 dashboard tests (auth): load, heading, 4 stat cards |
+| `tests/AppHost.Tests/Tests/Pages/NotFoundPageTests.cs` | 2 not-found tests: heading, helpful message |
+| `tests/AppHost.Tests/Tests/Pages/Issues/IssueIndexPageTests.cs` | 2 issues page tests (auth): load without redirect, title |
+| `tests/AppHost.Tests/Tests/Theme/ThemeToggleTests.cs` | 4 theme toggle tests: visible, dropdown, dark class, light class |
+| `tests/AppHost.Tests/Tests/Theme/ColorSchemeTests.cs` | 4 color scheme tests: visible, dropdown, red theme, default blue |
+
+**Modified Files:**
+
+| File | Changes |
+|------|---------|
+| `tests/AppHost.Tests/BasePlaywrightTests.cs` | Added `_authContext` field, `CreateAuthenticatedPageAsync`, `InteractWithAuthenticatedPageAsync`, updated `DisposeAsync` |
+
+**Auth State Approach:**
+- `AuthStateManager` performs Auth0 login once per test run, caches cookies+localStorage to a JSON file
+- `SemaphoreSlim(1,1)` ensures thread-safe one-time initialization
+- Tests skip gracefully when `PLAYWRIGHT_TEST_EMAIL` / `PLAYWRIGHT_TEST_PASSWORD` are not set
+- Subsequent authenticated tests reuse stored state via `StorageStatePath` in browser context options
+
+**DOM Selectors Used for Theme Assertions:**
+
+| Selector | Purpose |
+|----------|---------|
+| `document.documentElement.classList.contains('dark')` | Detect dark mode active |
+| `document.documentElement.getAttribute('data-theme')` | Read current color scheme (`blue`\|`red`\|`green`\|`yellow`) |
+| `button[aria-label="Toggle theme"]` | ThemeToggle button in header |
+| `button[aria-label="Change color scheme"]` | ColorSchemeSelector button in header |
+| `button:has-text("Light")` / `"Dark"` / `"System"` | Theme dropdown options |
+| `button[title="Blue"]` / `"Red"` / `"Green"` / `"Yellow"` | Color swatch buttons |
+
+**Build Result:** 0 errors, 0 warnings.
