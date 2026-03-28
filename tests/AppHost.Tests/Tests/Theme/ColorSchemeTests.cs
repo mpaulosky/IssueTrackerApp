@@ -89,7 +89,8 @@ public class ColorSchemeTests : BasePlaywrightTests
 			// data-theme-ready is set by themeManager.markInitialized() after initialization.
 			await page.WaitForFunctionAsync(
 				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			var schemeBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
 			await schemeBtn.WaitForAsync();
@@ -99,10 +100,15 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await redOption.WaitForAsync();
 			await redOption.ClickAsync();
 
+			// Allow Blazor Server to process the onclick event via SignalR before checking localStorage.
+			// Without this, localStorage may not yet be updated when CI's SignalR is under load.
+			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
 			// Wait for red theme to be persisted in localStorage (source of truth)
 			await page.WaitForFunctionAsync(
 				"(localStorage.getItem('theme-color-brightness') || '').startsWith('theme-red-')",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Assert via localStorage (source of truth for the theme engine)
 			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('theme-color-brightness')");

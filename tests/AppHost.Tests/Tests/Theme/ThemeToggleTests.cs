@@ -94,14 +94,16 @@ public class ThemeToggleTests : BasePlaywrightTests
 			// data-theme-ready is set by themeManager.markInitialized() after initialization.
 			await page.WaitForFunctionAsync(
 				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			await toggleBtn.ClickAsync();
 
 			// Wait for Blazor to process the event and JS to apply the dark class
 			await page.WaitForFunctionAsync(
 				"document.documentElement.classList.contains('dark')",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Assert
 			var isDark = await page.EvaluateAsync<bool>("document.documentElement.classList.contains('dark')");
@@ -129,8 +131,14 @@ public class ThemeToggleTests : BasePlaywrightTests
 			// Wait for ThemeProvider to initialize and recognize dark mode:
 			// title = "Switch to light mode" only when _isInitialized = true AND IsDarkMode = true
 			await page.WaitForFunctionAsync(
+				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
+
+			await page.WaitForFunctionAsync(
 				"document.querySelector('button[aria-label=\"Toggle brightness\"]')?.title === 'Switch to light mode'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Act — single click from dark → light
 			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
@@ -141,7 +149,8 @@ public class ThemeToggleTests : BasePlaywrightTests
 			// and StateHasChanged propagates — at that point the dark class is guaranteed removed.
 			await page.WaitForFunctionAsync(
 				"document.querySelector('button[aria-label=\"Toggle brightness\"]')?.title === 'Switch to dark mode'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Assert via localStorage (source of truth for the theme engine)
 			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('theme-color-brightness')");
