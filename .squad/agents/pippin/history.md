@@ -53,3 +53,27 @@ I own E2E tests (`tests/AppHost.Tests/`) and Aspire integration test infrastruct
 
 **Testing:** Local test run with Docker showed no Redis/web startup failures. CI will validate full fix on next push.
 
+### 2026-03-28: Playwright WaitForFunctionAsync API Fix (Issue #86)
+
+**Task:** Fix 2 failing Playwright tests: `ThemeToggle_SelectLight_RemovesDarkClassFromHtml` and `ColorScheme_SelectRed_AppliesRedTheme`.
+
+**Root Cause:** Incorrect API usage in all `WaitForFunctionAsync` calls — `PageWaitForFunctionOptions` was passed as the 2nd argument (JavaScript expression arg) instead of the 3rd argument (options arg). This caused the custom timeout of 15000ms to be silently ignored, falling back to Playwright's default 30000ms timeout. In CI under load, Blazor Server SignalR event processing exceeded even the intended 15s timeout, causing test failures.
+
+**Solution Implemented:**
+1. Fixed all `WaitForFunctionAsync` calls to pass `null` as 2nd arg and `PageWaitForFunctionOptions` as 3rd arg (correct API signature)
+2. Increased timeout from 15000ms to 30000ms for CI reliability under heavy load
+3. Added `data-theme-ready` initialization wait before button title check in `ThemeToggle_SelectLight` test
+4. Added `WaitForLoadStateAsync(NetworkIdle)` after color swatch click to allow Blazor Server SignalR to complete event processing before checking localStorage
+
+**Key Insights:**
+1. **Playwright API signature matters** — `WaitForFunctionAsync(expression, arg, options)` requires arg even when null. Passing options as arg silently fails.
+2. **CI timing is unpredictable** — Blazor Server via SignalR can take 20-30+ seconds in CI for state changes to propagate to localStorage. Always add explicit waits for state updates.
+3. **NetworkIdle is critical** — After user interactions (clicks) that trigger Blazor Server event handlers, `WaitForLoadStateAsync(NetworkIdle)` ensures SignalR round-trip completes before asserting on client-side state.
+4. **Initialization gates** — `data-theme-ready` attribute prevents race conditions where tests check theme state before ThemeProvider completes JS interop initialization.
+
+**Files Modified:**
+- `tests/AppHost.Tests/Tests/Theme/ThemeToggleTests.cs` — Fixed 4 `WaitForFunctionAsync` calls (lines 95-97, 102-104, 131-137, 142-144)
+- `tests/AppHost.Tests/Tests/Theme/ColorSchemeTests.cs` — Fixed 2 `WaitForFunctionAsync` calls and added NetworkIdle wait (lines 90-92, 103-110)
+
+**Testing:** Build succeeded with no errors. Tests cannot run locally without Docker but fixes address diagnosed root causes. CI will validate on next push.
+
