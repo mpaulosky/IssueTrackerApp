@@ -54,9 +54,66 @@ public class AspireManager : IAsyncLifetime
 
 		App = await builder.BuildAsync();
 		await App.StartAsync();
+
+		// Wait for the web service to be healthy before tests run.
+		// This ensures Redis and other Aspire dependencies are ready.
+		// CI cold-start can take up to 2 min; local dev is typically ~10 s.
+		await WaitForWebHealthyAsync(TimeSpan.FromSeconds(120));
 	}
 
 	/// <summary>
+	/// Polls the web service's /health endpoint until it returns 2xx or the timeout elapses.
+	/// Uses a certificate-ignoring handler so that self-signed HTTPS certs in CI don't block startup.
+	/// This ensures all Aspire-managed resources (Redis, MongoDB, Web) are healthy before tests run.
+	/// </summary>
+	private async Task WaitForWebHealthyAsync(TimeSpan timeout)
+	{
+		if (App is null)
+			return;
+
+		Uri? endpoint;
+		try
+		{
+			endpoint = App.GetEndpoint("web", "https");
+		}
+		catch
+		{
+			// Service not found or endpoint not available
+			return;
+		}
+
+		using var handler = new HttpClientHandler
+		{
+			ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+		};
+		using var client = new HttpClient(handler) { BaseAddress = endpoint };
+		using var cts = new CancellationTokenSource(timeout);
+
+		try
+		{
+			while (!cts.Token.IsCancellationRequested)
+			{
+				try
+				{
+					var response = await client.GetAsync("/health", cts.Token);
+					if (response.IsSuccessStatusCode)
+						return;
+				}
+				catch (Exception) when (!cts.Token.IsCancellationRequested)
+				{
+					// Connection refused / SSL error during startup — keep polling
+				}
+
+				await Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			// timeout fired — fall through to TimeoutException below
+		}
+
+		throw new TimeoutException($"Web app at {endpoint} was not ready after {timeout.TotalSeconds}s");
+	}
 	/// Adds an <see cref="EnvironmentCallbackAnnotation"/> to the named web resource so
 	/// that <paramref name="key"/> is set to <paramref name="value"/> when Aspire DCP
 	/// launches the child process.  This takes effect AFTER DCP injects its own
