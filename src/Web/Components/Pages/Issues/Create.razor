@@ -11,6 +11,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
+@attribute [StreamRendering]
 
 <PageTitle>Create Issue - IssueTracker</PageTitle>
 
@@ -170,8 +171,15 @@
 			var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 			var user = authState.User;
 
+			var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+			if (string.IsNullOrEmpty(userId))
+			{
+				_errorMessage = "User identity could not be determined. Please log in again.";
+				return;
+			}
+
 			var currentUser = new UserDto(
-				user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "",
+				userId,
 				user.Identity?.Name ?? "Unknown",
 				user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "");
 
