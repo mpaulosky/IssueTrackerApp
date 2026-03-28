@@ -2,7 +2,6 @@
 // Theme Provider component code-behind for JS interop
 // SPDX-License-Identifier: MIT
 
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
 namespace Web.Components.Theme;

@@ -7,9 +7,6 @@
 @source "../Components/**/*.cs";
 @source "../wwwroot/**/*.html";
 
-/* Dark mode configuration */
-@variant dark (&:where(.dark, .dark *));
-
 /* Tailwind custom theme extension using CSS variables */
 @theme {
 	--color-primary-50: var(--color-primary-50);
@@ -44,6 +41,9 @@
 	--color-neutral-950: var(--color-neutral-950);
 }
 
+/* Dark mode configuration */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Custom Application Styles */
 @layer base {
 	/* Focus styles */
@@ -53,6 +53,7 @@
 }
 
 @layer components {
+
 	/* Toast animation */
 	@keyframes slide-in-right {
 		from {
@@ -130,11 +131,11 @@
 		border-color: #929292;
 	}
 
-	.form-floating > .form-control-plaintext::placeholder,
+/*	.form-floating > .form-control-plaintext::placeholder,
 	.form-floating > .form-control::placeholder {
-		color: var(--bs-secondary-color, #6c757d);
+		color: theme-primary-700 dark:theme-primary-50;
 		text-align: end;
-	}
+	}*/
 
 	.form-floating > .form-control-plaintext:focus::placeholder,
 	.form-floating > .form-control:focus::placeholder {
@@ -146,16 +147,23 @@
 	   Consolidates repeated Tailwind patterns
 	   ============================================ */
 
+	/* Active Theme */
+	.active-theme {
+		@apply bg-primary-400 dark:bg-primary-400;
+	}
+
 	/* Buttons */
 	.btn {
 		@apply inline-flex
 		items-center
-		rounded-md
+		rounded-full
 		border border-transparent
-		px-4 py-2
-		text-sm
-		font-medium
-		shadow-sm
+		px-5 py-2
+		text-base
+		font-semibold
+		leading-tight
+		shadow-md
+		cursor-pointer
 		focus:outline-none focus:ring-2 focus:ring-offset-2
 		disabled:opacity-50 disabled:cursor-not-allowed;
 	}
@@ -183,16 +191,35 @@
 	}
 
 	.btn-icon {
-		@apply p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors;
+		@apply p-2
+		rounded-lg
+		text-gray-500 dark:text-gray-400
+		hover:bg-gray-100 dark:hover:bg-gray-700
+		focus:outline-none focus:ring-2 focus:ring-primary-500
+		transition-colors;
+	}
+
+	.color-btn,
+	.brightness-btn {
+		@apply px-3 py-2 rounded-full font-medium text-sm transition-all duration-200
+		bg-neutral-200 dark:bg-neutral-700
+		text-neutral-700 dark:text-neutral-300
+		hover:bg-primary-300 dark:hover:bg-primary-700
+		border-2 border-transparent
+		cursor-pointer;
 	}
 
 	/* Cards */
 	.card {
-		@apply bg-primary-400 dark:bg-primary-900 rounded-lg shadow;
+		@apply bg-primary-400 dark:bg-primary-400 rounded-lg shadow;
 	}
 
 	.card-bordered {
-		@apply bg-primary-400 dark:bg-primary-900 rounded-lg shadow-md border border-primary-300 dark:border-primary-800;
+		@apply
+		rounded-lg
+		shadow-md
+		bg-primary-400 dark:bg-primary-400
+		border border-primary-300 dark:border-primary-800;
 	}
 
 	.card-section {
@@ -200,12 +227,16 @@
 	}
 
 	.card-footer {
-		@apply bg-primary-300 dark:bg-primary-950 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6;
+		@apply px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6
+		bg-primary-400 dark:bg-primary-400 ;
 	}
 
 	/* Forms */
 	.form-input {
-		@apply block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+		@apply block w-full rounded-md
+		border-gray-300 dark:border-gray-600
+		dark:bg-gray-700 dark:text-white
+		shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
 	}
 
 	.form-label {
@@ -245,10 +276,32 @@
 	}
 
 	.modal-panel {
-		@apply relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full;
+		@apply relative inline-block
+		align-bottom
+		bg-white dark:bg-gray-800
+		rounded-lg text-left overflow-hidden shadow-xl
+		transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full;
 	}
 
 	.modal-body {
 		@apply bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4;
+	}
+
+	nav {
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-bold tracking-tight text-primary-700 dark:text-neutral-50;
+	}
+
+	a {
+		@apply p-1 font-semibold transition-colors duration-150
+		text-primary-900 dark:text-primary-50
+		hover:text-primary-600 dark:hover:text-primary-800;
 	}
 }
