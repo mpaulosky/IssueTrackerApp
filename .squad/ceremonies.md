@@ -12,11 +12,16 @@
 
 ### Build Repair Check
 
-- **Trigger:** automatic, when: "before push" or "before PR"
-- **When:** before
+- **Trigger:** automatic — enforced by `.git/hooks/pre-push` on every `git push`
+- **When:** before push (gate 2) and before PR (gate 3)
 - **Facilitator:** Aragorn
 - **Participants:** Aragorn (runs build-repair prompt)
 - **Purpose:** Ensure zero errors, zero warnings, all tests pass before pushing
+- **Critical rules (learned from PR #86 incident):**
+  1. **Always use `--configuration Release`** — CI uses Release; Debug builds hide missing files. Never accept a Debug-only passing build.
+  2. **Stage ALL untracked `.razor`/`.cs` files before committing** — run `git status --short` and treat any `??` source file as a blocker. Files present on disk but untracked are invisible to CI.
+  3. **Loop until green** — the pre-push hook retries build+tests up to 3 times. Fix errors between retries. Do not bypass the hook.
+  4. **Hook enforcement:** `.git/hooks/pre-push` runs automatically. It checks for untracked source files (Gate 1), runs `dotnet build --configuration Release` (Gate 2), then runs Architecture/Domain/bUnit tests (Gate 3). Push is blocked if any gate fails.
 
 ### Retro
 
@@ -99,15 +104,13 @@
 1. Make changes in the branch
 2. Test locally
 3. Iterate until complete
-4. Commit and push — all pre-push gates must pass:
-   - Copyright headers
-   - Code formatting (`dotnet format`)
-   - Domain.Tests
-   - Web.Tests
-   - Web.Tests.Bunit
-   - Architecture.Tests
-   - Web.Tests.Integration
-5. If pre-push fails, fix issues and retry
+4. Commit and push — the pre-push hook (`.git/hooks/pre-push`) enforces all gates automatically:
+   - **Gate 0:** Block direct push to `main`
+   - **Gate 1:** Warn/block on untracked `.razor`/`.cs` files (invisible to CI)
+   - **Gate 2:** `dotnet build IssueTrackerApp.slnx --configuration Release` (must match CI exactly — **never** Debug-only)
+   - **Gate 3:** `Architecture.Tests` + `Domain.Tests` + `Web.Tests.Bunit` (Release, no-build)
+   - Hook loops up to 3 attempts with a "fix and retry" prompt between attempts
+5. If a gate fails, fix the issue and re-run `git push` — the hook will re-execute all gates from scratch
 
 ##### Phase 4: Review & Merge
 
