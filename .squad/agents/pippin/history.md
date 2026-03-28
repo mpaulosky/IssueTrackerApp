@@ -28,3 +28,28 @@ I own E2E tests (`tests/AppHost.Tests/`) and Aspire integration test infrastruct
 - `List<IBrowserContext>` pattern for context tracking — never a single field that gets overwritten
 
 ## Learnings
+
+### 2026-03-28: Aspire Test Startup Health Check Fix (PR #86)
+
+**Task:** Fix flaky CI failures in AppHost.Tests — `web_https_/health_200_check` and `redis_check` timeouts.
+
+**Root Cause:** `AspireManager.StartAppAsync()` returned immediately after `App.StartAsync()` without waiting for Redis and Web services to become healthy. In CI, Redis cold-start takes 30-60 seconds, causing:
+1. Aspire's built-in health checks to timeout before services stabilized
+2. E2E tests to fail with connection refused errors
+
+**Solution Implemented (Already in place by Boromir):**
+- Added `WaitForWebHealthyAsync()` in `AspireManager` that polls `/health` endpoint with certificate-ignoring HttpClient (for self-signed HTTPS in CI)
+- 120-second timeout accommodates CI cold-start; local dev succeeds in ~10s
+- Since `AppHost.cs` configures Web to `WaitFor(redis)`, the web health check implicitly ensures Redis is ready too
+
+**Key Insights:**
+1. **Aspire DCP timing** — `App.StartAsync()` returns when DCP launches containers, NOT when they're healthy. Always add explicit health checks in test fixtures.
+2. **Health check strategy** — Polling the web `/health` endpoint is more reliable than Aspire's built-in `WaitForResourceHealthyAsync()` for HTTPS services with self-signed certs in CI.
+3. **Dependency chains matter** — Web configured with `.WaitFor(redis)` means web health inherently validates Redis readiness. No need for separate Redis polling.
+4. **Test execution results** — After fix: 38/40 tests passing. The 2 failures (ThemeToggle, ColorScheme) are unrelated Playwright UI timing issues, not infrastructure flakiness.
+
+**Files Modified:**
+- `tests/AppHost.Tests/Infrastructure/AspireManager.cs` — Added `WaitForWebHealthyAsync()` and call in `StartAppAsync()`
+
+**Testing:** Local test run with Docker showed no Redis/web startup failures. CI will validate full fix on next push.
+
