@@ -17,12 +17,18 @@
 - **Key file paths**: `src/AppHost/AppHost.cs`, `src/AppHost/AppHost.csproj`, `src/Persistence.MongoDb/Configurations/MongoDbSettings.cs`, `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`
 - **AppHost UserSecretsId**: `27ff814c-e630-4d84-a864-c3a534dd5c93`
 
-### Git Describe Stderr Leak Fix (2026-03-18)
-- **Fixed `GetGitBuildInfo` MSBuild target** in `src/Web/Web.csproj` — git commands now redirect stderr to `/dev/null`
-- **Root cause**: When no git tags exist, `git describe --tags --abbrev=0` outputs `fatal: No names found, cannot describe anything.` to stderr. With `ConsoleToMSBuild="true"`, this error text was captured into `_RawGitTag`, preventing the `v0.0.0` fallback at line 66 from triggering.
-- **Fix applied**: Changed git commands from `git describe --tags --abbrev=0` → `git describe --tags --abbrev=0 2>/dev/null` and `git rev-parse --short HEAD` → `git rev-parse --short HEAD 2>/dev/null`
-- **Created initial tag**: `v0.1.0` so future builds return real version
-- **Verified**: BuildInfo.g.cs now correctly generates `Version = "v0.1.0"` and `Commit = "e4874a8"`
+### AppHost.Tests CI Flakiness: Aspire Startup Race Condition (2026-03-19)
+- **Issue**: AppHost.Tests failed in CI with Redis timeout + Web connection refused errors (40 tests: 38 passed, 2 failed)
+- **Root cause**: `AspireManager.StartAppAsync()` returned immediately after `App.StartAsync()` without waiting for Aspire-managed resources (Redis, MongoDB, Web) to become healthy
+- **Failures**:
+  - `redis_check`: `RedisConnectionException: message timed out (5000ms)` then `It was not possible to connect to the redis server`
+  - `web_https_/health_200_check`: `Connection refused (localhost:7043)`
+- **Fix applied**: Added `WaitForWebHealthyAsync()` method that polls `/health` endpoint with certificate-ignoring HttpClient (for self-signed HTTPS in CI) until 2xx response or 120s timeout
+- **Why it works**: AppHost.cs configures `Web` to `.WaitFor(redis)`, so when Web's health check succeeds, all dependencies are ready
+- **Key insight**: `DistributedApplication.GetEndpoint()` is the correct API to retrieve endpoints (not `App.Resources`)
+- **CI timeout**: 120s chosen to accommodate Redis cold-start (30-60s in CI); local dev typically succeeds in ~10s
+- **File changed**: `tests/AppHost.Tests/Infrastructure/AspireManager.cs`
+- **Commit**: `ff74721` — Fixed AppHost.Tests CI failures
 
 ---
 
