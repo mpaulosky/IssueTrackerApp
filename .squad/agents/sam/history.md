@@ -646,3 +646,51 @@ Sam (Backend Developer) has established core architectural patterns for IssueTra
 - Added decision entry to `.squad/decisions.md`
 
 **Pattern Established:** When two config systems disagree, bridge them at DI registration layer using config overlay before binding Options.
+
+### Issue #90 - Auth0ClaimsTransformation Pass 3 Auto-Detect (2026-03-29)
+
+**Problem:** `TransformAsync` had two passes for mapping Auth0 role claims to `ClaimTypes.Role`.
+If `Auth0:RoleClaimNamespace` was misconfigured (missing/empty/wrong), AND Auth0 sent roles under
+a custom namespace (not the bare `"roles"` claim), both passes missed the roles — users appeared
+to have no roles, breaking Profile display and NavMenu admin visibility.
+
+**Solution:** Added Pass 3 to `TransformAsync` that triggers only when `rolesAdded == 0` after
+Passes 1 & 2. It scans all claims on the principal for any type ending in `/roles` using the
+helper `IsLikelyRoleClaimType`. Logs an informational message pointing developers to configure
+`Auth0:RoleClaimNamespace` for best-practice explicit mapping.
+
+**Impact:**
+- Admins with misconfigured namespace still see their roles (silent failure eliminated)
+- Pass 3 is fully idempotent — `MapRoleClaims` deduplicates via `identity.HasClaim()`
+- Updated two tests that expected roles NOT to be added with missing/empty namespace config
+
+**Deliverables:**
+- Updated `src/Web/Auth/Auth0ClaimsTransformation.cs` (Pass 3 + `IsLikelyRoleClaimType` helper)
+- Updated `tests/Web.Tests.Bunit/Auth/Auth0ClaimsTransformationTests.cs` (2 test renames + assertion flip)
+- Decision inbox: `.squad/decisions/inbox/sam-pass3-auto-detect.md`
+
+**Pattern Established:** Defensive claim scanning (Pass 3) should come *after* explicit config-driven
+passes and fire only as a fallback. Always log a hint when auto-detection fires so operators know to
+set the proper config key.
+
+### 2026-03-29 — Auth0 Role Claim Auto-Detect (Pass 3) (Sprint 2 Complete)
+
+**Role:** Backend - API & Data Layer
+
+**Work:**
+- Added Pass 3 to Auth0ClaimsTransformation.TransformAsync (Issue #90)
+- Pass 3 scans all claims for types ending in `/roles` when Passes 1–2 find nothing
+- Updated Auth0ClaimsTransformationTests.cs with 2 test cases
+- Belt-and-suspenders safety net for misconfigured namespace
+
+**Implementation Details:**
+- Auto-detect pattern: `claim.Type.EndsWith("/roles", StringComparison.OrdinalIgnoreCase)`
+- Scans all claims when Pass 1 (namespace lookup) and Pass 2 (bare "roles") both return empty
+- Maps detected claim to `ClaimTypes.Role`
+- Prevents silent Admin role failure in NavMenu when namespace is misconfigured
+
+**Integration:** Works with Aragorn's namespace configuration + Legolas's Profile.razor hardening for layered defense.
+
+**Test Coverage:** 2 new test cases verify Pass 3 auto-detect catches namespaced role claims.
+
+**Outcome:** ✓ Build clean, all Auth0 transformation tests passing.
