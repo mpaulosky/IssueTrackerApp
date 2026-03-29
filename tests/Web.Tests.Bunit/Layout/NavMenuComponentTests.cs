@@ -54,7 +54,6 @@ public class NavMenuComponentTests : BunitTestBase
 		var cut = Render<NavMenuComponent>();
 
 		// Assert
-		cut.Markup.Should().Contain("Home");
 		cut.Markup.Should().Contain("Dashboard");
 		cut.Markup.Should().Contain("Issues");
 		cut.Markup.Should().Contain("Create");
@@ -70,7 +69,6 @@ public class NavMenuComponentTests : BunitTestBase
 		var cut = Render<NavMenuComponent>();
 
 		// Assert
-		cut.Markup.Should().Contain("href=\"/\"");
 		cut.Markup.Should().Contain("href=\"/dashboard\"");
 		cut.Markup.Should().Contain("href=\"/issues\"");
 		cut.Markup.Should().Contain("href=\"/issues/create\"");
@@ -87,9 +85,6 @@ public class NavMenuComponentTests : BunitTestBase
 
 		// Assert
 		cut.Markup.Should().NotContain("href=\"/admin\"");
-		cut.Markup.Should().NotContain("href=\"/admin/categories\"");
-		cut.Markup.Should().NotContain("href=\"/admin/statuses\"");
-		cut.Markup.Should().NotContain("href=\"/admin/analytics\"");
 	}
 
 	[Fact]
@@ -102,10 +97,7 @@ public class NavMenuComponentTests : BunitTestBase
 		var cut = Render<NavMenuComponent>();
 
 		// Assert
-		cut.Markup.Should().Contain("Admin");
-		cut.Markup.Should().Contain("Categories");
-		cut.Markup.Should().Contain("Statuses");
-		cut.Markup.Should().Contain("Analytics");
+		cut.Markup.Should().Contain("Admin Portal");
 	}
 
 	[Fact]
@@ -119,9 +111,6 @@ public class NavMenuComponentTests : BunitTestBase
 
 		// Assert
 		cut.Markup.Should().Contain("href=\"/admin\"");
-		cut.Markup.Should().Contain("href=\"/admin/categories\"");
-		cut.Markup.Should().Contain("href=\"/admin/statuses\"");
-		cut.Markup.Should().Contain("href=\"/admin/analytics\"");
 	}
 
 	[Fact]
@@ -200,31 +189,4 @@ public class NavMenuComponentTests : BunitTestBase
 			"nav should be hidden on mobile and shown on medium+ screens");
 	}
 
-	[Fact]
-	public void NavMenu_WithAdminRole_RendersAdminNavLink()
-	{
-		// Arrange — explicitly set ClaimTypes.Role = "Admin" via isAdmin helper
-		SetupAuthenticatedUser(isAdmin: true);
-
-		// Act
-		var cut = Render<NavMenuComponent>();
-
-		// Assert
-		cut.Markup.Should().Contain("href=\"/admin\"",
-			"user with Admin role should see /admin nav link");
-	}
-
-	[Fact]
-	public void NavMenu_WithUserRoleOnly_DoesNotRenderAdminNavLink()
-	{
-		// Arrange — standard user with ClaimTypes.Role = "User" only
-		SetupAuthenticatedUser(isAdmin: false);
-
-		// Act
-		var cut = Render<NavMenuComponent>();
-
-		// Assert
-		cut.Markup.Should().NotContain("href=\"/admin\"",
-			"user with only User role should not see /admin nav link");
-	}
 }
