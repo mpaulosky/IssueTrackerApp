@@ -217,3 +217,28 @@
 **Integration:** Coordinated with Sam (Pass 3 auto-detect) and Legolas (Profile.razor hardening) to create multi-layer defense against role claim misconfiguration.
 
 **Outcome:** ✓ Build clean, issues resolved, team ready for next sprint.
+
+---
+
+### 2026-03-29 — Plan Ceremony Standard Process Implemented
+
+**Role:** Lead - Architecture & Coordination
+
+**Work:** 
+- Designed and documented Plan Ceremony workflow for `/plan` command
+- Updated `.squad/ceremonies.md` with comprehensive 4-phase Plan Ceremony protocol before Pre-Sprint Planning
+- Added routing entry: `/plan` → Aragorn (Lead runs Plan Ceremony)
+- Documented decision: all plan sessions MUST produce GitHub milestones + sprints before work begins
+
+**Plan Ceremony Process:**
+1. **Phase 1:** Create GitHub milestone via API (name from plan title/epic, optional due date)
+2. **Phase 2:** Group todos into sprints (5–8 issues per sprint or logical grouping)
+3. **Phase 3:** Create GitHub issues with `squad` label, milestone assignment, `sprint-{N}` labels, and `squad:{member}` routing
+4. **Phase 4:** Present board summary table showing milestone + sprint structure
+
+**Key Rules:**
+- Sprint labels: `sprint-1`, `sprint-2`, etc. (auto-created)
+- Sprint naming: `Sprint {N} — {theme}` (e.g., "Sprint 1 — Foundation")
+- No issue worked without milestone + sprint assignment — this is the team's planning contract
+
+**Decision recorded:** `.squad/decisions/inbox/aragorn-plan-ceremony.md`

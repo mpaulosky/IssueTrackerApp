@@ -46,11 +46,11 @@ public class DashboardPageTests : BasePlaywrightTests
 			await page.GotoAsync("/dashboard");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var heading = page.Locator("h1, h2, h3");
-			await heading.First.WaitForAsync();
+			var heading = page.Locator("h1.heading-page");
+			await heading.WaitForAsync();
 
-			// Assert
-			var text = await heading.First.TextContentAsync();
+			// Assert — .heading-page targets the inline welcome h1, not PageHeaderComponent's h1
+			var text = await heading.TextContentAsync();
 			text.Should().Contain("Welcome back");
 		});
 	}

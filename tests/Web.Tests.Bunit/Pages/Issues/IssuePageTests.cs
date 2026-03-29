@@ -104,7 +104,7 @@ public class IssueCreatePageTests : BunitTestBase
 		var cut = Render<Create>();
 		await cut.InvokeAsync(() => Task.Delay(100)); // Wait for async loading
 
-		cut.Find("h1").TextContent.Should().Contain("Create New Issue");
+		cut.Find("h1").TextContent.Should().Contain("Create Issue");
 		cut.Find("form").Should().NotBeNull();
 	}
 

@@ -4,6 +4,7 @@
 
 | Signal | Agent | Notes |
 |--------|-------|-------|
+| /plan, plan mode, [[PLAN]] | Aragorn | Lead runs Plan Ceremony after plan.md is approved |
 | Architecture, scope, decisions, code review, PR review | Aragorn | Lead |
 | Blazor, Razor, UI, frontend, components, CSS | Legolas | Frontend |
 | MongoDB, repositories, API endpoints, backend services, MediatR handlers | Sam | Backend |

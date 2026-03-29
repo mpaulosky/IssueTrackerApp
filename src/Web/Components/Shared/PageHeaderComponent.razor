@@ -1,29 +1,27 @@
-<header class="shadow-md">
+<PageTitle>@HeaderText</PageTitle>
 
-	<div class="card p-2">
+<header class="card p-2 mb-2 shadow-md">
 
-		@switch (Level)
-		{
-			case "1":
+	@switch (Level)
+	{
+		case "1":
 
-				<h1 class="text-2xl font-bold tracking-tight text-gray-50">@HeaderText</h1>
+			<h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">@HeaderText</h1>
 
-				break;
+			break;
 
-			case "2":
+		case "2":
 
-				<h2 class="text-3xl font-bold tracking-tight text-gray-50">@HeaderText</h2>
+			<h2 class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">@HeaderText</h2>
 
-				break;
+			break;
 
-			case "3":
+		case "3":
 
-				<h3 class="text-2xl font-bold tracking-tight text-gray-50">@HeaderText</h3>
+			<h3 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">@HeaderText</h3>
 
-				break;
-		}
-
-	</div>
+			break;
+	}
 
 </header>
 

@@ -6,6 +6,37 @@ This file records team decisions that affect architecture, scope, and process.
 
 ## Decisions
 
+### Process & Planning
+
+#### /plan Command Directive (2026-03-29)
+
+**By:** Matthew Paulosky (via Copilot)
+**What:** When the `/plan` command is used, the plan process must always include creating a GitHub milestone and defining sprints to complete the planned work.
+**Why:** User request — standardize planning output so every plan produces a trackable GitHub milestone + sprint structure, not just a plan.md file.
+
+---
+
+#### Plan Ceremony — Milestone + Sprint Standard Process (2026-03-29)
+
+**Author:** Aragorn (Lead)
+**Requested by:** Matthew Paulosky
+
+**Decision:** All `/plan` sessions must produce GitHub milestones and sprints before work begins.
+
+**Process:**
+1. Plan mode produces plan.md (existing behavior)
+2. After user approves the plan, Aragorn runs the Plan Ceremony
+3. Plan Ceremony creates a GitHub milestone, groups todos into sprints (5-8 issues), creates GitHub issues, assigns sprint labels and routing labels
+4. No issue is worked without milestone + sprint assignment
+
+**Sprint sizing:** Default 5–8 issues per sprint, or by logical dependency grouping.
+**Milestone naming:** "{Epic/Feature} — Sprint N" or as specified by user.
+**Sprint labels:** `sprint-1`, `sprint-2`, etc. (auto-created if missing)
+
+**Why:** Provides traceable, time-boxed structure for all planned work. GitHub milestones give burn-down visibility; sprint labels enable filtering by iteration.
+
+---
+
 ### Project Structure & Setup
 
 #### .NET Aspire Project Structure (2026-03-12)

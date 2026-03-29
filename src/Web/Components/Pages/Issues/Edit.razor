@@ -1,5 +1,4 @@
 @page "/issues/{Id}/edit"
-@using Microsoft.AspNetCore.Authorization
 @using Web.Auth
 @using Web.Services
 @using Domain.DTOs
@@ -11,15 +10,18 @@
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 @attribute [StreamRendering]
 
-<PageTitle>Edit Issue - IssueTracker</PageTitle>
+<PageHeaderComponent Level="1" HeaderText="@PageTitle" />
 
 <div class="max-w-2xl mx-auto">
 	@if (_isLoading)
 	{
 		<div class="flex justify-center py-12">
-			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+					 viewBox="0 0 24 24">
 				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+				<path class="opacity-75" fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+				</path>
 			</svg>
 		</div>
 	}
@@ -29,7 +31,9 @@
 			<div class="flex">
 				<div class="flex-shrink-0">
 					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+						<path fill-rule="evenodd"
+									d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+									clip-rule="evenodd" />
 					</svg>
 				</div>
 				<div class="ml-3">
@@ -57,15 +61,20 @@
 					</li>
 					<li class="flex items-center">
 						<svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-							<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+							<path fill-rule="evenodd"
+										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+										clip-rule="evenodd" />
 						</svg>
-						<a href="/issues/@Id" class="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 truncate max-w-[150px]">
+						<a href="/issues/@Id"
+							 class="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 truncate max-w-[150px]">
 							@_issue.Title
 						</a>
 					</li>
 					<li class="flex items-center">
 						<svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-							<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+							<path fill-rule="evenodd"
+										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+										clip-rule="evenodd" />
 						</svg>
 						<span class="ml-2 text-gray-500 dark:text-gray-400">Edit</span>
 					</li>
@@ -83,7 +92,9 @@
 				<div class="flex">
 					<div class="flex-shrink-0">
 						<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+							<path fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+										clip-rule="evenodd" />
 						</svg>
 					</div>
 					<div class="ml-3">
@@ -105,10 +116,8 @@
 							Title <span class="text-red-500">*</span>
 						</label>
 						<div class="mt-1">
-							<InputText id="title"
-							           @bind-Value="_model.Title"
-							           class="form-input"
-							           placeholder="Enter a descriptive title" />
+							<InputText id="title" @bind-Value="_model.Title" class="form-input"
+												 placeholder="Enter a descriptive title" />
 						</div>
 						<ValidationMessage For="@(() => _model.Title)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
 					</div>
@@ -119,11 +128,8 @@
 							Description <span class="text-red-500">*</span>
 						</label>
 						<div class="mt-1">
-							<InputTextArea id="description"
-							               @bind-Value="_model.Description"
-							               rows="6"
-							               class="form-input"
-							               placeholder="Describe the issue in detail..." />
+							<InputTextArea id="description" @bind-Value="_model.Description" rows="6" class="form-input"
+														 placeholder="Describe the issue in detail..." />
 						</div>
 						<ValidationMessage For="@(() => _model.Description)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
 					</div>
@@ -134,9 +140,7 @@
 							Category <span class="text-red-500">*</span>
 						</label>
 						<div class="mt-1">
-							<InputSelect id="category"
-							             @bind-Value="_model.CategoryId"
-							             class="form-input">
+							<InputSelect id="category" @bind-Value="_model.CategoryId" class="form-input">
 								<option value="">Select a category</option>
 								@if (_categories is not null)
 								{
@@ -153,18 +157,18 @@
 
 				<!-- Form Actions -->
 				<div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 flex justify-end space-x-3">
-					<a href="/issues/@Id"
-					   class="btn-secondary justify-center">
+					<a href="/issues/@Id" class="btn-secondary justify-center">
 						Cancel
 					</a>
-					<button type="submit"
-					        disabled="@_isSubmitting"
-					        class="btn-primary justify-center">
+					<button type="submit" disabled="@_isSubmitting" class="btn-primary justify-center">
 						@if (_isSubmitting)
 						{
-							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+									 viewBox="0 0 24 24">
 								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								<path class="opacity-75" fill="currentColor"
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+								</path>
 							</svg>
 							<span>Saving...</span>
 						}
@@ -182,6 +186,8 @@
 @code {
 	[Parameter]
 	public string Id { get; set; } = default!;
+
+	private const string PageTitle = "Edit Issue - IssueTracker";
 
 	private IssueDto? _issue;
 	private IEnumerable<CategoryDto>? _categories;
