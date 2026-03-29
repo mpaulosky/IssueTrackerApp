@@ -100,3 +100,46 @@ I own E2E tests (`tests/AppHost.Tests/`) and Aspire integration test infrastruct
 
 **Testing:** Build succeeded with no compilation errors. Full AppHost.Tests suite requires Docker. CI will validate the fix on next push.
 
+### 2026-03-29: Theme Test Update for New ThemeColorDropdown + ThemeBrightnessToggle (PR #86)
+
+**Task:** Fix 2 failing theme E2E tests that timed out after PR introduced new theme components.
+
+**Root Cause Analysis:**
+1. PR #86 introduced new theme components: `ThemeColorDropdownComponent.razor` and `ThemeBrightnessToggleComponent.razor`
+2. These new components call `ThemeManager.*` (uppercase) from `theme-manager.js`, which uses localStorage key `tailwind-color-theme`
+3. **OLD system** (still active): `ThemeProvider.razor.cs` calls `themeManager.*` (lowercase) from `theme.js`, which uses localStorage key `theme-color-brightness`
+4. Tests expected the old system's localStorage key (`theme-color-brightness`), but the new components write to `tailwind-color-theme`
+5. Tests waited for theme changes in the wrong localStorage key, causing 30s timeouts
+
+**Conflict Discovered:**
+- Both `theme.js` and `theme-manager.js` are loaded in `App.razor`
+- `ThemeProvider` (in `MainLayout.razor`) still calls `themeManager.markInitialized()` which sets `data-theme-ready="true"` ✅
+- New components call `ThemeManager.selectBrightnessAndUpdateUI()` / `ThemeManager.selectColorAndUpdateUI()` from the NEW system
+- The two systems use **different localStorage keys** and will NOT stay in sync — this is a production bug
+
+**Solution Implemented (TEST-SIDE ONLY):**
+Updated all theme tests to use the correct localStorage key (`tailwind-color-theme`) that the new components actually write to:
+1. `ThemeToggleTests.ThemeToggle_SelectDark_AddsDarkClassToHtml` — line 84: changed localStorage key
+2. `ThemeToggleTests.ThemeToggle_SelectLight_RemovesDarkClassFromHtml` — lines 125, 157: changed localStorage key + updated comments
+3. `ColorSchemeTests.ColorScheme_SelectRed_AppliesRedTheme` — lines 109, 115: changed localStorage key
+4. `ColorSchemeTests.ColorScheme_DefaultThemeIsBlue` — line 128: changed localStorage key
+
+**Key Insights:**
+1. **localStorage key mismatch is a common theme integration bug** — always verify which JS module components actually call and what keys they use.
+2. **Multiple theme systems can coexist** — Both `window.themeManager` (lowercase) and `window.ThemeManager` (uppercase) exist simultaneously; tests must target the one components actually use.
+3. **data-theme-ready is still set correctly** — `ThemeProvider` still initializes and calls `themeManager.markInitialized()`, so tests can still wait on `data-theme-ready="true"`.
+4. **Tests should verify actual behavior** — When UI changes, tests should be updated to match what's actually rendered, not what was originally planned.
+
+**Production Issue Flagged for Aragorn:**
+The two theme systems (`theme.js` + `theme-manager.js`) conflict because:
+- Old `ThemeProvider` writes to `theme-color-brightness` via `themeManager.*`
+- New components write to `tailwind-color-theme` via `ThemeManager.*`
+- User's theme preference won't persist consistently between page loads
+- Aragorn needs to either: (a) update new components to call the old `themeManager.*`, OR (b) remove `ThemeProvider` and migrate fully to `ThemeManager.*`
+
+**Files Modified:**
+- `tests/AppHost.Tests/Tests/Theme/ThemeToggleTests.cs` — Updated 2 tests to use `tailwind-color-theme` localStorage key
+- `tests/AppHost.Tests/Tests/Theme/ColorSchemeTests.cs` — Updated 2 tests to use `tailwind-color-theme` localStorage key
+
+**Testing:** Build succeeded with no errors. Tests cannot run locally without Docker. CI will validate on next push.
+
