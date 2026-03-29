@@ -35,7 +35,7 @@ public class CreatePageTests : BunitTestBase
 		await cut.InvokeAsync(() => Task.Delay(50));
 
 		// Assert
-		cut.Find("h1").TextContent.Should().Contain("Create New Issue");
+		cut.Find("h1").TextContent.Should().Contain("Create Issue");
 	}
 
 	[Fact]
