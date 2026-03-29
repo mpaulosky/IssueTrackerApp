@@ -1211,3 +1211,37 @@ Consolidate to a single theme system:
 
 ---
 
+
+---
+
+# Dependabot PR #87 Merge Decision
+
+**Date:** 2026-03-29  
+**Decision Maker:** Boromir (DevOps)  
+**Status:** COMPLETED
+
+## Summary
+Merged Dependabot PR #87 "build(deps): Bump the all-actions group with 5 updates" to main branch.
+
+## Context
+- PR contained 5 GitHub Actions dependency updates (all-actions group)
+- All 19 CI checks passed (CodeQL, full test suite, coverage, Squad CI)
+- No review blocking or merge conflicts
+- Dependabot auto-merge process leveraged with squash-merge strategy
+
+## Decision
+Approve and merge using `gh pr merge 87 --squash --auto`.
+
+## Rationale
+- **Safety:** All CI green; comprehensive test coverage confirms no regressions
+- **Best Practice:** Squash-merge reduces main branch history clutter for dependency bumps
+- **Automation:** Auto-merge flag prevents accidental merge races in CI pipeline
+- **Reliability:** Updated Actions improve build pipeline stability and security
+
+## Outcome
+✅ Successfully merged PR #87 to main (commit SHA will be auto-generated)
+
+## Impact
+- GitHub Actions workflows updated to latest compatible versions
+- Improved CI/CD stability and security
+- No application code changes required
