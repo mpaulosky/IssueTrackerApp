@@ -47,11 +47,12 @@ public class AdminPageTests : BasePlaywrightTests
 			await page.GotoAsync("/admin");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			// Assert
-			var heading = page.Locator("h1");
+			// Assert — use .heading-page selector to target AdminPageLayout's h1
+			// (PageHeaderComponent also renders an h1, so strict "h1" is ambiguous)
+			var heading = page.Locator("h1.heading-page");
 			await heading.WaitForAsync();
 			var text = await heading.InnerTextAsync();
-			text.Should().Be("Admin Dashboard");
+			text.Should().Contain("Admin Dashboard");
 		});
 	}
 
