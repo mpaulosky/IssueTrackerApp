@@ -113,3 +113,48 @@
    - **Verdict:** ✅ Approved — proper auth flow design, UX improvement
 
 **Team Coordination:** Both PRs merged same session; squad decisions recorded and deduplicated.
+
+---
+
+### 2026-03-28 — Theme System Unification: Resolved Dual localStorage Conflict
+
+**Trigger:** Pippin discovered during E2E test analysis (PR #86) that two conflicting theme systems were active, causing user theme preferences to not persist across page reloads.
+
+**Problem:**
+- **Old System:** `theme.js` with `window.themeManager` (lowercase), used `theme-color-brightness` localStorage key, consumed by `ThemeProvider.razor.cs`
+- **New System:** `theme-manager.js` with `window.ThemeManager` (uppercase), used `tailwind-color-theme` localStorage key, consumed by `ThemeColorDropdownComponent` and `ThemeBrightnessToggleComponent` (added in PR #86)
+- User selects red theme → New components write to `tailwind-color-theme` → Page reload → ThemeProvider reads `theme-color-brightness` → Theme reverts to blue
+
+**Solution Chosen:** Option A — Adapt new components to old system, keep ThemeProvider as single source of truth
+
+**Rationale:**
+- `theme.js` / `themeManager` is well-established, sets `data-theme-ready` for E2E tests, has complete API
+- `ThemeProvider.razor.cs` is the architectural authority for theme state
+- Pippin already updated E2E tests to expect `tailwind-color-theme` key (PR #86), so aligned `theme.js` STORAGE_KEY to match
+- Single localStorage key + single JS API eliminates persistence bugs
+
+**Changes Applied:**
+1. **theme.js:** Changed `STORAGE_KEY` from `'theme-color-brightness'` to `'tailwind-color-theme'` (line 20)
+2. **ThemeColorDropdownComponent.razor:**
+   - `OnAfterRenderAsync`: Changed `ThemeManager.getCurrentColor()` → `themeManager.getColor()`, uppercase color response
+   - `SelectColorAsync`: Changed `ThemeManager.selectColorAndUpdateUI(color)` → `themeManager.setColor(color.ToLowerInvariant())`
+3. **ThemeBrightnessToggleComponent.razor:**
+   - `OnAfterRenderAsync`: Changed `ThemeManager.syncUI()` → `themeManager.getBrightness()`, read current brightness
+   - `ToggleBrightnessAsync`: Changed `ThemeManager.selectBrightnessAndUpdateUI(next)` → `themeManager.setBrightness(next)`
+4. **App.razor:**
+   - Removed `<script src="js/theme-manager.js"></script>` reference (line 53 deleted)
+   - Updated inline script comment: `theme-manager.js` → `theme.js`
+
+**Files Changed:**
+- `src/Web/wwwroot/js/theme.js` (1 line)
+- `src/Web/Components/Theme/ThemeColorDropdownComponent.razor` (3 lines)
+- `src/Web/Components/Theme/ThemeBrightnessToggleComponent.razor` (3 lines)
+- `src/Web/Components/App.razor` (2 lines removed, 1 comment updated)
+
+**Build:** ✅ `dotnet build IssueTrackerApp.slnx --configuration Release` — 0 errors, 0 warnings
+
+**Test Compatibility:** E2E tests in `AppHost.Tests/Tests/Theme/` (ThemeToggleTests.cs, ColorSchemeTests.cs) now align with production code — both use `tailwind-color-theme` key.
+
+**Architectural Note:** `theme-manager.js` still exists in `wwwroot/js/` but is no longer referenced or loaded. Should be deleted in a follow-up cleanup commit to avoid confusion.
+
+**Decision recorded:** `.squad/decisions/inbox/aragorn-unified-theme-system.md`
