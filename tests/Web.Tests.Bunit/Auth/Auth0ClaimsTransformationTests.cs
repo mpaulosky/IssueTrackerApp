@@ -256,4 +256,78 @@ public class Auth0ClaimsTransformationTests
 			.Should().HaveCount(1);
 		result.HasClaim(ClaimTypes.Role, "User").Should().BeTrue();
 	}
+
+	[Fact]
+	public async Task TransformAsync_WithBareRolesClaim_NoNamespaceConfig_ShouldMapToClaimTypesRole()
+	{
+		// Arrange — Pass 2 fallback: no namespace config, but user has bare "roles" claim
+		var transformation = CreateTransformation(roleClaimNamespace: null);
+		var principal = CreatePrincipal(
+			new Claim(ClaimTypes.NameIdentifier, "user123"),
+			new Claim("roles", "Admin"));
+
+		// Act
+		var result = await transformation.TransformAsync(principal);
+
+		// Assert — Pass 2 should map bare "roles" claim to ClaimTypes.Role
+		result.HasClaim(ClaimTypes.Role, "Admin").Should().BeTrue();
+	}
+
+	[Fact]
+	public async Task TransformAsync_CalledTwice_ShouldNotAddDuplicateRoleClaims()
+	{
+		// Arrange — idempotency test: calling TransformAsync twice on same principal
+		var transformation = CreateTransformation();
+		var principal = CreatePrincipal(
+			new Claim(ClaimTypes.NameIdentifier, "user123"),
+			new Claim(TestNamespace, "Admin"));
+
+		// Act — call TransformAsync twice
+		var firstResult = await transformation.TransformAsync(principal);
+		var secondResult = await transformation.TransformAsync(firstResult);
+
+		// Assert — should have exactly ONE ClaimTypes.Role claim with "Admin"
+		secondResult.FindAll(c => c.Type == ClaimTypes.Role && c.Value == "Admin")
+			.Should().HaveCount(1);
+	}
+
+	[Fact]
+	public async Task TransformAsync_WithMultipleNamespacedRoleClaims_Pass3_ShouldMapAll()
+	{
+		// Arrange — Pass 3 with multiple different namespaced claims ending in "/roles"
+		var transformation = CreateTransformation(roleClaimNamespace: null);
+		var principal = CreatePrincipal(
+			new Claim(ClaimTypes.NameIdentifier, "user123"),
+			new Claim("https://schemas.auth0.com/roles", "User"),
+			new Claim("https://issuetracker.com/roles", "Admin"));
+
+		// Act
+		var result = await transformation.TransformAsync(principal);
+
+		// Assert — Pass 3 should auto-detect both claims and map them
+		result.HasClaim(ClaimTypes.Role, "User").Should().BeTrue();
+		result.HasClaim(ClaimTypes.Role, "Admin").Should().BeTrue();
+	}
+
+	[Fact]
+	public async Task TransformAsync_WithEmptyRoleValue_ShouldNotAddEmptyClaim()
+	{
+		// Arrange — namespace configured, but role value is empty/whitespace
+		var transformation = CreateTransformation();
+		var principalWithEmpty = CreatePrincipal(
+			new Claim(ClaimTypes.NameIdentifier, "user123"),
+			new Claim(TestNamespace, ""));
+
+		var principalWithWhitespace = CreatePrincipal(
+			new Claim(ClaimTypes.NameIdentifier, "user456"),
+			new Claim(TestNamespace, "  "));
+
+		// Act
+		var resultEmpty = await transformation.TransformAsync(principalWithEmpty);
+		var resultWhitespace = await transformation.TransformAsync(principalWithWhitespace);
+
+		// Assert — no ClaimTypes.Role claims should be added for empty/whitespace values
+		resultEmpty.HasClaim(c => c.Type == ClaimTypes.Role).Should().BeFalse();
+		resultWhitespace.HasClaim(c => c.Type == ClaimTypes.Role).Should().BeFalse();
+	}
 }

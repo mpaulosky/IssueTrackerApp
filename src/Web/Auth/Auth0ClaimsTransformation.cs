@@ -153,6 +153,10 @@ public sealed class Auth0ClaimsTransformation : IClaimsTransformation
 			}
 			else
 			{
+				// Skip empty or whitespace-only role values
+				if (string.IsNullOrWhiteSpace(roleValue))
+					continue;
+
 				if (!identity.HasClaim(ClaimTypes.Role, roleValue))
 				{
 					identity.AddClaim(new Claim(ClaimTypes.Role, roleValue));

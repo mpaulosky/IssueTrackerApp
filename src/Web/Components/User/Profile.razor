@@ -1,7 +1,9 @@
 ﻿@page "/profile"
 
 @using System.Security.Claims
+@using Microsoft.Extensions.Configuration
 @attribute [Authorize]
+@inject IConfiguration Configuration
 
 <PageHeaderComponent Level="1" HeaderText="@_pageTitle" />
 
@@ -137,19 +139,23 @@
 				.Select(c => c.Value)
 				.FirstOrDefault() ?? string.Empty;
 
-			_roles = GetAllRoleClaims(state.User);
+			var roleNamespace = Configuration["Auth0:RoleClaimNamespace"] ?? string.Empty;
+			_roles = GetAllRoleClaims(state.User, roleNamespace);
 		}
 
 		await base.OnInitializedAsync();
 	}
 
 	// Helper to get all role claims for a user
-	public static List<string> GetAllRoleClaims(ClaimsPrincipal user)
+	public static List<string> GetAllRoleClaims(ClaimsPrincipal user, string? roleClaimNamespace = null)
 	{
-		var roleTypes = new[] { ClaimTypes.Role, "role", "roles" };
+		var roleTypesList = new List<string> { ClaimTypes.Role, "role", "roles" };
+
+		if (!string.IsNullOrWhiteSpace(roleClaimNamespace))
+			roleTypesList.Add(roleClaimNamespace);
 
 		return user.Claims
-			.Where(c => roleTypes.Contains(c.Type, StringComparer.OrdinalIgnoreCase))
+			.Where(c => roleTypesList.Contains(c.Type, StringComparer.OrdinalIgnoreCase))
 			.Select(c => c.Value)
 			.Where(v => !string.IsNullOrWhiteSpace(v))
 			.Distinct()
