@@ -1,56 +1,48 @@
-@* Copyright (c) 2024-2025. IssueTracker Project. *@
-@* Theme Toggle - Compact header control for brightness and color switching *@
-@* SPDX-License-Identifier: MIT *@
-
 @implements IDisposable
 
 <div class="flex items-center gap-1">
 	<!-- Brightness toggle -->
-	<button
-		type="button"
-		@onclick="ToggleBrightnessAsync"
-		class="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
-		aria-label="Toggle brightness"
-		title="@(ThemeProvider?.IsDarkMode == true ? "Switch to light mode" : "Switch to dark mode")">
+	<button type="button" @onclick="ToggleBrightnessAsync"
+					class="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+					aria-label="Toggle brightness"
+					title="@(ThemeProvider?.IsDarkMode == true ? "Switch to light mode" : "Switch to dark mode")">
 		@if (ThemeProvider?.IsDarkMode == true)
 		{
 			<!-- Sun icon - shown in dark mode (click to switch to light) -->
 			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+				</path>
 			</svg>
 		}
 		else
 		{
 			<!-- Moon icon - shown in light mode (click to switch to dark) -->
 			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
 			</svg>
 		}
 	</button>
 
 	<!-- Color picker -->
 	<div class="relative">
-		<button
-			type="button"
-			@onclick="ToggleColorPicker"
-			@onclick:stopPropagation="true"
-			class="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
-			aria-label="Choose color theme"
-			title="Choose color theme">
+		<button type="button" @onclick="ToggleColorPicker" @onclick:stopPropagation="true"
+						class="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+						aria-label="Choose color theme" title="Choose color theme">
 			<span class="w-4 h-4 rounded-full bg-primary-500 block ring-1 ring-neutral-300 dark:ring-neutral-600"></span>
 		</button>
 
 		@if (_showColorPicker)
 		{
-			<div class="absolute right-0 top-full mt-2 p-2 bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 flex gap-2 z-50">
+			<div
+				class="absolute right-0 top-full mt-2 p-2 bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 flex gap-2 z-50">
 				@foreach (var color in _colors)
 				{
-					<button
-						type="button"
-						@onclick="() => SelectColorAsync(color.Key)"
-						class="w-7 h-7 rounded-full @color.Value transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 @(ThemeProvider?.Color == color.Key ? "ring-2 ring-offset-1 ring-neutral-900 dark:ring-white scale-110" : "")"
-						title="@(char.ToUpper(color.Key[0]) + color.Key[1..]) theme"
-						aria-label="@(char.ToUpper(color.Key[0]) + color.Key[1..]) color theme">
+					<button type="button" @onclick="() => SelectColorAsync(color.Key)"
+									class="w-7 h-7 rounded-full @color.Value transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 @(ThemeProvider?.Color == color.Key ? "ring-2 ring-offset-1 ring-neutral-900 dark:ring-white scale-110" : "")"
+									title="@(char.ToUpper(color.Key[0]) + color.Key[1..]) theme"
+									aria-label="@(char.ToUpper(color.Key[0]) + color.Key[1..]) color theme">
 					</button>
 				}
 			</div>

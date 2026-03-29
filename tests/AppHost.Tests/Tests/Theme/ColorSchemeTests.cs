@@ -84,12 +84,12 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			// Wait for ThemeProvider to initialize — SetColorAsync checks _isInitialized and
-			// returns early if called before JS interop has completed on the server.
-			// data-theme-ready is set by themeManager.markInitialized() after initialization.
+			// Wait for ThemeProvider to initialize — data-theme-ready is set by
+			// themeManager.markInitialized() after ThemeProvider's OnAfterRenderAsync completes.
 			await page.WaitForFunctionAsync(
 				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			var schemeBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
 			await schemeBtn.WaitForAsync();
@@ -99,13 +99,20 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await redOption.WaitForAsync();
 			await redOption.ClickAsync();
 
-			// Wait for red theme to be persisted in localStorage (source of truth)
+			// Allow Blazor Server to process the onclick event via SignalR before checking localStorage.
+			// Without this, localStorage may not yet be updated when CI's SignalR is under load.
+			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+			// Wait for red theme to be persisted in localStorage (source of truth).
+			// The new ThemeColorDropdownComponent uses ThemeManager (uppercase) which stores in
+			// 'tailwind-color-theme', NOT 'theme-color-brightness' (old ThemeProvider system).
 			await page.WaitForFunctionAsync(
-				"(localStorage.getItem('theme-color-brightness') || '').startsWith('theme-red-')",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				"(localStorage.getItem('tailwind-color-theme') || '').startsWith('theme-red-')",
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Assert via localStorage (source of truth for the theme engine)
-			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('theme-color-brightness')");
+			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('tailwind-color-theme')");
 			themeValue.Should().StartWith("theme-red-");
 		});
 	}
@@ -117,9 +124,10 @@ public class ColorSchemeTests : BasePlaywrightTests
 
 		await InteractWithPageAsync("web", async page =>
 		{
-			// Act — clear saved theme (key: 'theme-color-brightness') to get the default
+			// Act — clear saved theme to get the default.
+			// The new ThemeManager uses 'tailwind-color-theme', not 'theme-color-brightness'.
 			await page.GotoAsync("/");
-			await page.EvaluateAsync("localStorage.removeItem('theme-color-brightness')");
+			await page.EvaluateAsync("localStorage.removeItem('tailwind-color-theme')");
 			await page.ReloadAsync();
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 

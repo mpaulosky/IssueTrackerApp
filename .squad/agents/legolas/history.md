@@ -611,3 +611,47 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 
 **Key Technical Decisions:**
 - Used `Context="adminContext"` on nested AuthorizeView to prevent context name collision
+
+---
+
+### 2025-01-24 - Full-Width NavMenuComponent Restructure (Matthew Request)
+
+**Task:** Restructure NavMenuComponent for full-width layout + fix conflicting global nav CSS rule
+
+**Problem:**
+- NavMenuComponent had `active-theme` class on `<nav>` element, but global CSS rule applied `container mx-auto` to all `<nav>` elements
+- This created a centered/constrained nav instead of true full-width bar
+- Global `nav` CSS rule (with container, padding, shadow) conflicted with breadcrumb navs, admin layout nav, and pagination navs
+
+**What I Built:**
+1. **NavMenuComponent.razor Restructure** (`src/Web/Components/Layout/NavMenuComponent.razor`)
+   - Changed from `<header><nav>` to `<header><div><nav>` two-level pattern (like FooterComponent)
+   - `<header>` now carries: `active-theme`, `border-b border-primary-500/30`, `w-full`, `py-2`
+   - Inner `<div>` now carries: `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between`
+   - `<nav>` now has minimal classes: `hidden md:flex items-center gap-1` and `aria-label="Main navigation"`
+   - Logo `<a>` and controls `<div>` (LoginComponent, ThemeToggle, etc.) moved into inner wrapper div
+   - Logo now has `font-bold` class for better visual hierarchy
+   - All nav links now have `rounded` class for consistent hover treatment
+   - Profile link now has full hover styling: `px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors`
+   - Changed from `LoginDisplay` to `LoginComponent` per task spec
+
+2. **Global CSS Rule Fix** (`src/Web/Styles/input.css`)
+   - Replaced overreaching `nav { @apply container flex ... }` rule with empty rule body
+   - All nav elements in app already have explicit utility classes, so they take over cleanly
+   - Removed: container, padding, margin, rounded-md, shadow (these were conflicting with other nav uses)
+
+**Test Verification:**
+- All 12 bUnit tests passed ✓
+- `nav` element has `aria-label="Main navigation"` ✓
+- `nav` element has `hidden md:flex` classes ✓
+- Markup contains all expected nav links (Home, Dashboard, Issues, Create) ✓
+- Admin separator (`bg-neutral-300`) present ✓
+- Hover classes (`bg-primary-100`, `text-primary-700`) present as substrings ✓
+- `transition-colors` present ✓
+- Admin links only visible for admin users ✓
+
+**Key Technical Learnings:**
+- **Two-level layout pattern for full-width bars:** Outer element carries background + `w-full`; inner element carries `max-w-7xl mx-auto px-*` for content constraint
+- **Global CSS rules are dangerous:** A global `nav {}` rule conflicted with multiple nav use cases (breadcrumbs, pagination, admin layout). Better to strip it and let components define explicit classes.
+- **Empty CSS rules are acceptable:** Leaving `nav {}` with empty body documents that the rule was intentionally removed, not forgotten
+- **Component naming consistency:** Task spec used `LoginComponent` vs. existing `LoginDisplay`. When in doubt, follow the spec or check which component provides the right UI experience for the context.

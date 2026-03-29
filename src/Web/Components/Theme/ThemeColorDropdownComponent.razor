@@ -1,0 +1,95 @@
+@inject IJSRuntime Js
+
+<div class="relative">
+	<button type="button"
+	        class="btn color-theme-btn"
+	        aria-label="Choose color theme"
+	        aria-expanded="@_isOpen"
+	        aria-haspopup="true"
+	        @onclick="ToggleDropdown">
+		<span class="@GetActiveDotClass() w-3 h-3 rounded-full inline-block" aria-hidden="true"></span>
+	</button>
+
+	@if (_isOpen)
+	{
+		<div class="absolute right-0 mt-1 flex gap-1 rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black/5 p-2 z-50">
+			<button type="button"
+			        aria-label="Blue color theme"
+			        class="w-6 h-6 rounded-full bg-blue-500 hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+			        @onclick='() => SelectColorAsync("BLUE")'></button>
+			<button type="button"
+			        aria-label="Red color theme"
+			        class="w-6 h-6 rounded-full bg-red-500 hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+			        @onclick='() => SelectColorAsync("RED")'></button>
+			<button type="button"
+			        aria-label="Green color theme"
+			        class="w-6 h-6 rounded-full bg-green-500 hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
+			        @onclick='() => SelectColorAsync("GREEN")'></button>
+			<button type="button"
+			        aria-label="Yellow color theme"
+			        class="w-6 h-6 rounded-full bg-amber-500 hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
+			        @onclick='() => SelectColorAsync("YELLOW")'></button>
+		</div>
+	}
+</div>
+
+@code {
+	private string _selectedColor = "BLUE";
+	private bool _isOpen;
+
+	/// <summary>
+	/// Reads the currently active color from themeManager on first render so the
+	/// picker reflects the persisted theme without requiring user interaction.
+	/// </summary>
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			try
+			{
+				var color = await Js.InvokeAsync<string>("themeManager.getColor") ?? "blue";
+				_selectedColor = color.ToUpperInvariant();
+				StateHasChanged();
+			}
+			catch (TaskCanceledException)
+			{
+				// Ignore task cancellation if the circuit is disconnected during initialization
+			}
+			catch (JSDisconnectedException)
+			{
+				// Ignore JS disconnection if the circuit has been disconnected
+			}
+		}
+	}
+
+	private void ToggleDropdown() => _isOpen = !_isOpen;
+
+	/// <summary>
+	/// Applies the selected color while preserving the current brightness.
+	/// </summary>
+	private async Task SelectColorAsync(string color)
+	{
+		_selectedColor = color;
+		_isOpen = false;
+		try
+		{
+			await Js.InvokeVoidAsync("themeManager.setColor", color.ToLowerInvariant());
+		}
+		catch (TaskCanceledException)
+		{
+			// Ignore task cancellation during color selection
+		}
+		catch (JSDisconnectedException)
+		{
+			// Ignore JS disconnection errors during user interaction
+		}
+	}
+
+	private string GetActiveDotClass() => (_selectedColor ?? "BLUE").ToUpperInvariant() switch
+	{
+		"RED"    => "bg-red-500",
+		"GREEN"  => "bg-green-500",
+		"YELLOW" => "bg-amber-500",
+		_        => "bg-blue-500"
+	};
+}

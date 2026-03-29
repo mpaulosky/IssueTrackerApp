@@ -1,29 +1,72 @@
 ﻿<!DOCTYPE html>
-<html lang="en" class="theme-blue-light light">
+<html lang="en" class="light">
 
 <head>
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<base href="/"/>
 	<title>IssueTracker</title>
+
+
+	<!-- Initialize theme early to prevent FOUC (Flash of Unstyled Content) -->
+	<script>
+		(function () {
+			// Initialize default theme colors (will be overridden by theme.js after load)
+			const savedTheme = localStorage.getItem('tailwind-color-theme') || 'theme-blue-light';
+
+			// Remove existing theme classes (in case of server-side re-render)
+			const themes = [
+				'theme-red-light', 'theme-red-dark',
+				'theme-blue-light', 'theme-blue-dark',
+				'theme-green-light', 'theme-green-dark',
+				'theme-yellow-light', 'theme-yellow-dark'
+			];
+			themes.forEach(t => document.documentElement.classList.remove(t));
+
+			// Add the saved theme class
+			document.documentElement.classList.add(savedTheme);
+
+			// Initialize dark/light mode
+			// We use both 'theme' (from ThemeToggle) and 'tailwind-color-theme' (from ThemeManager)
+			// to ensure consistency between the two systems.
+			const theme = localStorage.getItem('theme') || (savedTheme.includes('-dark') ? 'dark' : 'light');
+			if (theme === 'dark') {
+				document.documentElement.classList.add('dark');
+				document.documentElement.classList.remove('light');
+			} else {
+				document.documentElement.classList.remove('dark');
+				document.documentElement.classList.add('light');
+			}
+		})();
+	</script>
+
 	<ResourcePreloader/>
 	<link rel="stylesheet" href="@Assets["css/app.css"]"/>
+	<link rel="icon" type="image/png" href="favicon.png"/>
+
 	<link rel="stylesheet" href="@Assets["Web.styles.css"]"/>
-	<ImportMap/>
-	<HeadOutlet/>
+
 	@* Initialize theme before page render to prevent flash of unstyled content *@
 	<script src="js/theme.js"></script>
+
 	@* Chart.js for analytics dashboard *@
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<scriptL src="https://cdn.jsdelivr.net/npm/chart.js"></scriptL>
+
+	<ImportMap/>
+	<HeadOutlet/>
+
 </head>
 
 <body>
 <CascadingAuthenticationState>
 	<Routes @rendermode="InteractiveServer"/>
 </CascadingAuthenticationState>
+
 <ReconnectModal/>
+
 <script src="@Assets["_framework/blazor.web.js"]"></script>
 <script src="js/charts.js"></script>
+
 </body>
 
 </html>

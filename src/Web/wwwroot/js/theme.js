@@ -17,7 +17,7 @@ window.themeManager = {
 
 	COLORS: ['blue', 'red', 'green', 'yellow'],
 	BRIGHTNESS: ['light', 'dark'],
-	STORAGE_KEY: 'theme-color-brightness',
+	STORAGE_KEY: 'tailwind-color-theme',
 	DEFAULT_THEME: 'theme-blue-light',
 
 	/**

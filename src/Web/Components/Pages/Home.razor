@@ -1,10 +1,4 @@
-﻿@*
- * Copyright (c) 2025 Matthew Paulosky. All rights reserved.
- * Licensed under the MIT License. See LICENSE in the project root for license information.
- *@
-
-@page "/"
-@using Microsoft.AspNetCore.Components.Authorization
+﻿@page "/"
 @inject NavigationManager Navigation
 
 <PageTitle>Home - IssueTracker</PageTitle>
@@ -98,7 +92,7 @@
 						<span class="text-lg">Beautiful UI with dark mode support</span>
 					</div>
 				</div>
-				<a href="/account/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" 
+				<a href="/account/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)"
 					class="btn-primary inline-block px-8 py-4 text-lg rounded-lg transition-colors shadow-lg">
 					Log in to Get Started
 				</a>

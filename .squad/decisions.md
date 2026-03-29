@@ -699,3 +699,515 @@ GitHub Pages now publishes only contents of `docs/` directory, protecting sensit
 - `src/Web/Components/Pages/Account/` directory ready for future pages (login callbacks, etc.)
 - Zero middleware changes—purely UI addition
 
+# PR #76 Fix — Gimli Review Blockers Resolved
+
+**Author:** Aragorn (Lead Developer)  
+**Date:** 2026-07-23  
+**Branch:** `squad/apphost-tests-clean`  
+**PR:** #76 `feat(tests): AppHost.Tests — Aspire integration + Playwright E2E tests`
+
+---
+
+## What Was Fixed
+
+### 1 — False "skip gracefully" documentation (3 files)
+
+**Files:** `AdminPageTests.cs`, `LayoutAdminTests.cs`, `LayoutAuthenticatedTests.cs`
+
+The file-top comments and class-level XML summaries in all three files claimed that tests
+"skip gracefully when `PLAYWRIGHT_TEST_ADMIN_EMAIL` / `PLAYWRIGHT_TEST_PASSWORD` are not set."
+This was incorrect — the tests use `/test/login?role=admin|user` cookie-based authentication
+and always run regardless of environment variables. Removed the false comments and rewrote
+the docstrings to accurately describe the cookie-auth testing mechanism.
+
+**Why it matters:** Misleading docs cause future developers to misunderstand test dependencies
+and may give false confidence that tests are skippable in CI environments.
+
+---
+
+### 2 — `InteractWithPageAsync` visibility changed to `protected`
+
+**File:** `BasePlaywrightTests.cs`
+
+The method was `public`, which exposed a base-class helper as part of the public API of all
+derived test classes. Changed to `protected` to match the access level of all sibling methods
+(`InteractWithAuthenticatedPageAsync`, `InteractWithAdminPageAsync`, `InteractWithRolePageAsync`).
+
+---
+
+### 3 — `IBrowserContext` leak fixed
+
+**File:** `BasePlaywrightTests.cs`
+
+The original implementation stored browser contexts in a single `private IBrowserContext? _context`
+field. Every call to `CreatePageAsync` overwrote the field, leaking all previous contexts (only the
+final one was disposed). Fixed by replacing the single field with `private readonly List<IBrowserContext> _contexts`
+and iterating over all contexts in `DisposeAsync`.
+
+**Decision:** All `IBrowserContext` instances created during a test class's lifetime must be tracked
+and disposed in `DisposeAsync`. Use a `List<T>` for tracking when multiple contexts may be created.
+
+---
+
+### 4 — Redirect assertion made specific
+
+**File:** `AdminPageTests.cs` — `AdminPage_RedirectsNonAdminUser`
+
+The assertion `page.Url.Should().NotContain("/admin")` was fragile — it only verified what the URL
+was NOT, not what it actually IS. Replaced with `page.Url.Should().Contain("/Account/AccessDenied")`.
+
+**Rationale:** ASP.NET Core's `CookieAuthenticationOptions.AccessDeniedPath` defaults to
+`/Account/AccessDenied` when not explicitly configured. The Testing-environment cookie auth in
+`Program.cs` sets only `LoginPath = "/test/login"` and leaves `AccessDeniedPath` at its default.
+When a non-admin user hits an `[Authorize(Policy = AdminPolicy)]` page, cookie auth issues a
+302 redirect to `/Account/AccessDenied?ReturnUrl=%2Fadmin`.
+
+---
+
+### 5 — Missing EOF newline in `EnvVarTests.cs`
+
+The file was missing a trailing newline character. Added one. This is a POSIX convention and
+prevents diff noise in git when editors append content.
+
+---
+
+### 6 — `DisableDashboard = true` in `AspireManager`
+
+**File:** `AspireManager.cs`
+
+The Aspire dashboard was mistakenly set to `DisableDashboard = false` in tests. The dashboard
+is unnecessary during E2E tests — it consumes resources and may compete for ports. Changed to
+`DisableDashboard = true`.
+
+---
+
+## Verification
+
+Build result: `dotnet build tests/AppHost.Tests/AppHost.Tests.csproj --no-restore` — **0 errors, 0 warnings**
+# Decision: AppHost.Tests Aspire E2E Test Architecture
+
+**Date:** 2026-07-23  
+**Author:** Aragorn (Lead Developer)  
+**PR:** #76 — feat(tests): AppHost.Tests — Aspire integration + Playwright E2E tests
+
+---
+
+## Decision
+
+Approve the Aspire + Playwright E2E testing architecture introduced in PR #76 as the team standard for integration/E2E tests that require a live Aspire host.
+
+## Rationale
+
+### Testing-environment seam in `Program.cs`
+Using `IsEnvironment("Testing")` guards to swap:
+- Auth0 OIDC → Cookie authentication
+- MongoDB repositories → in-memory `FakeRepository<T>`
+- Background services (email queue, bulk worker) → disabled
+
+This is the correct pattern for Aspire E2E testing where the web app runs as a real subprocess. The seam is cleanly bounded in `Program.cs` and does not leak into domain or persistence layers.
+
+### xUnit Collection fixture pattern
+`[Collection]` placed on the abstract `BasePlaywrightTests` class (inherited by all derived test classes) is the canonical way to share a single `AspireManager` (and therefore a single AppHost instance) across an entire test suite. This prevents port-binding conflicts and keeps the test run fast.
+
+### Fake repositories in `src/Web/Testing/`
+`FakeRepository<T>` and `FakeSeedData` are compiled into the production assembly but are only reachable in `Testing` environment mode. This is an accepted pattern when the application under test must run as a real process. Both classes should carry `[ExcludeFromCodeCoverage]` to prevent coverage metric distortion.
+
+### Port pinning
+Fixing the Aspire web endpoint to HTTPS port 7043 with `IsProxied = false` is required for stable Playwright navigation and is safe for test-only environments.
+
+## Follow-up items (non-blocking)
+1. Add `[ExcludeFromCodeCoverage]` to `FakeRepository.cs` and `FakeSeedData.cs`
+2. Add a TODO comment beside `#pragma warning disable CS0618` in `EnvVarTests.cs`
+3. Remove duplicate home-page tests from `WebPlaywrightTests.cs` (superseded by `HomePageTests.cs`)
+### 2026-03-27: PR Merge Protocol — Team Review Gate
+
+**By:** Matthew Paulosky (via Copilot)
+**What:** All PRs must follow this sequence before merge:
+1. All CI checks pass
+2. Team review: Aragorn (always) + domain specialists (Boromir=DevOps/CI, Gandalf=security, Gimli/Pippin=tests, Sam=backend, Legolas=frontend)
+3. Rejected → different agent fixes (lockout enforced) → push → CI re-passes → re-review
+4. Approved + CI green → `gh pr merge {N} --squash --delete-branch`
+5. `git checkout main && git pull origin main`
+6. Delete any orphan local branches
+**Why:** User directive — captures the process demonstrated in PR #76 and #81 reviews
+---
+date: 2026-03-27
+author: Bilbo
+title: Blog Setup and First Post Format
+---
+
+## Decision: Blog Structure and Jekyll Configuration
+
+### Context
+Set up the project blog for GitHub Pages to document features, architecture decisions, and notable PRs.
+
+### Decisions Made
+
+1. **Jekyll Theme**: Selected `minima` (GitHub Pages default)
+   - Minimal, clean, developer-focused
+   - Zero configuration needed beyond `_config.yml`
+   - Built-in support for YAML front matter
+
+2. **Blog Location**: `docs/blog/` directory
+   - Follows GitHub Pages convention (`docs/` is served directly)
+   - Clear separation from root documentation (`docs/ARCHITECTURE.md`, etc.)
+
+3. **Post Format**:
+   - File naming: `YYYY-MM-DD-kebab-slug.md` (ISO date prefix for sorting and archives)
+   - YAML front matter: title, date, author, tags, summary
+   - Structure: Summary → Context → Key Details → What's Next
+   - Code snippets use GFM fenced blocks with language identifiers
+
+4. **Blog Index**: `docs/blog/index.md`
+   - Acts as landing page and table of contents
+   - Lists recent posts in reverse chronological order
+   - Jekyll `layout: page` for consistent styling
+
+5. **GitHub Pages URL**:
+   - Base: `https://mpaulosky.github.io/IssueTrackerApp`
+   - Blog: `https://mpaulosky.github.io/IssueTrackerApp/blog/`
+   - Configured in `_config.yml` with `baseurl: "/IssueTrackerApp"`
+
+### First Post Content
+Topic: PR #76 (AppHost.Tests — Aspire integration + Playwright E2E tests)
+- Documented the new `AppHost.Tests` project: 3 Aspire integration tests, 29 Playwright E2E tests
+- Explained key architecture decisions: cookie auth for tests, `EnvironmentCallbackAnnotation`, `WaitForWebReadyAsync`, fixed port 7043
+- Outlined test categories: Layout, Home, Dashboard, NotFound, Issues, Theme, Color scheme
+- Noted follow-up work (3 nits from Aragorn's review)
+
+### Dependencies
+- Boromir (DevOps) to configure GitHub Pages Actions workflow (not yet done)
+- Blog will be published once workflow is set up
+
+### Status
+✅ Complete — ready for GitHub Pages deployment when workflow is configured
+### 2026-03-27T21:34:31Z: User directive
+**By:** Matthew Paulosky (via Copilot)
+**What:** Blog uses plain Markdown only — no Jekyll, no _config.yml. Files live in `docs/`. Matthew will configure GitHub Pages to point to the folder himself.
+**Why:** User request — captured for team memory
+---
+title: "Auth0 Role Claim Fallback Implementation"
+agent: gandalf
+date: 2026-03-20
+status: implemented
+---
+
+## Decision: Add Fallback Role Reading for Standard "roles" JWT Claim
+
+### Context
+The `Auth0ClaimsTransformation` service was skipping role mapping entirely when `Auth0:RoleClaimNamespace` was empty (the default configuration). This caused:
+- Users with Admin/User roles in Auth0 to be denied access to protected pages
+- `RequireRole("Admin")` and `AuthorizeView Policy="AdminPolicy"` to fail silently
+- A less flexible setup that required namespace configuration in all scenarios
+
+### Problem
+Auth0 supports multiple role claim patterns:
+1. **Custom namespaced claims** (per tenant configuration): `"https://issuetracker.com/roles"`
+2. **Standard OpenID Connect claims** (OIDC spec): `"roles"`
+
+The previous implementation only supported pattern #1, requiring explicit namespace configuration. Many Auth0 setups use pattern #2 without custom namespaces, making role mapping impossible without configuration.
+
+### Solution
+Implement a **two-pass role transformation** with fallback logic:
+- **Pass 1:** If namespace is configured, read roles from that namespace
+- **Pass 2:** If no roles found (or namespace is empty), fall back to standard `"roles"` claim
+- Both sources use the same role parsing logic via extracted `MapRoleClaims()` helper
+
+### Implementation Details
+
+**Code Changes:**
+- Refactored `TransformAsync()` to use two-pass logic
+- Extracted role mapping into `MapRoleClaims()` helper method
+- Updated constructor logging from `LogWarning` → `LogInformation`
+- Handles all role formats: JSON arrays, CSV, single values
+
+**Design Principles:**
+1. **Backward Compatible:** Existing namespace-based setups work unchanged
+2. **Fail-Safe:** Fallback only activates when primary source yields no roles
+3. **Additive-Only:** No role claims removed or overwritten; duplicates prevented
+4. **Security-First:** No new attack vectors; same authentication-only claim reading
+
+### Impact
+
+**For Users:**
+- Admin users can now access protected pages without namespace configuration
+- `RequireRole()` and `AuthorizeView` policies now work with standard Auth0 setup
+- Smoother onboarding: standard Auth0 role support is automatic
+
+**For Configuration:**
+- `Auth0:RoleClaimNamespace` remains optional (not required)
+- Namespace still takes precedence if configured
+- Default behavior now "just works" for most Auth0 tenants
+
+**For Security:**
+- No additional vectors introduced
+- Role transformation remains limited to authenticated JWT claims
+- Duplicate-prevention logic prevents injection attacks
+
+### Testing Recommendations
+1. Test with `Auth0:RoleClaimNamespace` configured (namespace path)
+2. Test without namespace configured (standard claims path)
+3. Verify both single and multiple role assignments work
+4. Check logs for role transformation messages
+
+### Files Modified
+- `src/Web/Auth/Auth0ClaimsTransformation.cs`
+
+### Related Documentation
+- Previous: `.squad/agents/gandalf/history.md` → "Auth0 Role Claim Mapping Fix (2026-03-19)"
+- Auth0 Standard Claims: https://auth0.com/docs/get-started/tokens
+- OIDC Spec: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+# Decision: Playwright Theme DOM Assertions & Auth0 State Pattern
+
+**Author:** Gimli (Tester)
+**Date:** 2026
+
+---
+
+## Confirmed: Theme DOM Selectors
+
+### Dark Mode Detection
+- **Attribute:** `document.documentElement.classList.contains('dark')`
+- **Selector usage:** `await page.EvaluateAsync<bool>("document.documentElement.classList.contains('dark')")`
+- **When true:** dark mode is active; when false light/system mode is active
+- **Toggled by:** clicking `button[aria-label="Toggle theme"]` then choosing "Light", "Dark", or "System"
+
+### Color Scheme Detection
+- **Attribute:** `document.documentElement.getAttribute('data-theme')`
+- **Selector usage:** `await page.EvaluateAsync<string>("document.documentElement.getAttribute('data-theme')")`
+- **Values:** `'blue'` | `'red'` | `'green'` | `'yellow'`
+- **Default:** `'blue'` (applied on page load when no localStorage key is set)
+- **Changed by:** clicking `button[aria-label="Change color scheme"]` then `button[title="Blue|Red|Green|Yellow"]`
+
+---
+
+## Auth State Pattern for Auth0 Tests
+
+### Strategy: One-Time Login + Cached Storage State
+
+The `AuthStateManager` static class performs a single Auth0 login and caches the Playwright
+[storage state](https://playwright.dev/dotnet/docs/auth) (cookies + localStorage) to a JSON file.
+All subsequent authenticated tests reuse the stored state by loading it into a fresh browser context.
+
+**Key design decisions:**
+1. `SemaphoreSlim(1,1)` guards the one-time login to prevent race conditions in parallel xUnit test runs.
+2. The login page uses a temporary browser context with `IgnoreHTTPSErrors = true` to handle dev HTTPS certs.
+3. Storage state is persisted to `Path.GetTempPath() + "issuetracker-playwright-auth.json"` (Playwright convention).
+4. If `PLAYWRIGHT_TEST_EMAIL` / `PLAYWRIGHT_TEST_PASSWORD` env vars are absent, `GetStorageStatePathAsync` returns `null` and `InteractWithAuthenticatedPageAsync` skips the test gracefully (no exception).
+
+### Login Flow
+```
+navigate → /account/login?returnUrl=/
+wait for Auth0 Universal Login (NetworkIdle)
+fill input[name="username"]
+fill input[name="password"]
+click button[type="submit"]
+WaitForURLAsync(url => url.StartsWith(baseUrl), timeout: 30s)
+save page.Context.StorageStateAsync(path: ...)
+```
+
+### Authenticated Context Options
+```csharp
+new BrowserNewContextOptions
+{
+    IgnoreHTTPSErrors = true,
+    ColorScheme = ColorScheme.Dark,
+    StorageStatePath = statePath,
+    BaseURL = uri.ToString()
+}
+```
+# Decision: Skipped Test Audit Results
+
+**Author:** Gimli (Tester)
+**Date:** 2025-07-17
+**Status:** Informational
+
+## Context
+
+Audited all 8 skipped tests across the test suite. All skip reasons remain valid.
+
+## Findings
+
+### Two blocking gaps prevent unskipping:
+
+1. **MediatR ValidationBehavior pipeline not wired** (3 tests in `IssueEndpointTests.cs`)
+   - FluentValidation validators exist but no `IPipelineBehavior<,>` implementation enforces them.
+   - **Action needed:** Aragorn or Legolas should implement `ValidationBehavior<TRequest, TResponse>` and register it in DI. Once done, unskip the 3 validation tests.
+
+2. **Auth0 test infrastructure incomplete** (5 tests in `AuthEndpointSecurityTests.cs`)
+   - `TestWebApplicationFactory` registers a "Test" auth scheme but endpoints use `Auth0Constants.AuthenticationScheme`.
+   - **Action needed:** Either map the test scheme to Auth0's expected scheme name, or refactor endpoints to use a configurable scheme. Then unskip the 5 auth tests.
+
+## Recommendation
+
+Track these as backlog items so they don't stay skipped indefinitely.
+# Full-Width Navigation Bar Pattern
+
+**Decision:** NavMenuComponent and other full-width layout bars (header, footer) use a two-level structure:
+- Outer element (`<header>`, `<footer>`) carries background color, borders, and `w-full`
+- Inner `<div>` carries `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` for content constraint
+
+**Rationale:**
+- Previous single-level approach had background on `<nav>` element, conflicting with global CSS rule that applied `container mx-auto` to all nav elements
+- Global `nav {}` CSS rule was removed because it conflicted with breadcrumb navs, pagination navs, and admin layout navs
+- Two-level pattern ensures full-width background while constraining inner content to max-width container
+- Pattern is now consistent between NavMenuComponent and FooterComponent
+
+**Implementation:**
+- `src/Web/Components/Layout/NavMenuComponent.razor` restructured to match FooterComponent pattern
+- `src/Web/Styles/input.css` global `nav` rule emptied to remove conflicting styles
+- All nav elements in app use explicit utility classes instead of relying on global rule
+
+**Impact:**
+- NavMenuComponent now renders as true full-width bar with properly centered content
+- No more conflicts between global nav styling and specialized nav uses (breadcrumbs, pagination)
+- More predictable CSS behavior with explicit classes on each component
+
+**Testing:**
+- All 12 bUnit tests for NavMenuComponent pass
+- Visual verification shows full-width background with centered content
+
+**Author:** Legolas (Frontend Developer)
+**Date:** 2025-01-24
+### 2026-03-29: Use /alive (not /health) for Aspire test startup polling
+**By:** Pippin (via Ralph work queue)
+**What:** WaitForWebHealthyAsync and WaitForWebReadyAsync now poll /alive instead of /health. /health includes Redis/MongoDB checks that are irrelevant in Testing mode (which uses in-memory fakes). /alive returns 200 as soon as the ASP.NET Core process is up.
+**Why:** PR #86 had 2 flaky CI failures due to Redis connection timeouts blocking test startup for 120s.
+# PR #86 AppHost.Tests CI Flakiness Investigation
+
+**Date:** 2026-03-28  
+**Author:** Pippin (E2E & Aspire Tester)  
+**Status:** Investigation Complete
+
+## Context
+
+PR #86 had 2 failing tests in CI:
+- `web_https_/health_200_check` — Connection refused (localhost:7043)
+- `redis_check` — Redis timeout and connection errors
+
+## Investigation Results
+
+The fix was **already implemented** by Boromir in commit `ff74721`. The solution:
+- Added `WaitForWebHealthyAsync()` in `AspireManager.StartAppAsync()`
+- Polls `/health` endpoint with 120s timeout (accounts for 30-60s Redis cold-start in CI)
+- Uses certificate-ignoring HttpClient for self-signed HTTPS in CI
+
+## Validation
+
+Local test run (with Docker) confirms fix:
+- ✅ No Redis connection errors
+- ✅ No web health check failures
+- ✅ 38/40 tests passing
+- ⚠️ 2 failures are unrelated UI timing issues (ThemeToggle, ColorScheme Playwright timeouts)
+
+## Key Decision Point (Already Made)
+
+**Decision:** Poll the web `/health` endpoint directly instead of using Aspire's `WaitForResourceHealthyAsync()`.
+
+**Rationale:**
+1. Web health check transitively validates Redis (via `.WaitFor(redis)` in AppHost.cs)
+2. Direct HTTP polling with cert validation disabled works around CI self-signed cert issues
+3. Single wait point is simpler than chaining multiple resource waits
+
+## Recommendation
+
+This pattern should be documented in squad decisions as the standard approach for Aspire test fixtures:
+- Always add explicit health polling after `App.StartAsync()` in test fixtures
+- Use direct HTTP polling with cert validation disabled for HTTPS services in CI
+- Leverage dependency chains (`.WaitFor()`) to minimize redundant health checks
+# Decision: Update Theme E2E Tests for New ThemeManager localStorage Key
+
+**Author:** Pippin (Tester)  
+**Date:** 2026-03-29  
+**Context:** PR #86 (squad/86-fix-failing-tests-and-web-razor-pages)
+
+## Problem
+
+2 theme E2E tests failed with 30s timeouts after PR #86 introduced new theme components (`ThemeColorDropdownComponent`, `ThemeBrightnessToggleComponent`). Tests expected localStorage key `theme-color-brightness` (old system), but new components write to `tailwind-color-theme` (new system).
+
+## Root Cause
+
+PR #86 introduced a **dual theme system conflict**:
+
+1. **OLD system** (`theme.js` + `ThemeProvider.razor.cs`):
+   - JavaScript module: `window.themeManager` (lowercase)
+   - localStorage key: `theme-color-brightness`
+   - Used by: `ThemeProvider` component (still active in `MainLayout.razor`)
+   
+2. **NEW system** (`theme-manager.js` + new components):
+   - JavaScript module: `window.ThemeManager` (uppercase)
+   - localStorage key: `tailwind-color-theme`
+   - Used by: `ThemeColorDropdownComponent`, `ThemeBrightnessToggleComponent`
+
+Both systems coexist but use **different localStorage keys**. Tests checked the old key, but new components wrote to the new key → timeout.
+
+## Decision
+
+Updated all theme E2E tests to use the **correct localStorage key** (`tailwind-color-theme`) that the new components actually write to.
+
+### Files Modified
+
+- `tests/AppHost.Tests/Tests/Theme/ThemeToggleTests.cs` — 2 tests updated
+- `tests/AppHost.Tests/Tests/Theme/ColorSchemeTests.cs` — 2 tests updated
+
+### Changes Made
+
+1. Replaced all `localStorage.getItem('theme-color-brightness')` checks with `localStorage.getItem('tailwind-color-theme')`
+2. Replaced all `localStorage.setItem('theme-color-brightness', ...)` seeds with `localStorage.setItem('tailwind-color-theme', ...)`
+3. Updated comments to explain the dual system conflict
+4. Kept `data-theme-ready` waits — `ThemeProvider` still sets this attribute via `themeManager.markInitialized()`
+
+## Production Issue (Requires Aragorn's Attention)
+
+The dual theme system is a **production bug**:
+- User changes theme via new components → writes to `tailwind-color-theme`
+- Page reloads → `ThemeProvider` reads from `theme-color-brightness` (old value)
+- User's theme preference doesn't persist correctly
+
+**Recommended Fix (Aragorn's domain):**
+1. **Option A:** Update new components to call `themeManager.*` (lowercase) and use `theme-color-brightness`
+2. **Option B:** Remove `ThemeProvider`, update `MainLayout` to initialize `ThemeManager.*`, ensure `data-theme-ready` is still set
+
+**Critical:** Theme state won't sync correctly until production code uses a single localStorage key.
+
+## Testing
+
+Build succeeded with no compilation errors. Full E2E test run requires Docker. CI will validate on next push.
+
+## Rationale
+
+Tests should verify **actual behavior**, not planned behavior. When UI changes, tests must adapt to match what's actually rendered. However, production code must also be flagged when it contains bugs — test fixes don't absolve production issues.
+
+---
+
+#### Unified Theme System — Single localStorage Key (2026-03-28)
+
+**Author:** Aragorn (Lead Developer)  
+**Status:** Implemented  
+**PR:** #86 (squad/86-fix-failing-tests-and-web-razor-pages)
+
+**Context:**
+PR #86 introduced two new Blazor components for theme selection (`ThemeColorDropdownComponent.razor` and `ThemeBrightnessToggleComponent.razor`) that called `window.ThemeManager` (capital T) from `theme-manager.js`, writing to localStorage key `tailwind-color-theme`. However, the existing `ThemeProvider.razor.cs` component called `window.themeManager` (lowercase t) from `theme.js`, reading from localStorage key `theme-color-brightness`. This dual system prevented theme changes from persisting across page reloads.
+
+**Decision:**
+Consolidate to a single theme system:
+1. **Single localStorage key:** `tailwind-color-theme` (the key E2E tests now expect)
+2. **Single JS API:** `window.themeManager` from `theme.js` (lowercase)
+3. **Single source of truth:** `ThemeProvider.razor.cs` orchestrates theme state; all other components delegate to `themeManager` JS API
+
+**Changes:**
+- Updated `theme.js` to use `STORAGE_KEY: 'tailwind-color-theme'` instead of `'theme-color-brightness'`
+- Updated `ThemeColorDropdownComponent` and `ThemeBrightnessToggleComponent` to call `themeManager.*` methods
+- Removed `<script src="js/theme-manager.js">` from `App.razor`
+- Deleted `theme-manager.js`
+
+**Rationale:** Kept `theme.js` because it is the established, well-tested system integrated with `ThemeProvider`, provides the complete API, and sets `data-theme-ready="true"` for E2E tests. This was lower risk than rewriting `ThemeProvider` to use the duplicate `theme-manager.js`.
+
+**Impact:** Theme preferences now persist across page reloads; all theme controls share state; no FOUC.
+
+---
+
+**Next Steps:** Aragorn has unified the theme system per this decision. Tests should pass consistently.
+
+---
+

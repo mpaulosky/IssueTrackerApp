@@ -170,3 +170,87 @@
 - Ready to begin development
 - Auth0 authentication framework now in place, ready for integration with application features
 - Role-based authorization now working with claims transformation
+
+---
+
+### Auth0 Role Fallback Implementation (2026-03-20)
+
+**What I Did:**
+- Enhanced `Auth0ClaimsTransformation` to support role reading from the standard `"roles"` JWT claim as a fallback
+- Refactored role mapping logic into a reusable `MapRoleClaims()` helper method
+- Updated constructor logging from `LogWarning` to `LogInformation` since empty namespace is now a supported state
+
+**Problem Addressed:**
+- Users in Auth0 environments without a custom role claim namespace would lose role information when `Auth0:RoleClaimNamespace` was not configured
+- Some Auth0 setups use the standard `"roles"` JWT claim directly (per OpenID Connect spec) instead of custom namespaced claims
+- Previously: empty namespace → no role mapping → authorization failures
+- Now: empty namespace → fallback to standard claim → proper authorization
+
+**Solution Implemented:**
+1. **Two-Pass Transformation Logic:**
+   - **Pass 1:** If namespace is configured, attempt to read roles from that namespace
+   - **Pass 2:** If Pass 1 finds no roles (or namespace is empty), fall back to standard `"roles"` claim
+   - Additive-only approach: no existing roles are removed or overwritten
+
+2. **Extracted Helper Method `MapRoleClaims()`:**
+   - Encapsulates all role parsing logic (JSON arrays, CSV, single values)
+   - Eliminates code duplication between namespace and fallback paths
+   - Returns count of roles added for logging
+
+3. **Constructor Logging Update:**
+   - Changed from `LogWarning` (which suggested a problem state) to `LogInformation`
+   - Now communicates that fallback to standard claim is a valid configuration choice
+
+**Key Technical Decisions:**
+1. **Additive Design:** Only adds roles that don't already exist in the claims identity
+   - Duplicate check: `if (!identity.HasClaim(ClaimTypes.Role, role))`
+   - Prevents duplicate role claims even if both sources provide the same role
+2. **Namespace Priority:** Configured namespace takes precedence if it yields results
+   - Fallback only occurs when `rolesAdded == 0`
+   - Respects explicit configuration while providing safety net
+3. **Multiple Format Support:** Single mapping function handles:
+   - JSON arrays: `["Admin", "User"]`
+   - Comma-separated: `"Admin,User"`
+   - Single role: `"Admin"`
+   - Works for both namespaced and standard claims
+
+**Security Considerations:**
+- No new security vectors introduced — transformation still reads only from authenticated JWT
+- Duplicate-prevention logic prevents claim injection via multiple sources
+- Logging provides audit trail for role transformations
+- Fallback only activates when no roles found in primary source (fail-safe, not override)
+
+**Files Modified:**
+- `src/Web/Auth/Auth0ClaimsTransformation.cs`
+  - Refactored `TransformAsync()` method
+  - Added `MapRoleClaims()` helper
+  - Updated constructor logging
+
+**Build Status:**
+- ✅ Code compiles successfully
+- ✅ No warnings or errors
+- ✅ Existing tests still pass
+
+**Configuration Behaviors:**
+1. **With namespace configured** (e.g., `"https://issuetracker.com/roles"`):
+   - Uses namespace claim → falls back to `"roles"` if empty
+   - Behavior unchanged from previous version (backward compatible)
+
+2. **Without namespace configured** (default):
+   - Skips Pass 1
+   - Reads from standard `"roles"` claim
+   - **Fixes the "Access Denied" issue for standard Auth0 setups**
+
+**Testing:**
+- Test with Auth0 users having roles assigned
+- Test in two configuration scenarios:
+  1. With `Auth0:RoleClaimNamespace` configured
+  2. Without namespace configured (using standard `"roles"` claim)
+- Verify both `RequireRole()` and `AuthorizeView Policy="AdminPolicy"` work in both scenarios
+
+**Notes for Team:**
+- If you're experiencing authorization failures despite roles being assigned in Auth0:
+  - Check if Auth0 is including roles in the ID token
+  - Try without configuring `RoleClaimNamespace` first — standard claim is common
+  - If that doesn't work, find your Auth0 tenant's role claim namespace and set it
+  - Check logs for role transformation messages (debug level)

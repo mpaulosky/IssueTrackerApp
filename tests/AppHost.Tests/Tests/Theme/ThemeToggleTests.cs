@@ -77,11 +77,13 @@ public class ThemeToggleTests : BasePlaywrightTests
 	public async Task ThemeToggle_SelectDark_AddsDarkClassToHtml()
 	{
 		// Arrange — ensure we start in light mode
+		// The new ThemeBrightnessToggleComponent uses ThemeManager (uppercase) which stores in
+		// 'tailwind-color-theme', NOT 'theme-color-brightness' (old ThemeProvider system).
 		await InteractWithPageAsync("web", async page =>
 		{
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-			await page.EvaluateAsync("localStorage.setItem('theme-color-brightness', 'theme-blue-light')");
+			await page.EvaluateAsync("localStorage.setItem('tailwind-color-theme', 'theme-blue-light')");
 			await page.ReloadAsync();
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
@@ -89,19 +91,20 @@ public class ThemeToggleTests : BasePlaywrightTests
 			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
 			await toggleBtn.WaitForAsync();
 
-			// Wait for ThemeProvider to initialize — SetBrightnessAsync checks _isInitialized and
-			// returns early (no-op) if called before JS interop has run on the server.
-			// data-theme-ready is set by themeManager.markInitialized() after initialization.
+			// Wait for ThemeProvider to initialize — data-theme-ready is set by
+			// themeManager.markInitialized() after ThemeProvider's OnAfterRenderAsync completes.
 			await page.WaitForFunctionAsync(
 				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			await toggleBtn.ClickAsync();
 
-			// Wait for Blazor to process the event and JS to apply the dark class
+			// Wait for ThemeManager.selectBrightnessAndUpdateUI to apply the dark class
 			await page.WaitForFunctionAsync(
 				"document.documentElement.classList.contains('dark')",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Assert
 			var isDark = await page.EvaluateAsync<bool>("document.documentElement.classList.contains('dark')");
@@ -112,40 +115,47 @@ public class ThemeToggleTests : BasePlaywrightTests
 	[Fact]
 	public async Task ThemeToggle_SelectLight_RemovesDarkClassFromHtml()
 	{
-		// Arrange — seed localStorage with dark theme and navigate fresh so theme.js applies it.
-		// Wait for ThemeProvider to fully initialize (button title reflects dark state).
-		// Then click once and wait for Blazor to reflect light state via button title.
+		// Arrange — seed localStorage with dark theme and navigate fresh so theme-manager.js applies it.
+		// The new ThemeBrightnessToggleComponent uses ThemeManager (uppercase) which stores in
+		// 'tailwind-color-theme', NOT 'theme-color-brightness' (old ThemeProvider system).
+		// Wait for ThemeProvider to fully initialize (data-theme-ready), then click and verify.
 		await InteractWithPageAsync("web", async page =>
 		{
-			// Seed localStorage in first navigation then navigate again so theme.js picks it up
+			// Seed localStorage in first navigation then navigate again so theme-manager.js picks it up
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-			await page.EvaluateAsync("localStorage.setItem('theme-color-brightness', 'theme-blue-dark')");
+			await page.EvaluateAsync("localStorage.setItem('tailwind-color-theme', 'theme-blue-dark')");
 
-			// Fresh navigation so theme.js initialize() reads the stored dark value
+			// Fresh navigation so theme-manager.js initialize() reads the stored dark value
 			await page.GotoAsync("/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			// Wait for ThemeProvider to initialize and recognize dark mode:
-			// title = "Switch to light mode" only when _isInitialized = true AND IsDarkMode = true
+			// Wait for ThemeProvider to initialize (sets data-theme-ready)
+			await page.WaitForFunctionAsync(
+				"document.documentElement.getAttribute('data-theme-ready') === 'true'",
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
+
+			// Wait for button title to reflect dark mode (component reads from localStorage on render)
 			await page.WaitForFunctionAsync(
 				"document.querySelector('button[aria-label=\"Toggle brightness\"]')?.title === 'Switch to light mode'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Act — single click from dark → light
 			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
 			await toggleBtn.ClickAsync();
 
-			// Wait for Blazor to finish processing and reflect light state in the button title.
-			// The title changes to "Switch to dark mode" only after SetBrightnessAsync("light") completes
-			// and StateHasChanged propagates — at that point the dark class is guaranteed removed.
+			// Wait for the component to update its title to reflect the new light state
 			await page.WaitForFunctionAsync(
 				"document.querySelector('button[aria-label=\"Toggle brightness\"]')?.title === 'Switch to dark mode'",
-				new PageWaitForFunctionOptions { Timeout = 15000 });
+				null,
+				new PageWaitForFunctionOptions { Timeout = 30000 });
 
 			// Assert via localStorage (source of truth for the theme engine)
-			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('theme-color-brightness')");
-			themeValue.Should().NotEndWith("-dark", because: "SetBrightnessAsync('light') should have stored theme-blue-light");
+			// ThemeManager writes to 'tailwind-color-theme', not 'theme-color-brightness'
+			var themeValue = await page.EvaluateAsync<string?>("localStorage.getItem('tailwind-color-theme')");
+			themeValue.Should().NotEndWith("-dark", because: "ThemeManager.selectBrightnessAndUpdateUI('light') should have stored theme-blue-light");
 		});
 	}
 }
