@@ -15,6 +15,10 @@
 | Blog posts, GitHub Pages, project announcements, changelog posts, feature write-ups | Bilbo | Tech Blogger |
 | Auth0, authentication, authorization, JWT, RBAC, security audit, vulnerabilities, injection, XSS, CSRF, secrets, HTTPS, CORS, security headers, security review | Gandalf | Security |
 | GitHub board, issues, PRs, backlog, work queue | Ralph | Work Monitor |
+| PR with reviewDecision: CHANGES_REQUESTED | Aragorn | Lead routes fix to non-author agent |
+| PR with mergeable: CONFLICTED | Aragorn | Lead determines resolver by file domain |
+| PR with statusCheckRollup: FAILURE | Boromir + author agent | CI failure: Boromir diagnoses, author fixes |
+| PR ready for review (CI green, no conflicts) | Aragorn + domain reviewers | Spawn per files-changed table in ceremonies.md |
 | Untriaged issues (squad label, no squad:* sub-label) | Aragorn | Lead triages |
 | squad:aragorn | Aragorn | — |
 | squad:legolas | Legolas | — |

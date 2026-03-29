@@ -1379,3 +1379,76 @@ if (string.IsNullOrWhiteSpace(roleValue))
 **Related:** Issue #93 (Sprint 3 — Auth0ClaimsTransformation Unit Tests)
 
 ---
+
+#### Formal PR Review Process (2026-03-29)
+
+**Author:** Aragorn (Lead)  
+**Requested by:** Matthew Paulosky
+
+**Decision:** A formal PR review process is now in effect. No PR may merge without passing pre-review gates (CI green, mergeable, template filled), unanimous reviewer approval per domain, and pre-merge gates (APPROVED, CI still green, no CHANGES_REQUESTED).
+
+**Review Matrix:**
+- **Aragorn:** All PRs (lead, always required)
+- **Boromir:** `.github/workflows/`, `AppHost.csproj`, `Directory.Packages.props`
+- **Gandalf:** Auth sections, `Auth/`, `appsettings*.json` auth
+- **Gimli:** `tests/Domain.Tests/`, `tests/Web.Tests.Bunit/`, `tests/Persistence.*/`
+- **Pippin:** `tests/AppHost.Tests/` (Playwright/Aspire E2E)
+- **Sam:** `src/Domain/`, `src/Persistence.*/`, `src/Web/Endpoints/`, `src/Web/Features/`
+- **Legolas:** `src/Web/Components/`, `*.razor`, `*.razor.css`, `wwwroot/`
+- **Frodo:** `docs/`, `README.md`, XML doc changes
+
+**Artifacts:**
+- `.github/pull_request_template.md` — PR checklist with domain checkboxes
+- `.squad/ceremonies.md` — PR Review Gate, CHANGES_REQUESTED Ceremony, Merge Conflict Resolution
+- `.squad/routing.md` — New PR state signals (CHANGES_REQUESTED, CONFLICTED, CI FAILURE, ready-for-review)
+- `.squad/agents/ralph/charter.md` — Pre-review/pre-merge gate tables
+
+**CHANGES_REQUESTED Handling:**
+1. Ralph detects → pings Aragorn
+2. Aragorn routes fix to different agent (author locked out)
+3. Fix agent pushes; CI re-passes
+4. Original reviewer re-approves
+5. Cycle continues until unanimous
+
+**Merge Conflict Resolution:**
+1. Ralph detects CONFLICTED → pings Aragorn
+2. Aragorn routes by domain (Sam=backend, Legolas=frontend, Boromir=CI, Aragorn=mixed)
+3. Resolver merges origin/main, resolves, pushes
+4. Full re-review required (existing reviews invalidated)
+
+**Trade-offs:** ≥2 reviewers per PR (acceptable for small squad), unanimous can slow hotfixes (waivable by Aragorn for non-critical).
+
+---
+
+#### GitHub Repository Protection & CI Infrastructure (2026-03-29)
+
+**Author:** Boromir (DevOps)  
+**Requested by:** Matthew Paulosky
+
+**Decision:** Branch protection on `main` now enforces 1 required review, build check, and stale review dismissal. Squash-only merges + auto-delete branches. CI workflow fixed to run real .NET builds.
+
+**Branch Protection (`main`):**
+- Required checks: `build (ubuntu-latest)` from squad-ci.yml
+- Required reviews: 1 (CODEOWNERS auto-request)
+- Stale reviews dismissed on new pushes
+- Force push disabled, deletions disabled
+
+**Merge Strategy:**
+- Squash merge only (linear history)
+- Rebase + merge commit disabled
+- Auto-delete branches on merge
+
+**CODEOWNERS:**
+- @mpaulosky (lead + DevOps) across all critical files
+- Role-based routing: AGENTS.md/CODEOWNERS/.github/ → Boromir; src/Domain/ → Sam; src/Web/Components/ → Legolas; tests/ → Gimli/Pippin; Auth/ → Gandalf; docs/ → Frodo
+
+**CI Workflow (squad-ci.yml):**
+- Fixed from stub to real `dotnet restore && dotnet build --configuration Release`
+- Runs on PRs to [dev, preview, main, insider] + pushes to [dev, insider]
+- Single job: `build (ubuntu-latest)` with .NET from global.json
+
+**Rationale:** PR Review Process infrastructure layer. Ensures code quality gates, prevents unreviewed merges, maintains clean main history.
+
+**Next Steps:** Monitor first PRs to confirm protection works; add test checks to required_status_checks once squad-test.yml job names confirmed.
+
+---
