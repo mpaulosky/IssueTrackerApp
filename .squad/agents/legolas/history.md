@@ -655,3 +655,7 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 - **Global CSS rules are dangerous:** A global `nav {}` rule conflicted with multiple nav use cases (breadcrumbs, pagination, admin layout). Better to strip it and let components define explicit classes.
 - **Empty CSS rules are acceptable:** Leaving `nav {}` with empty body documents that the rule was intentionally removed, not forgotten
 - **Component naming consistency:** Task spec used `LoginComponent` vs. existing `LoginDisplay`. When in doubt, follow the spec or check which component provides the right UI experience for the context.
+
+## Learnings
+
+- **Footer text size fix** (`src/Web/Components/Layout/FooterComponent.razor`): Removed `text-xs` from the inner `<div>` holding version/commit links so all footer text inherits `text-base` and matches the copyright span. Also removed the invalid `txt-3xl` class (typo — Tailwind prefix is `text-`, not `txt-`) from both `<a>` elements. Always verify Tailwind utility prefixes; a wrong prefix silently does nothing.

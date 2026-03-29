@@ -1245,3 +1245,9 @@ Approve and merge using `gh pr merge 87 --squash --auto`.
 - GitHub Actions workflows updated to latest compatible versions
 - Improved CI/CD stability and security
 - No application code changes required
+
+---
+
+### 2026-03-29: Footer text size unified
+
+**What:** Removed `text-xs` from footer inner div and removed invalid `txt-3xl` class from version/commit links. All footer text now defaults to `text-base`.

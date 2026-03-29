@@ -4,12 +4,12 @@
 		<span class="font-semibold text-primary-900 dark:text-primary-50">&copy; @DateTime.Now.Year IssueTracker &mdash;
 			Built with .NET 10 &amp; Blazor</span>
 
-			<div class="flex items-center gap-4 font-mono text-xs">
-				<a href="@_releaseUrl" target="_blank" rel="noopener noreferrer" class="txt-3xl"
+			<div class="flex items-center gap-4 font-mono">
+				<a href="@_releaseUrl" target="_blank" rel="noopener noreferrer" class=""
 					 title="View @BuildInfo.Version on GitHub">
 					@BuildInfo.Version
 				</a>
-				<a href="@_commitUrl" target="_blank" rel="noopener noreferrer" class="txt-3xl"
+				<a href="@_commitUrl" target="_blank" rel="noopener noreferrer" class=""
 					 title="View commit @BuildInfo.Commit on GitHub">
 					@BuildInfo.Commit
 				</a>
