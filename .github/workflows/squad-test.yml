@@ -705,7 +705,7 @@ jobs:
           path: coverage-output
 
       - name: Publish to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         if: always()
         with:
           fail_ci_if_error: false
