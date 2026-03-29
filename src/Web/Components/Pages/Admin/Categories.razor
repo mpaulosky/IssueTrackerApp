@@ -1,10 +1,7 @@
 @page "/admin/categories"
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 @using Web.Auth
 @using Web.Services
 @using Domain.DTOs
-@using Web.Components.Shared
 
 @inject ICategoryService CategoryService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -12,7 +9,7 @@
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminPolicy)]
 @attribute [StreamRendering]
 
-<PageTitle>Categories - Admin - IssueTracker</PageTitle>
+<PageHeaderComponent Level="1" HeaderText="@PageTitle" />
 
 <AdminPageLayout Title="Categories" Description="Manage issue categories used throughout the application.">
 	<!-- Action Bar -->
@@ -20,17 +17,15 @@
 		<div class="flex items-center space-x-4">
 			<label class="inline-flex items-center">
 				<input type="checkbox"
-				       class="rounded border-gray-300 dark:border-gray-600 text-primary-600 shadow-sm focus:ring-primary-500"
-				       @bind="_includeArchived"
-				       @bind:after="LoadCategoriesAsync" />
+							 class="rounded border-gray-300 dark:border-gray-600 text-primary-600 shadow-sm focus:ring-primary-500"
+							 @bind="_includeArchived" @bind:after="LoadCategoriesAsync" />
 				<span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Show archived</span>
 			</label>
 		</div>
-		<button type="button"
-		        class="btn-primary justify-center dark:focus:ring-offset-gray-900"
-		        @onclick="OpenCreateModal">
+		<button type="button" class="btn-primary justify-center dark:focus:ring-offset-gray-900" @onclick="OpenCreateModal">
 			<svg class="-ml-0.5 mr-1.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-				<path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+				<path
+				d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
 			</svg>
 			Create Category
 		</button>
@@ -43,7 +38,9 @@
 			<div class="flex">
 				<div class="flex-shrink-0">
 					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+						<path fill-rule="evenodd"
+									d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+									clip-rule="evenodd" />
 					</svg>
 				</div>
 				<div class="ml-3">
@@ -52,7 +49,8 @@
 				<div class="ml-auto pl-3">
 					<button type="button" class="text-red-500 hover:text-red-600" @onclick="() => _errorMessage = null">
 						<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-							<path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+							<path
+							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
 						</svg>
 					</button>
 				</div>
@@ -67,7 +65,9 @@
 			<div class="flex">
 				<div class="flex-shrink-0">
 					<svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+						<path fill-rule="evenodd"
+									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+									clip-rule="evenodd" />
 					</svg>
 				</div>
 				<div class="ml-3">
@@ -76,7 +76,8 @@
 				<div class="ml-auto pl-3">
 					<button type="button" class="text-green-500 hover:text-green-600" @onclick="() => _successMessage = null">
 						<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-							<path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+							<path
+							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
 						</svg>
 					</button>
 				</div>
@@ -88,9 +89,12 @@
 	@if (_isLoading)
 	{
 		<div class="flex justify-center py-12">
-			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+			<svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+					 viewBox="0 0 24 24">
 				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+				<path class="opacity-75" fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+				</path>
 			</svg>
 		</div>
 	}
@@ -99,16 +103,16 @@
 		<!-- Empty State -->
 		<div class="card text-center py-12">
 			<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
 			</svg>
 			<h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No categories</h3>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new category.</p>
 			<div class="mt-6">
-				<button type="button"
-				        class="btn-primary"
-				        @onclick="OpenCreateModal">
+				<button type="button" class="btn-primary" @onclick="OpenCreateModal">
 					<svg class="-ml-0.5 mr-1.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-						<path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+						<path
+						d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
 					</svg>
 					Create Category
 				</button>
@@ -122,16 +126,20 @@
 			<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
 				<thead class="bg-gray-50 dark:bg-gray-700">
 					<tr>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						<th scope="col"
+								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 							Name
 						</th>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						<th scope="col"
+								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 							Description
 						</th>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						<th scope="col"
+								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 							Status
 						</th>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						<th scope="col"
+								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 							Created
 						</th>
 						<th scope="col" class="relative px-6 py-3">
@@ -149,7 +157,8 @@
 								</div>
 							</td>
 							<td class="px-6 py-4">
-								<div class="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title="@category.CategoryDescription">
+								<div class="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate"
+										 title="@category.CategoryDescription">
 									@category.CategoryDescription
 								</div>
 							</td>
@@ -172,23 +181,22 @@
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
 								<button type="button"
-								        class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
-								        @onclick="() => OpenEditModal(category)">
+												class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
+												@onclick="() => OpenEditModal(category)">
 									Edit
 								</button>
 								@if (category.Archived)
 								{
 									<button type="button"
-									        class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
-									        @onclick="() => ToggleArchive(category)">
+													class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
+													@onclick="() => ToggleArchive(category)">
 										Restore
 									</button>
 								}
 								else
 								{
-									<button type="button"
-									        class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-									        @onclick="() => ToggleArchive(category)">
+									<button type="button" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+													@onclick="() => ToggleArchive(category)">
 										Archive
 									</button>
 								}
@@ -206,8 +214,7 @@
 {
 	<div class="modal-overlay" aria-labelledby="modal-title" role="dialog" aria-modal="true">
 		<div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-			<div class="modal-backdrop"
-			     @onclick="CloseModal"></div>
+			<div class="modal-backdrop" @onclick="CloseModal"></div>
 
 			<span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
@@ -225,10 +232,8 @@
 								<label for="category-name" class="form-label">
 									Name <span class="text-red-500">*</span>
 								</label>
-								<InputText id="category-name"
-								           @bind-Value="_model.Name"
-								           class="form-input mt-1"
-								           placeholder="Enter category name" />
+								<InputText id="category-name" @bind-Value="_model.Name" class="form-input mt-1"
+													 placeholder="Enter category name" />
 								<ValidationMessage For="@(() => _model.Name)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
 							</div>
 
@@ -236,25 +241,24 @@
 								<label for="category-description" class="form-label">
 									Description <span class="text-red-500">*</span>
 								</label>
-								<InputTextArea id="category-description"
-								               @bind-Value="_model.Description"
-								               rows="3"
-								               class="form-input mt-1"
-								               placeholder="Enter category description" />
-								<ValidationMessage For="@(() => _model.Description)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+								<InputTextArea id="category-description" @bind-Value="_model.Description" rows="3" class="form-input mt-1"
+															 placeholder="Enter category description" />
+								<ValidationMessage For="@(() => _model.Description)"
+																	 class="mt-1 text-sm text-red-600 dark:text-red-400" />
 							</div>
 						</div>
 					</div>
 
 					<div class="card-footer gap-3">
-						<button type="submit"
-						        disabled="@_isSubmitting"
-						        class="btn-primary w-full justify-center sm:w-auto">
+						<button type="submit" disabled="@_isSubmitting" class="btn-primary w-full justify-center sm:w-auto">
 							@if (_isSubmitting)
 							{
-								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+										 viewBox="0 0 24 24">
 									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+									<path class="opacity-75" fill="currentColor"
+												d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+									</path>
 								</svg>
 								<span>Saving...</span>
 							}
@@ -263,9 +267,8 @@
 								<span>@(_isEditing ? "Update" : "Create")</span>
 							}
 						</button>
-						<button type="button"
-						        class="btn-secondary mt-3 w-full justify-center sm:mt-0 sm:w-auto"
-						        @onclick="CloseModal">
+						<button type="button" class="btn-secondary mt-3 w-full justify-center sm:mt-0 sm:w-auto"
+										@onclick="CloseModal">
 							Cancel
 						</button>
 					</div>
@@ -276,6 +279,9 @@
 }
 
 @code {
+
+	private const string PageTitle = "Categories - Admin - IssueTracker";
+
 	private IEnumerable<CategoryDto>? _categories;
 	private bool _isLoading = true;
 	private bool _includeArchived;

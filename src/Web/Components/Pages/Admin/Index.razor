@@ -2,7 +2,7 @@
 @using Web.Auth
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminPolicy)]
 
-<PageTitle>Admin Dashboard - IssueTracker</PageTitle>
+<PageHeaderComponent Level="1" HeaderText="Admin Dashboard - IssueTracker" />
 
 <AdminPageLayout Title="Admin Dashboard" Description="Manage application settings and lookup data.">
 	<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
