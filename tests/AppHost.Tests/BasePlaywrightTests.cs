@@ -120,10 +120,9 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Polls <c>/health</c> on the given endpoint until it returns 2xx or the timeout elapses.
+	/// Polls <c>/alive</c> on the given endpoint until it returns 2xx or the timeout elapses.
 	/// Uses a certificate-ignoring handler so that self-signed HTTPS certs in CI don't block startup.
-	/// This replaces <c>WaitForResourceHealthyAsync</c> which relies on Aspire DCP's HTTPS health
-	/// check and fails in CI due to self-signed certificate rejection.
+	/// Using /alive (not /health) prevents flaky failures when Redis/MongoDB are slow to start in CI — the Testing environment uses in-memory fakes and doesn't need those dependencies.
 	/// </summary>
 	private static async Task WaitForWebReadyAsync(Uri endpoint, TimeSpan timeout)
 	{
@@ -141,7 +140,7 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 			{
 				try
 				{
-					var response = await client.GetAsync("/health", cts.Token);
+					var response = await client.GetAsync("/alive", cts.Token);
 					if (response.IsSuccessStatusCode)
 						return;
 				}

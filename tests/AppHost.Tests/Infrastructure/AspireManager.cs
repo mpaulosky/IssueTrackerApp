@@ -55,16 +55,16 @@ public class AspireManager : IAsyncLifetime
 		App = await builder.BuildAsync();
 		await App.StartAsync();
 
-		// Wait for the web service to be healthy before tests run.
-		// This ensures Redis and other Aspire dependencies are ready.
+		// Wait for the web process to be alive before tests run.
+		// Uses /alive (not /health) to avoid blocking on Redis/MongoDB in CI.
 		// CI cold-start can take up to 2 min; local dev is typically ~10 s.
 		await WaitForWebHealthyAsync(TimeSpan.FromSeconds(120));
 	}
 
 	/// <summary>
-	/// Polls the web service's /health endpoint until it returns 2xx or the timeout elapses.
+	/// Polls the web service's /alive endpoint until it returns 2xx or the timeout elapses.
 	/// Uses a certificate-ignoring handler so that self-signed HTTPS certs in CI don't block startup.
-	/// This ensures all Aspire-managed resources (Redis, MongoDB, Web) are healthy before tests run.
+	/// Using /alive (not /health) avoids waiting for Redis/MongoDB — the Testing environment uses in-memory fakes.
 	/// </summary>
 	private async Task WaitForWebHealthyAsync(TimeSpan timeout)
 	{
@@ -95,7 +95,7 @@ public class AspireManager : IAsyncLifetime
 			{
 				try
 				{
-					var response = await client.GetAsync("/health", cts.Token);
+					var response = await client.GetAsync("/alive", cts.Token);
 					if (response.IsSuccessStatusCode)
 						return;
 				}

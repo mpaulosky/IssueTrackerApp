@@ -77,3 +77,26 @@ I own E2E tests (`tests/AppHost.Tests/`) and Aspire integration test infrastruct
 
 **Testing:** Build succeeded with no errors. Tests cannot run locally without Docker but fixes address diagnosed root causes. CI will validate on next push.
 
+### 2026-03-29: Switch from /health to /alive for Test Startup Polling (PR #86)
+
+**Task:** Fix 2 flaky CI test failures caused by Redis health check timeouts blocking test startup.
+
+**Root Cause:** Both `AspireManager.WaitForWebHealthyAsync` and `BasePlaywrightTests.WaitForWebReadyAsync` polled `/health`, which includes Redis and MongoDB health checks. In CI, Redis container startup could exceed the 120s timeout, causing `/health` to return unhealthy indefinitely and tests to fail with connection timeouts.
+
+**Solution Implemented:**
+1. Changed both polling methods from `/health` to `/alive`
+2. Updated XML doc comments to reflect that `/alive` is a liveness probe (ASP.NET Core process running) not a readiness probe (all dependencies healthy)
+3. Updated `StartAppAsync` comment to clarify that the wait is for the web process to be alive, not for Redis/MongoDB to be healthy
+4. Emphasized in comments that the Testing environment uses in-memory fakes (FakeRepository) and doesn't depend on Redis/MongoDB at runtime
+
+**Key Insights:**
+1. **/alive vs /health distinction** — `/alive` returns 200 as soon as the ASP.NET Core process is up, regardless of dependency health. `/health` waits for ALL health checks (Redis, MongoDB) to pass. For test startup, we only need to know the web process is running — the Testing environment doesn't use Redis or MongoDB.
+2. **Testing environment is self-contained** — The `ASPNETCORE_ENVIRONMENT=Testing` configuration uses `FakeRepository` (in-memory), cookie auth (no Auth0), and skips background services. Redis and MongoDB are Aspire orchestration artifacts only — they don't affect test execution.
+3. **Health checks are for production readiness, not test startup** — Waiting for production-level readiness (all dependencies healthy) in a test environment that doesn't use those dependencies is unnecessary and causes CI flakiness.
+
+**Files Modified:**
+- `tests/AppHost.Tests/Infrastructure/AspireManager.cs` — Changed `WaitForWebHealthyAsync` to poll `/alive` (line 98); updated doc comment and `StartAppAsync` comment
+- `tests/AppHost.Tests/BasePlaywrightTests.cs` — Changed `WaitForWebReadyAsync` to poll `/alive` (line 144); updated doc comment
+
+**Testing:** Build succeeded with no compilation errors. Full AppHost.Tests suite requires Docker. CI will validate the fix on next push.
+
