@@ -225,32 +225,16 @@
 					<div class="p-4 space-y-3">
 						<a href="/issues/create"
 							 class="btn-primary w-full justify-center py-3 dark:focus:ring-offset-gray-800 transition-colors">
-							<svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-								<path
-								d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-							</svg>
 							Create New Issue
 						</a>
 						<a href="/issues"
 							 class="btn-secondary w-full justify-center py-3 dark:focus:ring-offset-gray-800 transition-colors">
-							<svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg"
-									 viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd"
-											d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z"
-											clip-rule="evenodd" />
-							</svg>
 							View All Issues
 						</a>
 						<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy">
 							<Authorized>
 								<a href="/admin"
 									 class="btn-secondary w-full justify-center py-3 dark:focus:ring-offset-gray-800 transition-colors">
-									<svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg"
-											 viewBox="0 0 20 20" fill="currentColor">
-										<path fill-rule="evenodd"
-													d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm2.25 8.5a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5zm0 3a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z"
-													clip-rule="evenodd" />
-									</svg>
 									Admin Dashboard
 								</a>
 							</Authorized>
