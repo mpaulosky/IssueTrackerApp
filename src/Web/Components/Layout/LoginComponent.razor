@@ -3,12 +3,12 @@
 <AuthorizeView>
 	<Authorized>
 		<form method="post" action="/account/logout" data-enhance="false" class="inline">
-			<AntiforgeryToken/>
+			<AntiforgeryToken />
 			<button type="submit" class="btn-danger transition-colors">Log out</button>
 		</form>
 	</Authorized>
 	<NotAuthorized>
 		<a href="/account/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" class="btn-primary transition-colors">Log
 			in</a>
-	</NotAuthorized>
-</AuthorizeView>
+		</NotAuthorized>
+	</AuthorizeView>

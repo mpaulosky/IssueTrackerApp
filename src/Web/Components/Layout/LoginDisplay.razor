@@ -3,9 +3,9 @@
 <AuthorizeView>
 	<Authorized>
 		<div class="flex items-center gap-4">
-			<a href="/user/profile">Hey @context.User.Identity?.Name!</a>
+			<a href="/profile">Hey @context.User.Identity?.Name!</a>
 			<form method="post" action="/account/logout" data-enhance="false" class="inline">
-				<AntiforgeryToken/>
+				<AntiforgeryToken />
 				<button type="submit" class="btn-danger transition-colors">Log out</button>
 			</form>
 		</div>
@@ -13,4 +13,4 @@
 	<NotAuthorized>
 		<a href="/account/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" class="btn-primary transition-colors">Log in</a>
 	</NotAuthorized>
-</AuthorizeView>
+	</AuthorizeView>
