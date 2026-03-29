@@ -1180,7 +1180,34 @@ Tests should verify **actual behavior**, not planned behavior. When UI changes, 
 
 ---
 
-**Next Steps:** Matthew or Aragorn should unify the theme system to use a single localStorage key before merging PR #86.
+#### Unified Theme System — Single localStorage Key (2026-03-28)
+
+**Author:** Aragorn (Lead Developer)  
+**Status:** Implemented  
+**PR:** #86 (squad/86-fix-failing-tests-and-web-razor-pages)
+
+**Context:**
+PR #86 introduced two new Blazor components for theme selection (`ThemeColorDropdownComponent.razor` and `ThemeBrightnessToggleComponent.razor`) that called `window.ThemeManager` (capital T) from `theme-manager.js`, writing to localStorage key `tailwind-color-theme`. However, the existing `ThemeProvider.razor.cs` component called `window.themeManager` (lowercase t) from `theme.js`, reading from localStorage key `theme-color-brightness`. This dual system prevented theme changes from persisting across page reloads.
+
+**Decision:**
+Consolidate to a single theme system:
+1. **Single localStorage key:** `tailwind-color-theme` (the key E2E tests now expect)
+2. **Single JS API:** `window.themeManager` from `theme.js` (lowercase)
+3. **Single source of truth:** `ThemeProvider.razor.cs` orchestrates theme state; all other components delegate to `themeManager` JS API
+
+**Changes:**
+- Updated `theme.js` to use `STORAGE_KEY: 'tailwind-color-theme'` instead of `'theme-color-brightness'`
+- Updated `ThemeColorDropdownComponent` and `ThemeBrightnessToggleComponent` to call `themeManager.*` methods
+- Removed `<script src="js/theme-manager.js">` from `App.razor`
+- Deleted `theme-manager.js`
+
+**Rationale:** Kept `theme.js` because it is the established, well-tested system integrated with `ThemeProvider`, provides the complete API, and sets `data-theme-ready="true"` for E2E tests. This was lower risk than rewriting `ThemeProvider` to use the duplicate `theme-manager.js`.
+
+**Impact:** Theme preferences now persist across page reloads; all theme controls share state; no FOUC.
+
+---
+
+**Next Steps:** Aragorn has unified the theme system per this decision. Tests should pass consistently.
 
 ---
 
