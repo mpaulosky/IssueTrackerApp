@@ -120,9 +120,10 @@ public class Auth0ClaimsTransformationTests
 	}
 
 	[Fact]
-	public async Task TransformAsync_WithMissingNamespace_SkipsTransformation()
+	public async Task TransformAsync_WithNamespaceClaimButNoNamespaceConfig_ShouldAutoDetectViaPass3()
 	{
-		// Arrange — no namespace configured
+		// Arrange — no namespace configured, but principal carries a namespaced role claim.
+		// Pass 3 auto-detects claim types ending in "/roles" and maps them.
 		var transformation = CreateTransformation(roleClaimNamespace: null);
 		var principal = CreatePrincipal(
 			new Claim(ClaimTypes.NameIdentifier, "user123"),
@@ -131,14 +132,15 @@ public class Auth0ClaimsTransformationTests
 		// Act
 		var result = await transformation.TransformAsync(principal);
 
-		// Assert — should NOT add standard role claims since namespace isn't configured
-		result.HasClaim(ClaimTypes.Role, "Admin").Should().BeFalse();
+		// Assert — Pass 3 should auto-detect the "https://issuetracker.com/roles" claim
+		result.HasClaim(ClaimTypes.Role, "Admin").Should().BeTrue();
 	}
 
 	[Fact]
-	public async Task TransformAsync_WithEmptyNamespace_SkipsTransformation()
+	public async Task TransformAsync_WithNamespaceClaimAndEmptyNamespaceConfig_ShouldAutoDetectViaPass3()
 	{
-		// Arrange
+		// Arrange — empty namespace configured, but principal carries a namespaced role claim.
+		// Pass 3 auto-detects claim types ending in "/roles" and maps them.
 		var transformation = CreateTransformation(roleClaimNamespace: "");
 		var principal = CreatePrincipal(
 			new Claim(ClaimTypes.NameIdentifier, "user123"),
@@ -147,8 +149,8 @@ public class Auth0ClaimsTransformationTests
 		// Act
 		var result = await transformation.TransformAsync(principal);
 
-		// Assert
-		result.HasClaim(ClaimTypes.Role, "Admin").Should().BeFalse();
+		// Assert — Pass 3 should auto-detect the "https://issuetracker.com/roles" claim
+		result.HasClaim(ClaimTypes.Role, "Admin").Should().BeTrue();
 	}
 
 	[Fact]
