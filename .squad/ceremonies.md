@@ -2,6 +2,65 @@
 
 ## Defined Ceremonies
 
+> **Plan Mode Standard Process:** Every `/plan` session MUST produce a milestone + sprint structure before work begins. No issue should be worked without being assigned to a sprint. This is the team's planning contract.
+
+### Plan Ceremony
+
+- **Trigger:** manual — when the user enters plan mode (`/plan` command or [[PLAN]] prefix)
+- **When:** after plan.md is finalized and user approves the plan
+- **Facilitator:** Aragorn
+- **Participants:** Aragorn (lead), Ralph (work monitor)
+- **Purpose:** Convert the approved plan.md into trackable GitHub milestones and sprint structure
+
+#### Phase 1: Milestone Creation
+
+1. Derive the milestone name from the plan title or epic (e.g., "Sprint 1 — {feature/epic name}")
+2. Set a due date if the user specified one; otherwise leave blank
+3. Create via GitHub API (note: `gh` does not have a `milestone create` subcommand natively):
+   ```bash
+   gh api repos/{owner}/{repo}/milestones --method POST \
+     --field title="{milestone-name}" \
+     --field description="{plan summary}" \
+     [--field due_on="{ISO8601}"]
+   ```
+4. Confirm creation and record the milestone number
+
+#### Phase 2: Sprint Definition
+
+1. Review the todos from plan.md (or the SQL todos table)
+2. Group todos into sprints — default sprint size: **5–8 issues** per sprint, or by logical dependency grouping
+3. Name sprints: `Sprint {N} — {theme}` (e.g., "Sprint 1 — Foundation", "Sprint 2 — Core Features")
+4. Each sprint should represent a shippable increment
+
+#### Phase 3: Issue Creation + Sprint Assignment
+
+1. For each todo in the plan, create a GitHub issue:
+   ```bash
+   gh issue create --title "{todo title}" \
+     --body "{todo description}" \
+     --label "squad" \
+     --milestone "{milestone-name}"
+   ```
+2. Assign sprint grouping via a label: `sprint-{N}` (create the label if it doesn't exist):
+   ```bash
+   gh label create "sprint-{N}" --color "{color}" \
+     --description "Sprint {N}" 2>/dev/null || true
+   gh issue edit {number} --add-label "sprint-{N}"
+   ```
+3. Add appropriate `squad:{member}` routing labels based on the todo domain
+
+#### Phase 4: Board Summary
+
+Present a summary table:
+```
+📅 Milestone: {name} (#{number})
+├── 🏃 Sprint 1 — {theme}: {N} issues
+│   ├── #{issue} {title} [squad:sam]
+│   └── #{issue} {title} [squad:legolas]
+└── 🏃 Sprint 2 — {theme}: {N} issues
+    └── ...
+```
+
 ### Pre-Sprint Planning
 
 - **Trigger:** manual ("run sprint planning", "plan the sprint")
