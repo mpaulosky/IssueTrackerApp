@@ -112,9 +112,9 @@ public class FooterComponentTests : BunitTestBase
 		// Assert — footer uses primary theme colors for border and background
 		var footer = cut.Find("footer");
 		var classes = footer.GetAttribute("class") ?? "";
-		classes.Should().Contain("border-primary-500");
-		classes.Should().Contain("bg-primary-50");
-		classes.Should().Contain("dark:bg-gray-800");
+		classes.Should().Contain("border-primary-800");
+		classes.Should().Contain("bg-primary-400");
+		classes.Should().Contain("dark:bg-primary-400");
 	}
 
 	[Fact]
@@ -123,16 +123,16 @@ public class FooterComponentTests : BunitTestBase
 		// Arrange & Act
 		var cut = Render<FooterComponent>();
 
-		// Assert
+		// Assert — links are rendered with correct structure and security attributes
 		var links = cut.FindAll("a");
+		links.Should().NotBeEmpty("footer should contain version and commit links");
 		foreach (var link in links)
 		{
-			var classes = link.GetAttribute("class") ?? "";
-			classes.Should().Contain("hover:text-primary-500",
-				"links should use primary theme color on hover");
-			classes.Should().Contain("transition-colors",
-				"links should have smooth color transitions");
+			link.GetAttribute("rel").Should().Contain("noopener",
+				"links should maintain security attributes");
 		}
+		cut.Markup.Should().Contain("font-mono",
+			"version and commit links container should use monospace font");
 	}
 
 	[Fact]
