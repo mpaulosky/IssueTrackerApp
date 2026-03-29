@@ -242,3 +242,15 @@
 - No issue worked without milestone + sprint assignment — this is the team's planning contract
 
 **Decision recorded:** `.squad/decisions/inbox/aragorn-plan-ceremony.md`
+
+### Formal PR Review Process Implementation (2026-03-29)
+- **Task:** Lead orchestration of formal PR review process (approved by Matthew Paulosky)
+- **Deliverables:**
+  - Created `.github/pull_request_template.md` with domain checkboxes and self-review checklist
+  - Updated `.squad/ceremonies.md`: 3 new ceremonies (PR Review Gate, CHANGES_REQUESTED Ceremony, Merge Conflict Resolution)
+  - Updated `.squad/routing.md`: 4 new PR state signals (CHANGES_REQUESTED, CONFLICTED, CI FAILURE, ready-for-review)
+  - Updated `.squad/agents/ralph/charter.md`: Pre-review gates (CI green, MERGEABLE, template filled) + pre-merge gates (APPROVED, CI green, no CHANGES_REQUESTED)
+  - Documented review role matrix: Aragorn (all PRs) + domain specialists (Sam/Legolas/Gimli/Pippin/Boromir/Gandalf/Frodo per files changed)
+  - Defined CHANGES_REQUESTED rejection protocol with author lockout and fix routing to non-author agent
+  - Defined merge conflict resolution routing by domain
+- **Status:** Complete, documented in `.squad/decisions.md`

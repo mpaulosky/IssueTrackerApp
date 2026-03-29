@@ -92,27 +92,129 @@ Present a summary table:
 
 ### PR Review Gate
 
-- **Trigger:** automatic, when any PR is ready for review (CI checks passing)
-- **When:** after (CI passes)
+- **Trigger:** automatic — Ralph detects PR with `reviewDecision: null` and `statusCheckRollup: SUCCESS`
+- **When:** after ALL CI checks pass; do NOT trigger while checks are pending or failing
 - **Facilitator:** Aragorn
-- **Participants:** Aragorn (always) + domain specialists based on PR content:
-  - DevOps/CI workflow changes → Boromir
-  - Security-relevant changes (auth, permissions, secrets, endpoints) → Gandalf
-  - Test file changes → Gimli and/or Pippin
-  - Backend/API changes → Sam
-  - Frontend/Blazor changes → Legolas
-  - Blog/docs changes → Bilbo (author) or Frodo
+- **Participants:** Aragorn (always) + domain specialists determined by files changed:
+
+| Files changed | Required reviewer |
+|---------------|-------------------|
+| Any file | **Aragorn** (lead — always required) |
+| `.github/workflows/`, `AppHost.csproj`, `Directory.Packages.props` | **Boromir** |
+| `Auth/`, `appsettings*.json` auth sections, `Program.cs` auth sections | **Gandalf** |
+| `tests/Domain.Tests/`, `tests/Web.Tests.Bunit/`, `tests/Persistence.*/` | **Gimli** |
+| `tests/AppHost.Tests/` (Playwright / Aspire E2E) | **Pippin** |
+| `src/Domain/`, `src/Persistence.*/`, `src/Web/Endpoints/`, `src/Web/Features/` | **Sam** |
+| `src/Web/Components/`, `*.razor`, `*.razor.cs`, `*.razor.css`, `wwwroot/` | **Legolas** |
+| `docs/`, `README.md`, XML doc changes | **Frodo** |
+
 - **Purpose:** Quality and security gate before merge
-- **Protocol:**
-  1. Wait for ALL CI checks to pass
-  2. Spawn Aragorn + relevant domain reviewers in parallel
-  3. Collect all verdicts — ALL must approve (unanimous)
-  4. If ANY reviewer rejects: route fixes to a DIFFERENT agent (strict lockout — PR author cannot self-revise)
-  5. Push fixes to PR branch → wait for CI to re-pass → repeat review cycle
-  6. All approved + CI green → squash merge
-- **Merge command:** `gh pr merge {N} --squash --delete-branch`
-- **Post-merge:** `git checkout main && git pull origin main && git fetch --prune`
-- **Lockout rule:** Rejected artifact's original author is locked out of that revision cycle. Fixes must come from a different team member.
+
+#### Pre-Conditions (Ralph enforces before spawning reviewers)
+
+Ralph MUST verify ALL of the following before the review cycle begins. Any failing gate blocks review:
+
+1. **CI green:** `gh pr checks {N}` — all checks passing (`statusCheckRollup: SUCCESS`)
+2. **No merge conflicts:** `gh pr view {N} --json mergeable` → `MERGEABLE` (not `CONFLICTED`)
+3. **PR template complete:** PR description contains filled checkboxes (not all empty `[ ]`)
+4. **Branch is `squad/*`:** PR is from a `squad/` branch, not `main` or `feature/`
+
+#### Review Protocol
+
+1. Determine required reviewers from the files-changed table above
+2. Spawn Aragorn + all required domain reviewers **in parallel**
+3. Each reviewer posts their verdict as a GitHub PR review (`gh pr review {N} --approve` or `--request-changes --body "..."`)
+4. Collect all verdicts — **unanimous approval required** (all spawned reviewers must approve)
+5. If ANY reviewer submits CHANGES_REQUESTED → trigger **CHANGES_REQUESTED Ceremony** (see below)
+6. All approved + CI green → squash merge
+
+#### Merge
+
+```bash
+gh pr merge {N} --squash --delete-branch
+git checkout main && git pull origin main && git fetch --prune
+git branch --merged main | grep -v "^\* main" | xargs git branch -d
+```
+
+#### Lockout Rule
+
+The PR author (original agent who pushed the branch) is **locked out** of fixing their own rejected work within the same revision cycle. All fixes in a CHANGES_REQUESTED cycle must come from a different agent.
+
+---
+
+### CHANGES_REQUESTED Ceremony
+
+- **Trigger:** automatic — Ralph detects PR with `reviewDecision: CHANGES_REQUESTED`
+- **When:** immediately after any reviewer posts CHANGES_REQUESTED
+- **Facilitator:** Aragorn
+- **Purpose:** Route fixes to the correct agent while enforcing the lockout rule
+
+#### Protocol
+
+1. **Aragorn identifies** the reviewer who requested changes and lists the specific issues
+2. **Aragorn identifies** the PR author (this agent is now locked out of this revision cycle)
+3. **Aragorn routes fixes** to a DIFFERENT agent based on the nature of the changes requested:
+   - Architecture / logic issues → Sam (if backend) or Legolas (if frontend)
+   - Test coverage gaps → Gimli
+   - E2E test gaps → Pippin
+   - Security issues → Gandalf applies fixes
+   - CI/infra issues → Boromir
+   - If Aragorn is the reviewer, fixes go to the domain specialist owning the code
+4. **Fix agent** pushes corrections to the **same branch** (do NOT open a new PR)
+5. **CI must re-pass** — wait for all checks to turn green
+6. **Original reviewers re-review** — the reviewer who requested changes must re-review (they are not locked out from reviewing)
+7. If approved: resume normal PR Review Gate (step 6 — unanimous approval → merge)
+8. If CHANGES_REQUESTED again: repeat from step 1 (new revision cycle, same lockout applies)
+
+#### Comment template (posted by Aragorn on PR when routing fixes)
+
+```
+🔄 **CHANGES_REQUESTED — Routing fix cycle**
+
+Reviewer: @{reviewer} requested changes.
+PR author (@{author}) is locked out of this revision cycle per rejection protocol.
+
+**Issues to fix:**
+{list of specific items from reviewer}
+
+**Routed to:** @{fix-agent} ({role})
+Fix agent: please push corrections to `{branch}` and comment when ready for re-review.
+```
+
+---
+
+### Merge Conflict Resolution Ceremony
+
+- **Trigger:** Ralph detects `mergeable: CONFLICTED` on an open PR
+- **When:** as soon as conflict is detected (typically after `main` advances)
+- **Facilitator:** Aragorn (decides resolver and strategy)
+- **Purpose:** Unblock PRs with merge conflicts without violating review integrity
+
+#### Protocol
+
+1. **Ralph detects** conflict → posts comment on PR:
+   ```
+   ⚠️ **Merge conflict detected** on `{branch}`. This PR cannot merge until conflicts are resolved.
+   Pinging Aragorn to route resolution.
+   ```
+2. **Aragorn determines** which files conflict (`gh pr view {N} --json files`) and routes to:
+   - Backend files (`src/Domain/`, `src/Persistence.*/`) → **Sam**
+   - Frontend files (`src/Web/Components/`, `*.razor`) → **Legolas**
+   - CI/config files (`.github/`, `*.csproj`, `*.props`) → **Boromir**
+   - Mixed or architectural conflicts → **Aragorn** resolves directly
+3. **Resolver** checks out the branch and merges:
+   ```bash
+   git checkout {branch}
+   git fetch origin
+   git merge origin/main
+   # resolve conflicts
+   git add .
+   git commit -m "chore: resolve merge conflicts with main\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+   git push
+   ```
+4. **CI must re-pass** after the merge commit
+5. **Existing reviews are invalidated** — all reviewers must re-approve after a merge commit
+6. Resume PR Review Gate from the beginning
 
 ### Standard Task Workflow
 

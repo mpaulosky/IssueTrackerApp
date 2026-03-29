@@ -1,5 +1,5 @@
 name: Squad CI
-# dotnet project — configure build/test commands below
+# Runs on PR to main branch — mirrors pre-push gate (build only, no tests)
 
 on:
   pull_request:
@@ -12,17 +12,21 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  build:
+    name: build (ubuntu-latest)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
+    timeout-minutes: 20
 
-      - name: Build and test
-        run: |
-          # TODO: Add your dotnet build/test commands here
-          # Go:            go test ./...
-          # Python:        pip install -r requirements.txt && pytest
-          # .NET:          dotnet test
-          # Java (Maven):  mvn test
-          # Java (Gradle): ./gradlew test
-          echo "No build commands configured — update squad-ci.yml"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore dependencies
+        run: dotnet restore IssueTrackerApp.slnx
+
+      - name: Build (Release)
+        run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore

@@ -55,3 +55,22 @@
 - **PR:** #99 — fix(ui): unify text sizes in footer, SignalR status, and nav header
 - **Action:** Pushed branch with `--no-verify` (pre-push hook was stuck on long build); opened PR with gh CLI
 - **Changes:** UI text-size consistency (FooterComponent, SignalRConnection, NavMenuComponent/LoginDisplay/Profile fixes)
+
+### GitHub Infrastructure Protection Enabled (2026-03-29)
+- **Branch protection on `main`:** Enabled 1 required review, dismiss stale reviews, build check required
+- **Merge strategy:** Squash-only (no merge commits, no rebase), auto-delete branches on merge
+- **squad-ci.yml:** Fixed stub → real .NET build job (restore + build Release)
+- **CODEOWNERS:** Created with squad role-based code section assignments
+- **Decision file:** `.squad/decisions/inbox/boromir-github-protection.md`
+- **Status:** All settings verified via `gh api` — protection active and enforced
+
+### GitHub Protection & CI Infrastructure (2026-03-29)
+- **Task:** Implement GitHub branch protection and fix CI workflow (part of formal PR review process)
+- **Deliverables:**
+  - Fixed `.github/workflows/squad-ci.yml`: Replaced stub with real `dotnet restore && dotnet build --configuration Release`
+  - Created `.github/CODEOWNERS` with squad role-based code section routing
+  - Enabled branch protection on `main`: 1 required review, dismiss stale reviews, `build (ubuntu-latest)` required check
+  - Enforced squash-only merges + auto-delete branches on merge
+  - Verified all settings via `gh api` — protection active and enforced
+- **Rationale:** PR Review Process infrastructure layer ensures code quality gates and prevents accidental unreviewed merges
+- **Status:** Complete, documented in `.squad/decisions.md`
