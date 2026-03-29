@@ -74,3 +74,11 @@
   - Verified all settings via `gh api` — protection active and enforced
 - **Rationale:** PR Review Process infrastructure layer ensures code quality gates and prevents accidental unreviewed merges
 - **Status:** Complete, documented in `.squad/decisions.md`
+
+### Branch Protection Solo-Dev Blocker Fix (2026-03-29)
+- **Issue:** GitHub blocks PR authors from self-approving. With 1 required review enabled and Matthew as solo dev, ALL squad PRs permanently blocked. PR #103 had to use `gh pr merge --admin` bypass.
+- **Solution:** Set `required_approving_review_count: 0` on main branch protection
+- **API endpoint:** GitHub API doesn't accept `count=0` in main PATCH; must use sub-endpoint: `PATCH /repos/{owner}/{repo}/branches/main/protection/required_pull_request_reviews` with `{"required_approving_review_count":0}`
+- **Final state:** CI check (`build (ubuntu-latest)`) still enforced, approval count now 0, admins not enforced
+- **Quality gates preserved:** Ralph's pre-merge review gate table handles review quality; GitHub CI enforces build health
+- **Decision file:** `.squad/decisions/inbox/boromir-branch-protection-solo-fix.md`
