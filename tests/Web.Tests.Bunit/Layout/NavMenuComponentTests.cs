@@ -199,4 +199,32 @@ public class NavMenuComponentTests : BunitTestBase
 		classes.Should().Contain("hidden md:flex",
 			"nav should be hidden on mobile and shown on medium+ screens");
 	}
+
+	[Fact]
+	public void NavMenu_WithAdminRole_RendersAdminNavLink()
+	{
+		// Arrange — explicitly set ClaimTypes.Role = "Admin" via isAdmin helper
+		SetupAuthenticatedUser(isAdmin: true);
+
+		// Act
+		var cut = Render<NavMenuComponent>();
+
+		// Assert
+		cut.Markup.Should().Contain("href=\"/admin\"",
+			"user with Admin role should see /admin nav link");
+	}
+
+	[Fact]
+	public void NavMenu_WithUserRoleOnly_DoesNotRenderAdminNavLink()
+	{
+		// Arrange — standard user with ClaimTypes.Role = "User" only
+		SetupAuthenticatedUser(isAdmin: false);
+
+		// Act
+		var cut = Render<NavMenuComponent>();
+
+		// Assert
+		cut.Markup.Should().NotContain("href=\"/admin\"",
+			"user with only User role should not see /admin nav link");
+	}
 }

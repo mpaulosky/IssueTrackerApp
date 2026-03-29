@@ -10,7 +10,7 @@
 			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
 			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
 		</span>
-		<span class="text-xs hidden sm:inline text-green-300 dark:text-green-700">Live</span>
+		<span class="hidden sm:inline text-green-300 dark:text-green-700">Live</span>
 	</div>
 }
 else if (ConnectionState == HubConnectionState.Connecting || ConnectionState == HubConnectionState.Reconnecting)
@@ -20,14 +20,14 @@ else if (ConnectionState == HubConnectionState.Connecting || ConnectionState == 
 			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
 			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
 		</span>
-		<span class="text-xs hidden sm:inline text-yellow-300 dark:text-yellow-700">Connecting</span>
+		<span class="hidden sm:inline text-yellow-300 dark:text-yellow-700">Connecting</span>
 	</div>
 }
 else if (ConnectionState == HubConnectionState.Disconnected)
 {
 	<div class="flex items-center gap-1.5" title="Disconnected from real-time updates">
 		<span class="flex h-2.5 w-2.5 bg-red-500 rounded-full"></span>
-		<span class="text-xs hidden sm:inline text-red-300 dark:text-red-700">Offline</span>
+		<span class="hidden sm:inline text-red-300 dark:text-red-700">Offline</span>
 	</div>
 }
 

@@ -1211,3 +1211,140 @@ Consolidate to a single theme system:
 
 ---
 
+
+---
+
+# Dependabot PR #87 Merge Decision
+
+**Date:** 2026-03-29  
+**Decision Maker:** Boromir (DevOps)  
+**Status:** COMPLETED
+
+## Summary
+Merged Dependabot PR #87 "build(deps): Bump the all-actions group with 5 updates" to main branch.
+
+## Context
+- PR contained 5 GitHub Actions dependency updates (all-actions group)
+- All 19 CI checks passed (CodeQL, full test suite, coverage, Squad CI)
+- No review blocking or merge conflicts
+- Dependabot auto-merge process leveraged with squash-merge strategy
+
+## Decision
+Approve and merge using `gh pr merge 87 --squash --auto`.
+
+## Rationale
+- **Safety:** All CI green; comprehensive test coverage confirms no regressions
+- **Best Practice:** Squash-merge reduces main branch history clutter for dependency bumps
+- **Automation:** Auto-merge flag prevents accidental merge races in CI pipeline
+- **Reliability:** Updated Actions improve build pipeline stability and security
+
+## Outcome
+✅ Successfully merged PR #87 to main (commit SHA will be auto-generated)
+
+## Impact
+- GitHub Actions workflows updated to latest compatible versions
+- Improved CI/CD stability and security
+- No application code changes required
+
+---
+
+### 2026-03-29: Footer text size unified
+
+**What:** Removed `text-xs` from footer inner div and removed invalid `txt-3xl` class from version/commit links. All footer text now defaults to `text-base`.
+
+### 2026-03-29: SignalRConnection Labels Match Nav Size
+
+**Author:** Legolas (Frontend Dev)
+
+**What:** Removed `text-xs` from all three state label spans in SignalRConnection.razor. Labels now inherit text-base, matching nav menu link size.
+
+**Rationale:** Ensures consistent visual sizing across navigation UI components. Labels inherit parent context sizing rather than forced override.
+
+---
+
+---
+
+### 2026-03-29: Auth0 Role Claim Configuration & Transformation
+
+#### Auth0:RoleClaimNamespace Configuration (2026-03-29T18:02:58Z)
+
+**Author:** Aragorn (Lead)
+
+**Decision:** Auth0:RoleClaimNamespace must be set to `"https://issuetracker.com/roles"` in configuration.
+
+**Implementation:**
+- Updated `src/Web/appsettings.Development.json` with Auth0 section
+- Set `Auth0.RoleClaimNamespace = "https://issuetracker.com/roles"`
+
+**Environment Variables:**
+- Production/staging: `Auth0__RoleClaimNamespace=https://issuetracker.com/roles`
+- Local dev (alternative): `dotnet user-secrets set "Auth0:RoleClaimNamespace" "https://issuetracker.com/roles"`
+
+**Rationale:** Empty namespace causes Auth0ClaimsTransformation to skip role claim mapping:
+- Pass 1 checks if namespace is configured — skipped when empty
+- Pass 2 fallback looks for bare "roles" claim — Auth0 uses namespaced form
+- Result: ClaimTypes.Role never added → Profile shows "No roles assigned" → Admin links hidden
+
+**Impact:** Fixes Admin role visibility in NavMenu and enables AdminPolicy authorization.
+
+---
+
+#### Auth0ClaimsTransformation Pass 3 Auto-Detect (2026-03-29T18:04:25Z)
+
+**Author:** Sam (Backend)
+
+**Decision:** Added Pass 3 to Auth0ClaimsTransformation.TransformAsync that auto-detects claims with types ending in `/roles` when Passes 1–2 find no roles.
+
+**Implementation:** Pass 3 scans all claims for pattern matching `*/roles` (case-insensitive) and maps to ClaimTypes.Role.
+
+**Rationale:** Prevents silent failure when RoleClaimNamespace is misconfigured; if admins disable Pass 1/2, Pass 3 still catches namespaced role claims. Safety net approach.
+
+**Coverage:** Added 2 test cases to Auth0ClaimsTransformationTests.cs verifying Pass 3 auto-detect.
+
+---
+
+#### Profile.razor GetAllRoleClaims Hardening (2026-03-29T18:08:58Z)
+
+**Author:** Legolas (Frontend)
+
+**Decision:** GetAllRoleClaims() now accepts optional `roleClaimNamespace` parameter and includes Auth0 namespace claim type in role lookup. IConfiguration injected into Profile.razor.
+
+**Implementation:**
+- Profile.razor injects IConfiguration
+- GetAllRoleClaims reads `Auth0:RoleClaimNamespace` from config
+- Claims lookup includes both standard `ClaimTypes.Role` and namespaced form
+
+**Rationale:** Belt-and-suspenders approach—shows roles directly from Auth0 namespace claim even if Auth0ClaimsTransformation hasn't run or is misconfigured. Improves profile UI resilience.
+
+**Coverage:** 8 new tests in ProfileRolesTests.cs + 2 NavMenu bUnit tests verifying role visibility.
+
+---
+
+---
+
+#### Auth0ClaimsTransformation Empty Role Value Handling (2026-03-28)
+
+**Author:** Gimli (Tester)
+
+**Decision:** `Auth0ClaimsTransformation.MapRoleClaims()` now validates role values and skips empty/whitespace strings before adding `ClaimTypes.Role` claims.
+
+**Implementation:** Added guard clause in the single-value role path:
+```csharp
+if (string.IsNullOrWhiteSpace(roleValue))
+    continue;
+```
+
+**Rationale:** 
+- Unit test exposure: empty role values were being added as claims
+- Consistency: comma-separated value path already uses `StringSplitOptions.RemoveEmptyEntries`
+- Security: empty role claims could cause unintended authorization behavior
+- Data integrity: empty strings add noise to claims principal
+
+**Impact:**
+- Empty/whitespace role values from Auth0 are now silently ignored
+- No breaking changes — empty role claims have no semantic meaning
+- Test coverage: All 16 Auth0ClaimsTransformation tests passing after fix
+
+**Related:** Issue #93 (Sprint 3 — Auth0ClaimsTransformation Unit Tests)
+
+---

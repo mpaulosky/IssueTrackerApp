@@ -158,3 +158,62 @@
 **Architectural Note:** `theme-manager.js` still exists in `wwwroot/js/` but is no longer referenced or loaded. Should be deleted in a follow-up cleanup commit to avoid confusion.
 
 **Decision recorded:** `.squad/decisions/inbox/aragorn-unified-theme-system.md`
+
+---
+
+### 2026-03-29 — Sprint 1: Auth0 Role Claim Namespace — Diagnosis & Config Fix (Issues #88, #89)
+
+**Trigger:** Issues #88 (diagnose) and #89 (config) — Auth0 role claims not mapping to ClaimTypes.Role due to empty RoleClaimNamespace setting.
+
+**Diagnosis (Issue #88):**
+- Confirmed Auth0 sends roles under claim type: `https://issuetracker.com/roles`
+- Verified by test constant in `tests/Web.Tests.Bunit/Auth/Auth0ClaimsTransformationTests.cs` line 26
+- Root cause: `appsettings.json` has `Auth0.RoleClaimNamespace = ""` (empty)
+- When namespace is empty, `Auth0ClaimsTransformation.TransformAsync()` Pass 1 skips execution
+- Pass 2 fallback looks for bare `"roles"` claim — Auth0 never sends this (only the namespaced form)
+- Result: `ClaimTypes.Role` is never added to the principal
+
+**Impact:**
+- Profile > Roles & Permissions displays "No roles assigned"
+- AdminPolicy checks fail (requires `ClaimTypes.Role == "Admin"`)
+- NavMenu admin links hidden
+- Admin dashboard access denied
+
+**Config Fix (Issue #89):**
+- Updated: `src/Web/appsettings.Development.json`
+- Added: `"Auth0": { "RoleClaimNamespace": "https://issuetracker.com/roles" }`
+- NOT added to `appsettings.json` — left as empty template per convention
+- appsettings.Development.json is not in .gitignore (safe to commit)
+- For production: use environment variable `Auth0__RoleClaimNamespace`
+- For local development: User Secrets alternative available
+
+**Verification:**
+- `Auth0ClaimsTransformation` Pass 1 now executes (namespace configured)
+- Namespaced claims are mapped to `ClaimTypes.Role`
+- Profile and Admin UI now work correctly
+
+**Files Changed:**
+- `src/Web/appsettings.Development.json` (added Auth0 section)
+
+**Decision Record:** `.squad/decisions/inbox/aragorn-role-claim-namespace.md`
+
+**GitHub Comments Posted:**
+- Issue #88: Diagnosis confirmed + documented
+- Issue #89: Config applied + environment setup documented
+
+
+### 2026-03-29 — Auth0 Role Claim Namespace Configuration (Sprint 1 Complete)
+
+**Role:** Lead - Architecture & Coordination
+
+**Work:**
+- Diagnosed Auth0 role claim type requirement (Issue #88)
+- Configured Auth0:RoleClaimNamespace in appsettings.Development.json (Issue #89)
+- Confirmed namespace: `"https://issuetracker.com/roles"` (per test constant)
+- Documented configuration requirement in decisions.md
+
+**Key Finding:** Empty namespace cascades Auth0ClaimsTransformation to silent failure—Pass 1 skipped, Pass 2 looks for bare "roles" claim but Auth0 uses namespaced form, result: no ClaimTypes.Role added.
+
+**Integration:** Coordinated with Sam (Pass 3 auto-detect) and Legolas (Profile.razor hardening) to create multi-layer defense against role claim misconfiguration.
+
+**Outcome:** ✓ Build clean, issues resolved, team ready for next sprint.

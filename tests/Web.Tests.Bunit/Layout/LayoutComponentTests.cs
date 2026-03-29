@@ -201,7 +201,7 @@ public class LoginDisplayTests : BunitTestBase
 		var cut = Render<LoginDisplay>();
 
 		// Assert
-		cut.Markup.Should().Contain("Hello, John Doe!");
+		cut.Markup.Should().Contain("Hey John Doe!");
 	}
 
 	[Fact]
@@ -299,7 +299,7 @@ public class LoginDisplayTests : BunitTestBase
 		var cut = Render<LoginDisplay>();
 
 		// Assert
-		cut.Markup.Should().Contain("Hello, Admin User!");
+		cut.Markup.Should().Contain("Hey Admin User!");
 	}
 
 	[Fact]
@@ -382,9 +382,7 @@ public class LoginDisplayTests : BunitTestBase
 		var cut = Render<LoginDisplay>();
 
 		// Assert
-		cut.Markup.Should().Contain("Hello, Jane Smith!");
-		cut.Markup.Should().Contain("text-sm");
-		cut.Markup.Should().Contain("text-gray-700");
+		cut.Markup.Should().Contain("Hey Jane Smith!");
 	}
 
 	[Fact]

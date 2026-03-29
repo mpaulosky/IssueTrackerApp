@@ -43,3 +43,9 @@
 - **Tag:** Created `v0.1.0` to seed version for future builds
 - **Verification:** Gimli confirmed BuildInfo.g.cs generates clean constants; footer displays correct version
 - **Related:** `.squad/decisions.md` entry on MSBuild Git Stderr Redirection Pattern
+
+### Dependabot PR #87 Merge (2026-03-29)
+- **PR:** build(deps): Bump the all-actions group with 5 updates
+- **Status:** All 19 CI checks GREEN (CodeQL, full test suite, coverage, Squad CI)
+- **Action:** Approved and squash-merged with `--auto` flag
+- **Impact:** GitHub Actions workflows updated to latest versions for improved build reliability

@@ -2,7 +2,7 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 
-<header role="banner" class="bg-primary-400 dark:bg-primary-900 border-b border-primary-500/30 w-full py-2">
+<header role="banner" class="bg-primary-400 dark:bg-primary-400 border-b-2 border-primary-800 w-full py-2">
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
 		<a href="/" class="text-xl whitespace-nowrap font-bold">@SiteName</a>
@@ -11,31 +11,37 @@
 			<AuthorizeView>
 				<Authorized>
 					<a href="/" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Home</a>
-					<a href="/dashboard" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Dashboard</a>
-					<a href="/issues" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Issues</a>
-					<a href="/issues/create" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Create</a>
-					<a href="/profile" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Hey @context.User.Identity?.Name!</a>
+					<a href="/dashboard"
+						 class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Dashboard</a>
+					<a href="/issues"
+						 class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Issues</a>
+					<a href="/issues/create"
+						 class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Create</a>
 				</Authorized>
 			</AuthorizeView>
 
 			<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy">
 				<Authorized>
 					<div class="h-6 w-px bg-neutral-300 dark:bg-neutral-600 mx-2" aria-hidden="true"></div>
-					<a href="/admin" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Admin</a>
-					<a href="/admin/categories" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Categories</a>
-					<a href="/admin/statuses" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Statuses</a>
-					<a href="/admin/analytics" class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Analytics</a>
+					<a href="/admin"
+						 class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Admin</a>
+					<a href="/admin/categories"
+						 class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Categories</a>
+					<a href="/admin/statuses"
+						 class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Statuses</a>
+					<a href="/admin/analytics"
+						 class="px-3 py-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">Analytics</a>
 				</Authorized>
 			</AuthorizeView>
 		</nav>
 
 		<div class="flex items-center gap-2">
-			<LoginDisplay/>
-			<ThemeBrightnessToggleComponent/>
-			<ThemeColorDropdownComponent/>
+			<LoginDisplay />
+			<ThemeBrightnessToggleComponent />
+			<ThemeColorDropdownComponent />
 			<AuthorizeView>
 				<Authorized>
-					<SignalRConnection/>
+					<SignalRConnection />
 				</Authorized>
 			</AuthorizeView>
 		</div>

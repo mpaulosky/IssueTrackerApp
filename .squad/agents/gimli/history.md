@@ -720,3 +720,193 @@ layout, pages, and theme toggle / color scheme components.
 - Assertion specificity: Exact string match vs. non-assertions ✅
 
 **Verdict:** ✅ Approved — fixes address root causes, not symptoms; tests now more deterministic.
+
+---
+
+### 2026-03-28 — Sprint 3: Auth0ClaimsTransformation Unit Tests (Issue #93)
+
+**Role:** QA Tester — Unit Test Development
+
+**Task:** Add missing unit test coverage for `Auth0ClaimsTransformation` class
+
+**Tests Added (4 new):**
+
+| Test Name | Description |
+|-----------|-------------|
+| `TransformAsync_WithBareRolesClaim_NoNamespaceConfig_ShouldMapToClaimTypesRole` | Pass 2 fallback: validates bare "roles" claim mapping when no namespace is configured |
+| `TransformAsync_CalledTwice_ShouldNotAddDuplicateRoleClaims` | True idempotency test: ensures calling `TransformAsync` twice does not create duplicate role claims |
+| `TransformAsync_WithMultipleNamespacedRoleClaims_Pass3_ShouldMapAll` | Pass 3 auto-detection: validates mapping when user has multiple different namespaced claims ending in "/roles" |
+| `TransformAsync_WithEmptyRoleValue_ShouldNotAddEmptyClaim` | Edge case: validates that empty or whitespace-only role values are not added as claims |
+
+**Bug Discovered During Testing:**
+
+The `TransformAsync_WithEmptyRoleValue_ShouldNotAddEmptyClaim` test exposed a real bug in `Auth0ClaimsTransformation.MapRoleClaims()`:
+- **Issue:** Empty/whitespace role values were being added as `ClaimTypes.Role` claims
+- **Location:** Single-value role path (lines 154-162) lacked validation
+- **Root Cause:** No `string.IsNullOrWhiteSpace()` check before adding claim
+- **Fix Applied:** Added `if (string.IsNullOrWhiteSpace(roleValue)) continue;` guard clause
+
+**Test Coverage Analysis:**
+
+**Already Existing (from Sam's Sprint 2):**
+- ✅ `TransformAsync_WithNamespaceClaimButNoNamespaceConfig_ShouldAutoDetectViaPass3` — Pass 3 auto-detect
+- ✅ `TransformAsync_WithNamespaceClaimAndEmptyNamespaceConfig_ShouldAutoDetectViaPass3` — Pass 3 with empty config
+
+**Already Existing (from earlier work):**
+- ✅ `TransformAsync_WithJsonArrayRoles_MapsAllRoles` — JSON array parsing
+- ✅ `TransformAsync_WithCommaSeparatedRoles_MapsAllRoles` — CSV parsing
+- ✅ `TransformAsync_WhenAlreadyTransformed_DoesNotDuplicateRoles` — Pre-existing role deduplication
+- ✅ `TransformAsync_WithUnauthenticatedPrincipal_ReturnsUnmodified` — Unauthenticated guard
+
+**Modified Files:**
+
+| File | Changes |
+|------|---------|
+| `tests/Web.Tests.Bunit/Auth/Auth0ClaimsTransformationTests.cs` | +81 lines (4 new tests) |
+| `src/Web/Auth/Auth0ClaimsTransformation.cs` | +3 lines (empty role value guard) |
+
+**Test Results:**
+- ✅ All 16 Auth0ClaimsTransformation tests passing
+- ✅ Build: 0 errors, 0 warnings (Release configuration)
+- ✅ Quality gate maintained
+
+**Learnings:**
+
+1. **Test-Driven Bug Discovery:** Writing edge case tests (empty/whitespace values) can expose real bugs in production code. The test failure was legitimate — the implementation needed fixing, not the test.
+
+2. **Consistency in Validation:** The `MapRoleClaims` method had `StringSplitOptions.RemoveEmptyEntries` for comma-separated values but lacked equivalent validation for single values. Edge case tests should check all code paths for consistency.
+
+3. **Idempotency Testing:** Testing `TransformAsync` called twice is different from testing "does not add duplicates when role already exists". Both scenarios are important:
+   - Pre-existing role → tests deduplication logic
+   - Called twice → tests idempotency under repeated transformation
+
+4. **Three-Pass Strategy Coverage:** Auth0ClaimsTransformation uses a three-pass approach:
+   - **Pass 1:** Configured namespace (primary)
+   - **Pass 2:** Bare "roles" claim (fallback)
+   - **Pass 3:** Auto-detect namespaced claims ending in "/roles" (safety net)
+   
+   Each pass needs dedicated test coverage to ensure robustness.
+
+**GitHub Issue Comment:** Posted summary to issue #93 with test results and bug fix details.
+
+**Status:** Sprint 3 complete. All deliverables met. Ready for code review.
+
+### 2026-03-28 — Auth0ClaimsTransformation Empty Value Validation (Sprint 3)
+
+**Role:** QA - Testing & Quality
+
+**Work:**
+- Discovered empty role value handling bug in Auth0ClaimsTransformation (Issue #93)
+- Unit test `TransformAsync_WithEmptyRoleValue_ShouldNotAddEmptyClaim` exposed the issue
+- Validated fix: skip empty/whitespace role values before adding claims
+
+**Key Finding:** Single-value role path lacked validation that comma-separated path had (`StringSplitOptions.RemoveEmptyEntries`).
+
+**Impact:** Empty/whitespace role values now silently ignored; prevents noise in claims principal and potential authorization issues.
+
+**Test Coverage:** Verified all 16 Auth0ClaimsTransformation tests pass after fix.
+
+**Outcome:** ✓ Build clean, test coverage complete.
+
+---
+
+### 2025-01-28 — Sprint 2: AdminPageLayout Regression Tests (Issue #97)
+
+**Role:** QA Tester — bUnit Test Development
+
+**Task:** Create comprehensive regression test suite for `AdminPageLayout` component to prevent future misuse with `@layout` directive
+
+**Background:**
+Bug was fixed in `Analytics.razor` which incorrectly used `@layout AdminPageLayout`. The `@layout` directive only works with components inheriting `LayoutComponentBase` (which have a `Body` parameter), but `AdminPageLayout` is a wrapper component using `ChildContent` parameter.
+
+**Test File Created:**
+- `tests/Web.Tests.Bunit/Components/Pages/Admin/AdminPageLayoutTests.cs` (14 tests, 263 lines)
+
+**Tests Added:**
+
+| Test Name | Category | Description |
+|-----------|----------|-------------|
+| `AdminPageLayout_RendersChildContent_WhenProvided` | Functional | Validates ChildContent parameter renders correctly |
+| `AdminPageLayout_RendersTitle_WhenTitleProvided` | Functional | Ensures title renders in h1 element |
+| `AdminPageLayout_RendersDescription_WhenDescriptionProvided` | Functional | Validates description rendering with title |
+| `AdminPageLayout_DoesNotRenderTitleSection_WhenTitleIsNull` | Edge Case | Guards against rendering empty title sections |
+| `AdminPageLayout_DoesNotInheritLayoutComponentBase` | **Anti-Regression** | **CRITICAL**: Uses reflection to ensure component never inherits LayoutComponentBase |
+| `AdminPageLayout_HasChildContentParameter_NoBodyParameter` | **Anti-Regression** | **CRITICAL**: Validates correct parameter structure (ChildContent exists, Body does not) |
+| `AdminPageLayout_RendersAdminPortalNavigation` | UI Structure | Tests admin navigation bar and branding |
+| `AdminPageLayout_RendersBackToAppLink` | UI Structure | Validates "Back to App" return link |
+| `AdminPageLayout_RendersNavigationLinks` | UI Structure | Tests all admin section nav links (Dashboard, Analytics, Categories, Statuses) |
+| `AdminPageLayout_WrapsContentInMainElement` | HTML Structure | Ensures proper semantic HTML with main element |
+| `AdminPageLayout_HasParameterAttributes` | Reflection | Validates all properties have [Parameter] attribute |
+| `AdminPageLayout_TitleAndDescriptionAreNullable` | Type Safety | Ensures nullable reference types are correctly defined |
+| `AdminPageLayout_RendersWithBothTitleAndChildContent` | Integration | Tests combined rendering of title and content |
+| `AdminPageLayout_DescriptionNotRendered_WhenTitleIsNullButDescriptionProvided` | Edge Case | Guards against orphaned descriptions |
+
+**Key Anti-Regression Mechanisms:**
+
+1. **Reflection Guards (Tests 5 & 6):**
+   - Test 5: `typeof(AdminPageLayout).IsAssignableTo(typeof(LayoutComponentBase))` must be FALSE
+   - Test 6: Must have `ChildContent` property of type `RenderFragment`, must NOT have `Body` property
+   - If someone converts this to a layout component in the future, these tests will immediately fail
+
+2. **Edge Case Coverage:**
+   - Null title scenarios
+   - Orphaned description (description without title)
+   - Empty child content
+   - Nullable property validation
+
+3. **Integration Tests:**
+   - Combined title + description + child content rendering
+   - Navigation structure and links
+   - Semantic HTML validation
+
+**Test Results:**
+- ✅ All 14 new tests passing
+- ✅ Build: 0 errors, 0 warnings (Release configuration)
+- ✅ No regressions introduced in existing 636 passing tests
+- ✅ Total AdminPageLayout test coverage: 25 tests (14 new + 11 pre-existing)
+
+**Conventions Followed:**
+- Inherited from `BunitTestBase` for consistent test infrastructure
+- Used `SetupAuthenticatedUser(isAdmin: true)` for admin component testing
+- Followed existing bUnit patterns from `NavMenuComponentTests.cs` and `ProfileRolesTests.cs`
+- Used FluentAssertions for readable assertions with explanatory messages
+- Applied reflection testing for compile-time guarantees
+
+**Learnings:**
+
+1. **Reflection for Anti-Regression:** Using `typeof(T).IsAssignableTo()` and property inspection provides compile-time guarantees that architecture rules are enforced. If someone refactors `AdminPageLayout` to inherit `LayoutComponentBase`, the tests fail immediately with a clear explanation.
+
+2. **Component vs Layout Components:** Blazor has two distinct patterns:
+   - **Layout Component**: Inherits `LayoutComponentBase`, has `Body` parameter, used with `@layout` directive
+   - **Wrapper Component**: Regular component with `ChildContent` parameter, used as XML element `<Component>...</Component>`
+   - These are NOT interchangeable — using the wrong pattern causes runtime crashes
+
+3. **Edge Case Testing Philosophy:** Testing not just the happy path but also:
+   - What happens when optional parameters are null?
+   - What happens when parameters are provided in unusual combinations?
+   - What's the fallback behavior when expected data is missing?
+
+4. **bUnit Testing Patterns:**
+   - Use `Render<T>(parameters => parameters.Add(...).AddChildContent(...))` for parameterized rendering
+   - FluentAssertions `.Should()` syntax with `because:` explanations makes test failures self-documenting
+   - `Find()` throws if element not found, `FindAll()` returns empty collection — choose based on expectation
+
+5. **Test Naming Convention:** Use underscore-separated descriptive names:
+   - `ComponentName_Behavior_Condition` (e.g., `AdminPageLayout_RendersTitle_WhenTitleProvided`)
+   - Makes test intent obvious without reading code
+   - Groups related tests alphabetically
+
+**GitHub Actions:**
+- ✅ Commented on issue #97 with test summary and results
+- ✅ Updated `.squad/agents/gimli/history.md` with learnings
+
+**Status:** Sprint 2 regression testing complete. All deliverables met. Component architecture is now protected against future misuse.
+
+
+---
+
+**2026-03-29: AdminPageLayout Regression Tests (Sprint 2)**
+
+Gimli created AdminPageLayoutTests.cs with 14 bUnit tests covering rendering, navigation, dark mode, and critical reflection guards. The reflection guard validates that AdminPageLayout never inherits LayoutComponentBase, preventing future misuse where the component might be accidentally used with `@layout` directive.
+
+Test results: 14/14 passing. Build clean.

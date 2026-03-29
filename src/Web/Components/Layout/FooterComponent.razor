@@ -1,32 +1,27 @@
-<footer class="border-t border-primary-500 bg-primary-50 dark:bg-gray-800 py-4" role="contentinfo">
+<footer class="border-t-2 border-primary-800 bg-primary-400 dark:bg-primary-400 py-4" role="contentinfo">
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
 
-		<span class="font-semibold text-primary-900 dark:text-primary-50">&copy; @DateTime.Now.Year IssueTracker &mdash; Built with .NET 10 &amp; Blazor</span>
+		<span class="font-semibold text-primary-900 dark:text-primary-50">&copy; @DateTime.Now.Year IssueTracker &mdash;
+			Built with .NET 10 &amp; Blazor</span>
 
-		<div class="flex items-center gap-4 font-mono text-xs">
-			<a href="@_releaseUrl"
-			   target="_blank"
-			   rel="noopener noreferrer"
-			   class="transition-colors hover:text-primary-500"
-			   title="View @BuildInfo.Version on GitHub">
-				@BuildInfo.Version
-			</a>
-			<a href="@_commitUrl"
-			   target="_blank"
-			   rel="noopener noreferrer"
-			   class="transition-colors hover:text-primary-500"
-			   title="View commit @BuildInfo.Commit on GitHub">
-				@BuildInfo.Commit
-			</a>
+			<div class="flex items-center gap-4 font-mono">
+				<a href="@_releaseUrl" target="_blank" rel="noopener noreferrer" class=""
+					 title="View @BuildInfo.Version on GitHub">
+					@BuildInfo.Version
+				</a>
+				<a href="@_commitUrl" target="_blank" rel="noopener noreferrer" class=""
+					 title="View commit @BuildInfo.Commit on GitHub">
+					@BuildInfo.Commit
+				</a>
+			</div>
+
 		</div>
-
-	</div>
-</footer>
+	</footer>
 @code {
-	private const string _repoBase = "https://github.com/mpaulosky/IssueTrackerApp";
+	private const string RepoBase = "https://github.com/mpaulosky/IssueTrackerApp";
 
-	private string _releaseUrl = $"{_repoBase}/releases";
-	private string _commitUrl = $"{_repoBase}/commits";
+	private string _releaseUrl = $"{RepoBase}/releases";
+	private string _commitUrl = $"{RepoBase}/commits";
 
 	/// <summary>
 	/// Resolves GitHub URLs from the build-time <see cref="BuildInfo"/> constants.
@@ -34,12 +29,12 @@
 	protected override void OnInitialized()
 	{
 		_releaseUrl = IsKnown(BuildInfo.Version)
-			? $"{_repoBase}/releases/tag/{BuildInfo.Version}"
-			: $"{_repoBase}/releases";
+			? $"{RepoBase}/releases/tag/{BuildInfo.Version}"
+			: $"{RepoBase}/releases";
 
 		_commitUrl = IsKnown(BuildInfo.Commit)
-			? $"{_repoBase}/commit/{BuildInfo.Commit}"
-			: $"{_repoBase}/commits";
+			? $"{RepoBase}/commit/{BuildInfo.Commit}"
+			: $"{RepoBase}/commits";
 	}
 
 	private static bool IsKnown(string value) =>

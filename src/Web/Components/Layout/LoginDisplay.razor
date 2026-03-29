@@ -4,8 +4,6 @@
 	<Authorized>
 		<div class="flex items-center gap-4">
 			<a href="/user/profile">Hey @context.User.Identity?.Name!</a>
-
-			<span class="text-sm text-gray-700">Hello, @context.User.Identity?.Name!</span>
 			<form method="post" action="/account/logout" data-enhance="false" class="inline">
 				<AntiforgeryToken/>
 				<button type="submit" class="btn-danger transition-colors">Log out</button>
