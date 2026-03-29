@@ -902,3 +902,11 @@ Bug was fixed in `Analytics.razor` which incorrectly used `@layout AdminPageLayo
 
 **Status:** Sprint 2 regression testing complete. All deliverables met. Component architecture is now protected against future misuse.
 
+
+---
+
+**2026-03-29: AdminPageLayout Regression Tests (Sprint 2)**
+
+Gimli created AdminPageLayoutTests.cs with 14 bUnit tests covering rendering, navigation, dark mode, and critical reflection guards. The reflection guard validates that AdminPageLayout never inherits LayoutComponentBase, preventing future misuse where the component might be accidentally used with `@layout` directive.
+
+Test results: 14/14 passing. Build clean.

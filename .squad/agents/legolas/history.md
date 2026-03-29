@@ -711,3 +711,11 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 **Outcome:** ✓ Build clean, all 10 new tests passing (2 NavMenu + 8 ProfileRoles).
 
 - **Component vs Layout distinction** (`src/Web/Components/Pages/Admin/AdminPageLayout.razor`): AdminPageLayout is a component wrapper that accepts `ChildContent` parameter, NOT a Blazor layout (which would inherit `LayoutComponentBase` and use `Body`). Added warning comment to prevent misuse. Pattern: when wrapping pages, use component parameters like `<AdminPageLayout Title="..." Description="...">` not `@layout AdminPageLayout`.
+
+---
+
+**2026-03-29: AdminPageLayout Component Guard (Sprint 2)**
+
+Legolas added warning comment to AdminPageLayout.razor emphasizing that it is a wrapper component, not a layout. The comment explicitly prevents developers from using `@layout AdminPageLayout` and reinforces proper usage: `<AdminPageLayout Title="..." Description="...">...</AdminPageLayout>`.
+
+This guard document integrates with Gimli's reflection-based bUnit tests that validate AdminPageLayout never inherits LayoutComponentBase.
