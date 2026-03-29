@@ -807,3 +807,98 @@ The `TransformAsync_WithEmptyRoleValue_ShouldNotAddEmptyClaim` test exposed a re
 **Test Coverage:** Verified all 16 Auth0ClaimsTransformation tests pass after fix.
 
 **Outcome:** ✓ Build clean, test coverage complete.
+
+---
+
+### 2025-01-28 — Sprint 2: AdminPageLayout Regression Tests (Issue #97)
+
+**Role:** QA Tester — bUnit Test Development
+
+**Task:** Create comprehensive regression test suite for `AdminPageLayout` component to prevent future misuse with `@layout` directive
+
+**Background:**
+Bug was fixed in `Analytics.razor` which incorrectly used `@layout AdminPageLayout`. The `@layout` directive only works with components inheriting `LayoutComponentBase` (which have a `Body` parameter), but `AdminPageLayout` is a wrapper component using `ChildContent` parameter.
+
+**Test File Created:**
+- `tests/Web.Tests.Bunit/Components/Pages/Admin/AdminPageLayoutTests.cs` (14 tests, 263 lines)
+
+**Tests Added:**
+
+| Test Name | Category | Description |
+|-----------|----------|-------------|
+| `AdminPageLayout_RendersChildContent_WhenProvided` | Functional | Validates ChildContent parameter renders correctly |
+| `AdminPageLayout_RendersTitle_WhenTitleProvided` | Functional | Ensures title renders in h1 element |
+| `AdminPageLayout_RendersDescription_WhenDescriptionProvided` | Functional | Validates description rendering with title |
+| `AdminPageLayout_DoesNotRenderTitleSection_WhenTitleIsNull` | Edge Case | Guards against rendering empty title sections |
+| `AdminPageLayout_DoesNotInheritLayoutComponentBase` | **Anti-Regression** | **CRITICAL**: Uses reflection to ensure component never inherits LayoutComponentBase |
+| `AdminPageLayout_HasChildContentParameter_NoBodyParameter` | **Anti-Regression** | **CRITICAL**: Validates correct parameter structure (ChildContent exists, Body does not) |
+| `AdminPageLayout_RendersAdminPortalNavigation` | UI Structure | Tests admin navigation bar and branding |
+| `AdminPageLayout_RendersBackToAppLink` | UI Structure | Validates "Back to App" return link |
+| `AdminPageLayout_RendersNavigationLinks` | UI Structure | Tests all admin section nav links (Dashboard, Analytics, Categories, Statuses) |
+| `AdminPageLayout_WrapsContentInMainElement` | HTML Structure | Ensures proper semantic HTML with main element |
+| `AdminPageLayout_HasParameterAttributes` | Reflection | Validates all properties have [Parameter] attribute |
+| `AdminPageLayout_TitleAndDescriptionAreNullable` | Type Safety | Ensures nullable reference types are correctly defined |
+| `AdminPageLayout_RendersWithBothTitleAndChildContent` | Integration | Tests combined rendering of title and content |
+| `AdminPageLayout_DescriptionNotRendered_WhenTitleIsNullButDescriptionProvided` | Edge Case | Guards against orphaned descriptions |
+
+**Key Anti-Regression Mechanisms:**
+
+1. **Reflection Guards (Tests 5 & 6):**
+   - Test 5: `typeof(AdminPageLayout).IsAssignableTo(typeof(LayoutComponentBase))` must be FALSE
+   - Test 6: Must have `ChildContent` property of type `RenderFragment`, must NOT have `Body` property
+   - If someone converts this to a layout component in the future, these tests will immediately fail
+
+2. **Edge Case Coverage:**
+   - Null title scenarios
+   - Orphaned description (description without title)
+   - Empty child content
+   - Nullable property validation
+
+3. **Integration Tests:**
+   - Combined title + description + child content rendering
+   - Navigation structure and links
+   - Semantic HTML validation
+
+**Test Results:**
+- ✅ All 14 new tests passing
+- ✅ Build: 0 errors, 0 warnings (Release configuration)
+- ✅ No regressions introduced in existing 636 passing tests
+- ✅ Total AdminPageLayout test coverage: 25 tests (14 new + 11 pre-existing)
+
+**Conventions Followed:**
+- Inherited from `BunitTestBase` for consistent test infrastructure
+- Used `SetupAuthenticatedUser(isAdmin: true)` for admin component testing
+- Followed existing bUnit patterns from `NavMenuComponentTests.cs` and `ProfileRolesTests.cs`
+- Used FluentAssertions for readable assertions with explanatory messages
+- Applied reflection testing for compile-time guarantees
+
+**Learnings:**
+
+1. **Reflection for Anti-Regression:** Using `typeof(T).IsAssignableTo()` and property inspection provides compile-time guarantees that architecture rules are enforced. If someone refactors `AdminPageLayout` to inherit `LayoutComponentBase`, the tests fail immediately with a clear explanation.
+
+2. **Component vs Layout Components:** Blazor has two distinct patterns:
+   - **Layout Component**: Inherits `LayoutComponentBase`, has `Body` parameter, used with `@layout` directive
+   - **Wrapper Component**: Regular component with `ChildContent` parameter, used as XML element `<Component>...</Component>`
+   - These are NOT interchangeable — using the wrong pattern causes runtime crashes
+
+3. **Edge Case Testing Philosophy:** Testing not just the happy path but also:
+   - What happens when optional parameters are null?
+   - What happens when parameters are provided in unusual combinations?
+   - What's the fallback behavior when expected data is missing?
+
+4. **bUnit Testing Patterns:**
+   - Use `Render<T>(parameters => parameters.Add(...).AddChildContent(...))` for parameterized rendering
+   - FluentAssertions `.Should()` syntax with `because:` explanations makes test failures self-documenting
+   - `Find()` throws if element not found, `FindAll()` returns empty collection — choose based on expectation
+
+5. **Test Naming Convention:** Use underscore-separated descriptive names:
+   - `ComponentName_Behavior_Condition` (e.g., `AdminPageLayout_RendersTitle_WhenTitleProvided`)
+   - Makes test intent obvious without reading code
+   - Groups related tests alphabetically
+
+**GitHub Actions:**
+- ✅ Commented on issue #97 with test summary and results
+- ✅ Updated `.squad/agents/gimli/history.md` with learnings
+
+**Status:** Sprint 2 regression testing complete. All deliverables met. Component architecture is now protected against future misuse.
+
