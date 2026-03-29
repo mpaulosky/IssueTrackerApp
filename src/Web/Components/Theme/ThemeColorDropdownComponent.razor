@@ -38,7 +38,7 @@
 	private bool _isOpen;
 
 	/// <summary>
-	/// Reads the currently active color from ThemeManager on first render so the
+	/// Reads the currently active color from themeManager on first render so the
 	/// picker reflects the persisted theme without requiring user interaction.
 	/// </summary>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -47,7 +47,8 @@
 		{
 			try
 			{
-				_selectedColor = await Js.InvokeAsync<string>("ThemeManager.getCurrentColor") ?? "BLUE";
+				var color = await Js.InvokeAsync<string>("themeManager.getColor") ?? "blue";
+				_selectedColor = color.ToUpperInvariant();
 				StateHasChanged();
 			}
 			catch (TaskCanceledException)
@@ -64,8 +65,7 @@
 	private void ToggleDropdown() => _isOpen = !_isOpen;
 
 	/// <summary>
-	/// Applies the selected color while preserving the current brightness, then
-	/// syncs all ThemeManager-managed color buttons in the DOM.
+	/// Applies the selected color while preserving the current brightness.
 	/// </summary>
 	private async Task SelectColorAsync(string color)
 	{
@@ -73,7 +73,7 @@
 		_isOpen = false;
 		try
 		{
-			await Js.InvokeVoidAsync("ThemeManager.selectColorAndUpdateUI", color);
+			await Js.InvokeVoidAsync("themeManager.setColor", color.ToLowerInvariant());
 		}
 		catch (TaskCanceledException)
 		{

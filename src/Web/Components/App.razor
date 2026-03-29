@@ -11,7 +11,7 @@
 	<!-- Initialize theme early to prevent FOUC (Flash of Unstyled Content) -->
 	<script>
 		(function () {
-			// Initialize default theme colors (will be overridden by theme-manager.js after a load)
+			// Initialize default theme colors (will be overridden by theme.js after load)
 			const savedTheme = localStorage.getItem('tailwind-color-theme') || 'theme-blue-light';
 
 			// Remove existing theme classes (in case of server-side re-render)
@@ -48,9 +48,6 @@
 
 	@* Initialize theme before page render to prevent flash of unstyled content *@
 	<script src="js/theme.js"></script>
-
-	<!-- Theme Manager for color theme switching -->
-	<script src="js/theme-manager.js"></script>
 
 	@* Chart.js for analytics dashboard *@
 	<scriptL src="https://cdn.jsdelivr.net/npm/chart.js"></scriptL>

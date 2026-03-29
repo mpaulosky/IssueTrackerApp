@@ -33,7 +33,8 @@
 		{
 			try
 			{
-				await Js.InvokeVoidAsync("ThemeManager.syncUI");
+				_currentBrightness = await Js.InvokeAsync<string>("themeManager.getBrightness") ?? "light";
+				StateHasChanged();
 			}
 			catch (TaskCanceledException)
 			{
@@ -47,15 +48,14 @@
 	}
 
 	/// <summary>
-	/// Toggles between light and dark brightness and updates all ThemeManager-managed
-	/// brightness buttons in the DOM.
+	/// Toggles between light and dark brightness.
 	/// </summary>
 	private async Task ToggleBrightnessAsync()
 	{
 		string next = _currentBrightness == "light" ? "dark" : "light";
 		try
 		{
-			await Js.InvokeVoidAsync("ThemeManager.selectBrightnessAndUpdateUI", next);
+			await Js.InvokeVoidAsync("themeManager.setBrightness", next);
 			_currentBrightness = next;
 			StateHasChanged();
 		}
