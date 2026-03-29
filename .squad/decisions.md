@@ -1251,3 +1251,13 @@ Approve and merge using `gh pr merge 87 --squash --auto`.
 ### 2026-03-29: Footer text size unified
 
 **What:** Removed `text-xs` from footer inner div and removed invalid `txt-3xl` class from version/commit links. All footer text now defaults to `text-base`.
+
+### 2026-03-29: SignalRConnection Labels Match Nav Size
+
+**Author:** Legolas (Frontend Dev)
+
+**What:** Removed `text-xs` from all three state label spans in SignalRConnection.razor. Labels now inherit text-base, matching nav menu link size.
+
+**Rationale:** Ensures consistent visual sizing across navigation UI components. Labels inherit parent context sizing rather than forced override.
+
+---

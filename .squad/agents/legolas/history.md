@@ -659,3 +659,5 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 ## Learnings
 
 - **Footer text size fix** (`src/Web/Components/Layout/FooterComponent.razor`): Removed `text-xs` from the inner `<div>` holding version/commit links so all footer text inherits `text-base` and matches the copyright span. Also removed the invalid `txt-3xl` class (typo — Tailwind prefix is `text-`, not `txt-`) from both `<a>` elements. Always verify Tailwind utility prefixes; a wrong prefix silently does nothing.
+
+- **SignalRConnection label text size fix** (`src/Web/Components/Shared/SignalRConnection.razor`): Removed `text-xs` from all three state label `<span>` elements (Live, Connecting, Offline). Labels now inherit `text-base` from the cascade, matching the nav menu link size. Pattern: when a status badge sits alongside nav links, omit explicit small-text classes and let the surrounding context set the size.
