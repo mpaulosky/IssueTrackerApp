@@ -672,3 +672,25 @@ helper `IsLikelyRoleClaimType`. Logs an informational message pointing developer
 **Pattern Established:** Defensive claim scanning (Pass 3) should come *after* explicit config-driven
 passes and fire only as a fallback. Always log a hint when auto-detection fires so operators know to
 set the proper config key.
+
+### 2026-03-29 — Auth0 Role Claim Auto-Detect (Pass 3) (Sprint 2 Complete)
+
+**Role:** Backend - API & Data Layer
+
+**Work:**
+- Added Pass 3 to Auth0ClaimsTransformation.TransformAsync (Issue #90)
+- Pass 3 scans all claims for types ending in `/roles` when Passes 1–2 find nothing
+- Updated Auth0ClaimsTransformationTests.cs with 2 test cases
+- Belt-and-suspenders safety net for misconfigured namespace
+
+**Implementation Details:**
+- Auto-detect pattern: `claim.Type.EndsWith("/roles", StringComparison.OrdinalIgnoreCase)`
+- Scans all claims when Pass 1 (namespace lookup) and Pass 2 (bare "roles") both return empty
+- Maps detected claim to `ClaimTypes.Role`
+- Prevents silent Admin role failure in NavMenu when namespace is misconfigured
+
+**Integration:** Works with Aragorn's namespace configuration + Legolas's Profile.razor hardening for layered defense.
+
+**Test Coverage:** 2 new test cases verify Pass 3 auto-detect catches namespaced role claims.
+
+**Outcome:** ✓ Build clean, all Auth0 transformation tests passing.

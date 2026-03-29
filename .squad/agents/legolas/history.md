@@ -661,3 +661,51 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 - **Footer text size fix** (`src/Web/Components/Layout/FooterComponent.razor`): Removed `text-xs` from the inner `<div>` holding version/commit links so all footer text inherits `text-base` and matches the copyright span. Also removed the invalid `txt-3xl` class (typo — Tailwind prefix is `text-`, not `txt-`) from both `<a>` elements. Always verify Tailwind utility prefixes; a wrong prefix silently does nothing.
 
 - **SignalRConnection label text size fix** (`src/Web/Components/Shared/SignalRConnection.razor`): Removed `text-xs` from all three state label `<span>` elements (Live, Connecting, Offline). Labels now inherit `text-base` from the cascade, matching the nav menu link size. Pattern: when a status badge sits alongside nav links, omit explicit small-text classes and let the surrounding context set the size.
+
+### 2026-05-29 — Profile GetAllRoleClaims Auth0 namespace fix + bUnit tests (Issues #91, #94)
+
+**Tasks completed:**
+1. **Profile.razor roles fix (issue #91):** `GetAllRoleClaims()` now accepts an optional `roleClaimNamespace` parameter. `IConfiguration` is injected via `@inject` directive; `OnInitializedAsync` reads `Auth0:RoleClaimNamespace` from config and passes it to the helper.
+2. **NavMenu admin tests (issue #92):** Confirmed `NavMenuComponent.razor` uses `<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy">` correctly. Added 2 new explicit tests: `NavMenu_WithAdminRole_RendersAdminNavLink` and `NavMenu_WithUserRoleOnly_DoesNotRenderAdminNavLink`.
+3. **ProfileRolesTests.cs (issue #94):** Created `tests/Web.Tests.Bunit/Components/User/ProfileRolesTests.cs` with 8 tests covering:
+   - Page render with Admin role → shows "Admin" in roles section
+   - No roles → empty roles list (unit-tested via static method)
+   - Namespace claim type support (Auth0 custom namespace)
+   - Standard claim types (ClaimTypes.Role, "role", "roles")
+   - Deduplication, null/empty namespace edge cases, whitespace filtering
+
+**All 10 new tests pass. 7 pre-existing failures are unrelated (FooterComponent CSS, LoginDisplay greeting format).**
+
+**Key Technical Learnings:**
+- `@inject IConfiguration Configuration` directive in a `.razor` file requires `@using Microsoft.Extensions.Configuration` in scope (either in `_Imports.razor` or at top of the page).
+- Profile.razor `CascadingParameter Task<AuthenticationState>` works with bUnit's `AddAuthorization()` fake provider — claims set via `SetupAuthenticatedUser()` flow through correctly.
+- For testing a static helper on a Blazor Page, import the component class namespace (`Web.Components.User`) and call `Profile.GetAllRoleClaims(...)` directly — no rendering needed.
+- bUnit `ProfilePage_WithAdminRole_ShowsRoleInRolesSection` requires `Services.AddSingleton(IConfiguration)` so that the `@inject IConfiguration Configuration` in Profile.razor resolves.
+
+### 2026-03-29 — Profile.razor Role Claims Hardening (Sprint 2+3 Complete)
+
+**Role:** Frontend - Blazor UI Components
+
+**Work:**
+- Fixed Profile.razor GetAllRoleClaims to include Auth0 namespace claim type (Issue #91)
+- Injected IConfiguration into Profile.razor to read Auth0:RoleClaimNamespace from config
+- Added 2 NavMenu bUnit tests + created ProfileRolesTests.cs with 8 comprehensive tests
+- Belt-and-suspenders UI resilience for role display
+
+**Implementation Details:**
+- GetAllRoleClaims() now accepts optional `roleClaimNamespace` parameter
+- Claims lookup includes both standard `ClaimTypes.Role` and namespaced form
+- Profile component shows roles directly from Auth0 namespace claim even if transformation failed
+- Hardened against Auth0ClaimsTransformation misconfiguration
+
+**Test Coverage:**
+- 2 NavMenu bUnit tests: Admin link visibility with/without Admin role
+- 8 ProfileRolesTests.cs tests:
+  - Roles displayed when present
+  - No roles message when absent
+  - Namespace claim type handling
+  - Standard role claim handling
+
+**Integration:** Works with Aragorn's namespace config + Sam's Pass 3 auto-detect for multi-layer defense.
+
+**Outcome:** ✓ Build clean, all 10 new tests passing (2 NavMenu + 8 ProfileRoles).
