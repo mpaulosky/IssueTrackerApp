@@ -10,6 +10,7 @@ Here we document new features, architectural decisions, testing milestones, and 
 
 | Date | Title | Tags |
 |------|-------|------|
+| 2026-03-30 | [Release v0.2.0 — Features, Fixes & Developer Tooling](2026-03-30-release-v0-2-0.md) | release, v0.2.0, features, testing, devops |
 | 2026-03-27 | [Adding AppHost.Tests — Aspire Integration + Playwright E2E Tests](2026-03-27-apphost-aspire-playwright-e2e-tests.md) | tests, aspire, playwright, e2e, architecture |
 
 ---

@@ -259,6 +259,7 @@ API endpoints are documented with OpenAPI 3.0+ specifications via Scalar:
 <!-- BLOG_START -->
 | Date | Title | Tags |
 |------|-------|------|
+| 2026-03-30 | [Release v0.2.0 — Features, Fixes & Developer Tooling](docs/blog/2026-03-30-release-v0-2-0.md) | release, v0.2.0 |
 | 2026-03-27 | [Adding AppHost.Tests — Aspire Integration + Playwright E2E Tests](docs/blog/2026-03-27-apphost-aspire-playwright-e2e-tests.md) | tests, aspire, playwright, e2e |
 <!-- BLOG_END -->
 
