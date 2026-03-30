@@ -270,3 +270,40 @@ Ran Plan Ceremony retroactively. Milestone: "NavMenu Cleanup — Sprint 1" (#3).
 **Rule:** AppHost.Tests (Playwright E2E) MUST be run locally before every push. No exceptions. If AppHost.Tests fail locally, they WILL fail in PR CI on GitHub. Claiming "all tests pass" without running AppHost.Tests is a false statement.
 
 **Impact:** Affects all agents. Gate 4 in CI now includes mandatory AppHost.Tests check. Aragorn to enforce during code review routing.
+
+---
+
+### 2026-03-30 — Plan Ceremony: Test Gate Enforcement & Dev Workflow Hardening
+
+**Session:** Squad Plan Ceremony post-sprint completion
+**Outcome:** Milestone created, Sprint 1 completed & closed, Sprint 2 planned
+
+**What Happened:**
+- Reviewed PR #106 deliverables: Playwright E2E test fix, README sync action, Gate 4 hardening, AppHost.Tests mandatory
+- Created GitHub milestone: "Test Gate Enforcement & Dev Workflow Hardening" (https://github.com/mpaulosky/IssueTrackerApp/milestone/4)
+- Created 6 GitHub issues (4 Sprint 1, 2 Sprint 2) with proper routing and sprint labels
+- Closed Sprint 1 issues #107–#110 (work already complete in PR #106)
+- Added Plan Ceremony summary comment to PR #106
+
+**Team Directive Captured:**
+Matthew Paulosky: "AppHost.Tests MUST be run locally before every push — no exceptions — even if they take a long time."
+- This is now documented in milestone, issue #110, and PR #106 comment
+- Reflects strong commitment to test coverage enforcement
+
+**Sprint 1 Issues (Closed):**
+- #107: Playwright test fix (Pippin + Gimli)
+- #108: README sync action (Frodo + Boromir)
+- #109: Gate 4 hardening (Boromir)
+- #110: AppHost.Tests mandatory (Boromir + Pippin)
+
+**Sprint 2 Issues (Open):**
+- #111: Hook install script (Boromir) — auto-install pre-push gate on fresh clone
+- #112: CONTRIBUTING.md update (Frodo) — document gate requirements
+
+**Key Learning:**
+- GitHub CLI `gh milestone` command doesn't exist; use `gh api repos/{owner}/{repo}/milestones --input -` instead
+- Multiple labels require separate `--label` flags (not comma-separated)
+- Matthew's emphasis on "no exceptions" for AppHost.Tests reflects production-grade test gate philosophy
+
+**Decision Document:** `.squad/decisions/inbox/aragorn-plan-ceremony-2026-03-30.md`
+
