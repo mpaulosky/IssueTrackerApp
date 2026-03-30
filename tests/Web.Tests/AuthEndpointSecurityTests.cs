@@ -85,7 +85,7 @@ public class AuthEndpointSecurityTests : IClassFixture<TestWebApplicationFactory
 	/// Verifies that the login endpoint exists and accepts requests.
 	/// Note: Full Auth0 integration tests require a configured Auth0 tenant.
 	/// </summary>
-	[Fact(Skip = "Requires Auth0 configuration - deferred to Sprint 6")]
+	[Fact]
 	public async Task Login_Endpoint_ShouldExist()
 	{
 		// Act
@@ -98,7 +98,7 @@ public class AuthEndpointSecurityTests : IClassFixture<TestWebApplicationFactory
 	/// <summary>
 	/// Verifies that GET requests to /account/logout are rejected.
 	/// </summary>
-	[Fact(Skip = "Requires Auth0 configuration - deferred to Sprint 6")]
+	[Fact]
 	public async Task Logout_WithGetMethod_ShouldBeRejected()
 	{
 		// Act
@@ -114,7 +114,7 @@ public class AuthEndpointSecurityTests : IClassFixture<TestWebApplicationFactory
 	/// <summary>
 	/// Verifies that POST to /account/logout without authentication returns redirect to login.
 	/// </summary>
-	[Fact(Skip = "Requires Auth0 configuration - deferred to Sprint 6")]
+	[Fact]
 	public async Task Logout_WithPostMethod_WithoutAuth_ShouldRequireAuthentication()
 	{
 		// Act
@@ -127,7 +127,7 @@ public class AuthEndpointSecurityTests : IClassFixture<TestWebApplicationFactory
 	/// <summary>
 	/// Verifies that POST to /account/logout without antiforgery token returns 400 Bad Request.
 	/// </summary>
-	[Fact(Skip = "Requires Auth0 configuration - deferred to Sprint 6")]
+	[Fact]
 	public async Task Logout_WithPostMethod_WithoutAntiforgeryToken_ShouldReturn400()
 	{
 		// Arrange
@@ -144,7 +144,7 @@ public class AuthEndpointSecurityTests : IClassFixture<TestWebApplicationFactory
 	/// <summary>
 	/// Verifies that the logout endpoint is POST-only (no GET mapping).
 	/// </summary>
-	[Fact(Skip = "Requires Auth0 configuration - deferred to Sprint 6")]
+	[Fact]
 	public async Task Logout_Endpoint_ShouldOnlyAcceptPost()
 	{
 		// Arrange
