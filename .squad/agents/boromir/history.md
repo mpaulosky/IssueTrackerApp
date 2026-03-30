@@ -82,3 +82,11 @@
 - **Final state:** CI check (`build (ubuntu-latest)`) still enforced, approval count now 0, admins not enforced
 - **Quality gates preserved:** Ralph's pre-merge review gate table handles review quality; GitHub CI enforces build health
 - **Decision file:** `.squad/decisions/inbox/boromir-branch-protection-solo-fix.md`
+
+### 2026-03-30 — AppHost.Tests Gate Added to CI (Gate 4)
+
+**By:** Boromir (DevOps)
+
+**Rule implemented:** AppHost.Tests (Playwright E2E) now mandatory in Gate 4 before merge. Per Matthew Paulosky directive: no exceptions, no skips. AppHost.Tests must run locally before push.
+
+**CI update:** sync-readme.yml created, Docker skip removed, AppHost.Tests added to required checks. All agents must comply.

@@ -143,3 +143,9 @@ The two theme systems (`theme.js` + `theme-manager.js`) conflict because:
 
 **Testing:** Build succeeded with no errors. Tests cannot run locally without Docker. CI will validate on next push.
 
+
+### 2026-03-30 — Team Rule: AppHost.Tests Mandatory Pre-Push
+
+**Enforced by:** Matthew Paulosky (User directive)
+
+**Rule:** AppHost.Tests (Playwright E2E) MUST be run locally before every push. No exceptions. Gate 4 now includes mandatory AppHost.Tests check. Pippin to validate E2E tests locally before marking test fixes complete.

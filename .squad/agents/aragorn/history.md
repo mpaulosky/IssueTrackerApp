@@ -262,3 +262,11 @@
 Ran Plan Ceremony retroactively. Milestone: "NavMenu Cleanup — Sprint 1" (#3). Created 2 issues for NavMenu simplification work (#104, #105) and immediately closed them (work already done in branch `squad/nav-cleanup-and-admin-portal`).
 
 **Process violation noted:** @copilot skipped ceremony step after plan approval. Reminded team: [[PLAN]] → Aragorn Plan Ceremony → issues → work begins.
+
+### 2026-03-30 — Team Rule: AppHost.Tests Mandatory
+
+**Enforced by:** Matthew Paulosky (User directive via Copilot)
+
+**Rule:** AppHost.Tests (Playwright E2E) MUST be run locally before every push. No exceptions. If AppHost.Tests fail locally, they WILL fail in PR CI on GitHub. Claiming "all tests pass" without running AppHost.Tests is a false statement.
+
+**Impact:** Affects all agents. Gate 4 in CI now includes mandatory AppHost.Tests check. Aragorn to enforce during code review routing.
