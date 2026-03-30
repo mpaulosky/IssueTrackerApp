@@ -254,3 +254,11 @@
   - Defined CHANGES_REQUESTED rejection protocol with author lockout and fix routing to non-author agent
   - Defined merge conflict resolution routing by domain
 - **Status:** Complete, documented in `.squad/decisions.md`
+
+---
+
+### 2026-03-30 — Plan Ceremony: NavMenu Cleanup
+
+Ran Plan Ceremony retroactively. Milestone: "NavMenu Cleanup — Sprint 1" (#3). Created 2 issues for NavMenu simplification work (#104, #105) and immediately closed them (work already done in branch `squad/nav-cleanup-and-admin-portal`).
+
+**Process violation noted:** @copilot skipped ceremony step after plan approval. Reminded team: [[PLAN]] → Aragorn Plan Ceremony → issues → work begins.
