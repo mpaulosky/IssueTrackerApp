@@ -38,30 +38,35 @@ Before any `git push`, an agent MUST:
 
 - [ ] Open `.github/prompts/build-repair.prompt.md` and execute it fully
 - [ ] Confirm final output: `Build succeeded. 0 Warning(s). 0 Error(s).`
-- [ ] Confirm final test output: `Passed! Failed: 0`
+- [ ] Run ALL test projects including `AppHost.Tests` — confirm `Passed! Failed: 0` for every suite
 - [ ] Only then execute `git push`
 
-Do NOT push if either check reports failures. Fix first.
+**⚠️ AppHost.Tests (Playwright E2E) is MANDATORY.** It must be run locally before every push,
+even though it takes longer. Skipping it or claiming "all tests pass" without running it is a
+false statement — failures will surface in CI on the PR. Docker must be running (Aspire boots
+internally via `DistributedApplicationTestingBuilder`).
+
+Do NOT push if any test suite reports failures. Fix first.
 
 ### Hook (Local Enforcement)
 
-The `.git/hooks/pre-push` hook runs unit tests as a local tripwire.
+The `.git/hooks/pre-push` hook enforces all four gates locally.
 Install once per clone — **Shell (Linux/macOS/Git Bash)**:
 
 ```bash
-cat > .git/hooks/pre-push << 'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "🔎 pre-push: running build-repair gate (Domain.Tests + Web.Tests)…"
-if dotnet test tests/Domain.Tests tests/Web.Tests --configuration Release --verbosity quiet 2>&1; then
-  echo "✅ Gate passed — push allowed."
-else
-  echo "❌ Gate FAILED. Run .github/prompts/build-repair.prompt.md and fix before pushing."
-  exit 1
-fi
-EOF
+# Copy the full hook from the canonical source:
+cp .git/hooks/pre-push .git/hooks/pre-push.bak 2>/dev/null || true
+# The hook runs: build → unit tests → integration tests (including AppHost.Tests/Playwright)
+# All four gates must pass. Docker required for Gate 4.
 chmod +x .git/hooks/pre-push
 ```
+
+**Gate summary (current hook):**
+- Gate 0: Block direct push to `main`
+- Gate 1: Warn on untracked `.razor`/`.cs` files
+- Gate 2: Release build (0 warnings, 0 errors)
+- Gate 3: Unit + bUnit + Architecture tests (6 projects, no Docker)
+- Gate 4: Integration + Playwright E2E — **AppHost.Tests included** (Docker required)
 
 **PowerShell (Windows):**
 ```powershell
