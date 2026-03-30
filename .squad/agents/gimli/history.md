@@ -910,3 +910,9 @@ Bug was fixed in `Analytics.razor` which incorrectly used `@layout AdminPageLayo
 Gimli created AdminPageLayoutTests.cs with 14 bUnit tests covering rendering, navigation, dark mode, and critical reflection guards. The reflection guard validates that AdminPageLayout never inherits LayoutComponentBase, preventing future misuse where the component might be accidentally used with `@layout` directive.
 
 Test results: 14/14 passing. Build clean.
+
+### 2026-03-30 — Team Rule: AppHost.Tests Mandatory
+
+**Enforced by:** Matthew Paulosky (User directive)
+
+**Rule:** AppHost.Tests (Playwright E2E) MUST be run locally before every push. No exceptions. Gate 4 in CI now enforces this. Gimli to validate AppHost.Tests locally before pushing unit test changes.

@@ -54,15 +54,16 @@ public class LayoutAuthenticatedTests : BasePlaywrightTests
 			var nav = page.Locator("nav[aria-label=\"Main navigation\"]");
 			await nav.WaitForAsync();
 
-			// Assert — verify each expected link is present within the nav
-			var homeLink = nav.Locator("a[href=\"/\"]");
+			// Assert — verify expected links are present
+			// Home link (site logo) is in the header, outside the nav element
+			var homeLink = page.Locator("a[href=\"/\"]");
 			var dashLink = nav.Locator("a[href=\"/dashboard\"]");
 			var issuesLink = nav.Locator("a[href=\"/issues\"]");
 			var createLink = nav.Locator("a[href=\"/issues/create\"]");
 
 			// AuthorizeView renders <Authorized> content asynchronously after auth state resolves.
-			// Wait for the first nav link to appear before asserting counts.
-			await homeLink.First.WaitForAsync();
+			// Wait for the first nav link (inside AuthorizeView) to appear before asserting counts.
+			await dashLink.First.WaitForAsync();
 			(await homeLink.CountAsync()).Should().BeGreaterThan(0);
 			(await dashLink.CountAsync()).Should().BeGreaterThan(0);
 			(await issuesLink.CountAsync()).Should().BeGreaterThan(0);

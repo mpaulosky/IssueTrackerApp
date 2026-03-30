@@ -1452,3 +1452,33 @@ if (string.IsNullOrWhiteSpace(roleValue))
 **Next Steps:** Monitor first PRs to confirm protection works; add test checks to required_status_checks once squad-test.yml job names confirmed.
 
 ---
+
+---
+
+### 2026-03-30: Plan Ceremony — NavMenu Cleanup (Retroactive)
+
+**By:** Aragorn (Lead)
+
+**What:** Ran Plan Ceremony retroactively for NavMenu cleanup work. Created milestone "NavMenu Cleanup — Sprint 1" (#3) and 2 GitHub issues (#104, #105). Work was already complete and merged into branch `squad/nav-cleanup-and-admin-portal`; issues were immediately closed referencing the implementation branch.
+
+**Why:** Process compliance — team skipped Plan Ceremony during [[PLAN]] session. Work was implemented without milestone/sprint structure. Corrected retroactively before PR was opened.
+
+**Process violation:** @copilot implemented work directly after plan approval without routing to Aragorn for Plan Ceremony. Team should enforce: plan approval → Aragorn Plan Ceremony → issue creation → then work begins.
+
+**Details:**
+- Milestone #3: "NavMenu Cleanup — Sprint 1"
+- Issue #104: refactor(nav) — Legolas assigned — ✅ Closed
+- Issue #105: test(nav) — Gimli assigned — ✅ Closed
+- Both issues in sprint-1, milestone 3
+
+---
+
+### 2026-03-30T13:22:06Z: AppHost.Tests Mandatory (User Directive)
+
+**By:** Matthew Paulosky (via Copilot)
+
+**What:** AppHost.Tests (Playwright E2E) MUST be run locally before every push, even if they take a long time. Claiming "all tests pass" without running AppHost.Tests is a false statement. If AppHost.Tests fail locally they will fail in the PR CI on GitHub.
+
+**Why:** User requirement — captured for team memory. No exception or skip for AppHost.Tests pre-push.
+
+**Enforcement:** Gate 4 in CI now includes AppHost.Tests. This is now a team-wide rule affecting all agents (Aragorn, Boromir, Pippin, Gimli, and others).
