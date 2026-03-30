@@ -719,3 +719,7 @@ When a page has a modal that reuses the same CSS classes as parent buttons (e.g.
 Legolas added warning comment to AdminPageLayout.razor emphasizing that it is a wrapper component, not a layout. The comment explicitly prevents developers from using `@layout AdminPageLayout` and reinforces proper usage: `<AdminPageLayout Title="..." Description="...">...</AdminPageLayout>`.
 
 This guard document integrates with Gimli's reflection-based bUnit tests that validate AdminPageLayout never inherits LayoutComponentBase.
+
+- GH Pages served from main:/docs (legacy). docs/index.html created from README.md.
+  Standing rule: regenerate after every Bilbo blog cycle.
+  Site URL: https://mpaulosky.github.io/IssueTrackerApp/

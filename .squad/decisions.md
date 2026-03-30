@@ -1582,3 +1582,22 @@ Ran `gh release create v0.2.0 --generate-notes --title "Release v0.2.0" --verify
 **Impact:** All future GitHub Releases will automatically spawn a blog post. Squad members can rely on the blog as the source of truth for what shipped in each version.
 
 **Related:** `.squad/agents/bilbo/charter.md` (release trigger rule added)
+
+#### GH Pages: Legolas → Bilbo → Legolas Workflow (2026-03-30)
+
+**By:** Matthew Paulosky (via Squad)
+
+**Decision:** After each Bilbo blog cycle, Legolas regenerates `docs/index.html` from the root `README.md`. Work is local-only; no GitHub Actions needed.
+
+**Why:** GH Pages (`main:/docs`, legacy build) needs `index.html` to display the project landing page at https://mpaulosky.github.io/IssueTrackerApp/ with full badge rendering and GitHub-flavored markdown support. Plain HTML — no Jekyll, no `_config.yml`.
+
+**Workflow Chain:**
+1. Release published → Ralph detects
+2. Bilbo writes release blog post in `docs/blog/`
+3. Legolas regenerates `docs/index.html` from updated root README
+4. Scribe commits both as part of next batch push
+
+**Implementation:** Legolas has standing responsibility to regenerate landing page whenever README changes or after each blog cycle. Added to Legolas charter as formal role.
+
+**Related:** `.squad/agents/legolas/charter.md`, `docs/index.html`
+
