@@ -277,7 +277,7 @@ public sealed class IssueEndpointTests : IntegrationTestBase
 		result.Value.Id.Should().NotBe(ObjectId.Empty);
 	}
 
-	[Fact(Skip = "Requires MediatR ValidationBehavior pipeline — validators exist but are not wired into the pipeline")]
+	[Fact]
 	public async Task CreateIssue_WithEmptyTitle_ReturnsValidationError()
 	{
 		// Arrange
@@ -298,7 +298,7 @@ public sealed class IssueEndpointTests : IntegrationTestBase
 		result.ErrorCode.Should().Be(ResultErrorCode.Validation);
 	}
 
-	[Fact(Skip = "Requires MediatR ValidationBehavior pipeline — validators exist but are not wired into the pipeline")]
+	[Fact]
 	public async Task CreateIssue_WithEmptyDescription_ReturnsValidationError()
 	{
 		// Arrange
@@ -412,7 +412,7 @@ public sealed class IssueEndpointTests : IntegrationTestBase
 		result.ErrorCode.Should().Be(ResultErrorCode.NotFound);
 	}
 
-	[Fact(Skip = "Requires MediatR ValidationBehavior pipeline — validators exist but are not wired into the pipeline")]
+	[Fact]
 	public async Task UpdateIssue_WithEmptyTitle_ReturnsValidationError()
 	{
 		// Arrange

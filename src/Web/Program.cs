@@ -6,8 +6,11 @@ using Azure.Identity;
 
 using Domain;
 using Domain.Abstractions;
+using Domain.Behaviors;
 using Domain.Features.Issues.Commands.Bulk;
 using Domain.Models;
+
+using MediatR;
 
 using FluentValidation;
 
@@ -77,6 +80,9 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
 // Add MediatR for CQRS pattern
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DomainMarker).Assembly));
+
+// Register ValidationBehavior as a MediatR pipeline behavior
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 // Add FluentValidation validators
 builder.Services.AddValidatorsFromAssembly(typeof(DomainMarker).Assembly);
