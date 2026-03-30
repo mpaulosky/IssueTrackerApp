@@ -1482,3 +1482,75 @@ if (string.IsNullOrWhiteSpace(roleValue))
 **Why:** User requirement — captured for team memory. No exception or skip for AppHost.Tests pre-push.
 
 **Enforcement:** Gate 4 in CI now includes AppHost.Tests. This is now a team-wide rule affecting all agents (Aragorn, Boromir, Pippin, Gimli, and others).
+
+---
+
+### 2026-03-30T13:27:42Z: Plan Ceremony — Test Gate Enforcement & Dev Workflow Hardening
+
+**Author:** Aragorn (Lead Developer)  
+**Date:** 2026-03-30  
+**Requested by:** Matthew Paulosky  
+
+**Decision:** CLOSED — Milestone #4 created with 6 tracked issues across two sprints.
+
+**Context:** Completed Plan Ceremony for Sprint 1 (work completed in PR #106) and Sprint 2 (follow-up items). Established test gate enforcement and dev workflow hardening as formal milestone.
+
+**Milestone Details:**
+- **Name:** Test Gate Enforcement & Dev Workflow Hardening
+- **URL:** https://github.com/mpaulosky/IssueTrackerApp/milestone/4
+- **Description:** Enforce full test suite pre-push, README sync automation, Playwright E2E in gate
+
+**Sprint 1 — COMPLETED (PR #106)**
+1. #107 — fix: Playwright Layout_NavMenu_ContainsExpectedLinks test (`squad:pippin`, `squad:gimli`)
+2. #108 — feat: README → docs/README.md sync GitHub Action (`squad:frodo`, `squad:boromir`)
+3. #109 — fix: Harden pre-push Gate 4 — remove Docker skip bypass (`squad:boromir`)
+4. #110 — fix: Add AppHost.Tests (Playwright E2E) to pre-push Gate 4 (`squad:boromir`, `squad:pippin`)
+
+**Sprint 2 — IN PROGRESS**
+5. #111 — chore: Add hook install script so AppHost.Tests gate installs on fresh clone (`squad:boromir`, `sprint-2`)
+6. #112 — docs: Update CONTRIBUTING.md with pre-push gate requirements (`squad:frodo`, `sprint-2`)
+
+**Key Team Directive Captured:**
+> "AppHost.Tests MUST be run locally before every push — no exceptions — even if they take a long time." — Matthew Paulosky
+
+This directive is now explicitly documented in milestone description, issue #110 body, and PR #106 comments.
+
+**Learnings:**
+- `gh milestone` CLI lacks `create` subcommand; use `gh api` instead
+- Multiple labels require separate `--label` flags in `gh issue create`
+- Milestone reference in issue creation uses title, not number
+- Team enforces AppHost.Tests as hard gate with no skip option
+
+---
+
+### 2026-03-30T17:57Z: Workflow Limitation — GITHUB_TOKEN Cannot Trigger Downstream Workflows
+
+**By:** mpaulosky (via Copilot)  
+**Type:** Technical Decision / Workaround  
+
+**Problem:** When `squad-milestone-release.yml` pushes a tag using `GITHUB_TOKEN`, GitHub's security model blocks `push: tags` workflows (like `squad-release.yml`) from auto-triggering. The tag is created correctly but the downstream release workflow never fires.
+
+**Root Cause:** GitHub's token isolation prevents workflows triggered by `GITHUB_TOKEN`-created events from spawning additional workflows. This is by design to prevent infinite loops and unauthorized workflow chains.
+
+**Workaround Applied:** 
+Ran `gh release create v0.2.0 --generate-notes --title "Release v0.2.0" --verify-tag` directly from CLI after tag push. Release v0.2.0 successfully created with auto-generated notes.
+
+**Permanent Fix Options:**
+1. **Consolidate into single workflow** — Add `gh release create` as final step in `squad-milestone-release.yml` (simplest, one workflow does everything)
+2. **Use PAT secret** — Replace `GITHUB_TOKEN` with `PAT` for tag push step (allows downstream trigger, more complex, requires secret management)
+
+**Recommendation:** Option 1 — Consolidate release creation into `squad-milestone-release.yml`.
+
+**Rationale:** 
+- Eliminates dependency on `squad-release.yml` for the release cut path
+- Still allows `squad-release.yml` to run if a tag is pushed manually via another method
+- Simpler maintenance and fewer moving parts
+- Reduces CI complexity during release process
+
+**Implementation:** Add to `squad-milestone-release.yml` after tag push:
+```yaml
+- name: Create GitHub Release
+  run: gh release create ${{ env.NEW_VERSION }} --generate-notes --title "Release ${{ env.NEW_VERSION }}" --verify-tag
+```
+
+**Related:** `.github/workflows/squad-milestone-release.yml`, `.github/workflows/squad-release.yml`
