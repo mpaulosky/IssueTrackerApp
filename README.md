@@ -253,6 +253,16 @@ API endpoints are documented with OpenAPI 3.0+ specifications via Scalar:
 - All REST endpoints include XML documentation comments
 - Request/response schemas are auto-generated from models
 
+## Dev Blog
+
+<!-- BLOG_START -->
+| Date | Title | Tags |
+|------|-------|------|
+| 2026-03-27 | [Adding AppHost.Tests — Aspire Integration + Playwright E2E Tests](docs/blog/2026-03-27-apphost-aspire-playwright-e2e-tests.md) | tests, aspire, playwright, e2e |
+<!-- BLOG_END -->
+
+View all posts → [docs/blog/index.md](docs/blog/index.md)
+
 ## License
 
 Licensed under the MIT License. See [LICENSE](LICENSE) file for details.
