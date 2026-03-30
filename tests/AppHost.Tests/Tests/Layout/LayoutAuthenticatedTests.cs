@@ -62,8 +62,8 @@ public class LayoutAuthenticatedTests : BasePlaywrightTests
 			var createLink = nav.Locator("a[href=\"/issues/create\"]");
 
 			// AuthorizeView renders <Authorized> content asynchronously after auth state resolves.
-			// Wait for the first nav link to appear before asserting counts.
-			await homeLink.First.WaitForAsync();
+			// Wait for the first nav link (inside AuthorizeView) to appear before asserting counts.
+			await dashLink.First.WaitForAsync();
 			(await homeLink.CountAsync()).Should().BeGreaterThan(0);
 			(await dashLink.CountAsync()).Should().BeGreaterThan(0);
 			(await issuesLink.CountAsync()).Should().BeGreaterThan(0);
