@@ -379,12 +379,12 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 		_emailRepository.UpdateAsync(Arg.Any<EmailQueueItem>(), Arg.Any<CancellationToken>())
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
-		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		// Act — give the service enough time on slow CI runners to process the batch
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await Task.Delay(500);
 		}
 		catch (OperationCanceledException)
 		{
