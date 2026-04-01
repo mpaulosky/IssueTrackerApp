@@ -1,0 +1,239 @@
+@* ============================================
+   Copyright (c) 2026. All rights reserved.
+   File Name :     EditUserRolesModal.razor
+   Company :       mpaulosky
+   Author :        Matthew Paulosky
+   Solution Name : IssueManager
+   Project Name :  Web
+   ============================================ *@
+
+@using Domain.Features.Admin.Abstractions
+@using Domain.Features.Admin.Models
+@using Web.Auth
+
+@inject IUserManagementService UserManagementService
+
+@if (User is not null)
+{
+	<!-- Modal Overlay -->
+	<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+		<!-- Background overlay -->
+		<div class="fixed inset-0 bg-black/50 transition-opacity" @onclick="HandleClose"></div>
+
+		<!-- Modal Container -->
+		<div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+			<div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+				<!-- Modal Header -->
+				<div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+					<div class="flex items-start justify-between">
+						<div>
+							<h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-title">
+								Edit User Roles
+							</h3>
+							<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+								@User.Name
+							</p>
+							<p class="text-xs text-gray-400 dark:text-gray-500">
+								@User.Email
+							</p>
+						</div>
+						<button type="button"
+						        class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						        @onclick="HandleClose"
+						        disabled="@_isSaving">
+							<span class="sr-only">Close</span>
+							<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+				</div>
+
+				<!-- Modal Body -->
+				<div class="px-6 py-4">
+					@if (!string.IsNullOrEmpty(_errorMessage))
+					{
+						<div class="mb-4 rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+							<div class="flex">
+								<div class="flex-shrink-0">
+									<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+										<path fill-rule="evenodd"
+										      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+										      clip-rule="evenodd" />
+									</svg>
+								</div>
+								<div class="ml-3">
+									<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+									<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+								</div>
+							</div>
+						</div>
+					}
+
+					<div class="space-y-3">
+						<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+							Select roles for this user:
+						</p>
+
+						@foreach (var role in _availableRoles)
+						{
+							<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+								<input type="checkbox"
+								       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
+								       checked="@_selectedRoles.Contains(role)"
+								       @onchange="@(e => HandleRoleToggle(role, e))"
+								       disabled="@_isSaving" />
+								<span class="text-sm text-gray-900 dark:text-gray-100 font-medium">@role</span>
+							</label>
+						}
+					</div>
+				</div>
+
+				<!-- Modal Footer -->
+				<div class="border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end space-x-3">
+					<button type="button"
+					        class="btn-secondary"
+					        @onclick="HandleClose"
+					        disabled="@_isSaving">
+						Cancel
+					</button>
+					<button type="button"
+					        class="btn-primary inline-flex items-center"
+					        @onclick="HandleSave"
+					        disabled="@_isSaving">
+						@if (_isSaving)
+						{
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor"
+								      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+								</path>
+							</svg>
+							<span>Saving...</span>
+						}
+						else
+						{
+							<span>Save Changes</span>
+						}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private static readonly string[] _availableRoles = [AuthorizationRoles.Admin, AuthorizationRoles.User];
+	private HashSet<string> _selectedRoles = [];
+	private HashSet<string> _initialRoles = [];
+	private bool _isSaving;
+	private string? _errorMessage;
+
+	/// <summary>
+	///   The user to edit. When null, the modal is hidden.
+	/// </summary>
+	[Parameter]
+	public AdminUserSummary? User { get; set; }
+
+	/// <summary>
+	///   Event callback invoked when the modal is closed.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnClose { get; set; }
+
+	/// <summary>
+	///   Event callback invoked after roles are successfully saved.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnSaved { get; set; }
+
+	protected override void OnParametersSet()
+	{
+		if (User is not null)
+		{
+			_selectedRoles = [.. User.Roles];
+			_initialRoles = [.. User.Roles];
+			_errorMessage = null;
+			_isSaving = false;
+		}
+	}
+
+	private void HandleRoleToggle(string role, ChangeEventArgs e)
+	{
+		if (e.Value is bool isChecked)
+		{
+			if (isChecked)
+			{
+				_selectedRoles.Add(role);
+			}
+			else
+			{
+				_selectedRoles.Remove(role);
+			}
+		}
+	}
+
+	private async Task HandleClose()
+	{
+		if (!_isSaving)
+		{
+			await OnClose.InvokeAsync();
+		}
+	}
+
+	private async Task HandleSave()
+	{
+		if (User is null || _isSaving)
+		{
+			return;
+		}
+
+		_isSaving = true;
+		_errorMessage = null;
+
+		try
+		{
+			var rolesToAdd = _selectedRoles.Except(_initialRoles).ToList();
+			var rolesToRemove = _initialRoles.Except(_selectedRoles).ToList();
+
+			if (rolesToAdd.Count > 0)
+			{
+				var addResult = await UserManagementService.AssignRolesAsync(
+					User.UserId,
+					rolesToAdd,
+					CancellationToken.None);
+
+				if (!addResult.Success)
+				{
+					_errorMessage = addResult.Error ?? "Failed to assign roles.";
+					return;
+				}
+			}
+
+			if (rolesToRemove.Count > 0)
+			{
+				var removeResult = await UserManagementService.RemoveRolesAsync(
+					User.UserId,
+					rolesToRemove,
+					CancellationToken.None);
+
+				if (!removeResult.Success)
+				{
+					_errorMessage = removeResult.Error ?? "Failed to remove roles.";
+					return;
+				}
+			}
+
+			await OnSaved.InvokeAsync();
+			await OnClose.InvokeAsync();
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = $"An unexpected error occurred: {ex.Message}";
+		}
+		finally
+		{
+			_isSaving = false;
+		}
+	}
+}
