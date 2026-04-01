@@ -2445,3 +2445,126 @@ Rationale:
 **Why:** PR #160 demonstrated the failure mode: branch cut before `99a446d` landed, conflicts discovered at review time rather than at author time. Rebasing before merge ensures CI tests the actual merged state, not a diverged snapshot.
 
 **How to enforce:** Aragorn's review gate checklist now includes: (1) check `gh pr view --json mergeStateStatus` — if `BEHIND`, rebase the branch first; (2) re-trigger CI after rebase; (3) only merge once CI is green on the rebased tip.
+### Frontend Components & Styling
+
+#### RoleBadge `.badge` Utility Pattern (2026-03-29)
+
+**Author:** Legolas  
+**Issue:** #138
+
+When implementing `RoleBadge.razor`, two options were available for pill styling:
+1. Inline Tailwind classes on every `<span>` (e.g. `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium`)
+2. Use the project-defined `.badge` utility class from `src/Web/Styles/input.css`
+
+**Decision:** Use the `.badge` CSS utility class for all badge/pill renders in the admin area.
+
+**Rationale:**
+- The `.badge` class already exists in `src/Web/Styles/input.css` and compiles to the exact same Tailwind utility set.
+- Using the shared class ensures consistent pill sizing/shape project-wide.
+- Reduces duplication — if pill dimensions change, one place to update.
+- The existing `UserListTable.razor` had been inlining the same classes; `RoleBadge` provides the canonical extraction.
+
+**Impact:** Any future badge-like component should use `.badge` + a color modifier class, not raw inline Tailwind. Color modifier pattern: `"badge bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"` (append color classes to base `.badge`).
+
+---
+
+### Domain Models & DTOs
+
+#### Labels Field Appended to IssueDto Positional Record (2026-04-01)
+
+**Author:** Sam (Backend Developer)  
+**Issue:** #149
+
+**Decision:** `Labels` is appended as the **last** positional parameter in `IssueDto` (after `VotedBy`), not inserted in the middle.
+
+**Rationale:** `IssueDto` is a positional record. Inserting a new parameter anywhere other than the end would shift all subsequent positional arguments, breaking every call site that uses positional construction syntax. Appending at the end is the safe default for positional records in this codebase.
+
+**Implication for future fields:** Any new fields added to `IssueDto` should continue to be appended at the end unless there is a strong semantic reason to reorder, in which case all call sites must be audited.
+
+---
+
+### Authentication & Authorization
+
+#### Auth0 Management API Integration Strategy (2026-04-01)
+
+**Author:** Gandalf  
+**Issue:** #130 — [Spike] Auth0 Management API — capabilities, rate limits, and SDK options
+
+IssueTrackerApp currently uses Auth0 for end-user authentication via OIDC Authorization Code flow with PKCE. Role assignment (Admin / User) is managed manually in the Auth0 dashboard. As the platform scales, automated user-role provisioning becomes necessary. This ADR evaluates Auth0 Management API v2 integration strategy.
+
+**Decision:** Use the official `Auth0.ManagementApi` NuGet package (`ManagementApiClient`) with:
+- A dedicated Machine-to-Machine (M2M) application in Auth0
+- Token caching in `IMemoryCache` with TTL-based refresh strategy
+- M2M credentials in .NET User Secrets (dev) and Azure Key Vault (production)
+
+**Rationale:**
+- Official SDK is actively maintained, handles token acquisition, provides strongly-typed objects, reduces boilerplate.
+- Dedicated M2M app cleanly separates management-plane credentials from user-facing OIDC credentials, limiting blast radius on credential rotation.
+- App already uses `IMemoryCache` for analytics; reusing pattern is idiomatic.
+
+**Positive Consequences:**
+- Programmatic role assignment enables automated onboarding and admin UI workflows.
+- Strongly-typed SDK reduces serialization bugs.
+- Token caching avoids unnecessary M2M token requests and respects rate limits.
+- Separation of M2M and OIDC credentials follows least-privilege principle.
+
+**Negative / Trade-offs:**
+- Adds new NuGet dependency (`Auth0.ManagementApi`).
+- Requires Auth0 dashboard configuration (new M2M app, API permission grants) — manual steps.
+- M2M tokens are sensitive; misconfigured Key Vault access policies would cause Management API calls to fail at runtime.
+- Rate limits on free Auth0 tier (2 req/sec burst) mean bulk operations must be throttled.
+
+**Required Auth0 Dashboard Setup:**
+1. Create Machine-to-Machine Application in Auth0 dashboard
+2. Grant API permissions: `read:users`, `read:roles`, `read:role_members`, `update:users`, `create:role_members`, `delete:role_members`
+3. Note M2M app `Client ID` and `Client Secret`
+
+**Required Secrets** (distinct from existing `Auth0:ClientId`/`Auth0:ClientSecret`):
+- `Auth0Management:ClientId` — Client ID of M2M application
+- `Auth0Management:ClientSecret` — Client Secret of M2M application
+- `Auth0Management:Domain` — Same as `Auth0:Domain`
+- `Auth0Management:Audience` — `https://{your-tenant}.auth0.com/api/v2/`
+
+**Development (User Secrets):**
+```bash
+dotnet user-secrets set "Auth0Management:ClientId"     "YOUR_M2M_CLIENT_ID"
+dotnet user-secrets set "Auth0Management:ClientSecret" "YOUR_M2M_CLIENT_SECRET"
+dotnet user-secrets set "Auth0Management:Domain"       "your-tenant.auth0.com"
+dotnet user-secrets set "Auth0Management:Audience"     "https://your-tenant.auth0.com/api/v2/"
+```
+
+**Production (Azure Key Vault):**
+Store as Key Vault secrets: `Auth0Management--ClientId`, `Auth0Management--ClientSecret`, `Auth0Management--Domain`, `Auth0Management--Audience`. Existing `KeyVault:Uri` in `appsettings.json` auto-wires pickup.
+
+**Token Caching Strategy:**
+Auth0 Management API tokens have default TTL of 86,400 seconds (24 hours). Implement `Auth0ManagementTokenCache` service using `IMemoryCache` with safety margin (expire 5 minutes before actual TTL).
+
+**Rate Limit Strategy:**
+Auth0 enforces rate limits per tenant tier (free: ~2 req/sec). Rate-limit responses return HTTP 429 with `Retry-After` header. Implement Polly retry policy with exponential backoff and respect `Retry-After` header. For list endpoints, process pages sequentially with small delay (100ms between pages).
+
+**API Endpoints (relative to `https://{domain}/api/v2/`):**
+- List users: `GET /users?per_page=100&page={n}&include_totals=true` (requires `read:users`)
+- Get user: `GET /users/{user_id}` (requires `read:users`)
+- List roles: `GET /roles?per_page=100&page={n}&include_totals=true` (requires `read:roles`)
+- Get role: `GET /roles/{role_id}` (requires `read:roles`)
+- Get role members: `GET /roles/{role_id}/users?per_page=100` (requires `read:role_members`)
+- Assign roles: `POST /users/{user_id}/roles` with body `{"roles": ["rol_XXXXXXXXXXXXXX"]}` (requires `create:role_members`)
+- Remove roles: `DELETE /users/{user_id}/roles` (requires `delete:role_members`)
+
+**Role ID Mapping:**
+Auth0 roles have internal ID (e.g., `rol_XXXXXXXXXXXXXX`) differing from display name. Resolve role IDs by name at startup and cache to avoid hardcoding tenant-specific IDs.
+
+**References:**
+- [Auth0 Management API v2 Reference](https://auth0.com/docs/api/management/v2)
+- [Auth0 Client Credentials Flow](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow)
+- [Auth0.ManagementApi NuGet Package](https://www.nuget.org/packages/Auth0.ManagementApi)
+- [Auth0 Rate Limit Policy](https://auth0.com/docs/troubleshoot/customer-support/operational-policies/rate-limit-policy)
+
+**Follow-Up Recommendations (Non-Blocking):**
+1. **[LOW]** Implement Polly retry policy for HTTP 429 — track in new issue
+2. **[INFO]** Document in `src/Web/Auth/README.md` that `Auth0Management` secrets must be in Key Vault for production
+3. **[INFO]** Monitor Auth0/Okta security bulletins for future SDK updates
+
+---
+
+**Scribe Note:** Merged from decision inbox files 2026-04-01T21:01:59Z
