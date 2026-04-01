@@ -31,6 +31,7 @@ IssueTrackerApp is a full-stack web application for managing issues and tracking
 - **Status Tracking**: Track issues through configurable status workflows
 - **Category Organization**: Organize issues by customizable categories
 - **User Dashboard**: Personal analytics with stats cards, recent issues, and quick actions
+- **Labels**: Free-form tags (up to 10 per issue) for quick categorization. Add or remove labels via the `LabelInput` tag-input component on the create and edit forms; autocomplete suggestions are served by `GET /api/labels/suggestions?prefix={prefix}&max={max}`. Filter the issue list by one or more labels using the chip selectors on the index page or the `?label=bug,v2` URL parameter.
 - **Search & Filtering**: Debounced search, multi-filter support, pagination, and bookmarkable URLs
 
 ### Administration
