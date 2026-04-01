@@ -41,6 +41,9 @@ env:
   Auth0Management__Domain: ${{ secrets.AUTH0_DOMAIN }}
   Auth0Management__Audience: https://${{ secrets.AUTH0_DOMAIN }}/api/v2/
   MongoDB__ConnectionString: ${{ secrets.MONGODB_CONNECTION_STRING }}
+  # Aspire parameter bindings for AppHost.Tests (Parameters:auth0MgmtClientId/Secret)
+  Parameters__auth0MgmtClientId: ${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}
+  Parameters__auth0MgmtClientSecret: ${{ secrets.AUTH0_MANAGEMENT_CLIENT_SECRET }}
 
 jobs:
   build:

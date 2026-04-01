@@ -11,8 +11,9 @@ if (builder.Environment.EnvironmentName == "Development")
 }
 
 // Add Auth0 Management API parameters (M2M credentials for admin user management)
-var auth0MgmtClientId = builder.AddParameter("auth0-mgmt-client-id", secret: true);
-var auth0MgmtClientSecret = builder.AddParameter("auth0-mgmt-client-secret", secret: true);
+// Names use camelCase (no hyphens) so they map cleanly to Parameters__auth0MgmtClientId env vars in CI.
+var auth0MgmtClientId = builder.AddParameter("auth0MgmtClientId", secret: true);
+var auth0MgmtClientSecret = builder.AddParameter("auth0MgmtClientSecret", secret: true);
 
 // Add Web project with service discovery and health checks
 builder.AddProject<Projects.Web>("web")
