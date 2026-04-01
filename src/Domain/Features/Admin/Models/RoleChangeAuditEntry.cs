@@ -10,25 +10,41 @@
 namespace Domain.Features.Admin.Models;
 
 /// <summary>
-///   Represents an audit log entry recording a role change performed by an administrator.
+///   Audit log record capturing every role assignment or removal performed by an admin.
 /// </summary>
-public record RoleChangeAuditEntry
+[Serializable]
+public class RoleChangeAuditEntry
 {
-	/// <summary>Gets the unique identifier for this audit entry.</summary>
-	public string Id { get; init; } = string.Empty;
+	/// <summary>
+	///   Parameterless constructor required by the MongoDB driver for deserialization.
+	/// </summary>
+	public RoleChangeAuditEntry()
+	{
+	}
 
-	/// <summary>Gets the Auth0 user ID of the user whose roles were changed.</summary>
-	public string TargetUserId { get; init; } = string.Empty;
+	/// <summary>Gets or sets the document identifier.</summary>
+	public string Id { get; set; } = string.Empty;
 
-	/// <summary>Gets the Auth0 user ID of the administrator who made the change.</summary>
-	public string ActorUserId { get; init; } = string.Empty;
+	/// <summary>Gets or sets the Auth0 identifier of the admin who performed the action.</summary>
+	public string AdminUserId { get; set; } = string.Empty;
 
-	/// <summary>Gets the action performed (e.g. <c>assigned</c> or <c>removed</c>).</summary>
-	public string Action { get; init; } = string.Empty;
+	/// <summary>Gets or sets the display name of the admin who performed the action.</summary>
+	public string AdminUserName { get; set; } = string.Empty;
 
-	/// <summary>Gets the names of the roles that were changed.</summary>
-	public IReadOnlyList<string> RoleNames { get; init; } = [];
+	/// <summary>Gets or sets the Auth0 identifier of the user whose role was changed.</summary>
+	public string TargetUserId { get; set; } = string.Empty;
 
-	/// <summary>Gets the UTC timestamp of the role change.</summary>
-	public DateTimeOffset ChangedAt { get; init; }
+	/// <summary>Gets or sets the email address of the user whose role was changed.</summary>
+	public string TargetUserEmail { get; set; } = string.Empty;
+
+	/// <summary>
+	///   Gets or sets the action performed. Valid values are <c>"assigned"</c> or <c>"removed"</c>.
+	/// </summary>
+	public string Action { get; set; } = string.Empty;
+
+	/// <summary>Gets or sets the name of the role that was assigned or removed.</summary>
+	public string RoleName { get; set; } = string.Empty;
+
+	/// <summary>Gets or sets the UTC timestamp when the action occurred.</summary>
+	public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
 }

@@ -1601,3 +1601,416 @@ Ran `gh release create v0.2.0 --generate-notes --title "Release v0.2.0" --verify
 
 **Related:** `.squad/agents/legolas/charter.md`, `docs/index.html`
 
+
+---
+
+# PR Review Decision — Sprint 5 Admin User Management (2026-04-01)
+
+**Reviewer:** Aragorn (Lead Developer)  
+**Date:** 2026-04-01  
+**PRs Reviewed:** #146, #157, #158
+
+---
+
+## Summary
+
+Reviewed three PRs from Sprint 5 Admin User Management epic. Two approved, one rejected due to Architecture.Tests failure.
+
+---
+
+## PR #146 — Auth0 Management API Research Spike
+
+**Branch:** `squad/130-auth0-management-api-spike`  
+**Author:** Gandalf  
+**Verdict:** ✅ **APPROVED**
+
+### Findings
+
+- **Deliverable:** Comprehensive ADR in `.squad/decisions/inbox/gandalf-auth0-management-api.md`
+- **Quality:** Excellent research — covers SDK choice (`Auth0.ManagementApi`), token caching strategy (`IMemoryCache` with 24h TTL − 5 min safety margin), rate limits (2 req/sec free tier, Polly retry on HTTP 429), secrets strategy (User Secrets dev, Key Vault prod), required Auth0 dashboard M2M app setup
+- **Production code:** None — research only ✅
+- **CI:** All 23 checks passed ✅
+- **.squad/ file compliance:** ADR properly placed in `.squad/decisions/inbox/` on `squad/*` branch — permissible per charter (prohibition applies only to `feature/*` branches) ✅
+
+### Recommendation
+
+**MERGE** — Excellent foundation for implementation work in PR #158.
+
+---
+
+## PR #157 — Admin-Only Authorization Policy for /admin/users Routes
+
+**Branch:** `squad/135-admin-policy`  
+**Author:** Gandalf  
+**Verdict:** ✅ **APPROVED**
+
+### Key Changes
+
+1. **AccessDenied.razor** — Added `/access-denied` route alias (line 7)
+2. **Routes.razor** — Upgraded `RouteView` → `AuthorizeRouteView`; unauthenticated → `/account/login`, forbidden → `/access-denied`
+3. **Users.razor** — New `/admin/users` scaffold with `AdminPolicy` attribute and placeholder UI ("coming in a future sprint")
+4. **Analytics.razor** — Fixed hardcoded `"AdminPolicy"` string → `AuthorizationPolicies.AdminPolicy` constant
+5. **AdminPageLayout.razor** — Added Users nav link
+6. **AdminPolicyAuthorizationTests.cs** — 7 new bUnit tests covering AdminPolicy authorization logic
+
+### Findings
+
+- **File headers:** ✅ All new files carry required copyright block (Users.razor, AdminPolicyAuthorizationTests.cs)
+- **Tests:** 7/7 passed — covers Admin role success, Admin+User success, User-only failure, no-roles failure, anonymous failure, UserPolicy independence
+- **VSA compliance:** ✅ New code properly structured under `src/Web/Components/Pages/Admin/`
+- **CI:** All 23 checks passed (0 warnings, 0 failures) ✅
+
+### Recommendation
+
+**MERGE** — Clean authorization scaffold with comprehensive test coverage. Ready for UserManagementService integration (PR #158).
+
+---
+
+## PR #158 — UserManagementService Wrapping Auth0 Management API
+
+**Branch:** `squad/131-user-management-service`  
+**Authors:** Sam (implementation) + Gandalf (ADR)  
+**Verdict:** ❌ **REJECTED** — Architecture test failure must be fixed before merge
+
+### Key Changes
+
+1. **Domain layer:**
+   - `ResultErrorCode.ExternalService = 5` — new error code for Auth0 API failures
+   - `IUserManagementService` interface in `Domain.Features.Admin.Abstractions`
+   - `AdminUserSummaryDto`, `RoleAssignmentDto` DTOs
+   - `AdminUserSummary`, `RoleAssignment`, `RoleChangeAuditEntry` models
+
+2. **Persistence layer:**
+   - `AuditLogRepository` in `src/Persistence.MongoDb/Repositories/`
+   - `RoleChangeAuditEntryConfiguration` EF Core config
+   - `IAuditLogRepository` abstraction
+   - Updated `IssueTrackerDbContext` with `RoleChangeAuditEntries` DbSet
+
+3. **Web layer:**
+   - `UserManagementService` — M2M token via client credentials, `IMemoryCache` (24h TTL − 5 min), role ID name→ID map cached 30 min
+   - `Auth0ManagementOptions` sealed record
+   - `UserManagementExtensions.AddUserManagement()`
+   - `Auth0.ManagementApi 7.46.0` added to `Directory.Packages.props`
+   - `appsettings.json` — added `Auth0Management` section with empty placeholders
+
+### Findings
+
+#### ❌ BLOCKING ISSUE 1: Architecture.Tests Failure
+
+**Test failures:**
+- `Architecture.Tests.CodeStructureTests.Repositories_ShouldImplementIRepository` — FAILED
+- `Architecture.Tests.AdvancedArchitectureTests.AllRepositories_ShouldImplementIRepository` — FAILED
+
+**Error message:**
+```
+Expected result.IsSuccessful to be True because All repositories should implement IRepository<T>.
+Failing types: Persistence.MongoDb.Repositories.AuditLogRepository, but found False.
+```
+
+**Root cause:** `AuditLogRepository` is named like a repository but does NOT implement `IRepository<T>` interface.
+
+**Fix required:** Choose one:
+- **(Option A)** Make `AuditLogRepository` implement `IRepository<RoleChangeAuditEntry>` and inherit from `Repository<RoleChangeAuditEntry>` (if it's truly a repository pattern implementation)
+- **(Option B)** Rename to `AuditLogService` or `AuditLogWriter` (if it's NOT a repository pattern implementation, but rather a specialized write-only service)
+
+**Recommendation:** Option B is likely correct — audit logs are typically write-only append operations, not CRUD. The class should be renamed to reflect its true purpose.
+
+#### ❌ BLOCKING ISSUE 2: Duplicate .squad/ File in Diff
+
+**Problem:** `.squad/decisions/inbox/gandalf-auth0-management-api.md` appears in PR #158's diff, but this ADR was already added in PR #146.
+
+**Root cause:** PR #158's branch (`squad/131-user-management-service`) was created before PR #146 merged to main.
+
+**Fix required:** Rebase PR #158 on latest `main` after PR #146 merges. The ADR file should disappear from the diff.
+
+#### ✅ Non-blocking observations:
+
+- **File headers:** All new files carry required copyright block ✅
+- **VSA compliance:** New code properly structured under `src/Web/Features/Admin/Users/` and `src/Domain/Features/Admin/` ✅
+- **Rate limit retry TODO:** Comments note `// TODO: Rate limit retry on HTTP 429` per ADR — acceptable as known-future enhancement, not a blocking issue ✅
+- **M2M token caching:** Implementation matches ADR strategy — `IMemoryCache` with 24h TTL − 5 min safety margin ✅
+- **Role ID mapping cache:** 30 min TTL for role name→ID lookup — reasonable ✅
+
+### Recommendation
+
+**FIX REQUIRED** before merge:
+1. Fix `AuditLogRepository` architecture violation (rename to `AuditLogWriter` or make it implement `IRepository<T>`)
+2. Rebase on `main` after PR #146 merges to eliminate duplicate `.squad/` file in diff
+3. Re-run full CI to confirm Architecture.Tests pass
+4. Then submit for re-review
+
+**After fixes:** This is high-quality implementation work that correctly follows the ADR from PR #146. The M2M token caching, role ID mapping cache, and error handling patterns are all well-designed.
+
+---
+
+## Merge Sequence
+
+1. **PR #146** → Merge first (research spike, no blockers)
+2. **PR #157** → Merge next (authorization scaffold, all green)
+3. **PR #158** → Fix architecture issues, rebase, re-run CI, then merge
+
+---
+
+## Team Coordination
+
+- Notified Sam (PR #158 author) of Architecture.Tests failure and `.squad/` diff issue
+- Gandalf's ADR work in PR #146 is excellent foundation for PR #158 implementation
+- Both blocking issues in PR #158 are straightforward fixes — should be resolved quickly
+
+---
+
+## Decisions Recorded
+
+- AuditLogRepository naming violation flagged — team convention is that anything named `*Repository` MUST implement `IRepository<T>` per Architecture.Tests enforcement
+- .squad/ file duplication on feature branches is acceptable when caused by branch timing — rebase after dependency PR merges to eliminate
+
+---
+
+# 🔒 Security Review: PR #158 — UserManagementService Auth0 Integration
+
+**Reviewer:** Gandalf (Security Officer)  
+**Date:** 2026-04-01  
+**PR:** #158 — feat: Implement UserManagementService wrapping Auth0 Management API (#131)  
+**Branch:** squad/131-user-management-service
+
+---
+
+## Verdict: ✅ APPROVED WITH NOTES
+
+This PR implements Auth0 Management API integration with strong security fundamentals. All CRITICAL and HIGH severity issues have been **avoided by design**. Minor LOW/INFO findings are noted for future improvement.
+
+---
+
+## Security Findings
+
+### ✅ PASS — Secrets Hygiene
+**Status:** SECURE
+
+- `appsettings.json` contains **only empty placeholders** for `Auth0Management:{ ClientId, ClientSecret, Domain, Audience }`
+- No actual credentials committed to source control
+- Follows existing pattern from `Auth0:ClientSecret` (placeholder-only in repo)
+- Configuration binding via `Auth0ManagementOptions` sealed record is correct
+- **Recommendation:** Document in README that production values must be stored in Azure Key Vault (same as OIDC credentials)
+
+**Evidence:**
+```json
+"Auth0Management": {
+  "ClientId": "",
+  "ClientSecret": "",
+  "Domain": "",
+  "Audience": ""
+}
+```
+✅ All values are empty strings — SECURE
+
+---
+
+### ✅ PASS — Token Security
+**Status:** SECURE
+
+**Token Storage:**
+- M2M access tokens cached in `IMemoryCache` with key `"Auth0Management:Token"`
+- Cache scope is application-wide (singleton cache) — **CORRECT** for M2M tokens (not user-specific)
+- TTL set to `ExpiresIn - 300 seconds` (5-minute safety margin) — industry best practice
+- No token leakage in logs:
+  - `_logger.LogDebug("Fetching fresh Auth0 Management API token for domain '{Domain}'.", _options.Domain);` — logs domain only, NOT token ✅
+  - `_logger.LogDebug("Auth0 Management API token cached. TTL={Ttl}s.", ttl);` — logs TTL only, NOT token ✅
+
+**Token Acquisition:**
+- Uses OAuth 2.0 **client credentials flow** (correct for M2M)
+- `POST https://{domain}/oauth/token` with `grant_type=client_credentials`
+- Audience scoped to `https://{domain}/api/v2/` (Auth0 Management API)
+- `EnsureSuccessStatusCode()` used — will throw on HTTP 4xx/5xx (correct fail-fast behavior)
+
+**Token Usage:**
+- Fresh `ManagementApiClient` created per operation using `GetManagementClientAsync()`
+- Client disposed after use (`using var client`) — prevents token leaks via long-lived clients
+- No async-over-sync detected (proper `await` usage throughout)
+
+**[INFO] Minor Improvement Opportunity:**
+- Role ID cache (`"Auth0Management:Roles"`) stores role name→ID map for 30 min
+- **Question:** If a role is deleted in Auth0 mid-cache, assignment/removal will fail with `ResultErrorCode.Validation` ("Unknown role")
+- **Impact:** LOW — fail-safe behavior (rejects invalid role names), no security risk
+- **Recommendation:** Acceptable as-is; future enhancement could catch `404` from Auth0 API and invalidate cache entry
+
+---
+
+### ✅ PASS — Client Credentials Scope
+**Status:** SECURE
+
+**M2M Client Separation:**
+- Code expects separate `Auth0Management:{ ClientId, ClientSecret }` distinct from OIDC `Auth0:{ ClientId, ClientSecret }`
+- Follows **least-privilege principle** — management API credentials isolated from user-facing OIDC flow
+- If M2M credentials are compromised, attacker cannot impersonate users (no ID token issuance from M2M client)
+
+**Audience Scoping:**
+- Audience set to `https://{domain}/api/v2/` (Management API only)
+- Tokens cannot be used for other Auth0 APIs or tenant resources
+- **Auth0 Dashboard Configuration Required** (per ADR #130):
+  - M2M app must be granted **minimum required scopes**: `read:users`, `read:roles`, `update:users`, `update:roles`
+  - ⚠️ **[INFO]** Code does NOT validate scopes at runtime — relies on Auth0 API returning `403` if permissions missing
+  - **Recommendation:** Acceptable as-is; Auth0 enforces scope boundaries server-side
+
+---
+
+### 🟡 INFO — Rate Limit TODO
+**Status:** ACCEPTABLE TECHNICAL DEBT
+
+**Finding:**
+- Code comments note: `"Rate limits: Auth0 Management API returns HTTP 429 on burst. Add a Polly retry policy (per ADR #130) in a follow-up task"`
+- No HTTP 429 retry/backoff implemented in PR #158
+- Current behavior on rate limit: **immediate failure** via `EnsureSuccessStatusCode()` throwing `HttpRequestException`
+
+**Risk Assessment:**
+- **Severity:** LOW
+- **Attack Surface:** None — missing retry does not create a security vulnerability
+- **Operational Risk:** MEDIUM — burst API usage in admin UI could trigger 429 errors, degrading UX
+- **DoS Risk:** None — lack of retry does not enable DoS; Auth0 enforces rate limits server-side
+
+**Recommendation:**
+- ✅ **ACCEPTABLE TO MERGE** — this is a reliability gap, not a security vulnerability
+- Track HTTP 429 retry implementation in a follow-up issue (reference ADR #130 Polly example)
+- Consider priority: MEDIUM (impacts admin UX, especially bulk operations)
+
+---
+
+### ✅ PASS — Input Validation
+**Status:** SECURE
+
+**`GetUserByIdAsync(string userId)`:**
+```csharp
+if (string.IsNullOrWhiteSpace(userId))
+{
+    return Result.Fail<AdminUserSummary>(
+        "User ID must not be empty.",
+        ResultErrorCode.Validation);
+}
+```
+✅ Validates before passing to Auth0 API
+
+**`AssignRolesAsync(string userId, IEnumerable<string> roleNames)`:**
+```csharp
+if (string.IsNullOrWhiteSpace(userId))
+{
+    return Result.Fail<bool>("User ID must not be empty.", ResultErrorCode.Validation);
+}
+
+var roleNamesList = (roleNames ?? []).ToList();
+if (roleNamesList.Count == 0)
+{
+    return Result.Ok(true); // No-op if no roles specified
+}
+
+var unknown = roleNamesList.Where(r => !roleMap.ContainsKey(r)).ToList();
+if (unknown.Count > 0)
+{
+    return Result.Fail<bool>(
+        $"Unknown role(s): {string.Join(", ", unknown)}",
+        ResultErrorCode.Validation);
+}
+```
+✅ Validates userId, null-safe roleNames, rejects unknown role names
+
+**`RemoveRolesAsync(string userId, IEnumerable<string> roleNames)`:**
+- Same validation pattern as `AssignRolesAsync`
+
+**Injection Risk:**
+- Auth0 SDK uses **strongly-typed models** (`AssignRolesRequest { Roles = roleIds }`)
+- No raw string concatenation or SQL-like injection surface
+- Role IDs are resolved via dictionary lookup (`roleMap[r]`), not string interpolation
+- Auth0 user IDs (e.g., `auth0|abc123`) are opaque identifiers — no special chars needing sanitization
+
+**[INFO] Note:**
+- `ListUsersAsync` accepts `int page, int perPage` with no upper-bound validation
+- Auth0 API enforces `perPage` max of 100 server-side
+- Code converts 1-based page → 0-based via `Math.Max(0, page - 1)`
+- **Impact:** No security risk; Auth0 API will reject invalid pagination params
+
+---
+
+### ✅ PASS — Error Surfacing
+**Status:** SECURE
+
+**Pattern:**
+```csharp
+catch (Exception ex) when (ex is not OperationCanceledException)
+{
+    _logger.LogError(ex, "Failed to retrieve user from Auth0. UserId={UserId}", userId);
+
+    return Result.Fail<AdminUserSummary>(
+        $"Failed to retrieve user '{userId}': {ex.Message}",
+        ResultErrorCode.ExternalService);
+}
+```
+
+**Analysis:**
+- Logs **full exception** server-side (includes stack trace) — ✅ CORRECT for diagnostics
+- Returns **`ex.Message` only** to caller via `Result.Fail` — ✅ CORRECT, does NOT leak stack traces to client
+- `ResultErrorCode.ExternalService` is generic — does NOT distinguish Auth0 `404 Not Found` vs `403 Forbidden` vs `500 Internal Error`
+
+**[INFO] Tradeoff:**
+- **Benefit:** Prevents leaking Auth0 API internals (e.g., "Role ID rol_abc123 does not exist")
+- **Cost:** Caller cannot distinguish "user not found" (404) from "rate limited" (429) from "Auth0 outage" (503)
+- **Recommendation:** Acceptable for v1; if admin UI needs granular error handling, introduce sub-codes (e.g., `ExternalService_NotFound`, `ExternalService_RateLimited`)
+
+---
+
+### ✅ PASS — Dependency Security
+**Status:** SECURE
+
+**Package:**
+- `Auth0.ManagementApi` version **7.46.0** added to `Directory.Packages.props`
+- Latest stable version as of 2026-04-01
+
+**CVE Check:**
+- ✅ **No known CVEs** for `Auth0.ManagementApi 7.46.0` in 2024–2025 (verified via CVE.org, NVD, OpenCVE)
+- No security bulletins from Auth0/Okta referencing this package version
+- Recent Auth0 CVEs affect `nextjs-auth0`, `node-jws`, PHP wrappers — NOT .NET SDK
+
+**Recommendation:**
+- Monitor Auth0 Security Bulletins: https://auth0.com/docs/secure/security-guidance/security-bulletins
+- Subscribe to Okta security advisories: https://trust.okta.com/security-advisories/
+- Dependabot or Renovate bot should flag future updates automatically
+
+---
+
+## Summary
+
+PR #158 implements Auth0 Management API integration with **strong security posture**:
+
+1. ✅ **Secrets hygiene** — no credentials committed, follows existing Key Vault pattern
+2. ✅ **Token security** — M2M tokens cached safely, no logging leaks, proper scoping
+3. ✅ **Input validation** — all user inputs validated before Auth0 API calls
+4. ✅ **Least privilege** — M2M client separated from OIDC, audience scoped to Management API only
+5. ✅ **Dependency security** — no known CVEs in Auth0.ManagementApi 7.46.0
+6. 🟡 **Rate limit retry** — tracked as TODO (acceptable technical debt, no security impact)
+
+**Approved for merge.**
+
+---
+
+## Checklist Status
+
+| Security Check | Status |
+|---|---|
+| Secrets hygiene | ✅ PASS |
+| Token caching security | ✅ PASS |
+| Client credentials flow | ✅ PASS |
+| Rate limit TODO | 🟡 ACCEPTABLE (non-blocking) |
+| Role ID caching | ✅ PASS (fail-safe on stale cache) |
+| Input validation | ✅ PASS |
+| Error surfacing | ✅ PASS |
+| Dependency CVE check | ✅ PASS (no known vulnerabilities) |
+
+---
+
+## Follow-Up Recommendations (Non-Blocking)
+
+1. **[LOW]** Implement Polly retry policy for HTTP 429 (per ADR #130) — track in new issue
+2. **[INFO]** Document in `src/Web/Auth/README.md` that `Auth0Management` secrets must be in Key Vault for production
+3. **[INFO]** Monitor Auth0/Okta security bulletins for future SDK updates
+
+---
+
+**Reviewed by:** Gandalf 🔒  
+**Signed off:** 2026-04-01

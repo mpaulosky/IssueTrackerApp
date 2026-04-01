@@ -7,6 +7,7 @@
 // Project Name :  Persistence.MongoDb
 // =======================================================
 
+using Domain.Features.Admin.Models;
 using Domain.Models;
 
 namespace Persistence.MongoDb;
@@ -45,6 +46,11 @@ public interface IIssueTrackerDbContext
 	///   Gets the Email Queue collection.
 	/// </summary>
 	DbSet<EmailQueueItem> EmailQueue { get; }
+
+	/// <summary>
+	///   Gets the Role Change Audit Log collection.
+	/// </summary>
+	DbSet<RoleChangeAuditEntry> RoleChangeAuditLog { get; }
 
 	/// <summary>
 	///   Gets a DbSet for the specified entity type.

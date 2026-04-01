@@ -1,5 +1,8 @@
+using Domain.Features.Admin.Abstractions;
+
 using Persistence.MongoDb.Configurations;
 using Persistence.MongoDb.Repositories;
+using Persistence.MongoDb.Services;
 
 namespace Persistence.MongoDb;
 
@@ -65,6 +68,9 @@ public static class ServiceCollectionExtensions
 
 		// Register a generic repository
 		services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+		// Register audit log writer service
+		services.AddScoped<IAuditLogWriterService, AuditLogWriterService>();
 
 		return services;
 	}

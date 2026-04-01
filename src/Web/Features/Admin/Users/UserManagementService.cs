@@ -287,74 +287,78 @@ public sealed class UserManagementService : IUserManagementService
 
 	/// <summary>
 	///   Returns a cached M2M access token, fetching a fresh one from Auth0 when expired.
+	///   Uses <see cref="IMemoryCache.GetOrCreateAsync{TItem}" /> to avoid concurrent cold-start
+	///   races where multiple in-flight requests each fetch a new token simultaneously.
 	/// </summary>
 	private async Task<string> GetOrFetchTokenAsync(CancellationToken ct)
 	{
-		if (_cache.TryGetValue(TokenCacheKey, out string? cached) && !string.IsNullOrEmpty(cached))
+		var token = await _cache.GetOrCreateAsync(TokenCacheKey, async entry =>
 		{
-			return cached;
-		}
+			_logger.LogDebug(
+				"Fetching fresh Auth0 Management API token for domain '{Domain}'.",
+				_options.Domain);
 
-		_logger.LogDebug("Fetching fresh Auth0 Management API token for domain '{Domain}'.", _options.Domain);
+			using var httpClient = _httpClientFactory.CreateClient();
 
-		using var httpClient = _httpClientFactory.CreateClient();
+			using var requestBody = new FormUrlEncodedContent(
+			[
+				new KeyValuePair<string, string>("grant_type", "client_credentials"),
+				new KeyValuePair<string, string>("client_id", _options.ClientId),
+				new KeyValuePair<string, string>("client_secret", _options.ClientSecret),
+				new KeyValuePair<string, string>("audience", _options.Audience)
+			]);
 
-		using var requestBody = new FormUrlEncodedContent(
-		[
-			new KeyValuePair<string, string>("grant_type", "client_credentials"),
-			new KeyValuePair<string, string>("client_id", _options.ClientId),
-			new KeyValuePair<string, string>("client_secret", _options.ClientSecret),
-			new KeyValuePair<string, string>("audience", _options.Audience)
-		]);
+			using var response = await httpClient
+				.PostAsync($"https://{_options.Domain}/oauth/token", requestBody, ct)
+				.ConfigureAwait(false);
 
-		using var response = await httpClient
-			.PostAsync($"https://{_options.Domain}/oauth/token", requestBody, ct)
-			.ConfigureAwait(false);
+			response.EnsureSuccessStatusCode();
 
-		response.EnsureSuccessStatusCode();
+			var tokenResponse = await response.Content
+				.ReadFromJsonAsync<TokenResponse>(cancellationToken: ct)
+				.ConfigureAwait(false)
+				?? throw new InvalidOperationException(
+					"Auth0 token endpoint returned an empty response.");
 
-		var tokenResponse = await response.Content
-			.ReadFromJsonAsync<TokenResponse>(cancellationToken: ct)
-			.ConfigureAwait(false)
-			?? throw new InvalidOperationException(
-				"Auth0 token endpoint returned an empty response.");
+			// Cache with a 5-minute safety margin so we always have time to act on the token.
+			var ttl = tokenResponse.ExpiresIn > 300
+				? tokenResponse.ExpiresIn - 300
+				: tokenResponse.ExpiresIn;
 
-		// Cache with a 5-minute safety margin so we always have time to act on the token.
-		var ttl = tokenResponse.ExpiresIn > 300
-			? tokenResponse.ExpiresIn - 300
-			: tokenResponse.ExpiresIn;
+			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(ttl);
 
-		_cache.Set(TokenCacheKey, tokenResponse.AccessToken, TimeSpan.FromSeconds(ttl));
+			_logger.LogDebug("Auth0 Management API token cached. TTL={Ttl}s.", ttl);
 
-		_logger.LogDebug(
-			"Auth0 Management API token cached. TTL={Ttl}s.", ttl);
+			return tokenResponse.AccessToken;
+		}).ConfigureAwait(false);
 
-		return tokenResponse.AccessToken;
+		return token ?? throw new InvalidOperationException(
+			"Auth0 token cache returned null — token fetch may have failed.");
 	}
 
 	/// <summary>
 	///   Returns a name → ID map of all tenant roles, backed by a 30-minute cache.
+	///   Uses <see cref="IMemoryCache.GetOrCreateAsync{TItem}" /> to avoid race conditions
+	///   on concurrent cold starts.
 	/// </summary>
 	private async Task<Dictionary<string, string>> GetRoleMapAsync(
 		ManagementApiClient client,
 		CancellationToken ct)
 	{
-		if (_cache.TryGetValue(RolesCacheKey, out Dictionary<string, string>? map) && map is not null)
+		var map = await _cache.GetOrCreateAsync(RolesCacheKey, async entry =>
 		{
-			return map;
-		}
+			var roles = await client.Roles
+				.GetAllAsync(new GetRolesRequest(), new PaginationInfo(0, 100, false), ct)
+				.ConfigureAwait(false);
 
-		var roles = await client.Roles
-			.GetAllAsync(new GetRolesRequest(), new PaginationInfo(0, 100, false), ct)
-			.ConfigureAwait(false);
+			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
 
-		var roleMap = roles
-			.Where(r => r.Name is not null && r.Id is not null)
-			.ToDictionary(r => r.Name!, r => r.Id!, StringComparer.OrdinalIgnoreCase);
+			return roles
+				.Where(r => r.Name is not null && r.Id is not null)
+				.ToDictionary(r => r.Name!, r => r.Id!, StringComparer.OrdinalIgnoreCase);
+		}).ConfigureAwait(false);
 
-		_cache.Set(RolesCacheKey, roleMap, TimeSpan.FromMinutes(30));
-
-		return roleMap;
+		return map ?? [];
 	}
 
 	/// <summary>Maps an Auth0 <see cref="User" /> to <see cref="AdminUserSummary" />.</summary>
