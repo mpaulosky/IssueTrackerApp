@@ -7,6 +7,7 @@ using Azure.Identity;
 using Domain;
 using Domain.Abstractions;
 using Domain.Behaviors;
+using Domain.Features.Issues;
 using Domain.Features.Issues.Commands.Bulk;
 using Domain.Models;
 
@@ -98,6 +99,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<ILabelService, LabelService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IVotingService, VotingService>();
 
@@ -280,6 +282,9 @@ app.MapCategoryEndpoints();
 
 // Map Comment API endpoints
 app.MapCommentEndpoints();
+
+// Map Label API endpoints
+app.MapLabelEndpoints();
 
 // Map Status API endpoints
 app.MapStatusEndpoints();
