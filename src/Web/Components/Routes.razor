@@ -1,6 +1,24 @@
-﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+﻿@inject NavigationManager Navigation
+
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
+            <NotAuthorized>
+                @{
+                    if (context.User.Identity?.IsAuthenticated == true)
+                    {
+                        // Authenticated but lacks required role → show access-denied
+                        Navigation.NavigateTo("/access-denied", replace: true);
+                    }
+                    else
+                    {
+                        // Unauthenticated → redirect to login with return URL
+                        var returnUrl = Uri.EscapeDataString(Navigation.Uri);
+                        Navigation.NavigateTo($"/account/login?returnUrl={returnUrl}", replace: true);
+                    }
+                }
+            </NotAuthorized>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
