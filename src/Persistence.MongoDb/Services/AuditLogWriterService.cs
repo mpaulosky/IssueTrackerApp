@@ -38,11 +38,11 @@ public sealed class AuditLogWriterService : IAuditLogWriterService
 		await _context.SaveChangesAsync(ct);
 
 		_logger.LogInformation(
-			"Audit entry recorded: action='{Action}' roles='{RoleNames}' targetUser='{TargetUserId}' by actor='{ActorUserId}'",
+			"Audit entry recorded: action='{Action}' role='{RoleName}' targetUser='{TargetUserId}' by actor='{AdminUserId}'",
 			entry.Action,
-			string.Join(", ", entry.RoleNames),
+			entry.RoleName,
 			entry.TargetUserId,
-			entry.ActorUserId);
+			entry.AdminUserId);
 	}
 
 	/// <inheritdoc />

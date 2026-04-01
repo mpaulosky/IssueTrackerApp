@@ -26,6 +26,9 @@ public static class UserManagementExtensions
 		this IServiceCollection services,
 		IConfiguration configuration)
 	{
+		// Ensure IMemoryCache is available (idempotent — safe to call multiple times).
+		services.AddMemoryCache();
+
 		// Bind and validate options from the Auth0Management config section.
 		services.Configure<Auth0ManagementOptions>(
 			configuration.GetSection(Auth0ManagementOptions.SectionName));
