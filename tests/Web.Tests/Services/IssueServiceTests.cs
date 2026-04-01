@@ -506,6 +506,8 @@ public sealed class IssueServiceTests
 			[],
 			[]);
 	}
+
+	private static CategoryDto CreateTestCategoryDto()
 	{
 		return new CategoryDto(
 			ObjectId.GenerateNewId(),
