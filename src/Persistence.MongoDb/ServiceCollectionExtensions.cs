@@ -72,6 +72,9 @@ public static class ServiceCollectionExtensions
 		// Register audit log writer service
 		services.AddScoped<IAuditLogWriterService, AuditLogWriterService>();
 
+		// Register audit log repository
+		services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
 		return services;
 	}
 
