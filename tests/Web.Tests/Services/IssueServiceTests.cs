@@ -503,10 +503,9 @@ public sealed class IssueServiceTests
 			false,
 			UserDto.Empty,
 			0,
+			[],
 			[]);
 	}
-
-	private static CategoryDto CreateTestCategoryDto()
 	{
 		return new CategoryDto(
 			ObjectId.GenerateNewId(),

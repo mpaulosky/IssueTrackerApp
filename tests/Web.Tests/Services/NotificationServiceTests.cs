@@ -256,6 +256,7 @@ public sealed class NotificationServiceTests
 			false,
 			UserDto.Empty,
 			0,
+			[],
 			[]);
 	}
 
@@ -276,6 +277,7 @@ public sealed class NotificationServiceTests
 			false,
 			UserDto.Empty,
 			0,
+			[],
 			[]);
 	}
 

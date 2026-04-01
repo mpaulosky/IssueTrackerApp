@@ -71,5 +71,6 @@ public class IssueConfiguration : IEntityTypeConfiguration<Issue>
 
 		builder.Property(i => i.Votes);
 		builder.Property(i => i.VotedBy);
+		builder.Property(i => i.Labels);
 	}
 }

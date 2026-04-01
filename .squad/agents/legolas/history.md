@@ -786,3 +786,24 @@ Completed the EditUserRolesModal implementation with all acceptance criteria:
 - Updated `Users.razor`: wired `HandleEditRoles`, `HandleCloseEditRoles`, `HandleRolesSaved`
 
 **Architecture tests: 43/43 — Domain tests: 373/373 — bUnit: 655/655 — Build: 0 warnings**
+### 2026-03-29 — RoleBadge Component (Issue #138)
+
+**Role:** Frontend - Blazor UI Components
+
+**Work:**
+- Created `src/Web/Components/Admin/Users/RoleBadge.razor` — leaf component for color-coded role pill badges
+
+**Implementation:**
+- `[Parameter] string? RoleName` — accepts single role name
+- `static readonly Dictionary<string, string> RoleColorMap` with `StringComparer.OrdinalIgnoreCase` for Admin/Moderator/User → red/orange/blue (dark-mode variants); unknown → grey
+- Uses project-level `.badge` Tailwind utility (inline-flex, rounded-full, xs font, px-2.5 py-0.5)
+- `@if (!string.IsNullOrWhiteSpace(RoleName))` guard renders nothing for null/empty
+- `aria-label="Role: {name}"` for accessibility
+- No DI, no MediatR — pure leaf component
+
+**Key Learnings:**
+- Project has a `.badge` utility class in `src/Web/Styles/input.css` — always use it for badge/pill styling rather than duplicating Tailwind classes inline.
+- Parent consumers wrap role badges in `<div class="flex flex-wrap gap-1">` (see UserListTable.razor) — the component itself need not add gap/flex.
+- `StringComparer.OrdinalIgnoreCase` on Dictionary is the right approach for role name lookup to handle casing variations.
+
+**Outcome:** ✓ Build clean (`Build succeeded.`), PR #167 opened.
