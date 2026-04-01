@@ -723,3 +723,24 @@ This guard document integrates with Gimli's reflection-based bUnit tests that va
 - GH Pages served from main:/docs (legacy). docs/index.html created from README.md.
   Standing rule: regenerate after every Bilbo blog cycle.
   Site URL: https://mpaulosky.github.io/IssueTrackerApp/
+
+---
+
+## Learnings
+
+**2026-04-01: /admin/users Page Scaffold (Issue #136)**
+
+Built the scaffold for the /admin/users admin page following existing patterns from Categories.razor:
+- Page uses `@rendermode InteractiveServer` with `AdminPolicy` authorization
+- Injected `IUserManagementService` from `Domain.Features.Admin.Abstractions`
+- Service returns `AdminUserSummary` model (not DTO) from `Domain.Features.Admin.Models`
+- Implemented full state handling: loading spinner, error state with retry button, empty state, and data placeholder
+- Added breadcrumb navigation matching existing admin pages
+- User Management nav link was already present in AdminPageLayout.razor
+- Added User Management card to Admin Index.razor using purple theme color
+- Page shell ready for UserListTable component (issue #137)
+
+**Pattern followed:**
+- Same structure as Categories.razor: AdminPageLayout wrapper, error/success/loading states, modal pattern ready
+- AdminPageLayout is a component wrapper accepting `Title`, `Description`, and `ChildContent` parameters
+- No code-behind used (all logic in `@code` block)

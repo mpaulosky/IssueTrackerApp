@@ -90,3 +90,35 @@
 **Rule implemented:** AppHost.Tests (Playwright E2E) now mandatory in Gate 4 before merge. Per Matthew Paulosky directive: no exceptions, no skips. AppHost.Tests must run locally before push.
 
 **CI update:** sync-readme.yml created, Docker skip removed, AppHost.Tests added to required checks. All agents must comply.
+
+### 2026-04-01 — Auth0 Management API Secrets Wired into CI/CD (#145)
+
+**By:** Boromir (DevOps)
+
+**Changes:**
+- Added `Auth0Management__ClientId`, `Auth0Management__ClientSecret`, `Auth0Management__Domain`, and `Auth0Management__Audience` env vars to `.github/workflows/squad-test.yml` and `.github/workflows/codeql-analysis.yml`
+- Added Aspire parameters `auth0-mgmt-client-id` and `auth0-mgmt-client-secret` in `src/AppHost/AppHost.cs` with `secret: true` flag
+- Passed these parameters to Web project via `.WithEnvironment()` calls
+- Added `Auth0Management` placeholder section to `src/Web/appsettings.Development.json` (empty strings for local dev)
+
+**Key insight:** `UserManagementService.GetOrFetchTokenAsync()` uses `_options.ClientId` and `_options.ClientSecret` directly in token fetch requests. If these are empty (from placeholders), Auth0 will return 401/403, but service gracefully catches exceptions and returns `Result.Fail` with `ResultErrorCode.ExternalService`. Sam (Backend) owns this service and may add explicit validation in a follow-up.
+
+**GitHub Secrets required:** Repository admin must add `AUTH0_MANAGEMENT_CLIENT_ID` and `AUTH0_MANAGEMENT_CLIENT_SECRET` to GitHub secrets for CI/CD to use the admin user management feature.
+
+**PR:** #162
+
+### 2026-04-01 — Auth0 Management API Secrets Wired into CI/CD (#145)
+
+**By:** Boromir (DevOps)
+
+**Changes:**
+- Added `Auth0Management__ClientId`, `Auth0Management__ClientSecret`, `Auth0Management__Domain`, and `Auth0Management__Audience` env vars to `.github/workflows/squad-test.yml` and `.github/workflows/codeql-analysis.yml`
+- Added Aspire parameters `auth0-mgmt-client-id` and `auth0-mgmt-client-secret` in `src/AppHost/AppHost.cs` with `secret: true` flag
+- Passed these parameters to Web project via `.WithEnvironment()` calls
+- Added `Auth0Management` placeholder section to `src/Web/appsettings.Development.json` (empty strings for local dev)
+
+**Key insight:** `UserManagementService.GetOrFetchTokenAsync()` uses `_options.ClientId` and `_options.ClientSecret` directly in token fetch requests. If these are empty (from placeholders), Auth0 will return 401/403, but service gracefully catches exceptions and returns `Result.Fail` with `ResultErrorCode.ExternalService`. Sam (Backend) owns this service and may add explicit validation in a follow-up.
+
+**GitHub Secrets required:** Repository admin must add `AUTH0_MANAGEMENT_CLIENT_ID` and `AUTH0_MANAGEMENT_CLIENT_SECRET` to GitHub secrets for CI/CD to use the admin user management feature.
+
+**PR:** #162
