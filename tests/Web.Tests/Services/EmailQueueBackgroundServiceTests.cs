@@ -57,6 +57,17 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			NullLogger<EmailQueueBackgroundService>.Instance);
 	}
 
+	/// <summary>
+	/// Polls until <paramref name="condition"/> returns true or <paramref name="timeoutMs"/> elapses.
+	/// Prevents flaky tests caused by thread-pool scheduling delays on loaded CI runners.
+	/// </summary>
+	private static async Task WaitForProcessingAsync(Func<bool> condition, int timeoutMs = 3000)
+	{
+		var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+		while (!condition() && DateTime.UtcNow < deadline)
+			await Task.Delay(10);
+	}
+
 	private static EmailQueueItem CreatePendingEmail(
 		string toEmail = "test@test.com",
 		string subject = "Test Subject",
@@ -172,11 +183,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -216,11 +227,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			});
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -255,11 +266,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -294,11 +305,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -338,11 +349,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			});
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -384,7 +395,7 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(500);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Count() >= 10);
 		}
 		catch (OperationCanceledException)
 		{
@@ -420,11 +431,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -461,11 +472,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -503,11 +514,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -562,11 +573,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			});
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -605,11 +616,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			});
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -643,11 +654,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -682,11 +693,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -722,11 +733,11 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 			.Returns(callInfo => Result.Ok(callInfo.Arg<EmailQueueItem>()));
 
 		// Act
-		cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+		cts.CancelAfter(TimeSpan.FromSeconds(5));
 		try
 		{
 			await service.StartAsync(cts.Token);
-			await Task.Delay(50);
+			await WaitForProcessingAsync(() => _emailService.ReceivedCalls().Any());
 		}
 		catch (OperationCanceledException)
 		{
@@ -759,7 +770,7 @@ public sealed class EmailQueueBackgroundServiceTests : IDisposable
 
 		// Act
 		await service.StartAsync(cts.Token);
-		await Task.Delay(50);
+		await WaitForProcessingAsync(() => _emailRepository.ReceivedCalls().Any());
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
