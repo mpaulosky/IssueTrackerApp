@@ -1,6 +1,6 @@
 // ============================================
 // Copyright (c) 2026. All rights reserved.
-// File Name :     IAuditLogRepository.cs
+// File Name :     IAuditLogWriterService.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueManager
@@ -12,9 +12,10 @@ using Domain.Features.Admin.Models;
 namespace Domain.Features.Admin.Abstractions;
 
 /// <summary>
-///   Repository interface for persisting and querying <see cref="RoleChangeAuditEntry" /> records.
+///   Service interface for persisting and querying <see cref="RoleChangeAuditEntry" /> records.
+///   This is an append-only audit log writer, not a CRUD repository.
 /// </summary>
-public interface IAuditLogRepository
+public interface IAuditLogWriterService
 {
 	/// <summary>
 	///   Persists a new audit log entry.

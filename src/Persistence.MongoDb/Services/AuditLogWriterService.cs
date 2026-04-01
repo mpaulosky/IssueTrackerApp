@@ -1,6 +1,6 @@
 // ============================================
 // Copyright (c) 2026. All rights reserved.
-// File Name :     AuditLogRepository.cs
+// File Name :     AuditLogWriterService.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueManager
@@ -12,19 +12,20 @@ using Domain.Features.Admin.Models;
 
 using Microsoft.Extensions.Logging;
 
-namespace Persistence.MongoDb.Repositories;
+namespace Persistence.MongoDb.Services;
 
 /// <summary>
-///   MongoDB implementation of <see cref="IAuditLogRepository" />.
+///   MongoDB implementation of <see cref="IAuditLogWriterService" />.
+///   Provides append-only audit log writing for role change events.
 /// </summary>
-public sealed class AuditLogRepository : IAuditLogRepository
+public sealed class AuditLogWriterService : IAuditLogWriterService
 {
 	private readonly IIssueTrackerDbContext _context;
-	private readonly ILogger<AuditLogRepository> _logger;
+	private readonly ILogger<AuditLogWriterService> _logger;
 
-	public AuditLogRepository(
+	public AuditLogWriterService(
 		IIssueTrackerDbContext context,
-		ILogger<AuditLogRepository> logger)
+		ILogger<AuditLogWriterService> logger)
 	{
 		_context = context ?? throw new ArgumentNullException(nameof(context));
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -37,11 +38,11 @@ public sealed class AuditLogRepository : IAuditLogRepository
 		await _context.SaveChangesAsync(ct);
 
 		_logger.LogInformation(
-			"Audit entry recorded: action='{Action}' role='{RoleName}' targetUser='{TargetUserId}' by admin='{AdminUserId}'",
+			"Audit entry recorded: action='{Action}' roles='{RoleNames}' targetUser='{TargetUserId}' by actor='{ActorUserId}'",
 			entry.Action,
-			entry.RoleName,
+			string.Join(", ", entry.RoleNames),
 			entry.TargetUserId,
-			entry.AdminUserId);
+			entry.ActorUserId);
 	}
 
 	/// <inheritdoc />
