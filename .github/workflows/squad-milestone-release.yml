@@ -87,4 +87,15 @@ jobs:
 
           git tag -a "$TAG" -m "$MSG"
           git push origin "$TAG"
-          echo "✅ Tagged $TAG — squad-release.yml will create the GitHub Release"
+          echo "✅ Tagged $TAG"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.next.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            --generate-notes \
+            --title "Release $TAG" \
+            --verify-tag
+          echo "✅ GitHub Release $TAG created"

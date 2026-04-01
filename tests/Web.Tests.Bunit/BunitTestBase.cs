@@ -215,7 +215,8 @@ public abstract class BunitTestBase : BunitContext
 			Archived: false,
 			ArchivedBy: UserDto.Empty,
 			ApprovedForRelease: false,
-			Rejected: false
+			Rejected: false,
+			Assignee: UserDto.Empty
 		);
 	}
 

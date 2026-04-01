@@ -262,8 +262,8 @@ public sealed class BulkOperationEndpointTests : IntegrationTestBase
 		{
 			var updatedIssue = context.Issues.FirstOrDefault(i => i.Id == ObjectId.Parse(issueId));
 			updatedIssue.Should().NotBeNull();
-			updatedIssue!.Author.Id.Should().Be(newAssignee.Id);
-			updatedIssue.Author.Name.Should().Be(newAssignee.Name);
+			updatedIssue!.Assignee.Id.Should().Be(newAssignee.Id);
+			updatedIssue.Assignee.Name.Should().Be(newAssignee.Name);
 		}
 	}
 

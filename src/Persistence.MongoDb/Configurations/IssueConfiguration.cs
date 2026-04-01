@@ -36,6 +36,13 @@ public class IssueConfiguration : IEntityTypeConfiguration<Issue>
 			ab.Property(u => u.Email).HasElementName("email");
 		});
 
+		builder.OwnsOne(i => i.Assignee, a =>
+		{
+			a.Property(u => u.Id).HasElementName("id");
+			a.Property(u => u.Name).HasElementName("name");
+			a.Property(u => u.Email).HasElementName("email");
+		});
+
 		builder.OwnsOne(i => i.Category, c =>
 		{
 			c.Property(cat => cat.Id).HasElementName("id");
