@@ -14,7 +14,7 @@ namespace Domain.Events;
 /// <summary>
 ///   Event raised when an issue is updated.
 /// </summary>
-public sealed record IssueUpdatedEvent
+public sealed record IssueUpdatedEvent : INotification
 {
 	/// <summary>
 	///   The updated issue.
