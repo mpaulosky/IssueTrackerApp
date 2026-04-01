@@ -41,3 +41,7 @@ I write and maintain the project blog at `docs/blog/`, published via GitHub Page
 `squad/apphost-tests-clean` branch: `f6bbfab` — blog scaffold + first post
 
 ## Learnings
+- Release posts for v0.3.0 (Polish Sprint) and v0.4.0 (Voting & Prioritization) were written on 2026-04-01 to catch up on 2 missed releases. Both posts match the established tone and structure of v0.2.0 release post.
+- v0.3.0 focuses on dashboard UI polish, Redis caching, issue restore command, and assignee field support.
+- v0.4.0 is a major feature release: complete CQRS voting system with `VoteIssueCommand`/`UnvoteIssueCommand`, domain events, SignalR broadcasts on vote thresholds, and idempotent vote design.
+- Blog catch-up process: Release posts should be triggered immediately when GitHub Release is published (not after a delay). Recommend that Ralph (DevOps) or the release process signals Bilbo to write the post synchronously.
