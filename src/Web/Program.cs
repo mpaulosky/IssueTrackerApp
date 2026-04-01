@@ -88,6 +88,7 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 builder.Services.AddValidatorsFromAssembly(typeof(DomainMarker).Assembly);
 
 // Add application services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IIssueService, IssueService>();
 builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -97,6 +98,7 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IVotingService, VotingService>();
 
 // Configure Email Service (SendGrid or SMTP fallback)
 var sendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
@@ -277,6 +279,9 @@ app.MapCommentEndpoints();
 
 // Map Status API endpoints
 app.MapStatusEndpoints();
+
+// Map Vote API endpoints
+app.MapVoteEndpoints();
 
 // Map Auth0 login/logout endpoints
 app.MapGet("/account/login", async (HttpContext context, IWebHostEnvironment env, string returnUrl = "/") =>

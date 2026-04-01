@@ -75,6 +75,11 @@ public sealed class SignalRClientService : IAsyncDisposable
 	public event Action<string>? OnAttachmentDeleted;
 
 	/// <summary>
+	/// Event fired when an issue receives or loses a vote.
+	/// </summary>
+	public event Action<string>? OnIssueVoted;
+
+	/// <summary>
 	/// Starts the SignalR connection.
 	/// </summary>
 	public async Task StartAsync()
@@ -194,6 +199,12 @@ public sealed class SignalRClientService : IAsyncDisposable
 			_logger.LogInformation("Attachment deleted from issue {IssueId}: {AttachmentId}", issueId, attachmentId);
 			_toastService.ShowInfo("Attachment deleted");
 			OnAttachmentDeleted?.Invoke(issueId);
+		});
+
+		_hubConnection.On<Domain.DTOs.IssueDto>("IssueVoted", (issueDto) =>
+		{
+			_logger.LogInformation("Vote updated for issue {IssueId}", issueDto.Id);
+			OnIssueVoted?.Invoke(issueDto.Id.ToString());
 		});
 	}
 
