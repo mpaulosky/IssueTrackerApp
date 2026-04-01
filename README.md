@@ -37,6 +37,7 @@ IssueTrackerApp is a full-stack web application for managing issues and tracking
 
 - **Category Management**: Admin pages to create, edit, and archive categories
 - **Status Management**: Admin pages to create, edit, and archive statuses
+- **User Management**: Admin interface to view users, assign and remove Auth0 roles, and review a complete role-change audit log
 - **Admin Dashboard**: Centralized administration panel
 
 ### Security
