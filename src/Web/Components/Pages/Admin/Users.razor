@@ -11,6 +11,7 @@
 @using Web.Auth
 @using Domain.Features.Admin.Abstractions
 @using Domain.Features.Admin.Models
+@using Web.Components.Admin.Users
 
 @inject IUserManagementService UserManagementService
 
@@ -122,14 +123,9 @@
 	else
 	{
 		<!-- Data State -->
-		<div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-			<!-- TODO: UserListTable component goes here — see issue #137 -->
-			<div class="px-4 py-5 sm:p-6">
-				<p class="text-sm text-gray-500 dark:text-gray-400">
-					@_users.Count user(s) loaded. UserListTable component will be implemented in issue #137.
-				</p>
-			</div>
-		</div>
+		<UserListTable Users="_users"
+									 OnEditRoles="HandleEditRoles"
+									 OnViewAuditLog="HandleViewAuditLog" />
 	}
 </AdminPageLayout>
 
@@ -172,6 +168,18 @@
 		{
 			_isLoading = false;
 		}
+	}
+
+	private Task HandleEditRoles(AdminUserSummary user)
+	{
+		// TODO: Implement role editing modal/dialog in future issue
+		return Task.CompletedTask;
+	}
+
+	private Task HandleViewAuditLog(string userId)
+	{
+		// TODO: Implement audit log viewing in future issue
+		return Task.CompletedTask;
 	}
 }
 
