@@ -694,3 +694,52 @@ set the proper config key.
 **Test Coverage:** 2 new test cases verify Pass 3 auto-detect catches namespaced role claims.
 
 **Outcome:** ✓ Build clean, all Auth0 transformation tests passing.
+
+### 2026-04-01 — PR #158 Review Feedback (UserManagementService Architecture Issues)
+
+**Role:** Backend - API & Data Layer
+
+**Status:** 🔴 **BLOCKED** — Architecture test failures, awaiting fixes before re-review
+
+**PR:** #158 — feat: Implement UserManagementService wrapping Auth0 Management API  
+**Branch:** squad/131-user-management-service  
+**Reviewer:** Aragorn (architecture), Gandalf (security)
+
+**Blocking Issues:**
+
+1. **Architecture.Tests Failure — AuditLogRepository**
+   - **Problem:** `AuditLogRepository` is named like a repository but does NOT implement `IRepository<T>` interface
+   - **Tests Failing:**
+     - `Architecture.Tests.CodeStructureTests.Repositories_ShouldImplementIRepository`
+     - `Architecture.Tests.AdvancedArchitectureTests.AllRepositories_ShouldImplementIRepository`
+   - **Team Convention:** Any class named `*Repository` MUST implement `IRepository<T>` per Architecture.Tests enforcement
+   - **Fix Options:**
+     - **(Option A)** Make `AuditLogRepository` implement `IRepository<RoleChangeAuditEntry>` (if truly a repository CRUD pattern)
+     - **(Option B)** Rename to `AuditLogWriter` or `AuditLogService` (recommended — audit logs are write-only append operations, not CRUD)
+   - **Recommendation:** Option B is likely correct — write-only services should not be named `*Repository`
+
+2. **Duplicate .squad/ File in Diff**
+   - **Problem:** `.squad/decisions/inbox/gandalf-auth0-management-api.md` appears in PR #158's diff, but was already added in PR #146
+   - **Root Cause:** PR #158's branch was created before PR #146 merged to main
+   - **Fix:** Rebase on latest main after PR #146 merges; the ADR file will disappear from the diff
+
+**Next Steps:**
+1. Fix `AuditLogRepository` naming/implementation issue (choose Option A or Option B)
+2. Rebase on main after PR #146 merges
+3. Re-run full CI (`dotnet test IssueTrackerApp.slnx`) to confirm Architecture.Tests pass
+4. Submit PR for re-review
+
+**Security Review (Gandalf):** ✅ **APPROVED WITH NOTES**
+- Strong security fundamentals across the board
+- M2M token caching, input validation, secrets hygiene all pass
+- Rate limit retry is acceptable technical debt (not a security blocker)
+- See `.squad/decisions.md` for full security review details
+
+**Quality Notes (Aragorn):**
+- Excellent implementation of ADR #130 strategy
+- M2M token caching correctly implements 24h TTL − 5 min safety margin
+- Role ID mapping cache (30 min TTL) is well-designed
+- File headers and VSA compliance all present
+- Implementation quality is high — just need architecture convention fix
+
+**Pattern Established:** When naming classes, respect team conventions enforced by Architecture.Tests. If a class violates naming patterns (e.g., `*Repository` but doesn't implement `IRepository<T>`), rename it to reflect its true purpose (`*Writer`, `*Service`, etc.) rather than forcing the pattern.

@@ -254,3 +254,119 @@
   - Try without configuring `RoleClaimNamespace` first — standard claim is common
   - If that doesn't work, find your Auth0 tenant's role claim namespace and set it
   - Check logs for role transformation messages (debug level)
+
+---
+
+### PR #158: Auth0 Management API UserManagementService Security Review (2026-04-01)
+
+**What I Reviewed:**
+- Auth0 Management API integration for programmatic user and role management
+- M2M token acquisition via OAuth 2.0 client credentials flow
+- Token caching strategy (IMemoryCache, 24h TTL - 5min safety margin)
+- Role ID resolution (name→ID map cached 30 min)
+- Input validation for userId and roleNames parameters
+- Error handling and exception surfacing patterns
+- Dependency security (Auth0.ManagementApi 7.46.0)
+
+**Security Verdict:**
+✅ **APPROVED** — No CRITICAL or HIGH severity findings; minor INFO-level notes for future improvement
+
+**Key Security Findings:**
+
+1. **✅ Secrets Hygiene (PASS)**
+   - `appsettings.json` contains only empty placeholders for `Auth0Management:{ ClientId, ClientSecret, Domain, Audience }`
+   - No actual credentials committed to source control
+   - Follows existing pattern from `Auth0:ClientSecret`
+   - Production values must be stored in Azure Key Vault (documented recommendation)
+
+2. **✅ Token Security (PASS)**
+   - M2M access tokens cached in `IMemoryCache` with key `"Auth0Management:Token"`
+   - Cache scope is application-wide (correct for M2M tokens, not user-specific)
+   - TTL set to `ExpiresIn - 300 seconds` (5-minute safety margin) — industry best practice
+   - No token leakage in logs — only domain and TTL logged, never the actual token
+   - Fresh `ManagementApiClient` created per operation and properly disposed
+   - Uses OAuth 2.0 client credentials flow (correct for M2M)
+   - Audience scoped to `https://{domain}/api/v2/` (Management API only)
+
+3. **✅ Client Credentials Scope (PASS)**
+   - Separate M2M credentials (`Auth0Management`) distinct from OIDC (`Auth0`)
+   - Follows least-privilege principle — management API credentials isolated from user-facing OIDC flow
+   - If M2M credentials compromised, attacker cannot impersonate users (no ID token issuance)
+   - Audience scoped to Management API only — tokens cannot be used for other Auth0 resources
+
+4. **🟡 Rate Limit TODO (INFO — Non-Blocking)**
+   - Code comments note: "Add a Polly retry policy (per ADR #130) in a follow-up task"
+   - No HTTP 429 retry/backoff implemented in PR #158
+   - Current behavior on rate limit: immediate failure via `EnsureSuccessStatusCode()` throwing exception
+   - **Risk Assessment:** LOW severity — missing retry does not create security vulnerability
+   - **Attack Surface:** None — lack of retry does not enable DoS; Auth0 enforces rate limits server-side
+   - **Operational Risk:** MEDIUM — burst API usage in admin UI could trigger 429 errors, degrading UX
+   - **Recommendation:** Acceptable to merge; track HTTP 429 retry implementation in follow-up issue
+
+5. **✅ Input Validation (PASS)**
+   - `userId` validated with `string.IsNullOrWhiteSpace()` before Auth0 API calls
+   - `roleNames` null-safe handling via `(roleNames ?? []).ToList()`
+   - Unknown role names rejected with `ResultErrorCode.Validation` after checking cached role map
+   - Auth0 SDK uses strongly-typed models (`AssignRolesRequest { Roles = roleIds }`)
+   - No raw string concatenation or injection surface
+   - Role IDs resolved via dictionary lookup, not string interpolation
+   - No special character sanitization needed — Auth0 user IDs are opaque identifiers (e.g., `auth0|abc123`)
+
+6. **✅ Error Surfacing (PASS)**
+   - Full exception logged server-side (includes stack trace) for diagnostics
+   - Only `ex.Message` returned to caller via `Result.Fail` — no stack trace leakage to client
+   - `ResultErrorCode.ExternalService` is generic — does not distinguish Auth0 404 vs 403 vs 500
+   - **Tradeoff:** Prevents leaking Auth0 API internals but limits granular error handling
+   - **Recommendation:** Acceptable for v1; if admin UI needs granular errors, introduce sub-codes later
+
+7. **✅ Dependency Security (PASS)**
+   - `Auth0.ManagementApi` version 7.46.0 added to `Directory.Packages.props`
+   - Latest stable version as of 2026-04-01
+   - **CVE Check:** No known CVEs for `Auth0.ManagementApi 7.46.0` in 2024–2025
+   - Verified via CVE.org, NVD, OpenCVE, Auth0/Okta security bulletins
+   - Recent Auth0 CVEs affect `nextjs-auth0`, `node-jws`, PHP wrappers — NOT .NET SDK
+   - **Recommendation:** Monitor Auth0/Okta security bulletins; Dependabot should flag future updates
+
+**Role ID Caching Analysis:**
+- Role name→ID map cached for 30 minutes
+- **Question:** If a role is deleted in Auth0 mid-cache, assignment/removal will fail with `ResultErrorCode.Validation` ("Unknown role")
+- **Impact:** LOW — fail-safe behavior (rejects invalid role names), no security risk
+- **Recommendation:** Acceptable as-is; future enhancement could catch 404 from Auth0 API and invalidate cache entry
+
+**Security Checklist:**
+| Check | Status |
+|---|---|
+| Secrets hygiene | ✅ PASS |
+| Token caching security | ✅ PASS |
+| Client credentials flow | ✅ PASS |
+| Rate limit TODO | 🟡 ACCEPTABLE (non-blocking) |
+| Role ID caching | ✅ PASS (fail-safe) |
+| Input validation | ✅ PASS |
+| Error surfacing | ✅ PASS |
+| Dependency CVE check | ✅ PASS |
+
+**Follow-Up Recommendations (Non-Blocking):**
+1. **[LOW]** Implement Polly retry policy for HTTP 429 (per ADR #130) — track in new issue
+2. **[INFO]** Document in `src/Web/Auth/README.md` that `Auth0Management` secrets must be in Key Vault for production
+3. **[INFO]** Monitor Auth0/Okta security bulletins for future SDK updates
+
+**Files Reviewed:**
+- `src/Web/Features/Admin/Users/UserManagementService.cs` — M2M token acquisition, caching, API calls
+- `src/Web/Features/Admin/Users/Auth0ManagementOptions.cs` — Configuration binding
+- `src/Web/Features/Admin/Users/UserManagementExtensions.cs` — DI registration
+- `src/Web/appsettings.json` — Configuration placeholders (verified empty)
+- `src/Domain/Features/Admin/Abstractions/IUserManagementService.cs` — Service interface
+- `src/Domain/Abstractions/Result.cs` — Added `ResultErrorCode.ExternalService = 5`
+- `Directory.Packages.props` — Auth0.ManagementApi 7.46.0 package reference
+
+**PR Details:**
+- PR #158 — feat: Implement UserManagementService wrapping Auth0 Management API (#131)
+- Branch: `squad/131-user-management-service`
+- URL: https://github.com/mpaulosky/IssueTrackerApp/pull/158
+- Author: Sam (Backend Dev)
+- Builds on domain models from #132 and #134 (already committed on branch)
+
+**Decision:**
+✅ **APPROVED FOR MERGE** — Strong security posture, no blocking issues
+
+---

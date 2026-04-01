@@ -307,3 +307,54 @@ Matthew Paulosky: "AppHost.Tests MUST be run locally before every push — no ex
 
 **Decision Document:** `.squad/decisions/inbox/aragorn-plan-ceremony-2026-03-30.md`
 
+
+---
+
+### 2026-04-01 — PR Review Session: Sprint 5 Admin User Management PRs (#146, #157, #158)
+
+**Role:** Lead Reviewer
+
+**PRs Reviewed:**
+
+1. **PR #146 (Gandalf):** Auth0 Management API research spike — ADR only, no production code
+   - **Verdict:** ✅ APPROVED
+   - Research quality: Comprehensive ADR covering SDK choice, token caching, rate limits, secrets strategy
+   - .squad/ file: `gandalf-auth0-management-api.md` is properly placed in `.squad/decisions/inbox/` and permissible on `squad/*` branch
+   - All CI checks passed
+
+2. **PR #157 (Gandalf):** Admin-only authorization policy for /admin/users routes (#135)
+   - **Verdict:** ✅ APPROVED
+   - Key changes: AccessDenied route alias, AuthorizeRouteView upgrade in Routes.razor, new Users.razor scaffold, Analytics.razor policy constant fix
+   - File headers: ✅ All new files (Users.razor, AdminPolicyAuthorizationTests.cs) carry required copyright block
+   - Tests: 7 new bUnit tests for AdminPolicy authorization — all passed
+   - CI: ✅ All checks passed (23 jobs, 0 failures)
+
+3. **PR #158 (Sam + Gandalf):** UserManagementService wrapping Auth0 Management API (#131)
+   - **Verdict:** ❌ REJECTED — Architecture test failure must be fixed before merge
+   - CI Status: ❌ Architecture.Tests failed — `AuditLogRepository` does not implement `IRepository<T>` (2 failures: `CodeStructureTests.Repositories_ShouldImplementIRepository` + `AdvancedArchitectureTests.AllRepositories_ShouldImplementIRepository`)
+   - File headers: ✅ All new files carry required copyright block
+   - .squad/ file violation: ❌ `.squad/decisions/inbox/gandalf-auth0-management-api.md` is included in PR diff on branch `squad/131-user-management-service` — this is the SAME ADR from PR #146. PR #158 should NOT modify `.squad/` files since it's implementing production code, not research.
+   - VSA compliance: ✅ New code properly structured under `src/Web/Features/Admin/Users/` and `src/Domain/Features/Admin/`
+   - Key architecture concern: `AuditLogRepository` in `src/Persistence.MongoDb/Repositories/` is named like a repository but does NOT implement `IRepository<T>` interface — breaking the repository pattern convention enforced by Architecture.Tests
+
+**Key Findings:**
+
+1. **PR #158 blocking issue:** `AuditLogRepository` must either:
+   - (A) Implement `IRepository<RoleChangeAuditEntry>` and inherit from `Repository<RoleChangeAuditEntry>`, OR
+   - (B) Be renamed to `AuditLogService` or `AuditLogWriter` if it's not a true repository pattern implementation
+
+2. **PR #158 .squad/ file concern:** The ADR file should not be in PR #158's diff — it was already added in PR #146. If PR #158 was branched before PR #146 merged, this is a merge artifact — the fix is to rebase on latest main after PR #146 merges.
+
+3. **Rate limit retry TODO:** PR #158 includes comments noting `// TODO: Rate limit retry on HTTP 429` per ADR — this is acceptable as a known-future enhancement, not a blocking issue.
+
+**Merge Sequence Recommendation:**
+1. Merge PR #146 first (research spike, no blockers)
+2. Merge PR #157 next (authorization scaffold, all green)
+3. PR #158 must be fixed:
+   - Fix `AuditLogRepository` architecture violation
+   - Rebase on main to eliminate duplicate `.squad/` file in diff
+   - Re-run full CI to confirm Architecture.Tests pass
+   - Then approve & merge
+
+**Team Coordination:** Notified Sam (PR #158 author) of Architecture.Tests failure and `.squad/` diff issue. Gandalf's ADR work in PR #146 is excellent foundation for PR #158 implementation.
+
