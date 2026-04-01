@@ -11,6 +11,7 @@
 @inject SignalRClientService SignalRClient
 @inject ICommentService CommentService
 @inject IAttachmentService AttachmentService
+@inject IVotingService VotingService
 
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 @attribute [StreamRendering]
@@ -108,6 +109,35 @@
 						</div>
 					</div>
 					<div class="ml-4 flex-shrink-0 flex space-x-2">
+						@if (_canVote)
+						{
+							@if (_currentUserHasVoted)
+							{
+								<button type="button" @onclick="HandleUnvote" disabled="@_isVoting" class="btn-secondary px-3">
+									@if (_isVoting)
+									{
+										<span class="animate-spin mr-1.5">⟳</span>
+									}
+									▼ Unvote (@_issue.Votes)
+								</button>
+							}
+							else
+							{
+								<button type="button" @onclick="HandleVote" disabled="@_isVoting" class="btn-secondary px-3">
+									@if (_isVoting)
+									{
+										<span class="animate-spin mr-1.5">⟳</span>
+									}
+									▲ Vote (@_issue.Votes)
+								</button>
+							}
+						}
+						else if (_issue.Votes > 0)
+						{
+							<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 rounded-md">
+								▲ @_issue.Votes
+							</span>
+						}
 						@if (_currentUserId == _issue.Author?.Id || _isAdmin)
 						{
 							<a href="/issues/@Id/edit" class="btn-secondary px-3">
@@ -255,10 +285,23 @@
 	private bool _showDeleteModal;
 	private bool _isDeleting;
 	private bool _isRestoring;
+	private bool _isVoting;
 	private string? _errorMessage;
 	private string? _successMessage;
 	private string? _currentUserId;
 	private bool _isAdmin;
+
+	private bool _canVote =>
+		_issue is not null &&
+		!_isAdmin &&
+		!_issue.Archived &&
+		!string.IsNullOrEmpty(_currentUserId) &&
+		_issue.Author?.Id != _currentUserId;
+
+	private bool _currentUserHasVoted =>
+		_issue is not null &&
+		!string.IsNullOrEmpty(_currentUserId) &&
+		_issue.VotedBy.Contains(_currentUserId);
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -275,6 +318,7 @@
 		SignalRClient.OnCommentAdded += HandleCommentAdded;
 		SignalRClient.OnAttachmentAdded += HandleAttachmentAddedSignalR;
 		SignalRClient.OnAttachmentDeleted += HandleAttachmentDeletedSignalR;
+		SignalRClient.OnIssueVoted += HandleIssueVotedSignalR;
 
 		// Join this specific issue group for targeted notifications
 		await SignalRClient.JoinIssueGroupAsync(Id);
@@ -390,6 +434,64 @@
 		finally
 		{
 			_isChangingStatus = false;
+		}
+	}
+
+	private async Task HandleVote()
+	{
+		_isVoting = true;
+		_errorMessage = null;
+
+		try
+		{
+			var result = await VotingService.VoteAsync(Id);
+
+			if (result.Success && result.Value is not null)
+			{
+				_issue = result.Value;
+				_successMessage = "Vote recorded successfully.";
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to cast vote.";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isVoting = false;
+		}
+	}
+
+	private async Task HandleUnvote()
+	{
+		_isVoting = true;
+		_errorMessage = null;
+
+		try
+		{
+			var result = await VotingService.UnvoteAsync(Id);
+
+			if (result.Success && result.Value is not null)
+			{
+				_issue = result.Value;
+				_successMessage = "Vote removed successfully.";
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to remove vote.";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isVoting = false;
 		}
 	}
 
@@ -626,12 +728,26 @@
 		}
 	}
 
+	private void HandleIssueVotedSignalR(string issueId)
+	{
+		if (issueId == Id)
+		{
+			// Reload issue data when a vote is cast or removed
+			InvokeAsync(async () =>
+			{
+				await LoadDataAsync();
+				StateHasChanged();
+			});
+		}
+	}
+
 	public async ValueTask DisposeAsync()
 	{
 		SignalRClient.OnIssueUpdated -= HandleIssueUpdated;
 		SignalRClient.OnCommentAdded -= HandleCommentAdded;
 		SignalRClient.OnAttachmentAdded -= HandleAttachmentAddedSignalR;
 		SignalRClient.OnAttachmentDeleted -= HandleAttachmentDeletedSignalR;
+		SignalRClient.OnIssueVoted -= HandleIssueVotedSignalR;
 
 		// Leave the issue group when navigating away
 		await SignalRClient.LeaveIssueGroupAsync(Id);
