@@ -40,13 +40,14 @@ public sealed class SearchIssuesQueryHandler : IRequestHandler<SearchIssuesQuery
 
 		_logger.LogInformation(
 			"Searching issues - SearchText: {SearchText}, Status: {Status}, Category: {Category}, " +
-			"Author: {Author}, DateFrom: {DateFrom}, DateTo: {DateTo}, Page: {Page}, PageSize: {PageSize}",
+			"Author: {Author}, DateFrom: {DateFrom}, DateTo: {DateTo}, Labels: {Labels}, Page: {Page}, PageSize: {PageSize}",
 			request.SearchText ?? "None",
 			request.StatusFilter ?? "All",
 			request.CategoryFilter ?? "All",
 			request.AuthorId ?? "All",
 			request.DateFrom?.ToString() ?? "None",
 			request.DateTo?.ToString() ?? "None",
+			request.LabelFilter?.Count > 0 ? string.Join(", ", request.LabelFilter) : "None",
 			request.Page,
 			request.PageSize);
 
@@ -114,6 +115,15 @@ public sealed class SearchIssuesQueryHandler : IRequestHandler<SearchIssuesQuery
 		{
 			var toDate = request.DateTo.Value.ToDateTime(TimeOnly.MaxValue);
 			issues = issues.Where(i => i.DateCreated <= toDate).ToList();
+		}
+
+		// Apply label filter (AND semantics - issue must have ALL specified labels)
+		if (request.LabelFilter?.Count > 0)
+		{
+			issues = issues
+				.Where(i => request.LabelFilter.All(label =>
+					i.Labels.Contains(label, StringComparer.OrdinalIgnoreCase)))
+				.ToList();
 		}
 
 		var totalCount = issues.Count;

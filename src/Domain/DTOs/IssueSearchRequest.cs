@@ -61,6 +61,11 @@ public record IssueSearchRequest
 	public bool IncludeArchived { get; init; }
 
 	/// <summary>
+	///   Gets the labels to filter by (AND semantics - issue must have ALL specified labels).
+	/// </summary>
+	public IReadOnlyList<string>? LabelFilter { get; init; }
+
+	/// <summary>
 	///   Gets an empty search request with default values.
 	/// </summary>
 	public static IssueSearchRequest Empty => new();
@@ -74,5 +79,6 @@ public record IssueSearchRequest
 		!string.IsNullOrWhiteSpace(CategoryFilter) ||
 		!string.IsNullOrWhiteSpace(AuthorId) ||
 		DateFrom.HasValue ||
-		DateTo.HasValue;
+		DateTo.HasValue ||
+		(LabelFilter?.Count > 0);
 }
