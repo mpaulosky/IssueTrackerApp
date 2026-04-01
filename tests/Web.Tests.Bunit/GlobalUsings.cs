@@ -21,6 +21,7 @@ global using Bunit.TestDoubles;
 global using Domain.Abstractions;
 global using Domain.DTOs;
 global using Domain.DTOs.Analytics;
+global using Domain.Features.Issues;
 
 global using FluentAssertions;
 

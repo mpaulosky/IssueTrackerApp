@@ -46,6 +46,7 @@ public interface IIssueService
 		string description,
 		CategoryDto category,
 		UserDto author,
+		IReadOnlyList<string>? labels = null,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -56,6 +57,7 @@ public interface IIssueService
 		string title,
 		string description,
 		CategoryDto category,
+		IReadOnlyList<string>? labels = null,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -190,15 +192,35 @@ public sealed class IssueService : IIssueService
 		string description,
 		CategoryDto category,
 		UserDto author,
+		IReadOnlyList<string>? labels = null,
 		CancellationToken cancellationToken = default)
 	{
 		var command = new CreateIssueCommand(title, description, category, author);
 		var result = await _mediator.Send(command, cancellationToken);
 
-		// Notify clients if successful
 		if (result.Success && result.Value is not null)
 		{
-			await _notificationService.NotifyIssueCreatedAsync(result.Value, cancellationToken);
+			// Attach labels one-by-one using the dedicated command.
+			if (labels is { Count: > 0 })
+			{
+				var issueId = result.Value.Id.ToString();
+				foreach (var label in labels)
+				{
+					if (!string.IsNullOrWhiteSpace(label))
+					{
+						await _mediator.Send(new AddLabelCommand(issueId, label), cancellationToken);
+					}
+				}
+
+				// Re-fetch so the returned DTO includes the labels.
+				var refreshed = await _mediator.Send(new GetIssueByIdQuery(issueId), cancellationToken);
+				if (refreshed.Success && refreshed.Value is not null)
+				{
+					result = refreshed;
+				}
+			}
+
+			await _notificationService.NotifyIssueCreatedAsync(result.Value!, cancellationToken);
 		}
 
 		return result;
@@ -209,15 +231,43 @@ public sealed class IssueService : IIssueService
 		string title,
 		string description,
 		CategoryDto category,
+		IReadOnlyList<string>? labels = null,
 		CancellationToken cancellationToken = default)
 	{
 		var command = new UpdateIssueCommand(id, title, description, category);
 		var result = await _mediator.Send(command, cancellationToken);
 
-		// Notify clients if successful
 		if (result.Success && result.Value is not null)
 		{
-			await _notificationService.NotifyIssueUpdatedAsync(result.Value, cancellationToken);
+			// Sync labels: add new ones, remove stale ones.
+			if (labels is not null)
+			{
+				var currentLabels = result.Value.Labels ?? [];
+				var desired = labels
+					.Where(l => !string.IsNullOrWhiteSpace(l))
+					.Select(l => l.Trim().ToLowerInvariant())
+					.Distinct()
+					.ToList();
+
+				foreach (var toRemove in currentLabels.Except(desired, StringComparer.OrdinalIgnoreCase))
+				{
+					await _mediator.Send(new RemoveLabelCommand(id, toRemove), cancellationToken);
+				}
+
+				foreach (var toAdd in desired.Except(currentLabels, StringComparer.OrdinalIgnoreCase))
+				{
+					await _mediator.Send(new AddLabelCommand(id, toAdd), cancellationToken);
+				}
+
+				// Re-fetch so the returned DTO includes the updated labels.
+				var refreshed = await _mediator.Send(new GetIssueByIdQuery(id), cancellationToken);
+				if (refreshed.Success && refreshed.Value is not null)
+				{
+					result = refreshed;
+				}
+			}
+
+			await _notificationService.NotifyIssueUpdatedAsync(result.Value!, cancellationToken);
 		}
 
 		return result;

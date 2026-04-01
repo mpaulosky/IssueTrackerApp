@@ -35,6 +35,7 @@ public abstract class BunitTestBase : BunitContext
 	protected IDashboardService DashboardService { get; }
 	protected ILookupService LookupService { get; }
 	protected IVotingService VotingService { get; }
+	protected ILabelService LabelService { get; }
 
 	private readonly BunitAuthorizationContext _authContext;
 
@@ -60,6 +61,7 @@ public abstract class BunitTestBase : BunitContext
 		DashboardService = Substitute.For<IDashboardService>();
 		LookupService = Substitute.For<ILookupService>();
 		VotingService = Substitute.For<IVotingService>();
+		LabelService = Substitute.For<ILabelService>();
 
 		// Register interface mocks
 		Services.AddSingleton(Mediator);
@@ -74,6 +76,7 @@ public abstract class BunitTestBase : BunitContext
 		Services.AddSingleton(DashboardService);
 		Services.AddSingleton(LookupService);
 		Services.AddSingleton(VotingService);
+		Services.AddSingleton(LabelService);
 
 		// Register concrete services required by page components
 		var toastService = new ToastService();
@@ -102,6 +105,8 @@ public abstract class BunitTestBase : BunitContext
 			.Returns(Task.FromResult(Result.Ok(new UserDashboardDto(0, 0, 0, 0, []))));
 		AnalyticsService.GetAnalyticsSummaryAsync(Arg.Any<DateTime?>(), Arg.Any<DateTime?>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Fail<AnalyticsSummaryDto>("No data")));
+		LabelService.GetSuggestionsAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>()));
 
 		// Register logging infrastructure
 		Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);

@@ -153,6 +153,11 @@
 						</div>
 						<ValidationMessage For="@(() => _model.CategoryId)" class="mt-1 text-sm text-red-600 dark:text-red-400" />
 					</div>
+
+					<!-- Labels -->
+					<div>
+						<LabelInput @bind-Labels="_model.Labels" MaxLabels="10" />
+					</div>
 				</div>
 
 				<!-- Form Actions -->
@@ -224,7 +229,8 @@
 				{
 					Title = _issue.Title,
 					Description = _issue.Description,
-					CategoryId = _issue.Category.Id.ToString()
+					CategoryId = _issue.Category.Id.ToString(),
+					Labels = [.. _issue.Labels]
 				};
 			}
 			else
@@ -272,7 +278,8 @@
 				Id,
 				_model.Title!,
 				_model.Description!,
-				selectedCategory);
+				selectedCategory,
+				_model.Labels);
 
 			if (result.Success)
 			{
@@ -305,5 +312,7 @@
 
 		[System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Category is required")]
 		public string? CategoryId { get; set; }
+
+		public List<string> Labels { get; set; } = [];
 	}
 }
