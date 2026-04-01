@@ -44,3 +44,47 @@
 - Team transferred from IssueManager squad
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
 - Ready to begin development
+
+---
+
+### v0.5.0 Admin User Management Documentation (March 2026)
+
+**Context**: Issue #144 required comprehensive documentation for the new Admin User Management feature being released in v0.5.0.
+
+**Actions Taken**:
+1. **Created docs/features/admin-user-management.md**
+   - Organized into clear sections: Overview, Prerequisites, Setup, Features, Architecture, Security, Troubleshooting
+   - Included step-by-step Auth0 M2M application setup instructions (create app, authorize scopes, obtain credentials)
+   - Provided dotnet user-secrets configuration instructions for local development
+   - Documented all three core features: List Users, Assign Role, Remove Role
+   - Added Architecture section covering: IUserManagementService, UserManagementService, Auth0ManagementOptions, AuditLogRepository, CQRS pattern
+   - Included detailed Security section with AdminPolicy authorization, secrets management, audit trail, and best practices
+   - Added Troubleshooting section with 5 common issues and resolutions
+
+2. **Updated README.md**
+   - Added "User Management" feature line to Administration section
+   - Placed alphabetically after Status Management, before Admin Dashboard
+   - Description highlights the three key features: view users, assign/remove roles, audit log
+
+3. **Verified XML Documentation**
+   - Confirmed IUserManagementService has complete interface-level summary and method documentation
+   - Confirmed IAuditLogRepository has complete interface-level summary and method documentation
+   - Verified Auth0ManagementOptions record has comprehensive XML comments with security notes
+   - All public types (AdminUserSummary, RoleChangeAuditEntry, RoleAssignment, DTOs) already have complete XML documentation
+   - No XML doc additions needed; all public APIs are properly documented
+
+**PR**: #161 - docs: v0.5.0 Admin User Management feature guide and README update
+
+**Key Insights**:
+- Admin User Management feature uses Auth0 Management API v2 with M2M OAuth 2.0 client credentials flow
+- Token caching (24-hour TTL minus 5-minute safety margin) and role caching (30-minute TTL) reduce API calls
+- Audit log architecture uses MongoDB collection with immutable append-only pattern for compliance auditing
+- Feature properly integrates with existing AdminPolicy authorization and CQRS pattern using MediatR
+- Security notes cover secrets management (User Secrets for dev, Key Vault for production), rate limiting considerations, and best practices for least privilege
+
+**Documentation Standards Applied**:
+- Feature documentation placed in new docs/features/ subdirectory (separate from root-level docs like SECURITY.md)
+- Used consistent markdown structure matching existing docs/FEATURES.md style
+- Included code examples for configuration and architecture patterns
+- Provided troubleshooting section for operational guidance
+- Related Documentation section links to connected docs (SECURITY.md, ARCHITECTURE.md, CONTRIBUTING.md)
