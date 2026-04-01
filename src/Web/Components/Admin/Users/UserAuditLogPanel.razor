@@ -1,0 +1,284 @@
+@* ============================================
+   Copyright (c) 2026. All rights reserved.
+   File Name :     UserAuditLogPanel.razor
+   Company :       mpaulosky
+   Author :        Matthew Paulosky
+   Solution Name : IssueManager
+   Project Name :  Web
+   ============================================ *@
+
+@using Domain.Features.Admin.AuditLog.Queries
+@using Domain.Features.Admin.Models
+
+@inject IMediator Mediator
+
+@if (UserId is not null)
+{
+	<div class="mt-6 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
+		<!-- Panel Header -->
+		<div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+			<div>
+				<h3 class="text-base font-semibold text-gray-900 dark:text-white">
+					Role Change History
+					@if (!string.IsNullOrEmpty(UserEmail))
+					{
+						<span class="font-normal text-gray-500 dark:text-gray-400"> — @UserEmail</span>
+					}
+				</h3>
+			</div>
+			<button type="button"
+			        class="rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+			        @onclick="HandleClose">
+				<span class="sr-only">Close</span>
+				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+		</div>
+
+		<!-- Panel Body -->
+		<div class="px-6 py-4">
+			@if (_isLoading)
+			{
+				<div class="flex justify-center py-8">
+					<svg class="animate-spin h-6 w-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<path class="opacity-75" fill="currentColor"
+						      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+						</path>
+					</svg>
+				</div>
+			}
+			else if (!string.IsNullOrEmpty(_errorMessage))
+			{
+				<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+					<div class="flex">
+						<svg class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd"
+							      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+							      clip-rule="evenodd" />
+						</svg>
+						<p class="ml-3 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+					</div>
+				</div>
+			}
+			else if (_allEntries.Count == 0)
+			{
+				<div class="text-center py-8">
+					<svg class="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+						      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+					</svg>
+					<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No role changes recorded for this user</p>
+				</div>
+			}
+			else
+			{
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+						<thead class="bg-gray-50 dark:bg-gray-700">
+							<tr>
+								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+									Timestamp
+								</th>
+								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+									Action
+								</th>
+								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+									Role
+								</th>
+								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+									Changed By
+								</th>
+							</tr>
+						</thead>
+						<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+							@foreach (var entry in PagedEntries)
+							{
+								<tr>
+									<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+										<span title='@entry.Timestamp.ToLocalTime().ToString("O")'>
+											@FormatRelativeTime(entry.Timestamp)
+										</span>
+									</td>
+									<td class="px-4 py-3 whitespace-nowrap text-sm">
+										@if (string.Equals(entry.Action, "assigned", StringComparison.OrdinalIgnoreCase))
+										{
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+												Assigned
+											</span>
+										}
+										else
+										{
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+												Removed
+											</span>
+										}
+									</td>
+									<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+										@entry.RoleName
+									</td>
+									<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+										@(string.IsNullOrEmpty(entry.AdminUserName) ? entry.AdminUserId : entry.AdminUserName)
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Pagination -->
+				@if (TotalPages > 1)
+				{
+					<div class="mt-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+						<p class="text-sm text-gray-500 dark:text-gray-400">
+							Showing <span class="font-medium">@((_currentPage - 1) * PageSize + 1)</span>
+							to <span class="font-medium">@Math.Min(_currentPage * PageSize, _allEntries.Count)</span>
+							of <span class="font-medium">@_allEntries.Count</span> entries
+						</p>
+						<div class="flex gap-2">
+							<button type="button"
+							        class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+							        @onclick="PreviousPage"
+							        disabled="@(_currentPage <= 1)">
+								Previous
+							</button>
+							<button type="button"
+							        class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+							        @onclick="NextPage"
+							        disabled="@(_currentPage >= TotalPages)">
+								Next
+							</button>
+						</div>
+					</div>
+				}
+			}
+		</div>
+	</div>
+}
+
+@code {
+	private const int PageSize = 10;
+
+	private List<RoleChangeAuditEntry> _allEntries = [];
+	private bool _isLoading;
+	private string? _errorMessage;
+	private int _currentPage = 1;
+	private string? _lastLoadedUserId;
+
+	/// <summary>Gets or sets the Auth0 identifier of the user whose audit log to display.</summary>
+	[Parameter]
+	public string? UserId { get; set; }
+
+	/// <summary>Gets or sets the email address of the user, used in the panel title.</summary>
+	[Parameter]
+	public string? UserEmail { get; set; }
+
+	/// <summary>Gets or sets the callback invoked when the panel is closed.</summary>
+	[Parameter]
+	public EventCallback OnClose { get; set; }
+
+	private IEnumerable<RoleChangeAuditEntry> PagedEntries =>
+		_allEntries.Skip((_currentPage - 1) * PageSize).Take(PageSize);
+
+	private int TotalPages =>
+		(int)Math.Ceiling(_allEntries.Count / (double)PageSize);
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (UserId is not null && UserId != _lastLoadedUserId)
+		{
+			_lastLoadedUserId = UserId;
+			_currentPage = 1;
+			await LoadEntriesAsync();
+		}
+	}
+
+	private async Task LoadEntriesAsync()
+	{
+		if (string.IsNullOrEmpty(UserId))
+		{
+			return;
+		}
+
+		_isLoading = true;
+		_errorMessage = null;
+
+		try
+		{
+			var result = await Mediator.Send(
+				new ListAuditEntriesQuery(UserId),
+				CancellationToken.None);
+
+			if (result.Success)
+			{
+				_allEntries = [.. result.Value ?? []];
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to load audit log.";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = $"An unexpected error occurred: {ex.Message}";
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+
+	private void PreviousPage()
+	{
+		if (_currentPage > 1)
+		{
+			_currentPage--;
+		}
+	}
+
+	private void NextPage()
+	{
+		if (_currentPage < TotalPages)
+		{
+			_currentPage++;
+		}
+	}
+
+	private Task HandleClose() => OnClose.InvokeAsync();
+
+	private static string FormatRelativeTime(DateTimeOffset timestamp)
+	{
+		var diff = DateTimeOffset.UtcNow - timestamp;
+
+		if (diff.TotalSeconds < 60)
+			return "just now";
+
+		if (diff.TotalSeconds < 3600)
+		{
+			var m = (int)diff.TotalMinutes;
+			return m == 1 ? "1 minute ago" : $"{m} minutes ago";
+		}
+
+		if (diff.TotalSeconds < 86400)
+		{
+			var h = (int)diff.TotalHours;
+			return h == 1 ? "1 hour ago" : $"{h} hours ago";
+		}
+
+		if (diff.TotalSeconds < 2592000)
+		{
+			var d = (int)diff.TotalDays;
+			return d == 1 ? "1 day ago" : $"{d} days ago";
+		}
+
+		if (diff.TotalSeconds < 31536000)
+		{
+			var mo = (int)(diff.TotalDays / 30);
+			return mo == 1 ? "1 month ago" : $"{mo} months ago";
+		}
+
+		var y = (int)(diff.TotalDays / 365);
+		return y == 1 ? "1 year ago" : $"{y} years ago";
+	}
+}

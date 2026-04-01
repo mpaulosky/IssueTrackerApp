@@ -126,6 +126,14 @@
 		<UserListTable Users="_users"
 									 OnEditRoles="HandleEditRoles"
 									 OnViewAuditLog="HandleViewAuditLog" />
+
+		<!-- Audit Log Panel -->
+		@if (_auditUserId is not null)
+		{
+			<UserAuditLogPanel UserId="_auditUserId"
+			                   UserEmail="_auditUserEmail"
+			                   OnClose="HandleCloseAuditLog" />
+		}
 	}
 
 	<!-- Edit Roles Modal -->
@@ -139,6 +147,8 @@
 	private bool _isLoading = true;
 	private string? _errorMessage;
 	private AdminUserSummary? _editRolesUser;
+	private string? _auditUserId;
+	private string? _auditUserEmail;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -196,7 +206,16 @@
 
 	private Task HandleViewAuditLog(string userId)
 	{
-		// TODO: Implement audit log viewing in future issue
+		var user = _users?.FirstOrDefault(u => u.UserId == userId);
+		_auditUserId = userId;
+		_auditUserEmail = user?.Email;
+		return Task.CompletedTask;
+	}
+
+	private Task HandleCloseAuditLog()
+	{
+		_auditUserId = null;
+		_auditUserEmail = null;
 		return Task.CompletedTask;
 	}
 }
