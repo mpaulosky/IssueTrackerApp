@@ -38,7 +38,7 @@ public sealed class VotingService : IVotingService
 			return Result.Fail<IssueDto>("User is not authenticated", ResultErrorCode.Validation);
 		}
 
-		_logger.LogInformation("User {UserId} voting on issue {IssueId}", userId, issueId);
+		_logger.LogInformation("User {UserId} voting on issue {IssueId}", Sanitize(userId), Sanitize(issueId));
 		return await _mediator.Send(new VoteIssueCommand(issueId, userId), ct);
 	}
 
@@ -51,7 +51,7 @@ public sealed class VotingService : IVotingService
 			return Result.Fail<IssueDto>("User is not authenticated", ResultErrorCode.Validation);
 		}
 
-		_logger.LogInformation("User {UserId} removing vote from issue {IssueId}", userId, issueId);
+		_logger.LogInformation("User {UserId} removing vote from issue {IssueId}", Sanitize(userId), Sanitize(issueId));
 		return await _mediator.Send(new UnvoteIssueCommand(issueId, userId), ct);
 	}
 
@@ -60,4 +60,7 @@ public sealed class VotingService : IVotingService
 		return _httpContextAccessor.HttpContext?.User.FindFirst("sub")?.Value
 			?? _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 	}
+
+	private static string Sanitize(string input) =>
+		input.Replace('\n', '_').Replace('\r', '_');
 }
