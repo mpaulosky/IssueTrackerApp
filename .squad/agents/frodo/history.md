@@ -88,3 +88,37 @@
 - Included code examples for configuration and architecture patterns
 - Provided troubleshooting section for operational guidance
 - Related Documentation section links to connected docs (SECURITY.md, ARCHITECTURE.md, CONTRIBUTING.md)
+
+---
+
+### Release Notes Section Added to docs/index.html (April 2026)
+
+**Context**: docs/index.html was missing a Release Notes section to showcase project version history and highlights. The page had a Dev Blog section but no structured release history.
+
+**Actions Taken**:
+1. **Added Release Notes section to docs/index.html**
+   - Inserted new `<h2>Release Notes</h2>` section immediately before the `<h2>Dev Blog</h2>` section
+   - Created a three-column table with Version, Date, and Highlights columns
+   - Listed v0.4.0 (Latest), v0.3.0, and v0.2.0 with links to GitHub release tags
+   - v0.4.0 marked with a green "Latest" badge
+   - Each release includes brief feature highlights and implementation date
+   - Added "View all releases" link pointing to GitHub releases page
+
+2. **Updated footer status line**
+   - Changed "Latest Release: .NET 10" to "Latest Release: v0.4.0" 
+   - Made version text a hyperlink to the v0.4.0 GitHub release tag
+   - Footer now correctly reflects actual project release version
+
+**PR**: squad/docs-blog-catchup - commit 5a6f38b
+
+**Key Insights**:
+- docs/index.html uses RELEASES_START/RELEASES_END markers to delimit the release table, enabling future automated release updates
+- Release Notes section positioned before Dev Blog creates a natural flow: release history → development blog
+- Using HTML spans with inline green styling for the "Latest" badge provides visual distinction
+- GitHub release links enable direct navigation from documentation to release artifacts
+
+**Documentation Standards Applied**:
+- Release table structure follows standard semantic HTML (thead, tbody, th for headers)
+- Version numbers presented as links to their GitHub release pages
+- Included both release date and human-readable highlights for each version
+- Latest release clearly marked with a badge badge for visitor prominence
