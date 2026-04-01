@@ -7,38 +7,44 @@
    Project Name :  Web
    ============================================ *@
 
-@using Domain.Features.Admin.Abstractions
 @using Domain.Features.Admin.Models
-@using Web.Auth
+@using Domain.Features.Admin.Users.Commands
+@using Domain.Features.Admin.Users.Queries
+@using System.Security.Claims
+@using Web.Services
 
-@inject IUserManagementService UserManagementService
+@inject IMediator Mediator
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ToastService Toast
+@inject IJSRuntime JSRuntime
 
 @if (User is not null)
 {
-	<!-- Modal Overlay -->
-	<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+	<!-- Modal Overlay: tabindex enables keyboard events; focusable so Escape fires here -->
+	<div class="fixed inset-0 z-50 overflow-y-auto"
+	     tabindex="-1"
+	     @ref="_overlayRef"
+	     @onkeydown="HandleKeyDown"
+	     aria-labelledby="modal-title"
+	     role="dialog"
+	     aria-modal="true">
+
 		<!-- Background overlay -->
 		<div class="fixed inset-0 bg-black/50 transition-opacity" @onclick="HandleClose"></div>
 
-		<!-- Modal Container -->
+		<!-- Modal Container — stop click bubbling to backdrop -->
 		<div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-			<div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+			<div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+			     @onclick:stopPropagation="true">
+
 				<!-- Modal Header -->
 				<div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
 					<div class="flex items-start justify-between">
-						<div>
-							<h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-title">
-								Edit User Roles
-							</h3>
-							<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-								@User.Name
-							</p>
-							<p class="text-xs text-gray-400 dark:text-gray-500">
-								@User.Email
-							</p>
-						</div>
+						<h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-title">
+							Edit Roles \u2014 @User.Name (@User.Email)
+						</h3>
 						<button type="button"
-						        class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						        class="ml-4 flex-shrink-0 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
 						        @onclick="HandleClose"
 						        disabled="@_isSaving">
 							<span class="sr-only">Close</span>
@@ -51,71 +57,150 @@
 
 				<!-- Modal Body -->
 				<div class="px-6 py-4">
-					@if (!string.IsNullOrEmpty(_errorMessage))
+					@if (_isLoadingRoles)
 					{
-						<div class="mb-4 rounded-md bg-red-50 dark:bg-red-900/50 p-4">
-							<div class="flex">
-								<div class="flex-shrink-0">
-									<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+						<div class="flex justify-center py-8">
+							<svg class="animate-spin h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor"
+								      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+						</div>
+					}
+					else if (_step == ModalStep.Edit)
+					{
+						<!-- Error banner (inline — do not close on error) -->
+						@if (!string.IsNullOrEmpty(_errorMessage))
+						{
+							<div class="mb-4 rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+								<div class="flex">
+									<svg class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
 										<path fill-rule="evenodd"
 										      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
 										      clip-rule="evenodd" />
 									</svg>
-								</div>
-								<div class="ml-3">
-									<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
-									<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+									<div class="ml-3">
+										<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+										<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+									</div>
 								</div>
 							</div>
+						}
+
+						<!-- Role checkboxes: checked = currently assigned -->
+						<div class="space-y-3">
+							<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+								Select roles for this user:
+							</p>
+							@foreach (var role in _availableRoles)
+							{
+								<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+									<input type="checkbox"
+									       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
+									       checked="@_selectedRoles.Contains(role.RoleName)"
+									       @onchange="@(e => HandleRoleToggle(role.RoleName, e))"
+									       disabled="@_isSaving" />
+									<span class="text-sm font-medium text-gray-900 dark:text-gray-100">@role.RoleName</span>
+									@if (!string.IsNullOrEmpty(role.Description))
+									{
+										<span class="text-xs text-gray-500 dark:text-gray-400">\u2014 @role.Description</span>
+									}
+								</label>
+							}
 						</div>
 					}
+					else
+					{
+						<!-- Confirmation step -->
+						<div class="space-y-4">
+							<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+								You are about to make the following role changes:
+							</p>
 
-					<div class="space-y-3">
-						<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
-							Select roles for this user:
-						</p>
+							@if (RolesToAdd.Any())
+							{
+								<div class="rounded-md bg-green-50 dark:bg-green-900/30 p-3">
+									<p class="text-sm font-medium text-green-800 dark:text-green-200">
+										Assign: @string.Join(", ", RolesToAdd)
+									</p>
+								</div>
+							}
 
-						@foreach (var role in _availableRoles)
-						{
-							<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
-								<input type="checkbox"
-								       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
-								       checked="@_selectedRoles.Contains(role)"
-								       @onchange="@(e => HandleRoleToggle(role, e))"
-								       disabled="@_isSaving" />
-								<span class="text-sm text-gray-900 dark:text-gray-100 font-medium">@role</span>
-							</label>
-						}
-					</div>
+							@if (RolesToRemove.Any())
+							{
+								<div class="rounded-md bg-red-50 dark:bg-red-900/30 p-3">
+									<p class="text-sm font-medium text-red-800 dark:text-red-200">
+										Remove: @string.Join(", ", RolesToRemove)
+									</p>
+								</div>
+							}
+
+							<!-- Inline error on confirm step — allow retry without closing -->
+							@if (!string.IsNullOrEmpty(_errorMessage))
+							{
+								<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+									<div class="flex">
+										<svg class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+											<path fill-rule="evenodd"
+											      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+											      clip-rule="evenodd" />
+										</svg>
+										<div class="ml-3">
+											<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+											<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+										</div>
+									</div>
+								</div>
+							}
+						</div>
+					}
 				</div>
 
 				<!-- Modal Footer -->
 				<div class="border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end space-x-3">
-					<button type="button"
-					        class="btn-secondary"
-					        @onclick="HandleClose"
-					        disabled="@_isSaving">
-						Cancel
-					</button>
-					<button type="button"
-					        class="btn-primary inline-flex items-center"
-					        @onclick="HandleSave"
-					        disabled="@_isSaving">
-						@if (_isSaving)
-						{
-							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor"
-								      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-								</path>
-							</svg>
-							<span>Saving...</span>
-						}
-						else
-						{
-							<span>Save Changes</span>
-						}
-					</button>
+					@if (_step == ModalStep.Edit)
+					{
+						<button type="button"
+						        class="btn-secondary"
+						        @onclick="HandleClose"
+						        disabled="@_isSaving">
+							Cancel
+						</button>
+						<!-- Disabled until at least one change is made -->
+						<button type="button"
+						        class="btn-primary"
+						        @onclick="HandleProceedToConfirm"
+						        disabled="@(!IsDirty || _isSaving)">
+							Save Changes
+						</button>
+					}
+					else
+					{
+						<button type="button"
+						        class="btn-secondary"
+						        @onclick="HandleBackToEdit"
+						        disabled="@_isSaving">
+							Back
+						</button>
+						<button type="button"
+						        class="btn-primary inline-flex items-center"
+						        @onclick="HandleConfirmSave"
+						        disabled="@_isSaving">
+							@if (_isSaving)
+							{
+								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor"
+									      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+								<span>Saving...</span>
+							}
+							else
+							{
+								<span>Confirm</span>
+							}
+						</button>
+					}
 				</div>
 			</div>
 		</div>
@@ -123,107 +208,172 @@
 }
 
 @code {
-	private static readonly string[] _availableRoles = [AuthorizationRoles.Admin, AuthorizationRoles.User];
+	private enum ModalStep { Edit, Confirm }
+
+	private ModalStep _step = ModalStep.Edit;
+	private IReadOnlyList<RoleAssignment> _availableRoles = [];
 	private HashSet<string> _selectedRoles = [];
 	private HashSet<string> _initialRoles = [];
 	private bool _isSaving;
+	private bool _isLoadingRoles;
+	private bool _shouldFocus;
 	private string? _errorMessage;
+	private ElementReference _overlayRef;
+	private AdminUserSummary? _previousUser;
 
-	/// <summary>
-	///   The user to edit. When null, the modal is hidden.
-	/// </summary>
+	/// <summary>The user to edit. When null the modal is hidden.</summary>
 	[Parameter]
 	public AdminUserSummary? User { get; set; }
 
-	/// <summary>
-	///   Event callback invoked when the modal is closed.
-	/// </summary>
+	/// <summary>Invoked when the modal is closed (cancel, Escape, backdrop).</summary>
 	[Parameter]
 	public EventCallback OnClose { get; set; }
 
-	/// <summary>
-	///   Event callback invoked after roles are successfully saved.
-	/// </summary>
+	/// <summary>Invoked after roles are successfully saved.</summary>
 	[Parameter]
 	public EventCallback OnSaved { get; set; }
 
-	protected override void OnParametersSet()
+	private bool IsDirty => !_selectedRoles.SetEquals(_initialRoles);
+	private IEnumerable<string> RolesToAdd => _selectedRoles.Except(_initialRoles);
+	private IEnumerable<string> RolesToRemove => _initialRoles.Except(_selectedRoles);
+
+	protected override async Task OnParametersSetAsync()
 	{
-		if (User is not null)
+		if (User is not null && !ReferenceEquals(User, _previousUser))
 		{
-			_selectedRoles = [.. User.Roles];
-			_initialRoles = [.. User.Roles];
+			_previousUser = User;
+			_step = ModalStep.Edit;
 			_errorMessage = null;
 			_isSaving = false;
+			_selectedRoles = [.. User.Roles];
+			_initialRoles = [.. User.Roles];
+			_shouldFocus = true;
+			await LoadRolesAsync();
+		}
+		else if (User is null)
+		{
+			_previousUser = null;
 		}
 	}
 
-	private void HandleRoleToggle(string role, ChangeEventArgs e)
+	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (e.Value is bool isChecked)
+		if (_shouldFocus)
 		{
-			if (isChecked)
+			_shouldFocus = false;
+			try { await _overlayRef.FocusAsync(); } catch { /* ignore if element not yet in DOM */ }
+		}
+	}
+
+	private async Task LoadRolesAsync()
+	{
+		_isLoadingRoles = true;
+
+		try
+		{
+			var result = await Mediator.Send(new ListRolesQuery());
+			if (result.Success)
 			{
-				_selectedRoles.Add(role);
+				_availableRoles = result.Value ?? [];
 			}
 			else
 			{
-				_selectedRoles.Remove(role);
+				_errorMessage = result.Error ?? "Failed to load available roles.";
 			}
+		}
+		finally
+		{
+			_isLoadingRoles = false;
+		}
+	}
+
+	private void HandleRoleToggle(string roleName, ChangeEventArgs e)
+	{
+		if (e.Value is bool isChecked)
+		{
+			if (isChecked) _selectedRoles.Add(roleName);
+			else _selectedRoles.Remove(roleName);
+		}
+	}
+
+	private async Task HandleKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "Escape")
+		{
+			await HandleClose();
 		}
 	}
 
 	private async Task HandleClose()
 	{
-		if (!_isSaving)
+		if (_isSaving) return;
+
+		if (IsDirty)
 		{
-			await OnClose.InvokeAsync();
+			var discard = await JSRuntime.InvokeAsync<bool>("confirm",
+				"You have unsaved changes. Discard them?");
+			if (!discard) return;
 		}
+
+		ResetState();
+		await OnClose.InvokeAsync();
 	}
 
-	private async Task HandleSave()
+	private void HandleProceedToConfirm()
 	{
-		if (User is null || _isSaving)
-		{
-			return;
-		}
+		if (!IsDirty) return;
+		_errorMessage = null;
+		_step = ModalStep.Confirm;
+	}
+
+	private void HandleBackToEdit()
+	{
+		_step = ModalStep.Edit;
+		_errorMessage = null;
+	}
+
+	private async Task HandleConfirmSave()
+	{
+		if (User is null || _isSaving) return;
 
 		_isSaving = true;
 		_errorMessage = null;
 
 		try
 		{
-			var rolesToAdd = _selectedRoles.Except(_initialRoles).ToList();
-			var rolesToRemove = _initialRoles.Except(_selectedRoles).ToList();
+			var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+			var adminUser = authState.User;
+			var adminUserId = adminUser.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+			var adminUserName = adminUser.FindFirst(ClaimTypes.Name)?.Value
+				?? adminUser.Identity?.Name
+				?? "Admin";
 
-			if (rolesToAdd.Count > 0)
+			foreach (var roleName in RolesToAdd.ToList())
 			{
-				var addResult = await UserManagementService.AssignRolesAsync(
-					User.UserId,
-					rolesToAdd,
-					CancellationToken.None);
+				var result = await Mediator.Send(
+					new AssignRoleCommand(adminUserId, adminUserName, User.UserId, roleName));
 
-				if (!addResult.Success)
+				if (result.Failure)
 				{
-					_errorMessage = addResult.Error ?? "Failed to assign roles.";
+					_errorMessage = result.Error ?? $"Failed to assign role \'{roleName}\'.";
 					return;
 				}
 			}
 
-			if (rolesToRemove.Count > 0)
+			foreach (var roleName in RolesToRemove.ToList())
 			{
-				var removeResult = await UserManagementService.RemoveRolesAsync(
-					User.UserId,
-					rolesToRemove,
-					CancellationToken.None);
+				var result = await Mediator.Send(
+					new RemoveRoleCommand(adminUserId, adminUserName, User.UserId, roleName));
 
-				if (!removeResult.Success)
+				if (result.Failure)
 				{
-					_errorMessage = removeResult.Error ?? "Failed to remove roles.";
+					_errorMessage = result.Error ?? $"Failed to remove role \'{roleName}\'.";
 					return;
 				}
 			}
 
+			Toast.ShowSuccess($"Roles updated successfully for {User.Name}.");
+			ResetState();
 			await OnSaved.InvokeAsync();
 			await OnClose.InvokeAsync();
 		}
@@ -235,5 +385,15 @@
 		{
 			_isSaving = false;
 		}
+	}
+
+	private void ResetState()
+	{
+		_step = ModalStep.Edit;
+		_errorMessage = null;
+		_availableRoles = [];
+		_selectedRoles = [];
+		_initialRoles = [];
+		_previousUser = null;
 	}
 }
