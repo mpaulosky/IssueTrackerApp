@@ -37,7 +37,9 @@ public static class IssueMapper
 			UserMapper.ToDto(issue.ArchivedBy),
 			issue.ApprovedForRelease,
 			issue.Rejected,
-			UserMapper.ToDto(issue.Assignee));
+			UserMapper.ToDto(issue.Assignee),
+			issue.Votes,
+			issue.VotedBy);
 	}
 
 	/// <summary>
@@ -62,7 +64,9 @@ public static class IssueMapper
 			Archived = dto.Archived,
 			ArchivedBy = UserMapper.ToInfo(dto.ArchivedBy),
 			ApprovedForRelease = dto.ApprovedForRelease,
-			Rejected = dto.Rejected
+			Rejected = dto.Rejected,
+			Votes = dto.Votes,
+			VotedBy = [..dto.VotedBy]
 		};
 	}
 

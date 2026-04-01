@@ -34,6 +34,7 @@ public abstract class BunitTestBase : BunitContext
 	protected IStatusService StatusService { get; }
 	protected IDashboardService DashboardService { get; }
 	protected ILookupService LookupService { get; }
+	protected IVotingService VotingService { get; }
 
 	private readonly BunitAuthorizationContext _authContext;
 
@@ -58,6 +59,7 @@ public abstract class BunitTestBase : BunitContext
 		StatusService = Substitute.For<IStatusService>();
 		DashboardService = Substitute.For<IDashboardService>();
 		LookupService = Substitute.For<ILookupService>();
+		VotingService = Substitute.For<IVotingService>();
 
 		// Register interface mocks
 		Services.AddSingleton(Mediator);
@@ -71,6 +73,7 @@ public abstract class BunitTestBase : BunitContext
 		Services.AddSingleton(StatusService);
 		Services.AddSingleton(DashboardService);
 		Services.AddSingleton(LookupService);
+		Services.AddSingleton(VotingService);
 
 		// Register concrete services required by page components
 		var toastService = new ToastService();
@@ -216,7 +219,9 @@ public abstract class BunitTestBase : BunitContext
 			ArchivedBy: UserDto.Empty,
 			ApprovedForRelease: false,
 			Rejected: false,
-			Assignee: UserDto.Empty
+			Assignee: UserDto.Empty,
+			Votes: 0,
+			VotedBy: []
 		);
 	}
 

@@ -68,5 +68,8 @@ public class IssueConfiguration : IEntityTypeConfiguration<Issue>
 			// archival metadata belongs on the Status entity, not its embedded reference
 			s.Ignore(st => st.ArchivedBy);
 		});
+
+		builder.Property(i => i.Votes);
+		builder.Property(i => i.VotedBy);
 	}
 }

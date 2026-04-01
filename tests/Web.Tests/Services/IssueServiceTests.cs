@@ -501,7 +501,9 @@ public sealed class IssueServiceTests
 			UserDto.Empty,
 			false,
 			false,
-			UserDto.Empty);
+			UserDto.Empty,
+			0,
+			[]);
 	}
 
 	private static CategoryDto CreateTestCategoryDto()

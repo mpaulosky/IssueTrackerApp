@@ -119,4 +119,20 @@ public class Issue
 	///   <c>true</c> if rejected; otherwise, <c>false</c>.
 	/// </value>
 	public bool Rejected { get; set; }
+
+	/// <summary>
+	///   Gets or sets the number of votes this issue has received.
+	/// </summary>
+	/// <value>
+	///   The vote count.
+	/// </value>
+	public int Votes { get; set; } = 0;
+
+	/// <summary>
+	///   Gets or sets the list of user IDs that have voted for this issue.
+	/// </summary>
+	/// <value>
+	///   The collection of voter user IDs.
+	/// </value>
+	public List<string> VotedBy { get; set; } = [];
 }

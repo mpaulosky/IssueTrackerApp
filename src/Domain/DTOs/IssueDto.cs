@@ -27,7 +27,9 @@ public record IssueDto(
 	UserDto ArchivedBy,
 	bool ApprovedForRelease,
 	bool Rejected,
-	UserDto Assignee)
+	UserDto Assignee,
+	int Votes,
+	IReadOnlyList<string> VotedBy)
 {
 	/// <summary>
 	///   Initializes a new instance of the <see cref="IssueDto" /> record.
@@ -46,7 +48,9 @@ public record IssueDto(
 		UserMapper.ToDto(issue.ArchivedBy),
 		issue.ApprovedForRelease,
 		issue.Rejected,
-		UserMapper.ToDto(issue.Assignee))
+		UserMapper.ToDto(issue.Assignee),
+		issue.Votes,
+		issue.VotedBy)
 	{
 	}
 
@@ -63,5 +67,7 @@ public record IssueDto(
 		UserDto.Empty,
 		false,
 		false,
-		UserDto.Empty);
+		UserDto.Empty,
+		0,
+		[]);
 }

@@ -254,7 +254,9 @@ public sealed class NotificationServiceTests
 			UserDto.Empty,
 			false,
 			false,
-			UserDto.Empty);
+			UserDto.Empty,
+			0,
+			[]);
 	}
 
 	private static IssueDto CreateTestIssueDtoWithId(ObjectId id, string title)
@@ -272,7 +274,9 @@ public sealed class NotificationServiceTests
 			UserDto.Empty,
 			false,
 			false,
-			UserDto.Empty);
+			UserDto.Empty,
+			0,
+			[]);
 	}
 
 	private static CommentDto CreateTestCommentDto(string content)
