@@ -2014,3 +2014,434 @@ PR #158 implements Auth0 Management API integration with **strong security postu
 
 **Reviewed by:** Gandalf 🔒  
 **Signed off:** 2026-04-01
+
+---
+
+## Labels & Tags Design
+
+### 2026-04-01: Issue Labels & Tags — Domain Design
+**By:** Aragorn (via Squad)  
+**Issue:** #147 (Spike)
+
+### Label Storage
+- **Field:** `public List<string> Labels { get; set; } = new();` on `Issue` model
+- **Constraints:**
+  - Lowercase and trimmed on insert/update
+  - Max 50 characters per label
+  - Max 10 labels per issue
+- **Rationale:** Embedding labels as simple strings on the Issue document avoids a separate collection and keeps queries simple via MongoDB `$in` operator. Labels are low-cardinality, short strings—no normalization or lookup table needed.
+
+### Label Source (Autocomplete)
+- **Endpoint:** `GET /api/labels/suggestions?q={prefix}` 
+- **Returns:** Top-N (e.g., 10) distinct labels from all existing issues, filtered by prefix
+- **Implementation:** MongoDB `distinct()` query on `Issue.Labels` field, case-insensitive prefix match
+- **Rationale:** Deriving labels dynamically from existing issue labels avoids maintaining a separate collection; users see only labels actually in use.
+
+### Query Strategy
+- **Filter by label:** MongoDB `$in` operator on `Issue.Labels` field
+- **URL parameter:** `?label={labelValue}` on Issues list page and API
+- **Rationale:** Simple, efficient, and leverages native MongoDB array filtering.
+
+### IssueDto Updates
+- Add `IReadOnlyList<string> Labels` property to `IssueDto` record
+- Update `IssueDto(Issue issue)` constructor to map `Labels` from issue model
+- Update `IssueDto.Empty` static property to include empty `[]` for Labels
+
+### CQRS Commands
+Two new commands in `src/Domain/Features/Issues/Commands/`:
+
+1. **`AddLabelCommand(ObjectId IssueId, string Label)`**
+   - Validates label format (lowercase, trimmed, max 50 chars)
+   - Checks max 10 labels constraint
+   - Adds to `Issue.Labels` if not already present (idempotent)
+   - Dispatches `IssueUpdatedEvent`
+   - Returns `Result<Unit>` with error if validation fails
+
+2. **`RemoveLabelCommand(ObjectId IssueId, string Label)`**
+   - Removes label from `Issue.Labels` if present
+   - Dispatches `IssueUpdatedEvent`
+   - Returns `Result<Unit>` (no error if label not found—idempotent)
+
+### Validators
+Create `LabelValidator` or inline validation in command handlers:
+- Label must not be empty after trimming
+- Label must be ≤ 50 characters
+- Label is automatically lowercased (no validation needed, done in handler)
+
+### Why This Design
+1. **No separate collection:** Labels embedded on Issue keep the domain model simple and avoid join complexity
+2. **MongoDB native:** `$in` queries are efficient and well-supported
+3. **Dynamic sourcing:** Avoids maintaining a separate labels master table; labels emerge organically from issue data
+4. **Constraints enforced at domain level:** Model validation ensures data integrity
+5. **Unblocks downstream work:** Clear storage and query strategy enables comment labeling, bulk-label operations, and label-based analytics
+
+### Blocked Issues Unblocked
+- #148, #149, #150, #151, #152, #153, #154, #155, #156 can now proceed with implementation details
+
+---
+
+## PR Review Decisions
+
+### 2026-04-01: PR #158 Approved After Architecture Fixes
+**Date:** 2026-04-01  
+**Author:** Aragorn (Lead Developer)  
+**Status:** Approved  
+**Related:** PR #158 (`squad/131-user-management-service`), Issues #131, #132, #134
+
+#### Context
+PR #158 was initially rejected for two blocking issues:
+
+1. **Architecture Violation:** `AuditLogRepository` did not implement `IRepository<T>` but was named like a repository, causing Architecture.Tests to fail.
+2. **Duplicate ADR File:** Branch had not been rebased after PR #146 merged, causing `.squad/` file duplication in diff.
+
+Sam applied fixes and requested re-review.
+
+#### Verification Completed
+
+##### Fix 1: AuditLogRepository → AuditLogWriterService ✅
+- Class renamed: `AuditLogRepository` → `AuditLogWriterService`
+- Interface renamed: `IAuditLogRepository` → `IAuditLogWriterService`
+- Namespace changed: `Persistence.MongoDb.Repositories` → `Persistence.MongoDb.Services`
+- DI registration updated in `ServiceCollectionExtensions.cs`
+- All constructor injection and call sites updated
+- File headers present and correct on both interface and implementation
+- **No class named `*Repository` exists in the PR that doesn't implement `IRepository<T>`**
+
+##### Fix 2: Branch Rebase ✅
+- Branch rebased onto `main` after PR #146 merged
+- No duplicate `.squad/` files in current diff
+
+#### Additional Quality Checks ✅
+1. **Domain Layer Purity:** `RoleChangeAuditEntry` uses plain `string Id` — NO MongoDB types (`ObjectId`, `[BsonId]`) in Domain layer. ObjectId mapping handled correctly in `Persistence.MongoDb.Configurations.RoleChangeAuditEntryConfiguration`.
+2. **Thread-Safe Caching:** Token and role caching uses `GetOrCreateAsync` — prevents concurrent cold-start races.
+3. **DI Extension Self-Contained:** `AddUserManagement()` calls `AddMemoryCache()` — idempotent and safe.
+4. **File Headers:** All 12 new C# files have correct copyright header with proper project names.
+5. **Naming Conventions:** All interfaces, services, options, extensions follow team conventions.
+
+#### CI Verification ✅
+- Architecture.Tests: **PASSED** (19/19 checks green)
+- All tests: **1,805 tests passed, 0 failed**
+- Build: **0 warnings, 0 errors** (Release configuration with `TreatWarningsAsErrors=true`)
+
+#### Pattern Established
+**Repository vs. Service Naming:**
+- Classes in `Repositories/` namespace **MUST** implement `IRepository<T>` and provide full CRUD operations
+- Append-only or specialized persistence operations (audit logs, event sourcing, write-only buffers) should be named as `*Service` or `*Writer` and placed in `Services/` namespace
+- This PR sets the precedent: `AuditLogWriterService` is the correct pattern for audit log persistence
+
+#### Consequences
+- ✅ PR #158 is approved and ready to merge
+- ✅ Pattern documented for future audit logs and specialized persistence operations
+- ✅ Architecture tests continue to enforce the `IRepository<T>` contract for all `*Repository` classes
+- ✅ Domain layer remains free of persistence-infrastructure types (MongoDB, EF Core attributes)
+
+---
+
+## Admin User Management v0.5.0
+
+### 2025-07-14: v0.5.0 — Admin User Management — Architectural Decisions
+**By:** Aragorn (Lead Developer) — Plan Ceremony  
+**Feature:** v0.5.0 Admin User Management  
+**Milestone:** #7 — v0.5.0 - Admin User Management
+
+#### Decision 1: Auth0 Management API via M2M client credentials
+**What:** The app will integrate with Auth0 Management API v2 using a dedicated Machine-to-Machine (M2M) application with the `client_credentials` grant. The M2M app is separate from the user-facing Auth0 application.
+
+**Why:** The user-facing Auth0 app uses the Authorization Code flow (user identity). Management API operations (listing users, assigning roles) require a server-to-server token with scoped Management API permissions — a different trust model that must not share credentials with the user-facing app.
+
+**Consequences:**
+- New secrets required: `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET` (Boromir — CI, Gandalf — Auth0 setup)
+- M2M tokens must be cached (short-lived, typically 24h) to avoid rate limits
+- Spike #130 will confirm exact scopes: `read:users`, `read:roles`, `update:users`
+
+#### Decision 2: SDK choice deferred to spike — Auth0.ManagementApi vs raw HttpClient
+**What:** The decision between using the `Auth0.ManagementApi` NuGet package and a raw typed `HttpClient` is deferred to the completion of spike #130.
+
+**Why:** The Auth0 .NET Management SDK may not be fully compatible with .NET 10 / AOT compilation, and its abstraction may conflict with the project's existing HttpClient resilience policies. The spike will benchmark both and produce a recommendation.
+
+**Consequences:**
+- `UserManagementService` (#131) depends on spike #130
+- If raw HttpClient is chosen: `IHttpClientFactory` + Polly retry policy will be used
+- If Auth0 SDK is chosen: version pinned in `Directory.Packages.props`
+
+#### Decision 3: Vertical Slice — all admin user management code under `src/Web/Features/Admin/Users/`
+**What:** Following the project's Vertical Slice Architecture, all admin user management code (commands, queries, handlers, service interface) lives under `src/Web/Features/Admin/Users/`. The `IUserManagementService` interface is defined in `src/Domain/` for testability.
+
+**Why:** Consistent with the existing vertical slice layout for Issues and Suggestions. Keeps the admin feature self-contained and deletable/replaceable as a unit.
+
+**Consequences:**
+- Blazor components go in `src/Web/Components/Admin/Users/`
+- No new projects — this feature fits within the existing `src/Web` project
+
+#### Decision 4: Audit log is append-only in MongoDB, never updates or deletes
+**What:** `RoleChangeAuditEntry` documents are written once and never modified. No soft-delete, no status updates.
+
+**Why:** Audit logs are a compliance artifact. Mutability would undermine their evidentiary value. Append-only semantics also eliminate concurrency concerns on writes.
+
+**Consequences:**
+- Index on `(TargetUserId, Timestamp)` for admin query performance
+- No archive/purge policy in v0.5.0 — deferred to v0.6.0 if needed
+- Audit writes are fire-and-forget (non-blocking) but failures are logged via `ILogger`
+
+#### Decision 5: AdminPolicy enforced at Blazor page level, not middleware
+**What:** The `AdminPolicy` authorization attribute is applied at the Blazor component level (`@attribute [Authorize(Policy = "AdminPolicy")]`), not as a route-level middleware constraint.
+
+**Why:** Blazor Server route authorization is best expressed at the component level to ensure the authorization pipeline runs correctly in the Blazor hub context. Middleware-level auth for Blazor Server circuits has known edge cases around circuit reconnection.
+
+**Consequences:**
+- Every admin page component must carry the `[Authorize]` attribute explicitly
+- Navigation guard in `NavMenu.razor` via `<AuthorizeView>` provides UX protection (not security — the policy is the security)
+- Integration tests (#143) will verify the policy holds via `WebApplicationFactory`
+
+#### Sprint Structure
+| Sprint | Theme | Issues | Count |
+|--------|-------|--------|-------|
+| 5A | Foundation | #130, #131, #132, #133, #134, #135 | 6 |
+| 5B | UI | #136, #137, #138, #139, #140 | 5 |
+| 5C | Quality | #141, #142, #143, #144, #145 | 5 |
+
+**Total:** 16 issues · Milestone #7
+
+---
+
+### 2026-04-01: Release Blog Post Trigger
+**By:** Bilbo  
+**What:** Release blog posts for v0.3.0 and v0.4.0 were not written when the releases were published. These were critical mandatory posts (per charter) that should have been published immediately. On 2026-04-01, Bilbo wrote catch-up posts for both releases.
+
+**Why:** Keeping blog in sync with releases ensures developers always have up-to-date, accurate release notes in narrative form. Missing posts creates a documentation gap.
+
+**Action:** Going forward, whenever Ralph (DevOps) publishes a GitHub Release:
+1. Release blog post task should be **synchronously triggered** (not async)
+2. Bilbo should write the post within the same day as release publication
+3. Consider adding a GitHub Actions workflow that comments on the release with a link to the blog post once published
+
+**Outcome:** v0.3.0 and v0.4.0 blog posts are now live; blog landing page (`docs/blog/index.md`) and website blog table (`docs/index.html`) have been updated.
+
+---
+
+### 2026-04-01: Auth0 Management API Secrets Configuration Pattern
+**Date:** 2026-04-01  
+**Author:** Boromir (DevOps)  
+**Status:** Implemented  
+**Related:** Issue #145, PR #162
+
+#### Configuration Section
+All Auth0 Management API credentials are stored in the `Auth0Management` section:
+
+```json
+{
+  "Auth0Management": {
+    "ClientId": "xxx",
+    "ClientSecret": "xxx",
+    "Domain": "tenant.auth0.com",
+    "Audience": "https://tenant.auth0.com/api/v2/"
+  }
+}
+```
+
+This is separate from the `Auth0` section (used for authentication).
+
+#### .NET Aspire AppHost Integration
+In `src/AppHost/AppHost.cs`:
+
+```csharp
+var auth0MgmtClientId = builder.AddParameter("auth0-mgmt-client-id", secret: true);
+var auth0MgmtClientSecret = builder.AddParameter("auth0-mgmt-client-secret", secret: true);
+
+builder.AddProject<Projects.Web>("web")
+    .WithEnvironment("Auth0Management__ClientId", auth0MgmtClientId)
+    .WithEnvironment("Auth0Management__ClientSecret", auth0MgmtClientSecret);
+```
+
+Aspire prompts for these values at startup when missing.
+
+#### GitHub Actions CI/CD
+In `.github/workflows/squad-test.yml` and `.github/workflows/codeql-analysis.yml`:
+
+```yaml
+env:
+  Auth0Management__ClientId: ${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}
+  Auth0Management__ClientSecret: ${{ secrets.AUTH0_MANAGEMENT_CLIENT_SECRET }}
+  Auth0Management__Domain: ${{ secrets.AUTH0_DOMAIN }}
+  Auth0Management__Audience: https://${{ secrets.AUTH0_DOMAIN }}/api/v2/
+```
+
+**Note:** Domain and Audience reference the existing `AUTH0_DOMAIN` secret to avoid duplication.
+
+#### Development Placeholders
+`src/Web/appsettings.Development.json` includes placeholder entries:
+
+```json
+{
+  "Auth0Management": {
+    "ClientId": "",
+    "ClientSecret": "",
+    "Domain": "",
+    "Audience": ""
+  }
+}
+```
+
+This signals the schema but provides no real values. Developers must configure via Aspire parameters or User Secrets.
+
+#### Empty Secrets Handling
+`UserManagementService.GetOrFetchTokenAsync()` sends credentials directly to Auth0's `/oauth/token` endpoint. If `ClientId` or `ClientSecret` are empty strings:
+
+- Auth0 returns HTTP 401/403
+- `response.EnsureSuccessStatusCode()` throws `HttpRequestException`
+- Service catches the exception and returns `Result.Fail<T>` with `ResultErrorCode.ExternalService`
+
+**This is graceful degradation:** Admin UI features fail gracefully with error messages; the app does not crash.
+
+**Future consideration (Sam's domain):** Add explicit validation in `UserManagementService` constructor or `GetOrFetchTokenAsync()` to fail fast with clearer messages when credentials are missing.
+
+#### Consequences
+
+##### Positive
+- CI/CD pipelines can now exercise Admin User Management code paths (when secrets are configured)
+- Local dev works without hardcoding credentials (Aspire prompts at startup)
+- Production deployments can inject secrets via Azure Key Vault, AWS Secrets Manager, etc.
+- Separation of Auth0 authentication (`Auth0` section) and management (`Auth0Management` section) is clear
+
+##### Negative
+- Repository admin must manually add `AUTH0_MANAGEMENT_CLIENT_ID` and `AUTH0_MANAGEMENT_CLIENT_SECRET` to GitHub secrets (documented in PR #162)
+- Empty placeholders in `appsettings.Development.json` may confuse new developers; recommend adding a comment in the file (Sam's domain)
+
+#### Related Files
+- `src/AppHost/AppHost.cs`
+- `src/Web/appsettings.Development.json`
+- `src/Web/Features/Admin/Users/UserManagementService.cs`
+- `.github/workflows/squad-test.yml`
+- `.github/workflows/codeql-analysis.yml`
+
+---
+
+### 2026-04-01: Admin User Management Documentation Structure (Frodo)
+**Date:** April 1, 2026  
+**Author:** Frodo (Tech Writer)  
+**Relates to:** Issue #144  
+**PR:** #161
+
+#### Decision
+Created a dedicated `docs/features/admin-user-management.md` file for the v0.5.0 Admin User Management feature, following a consistent documentation structure and archival pattern for feature-specific guides.
+
+#### Context
+The Admin User Management feature requires comprehensive developer and operational documentation to enable:
+1. Local development setup with Auth0 M2M credentials
+2. Understanding of the architecture (MediatR CQRS pattern, Auth0 Management API integration, audit logging)
+3. Operational security best practices for role management
+4. Troubleshooting common configuration issues
+
+#### Rationale
+
+##### Why a separate feature documentation file?
+1. **Scalability**: As the project grows, feature-specific docs in `docs/features/` keep the root-level `docs/` directory clean and focused on cross-cutting concerns (ARCHITECTURE.md, SECURITY.md, CONTRIBUTING.md)
+2. **Findability**: Developers looking for "User Management" documentation naturally check `docs/features/admin-user-management.md` before root docs
+3. **Maintainability**: Each feature doc is owned by the feature team (in this case, Frodo), making it easier to keep documentation in sync with code
+4. **Modularity**: Supports a future pattern where feature teams can include onboarding, architecture, and troubleshooting all in one place
+
+##### Documentation structure adopted
+Each feature guide includes:
+- **Overview**: What the feature does and who can use it
+- **Prerequisites**: External setup required (e.g., Auth0 M2M app creation)
+- **Setup**: Local development configuration steps
+- **Features**: Description of each user-facing capability
+- **Architecture**: Components, data flow, CQRS pattern
+- **Security**: Authorization, secrets management, audit trail, best practices
+- **Troubleshooting**: Common issues and resolutions
+- **Related Documentation**: Links to connected guides
+
+This structure is consistent with existing docs/FEATURES.md style but organized by feature rather than by feature category.
+
+#### Impact
+
+##### For Developers
+- Clear setup path: Prerequisites → Local Development Setup → Features → Architecture
+- Understanding of CQRS pattern (Queries, Commands, Handlers, Validators) in context of a real feature
+- Secrets management best practices for Auth0 M2M credentials
+
+##### For Operations/Admins
+- Operational security notes on role change auditing
+- Troubleshooting section for the most common issues
+- Best practices for principle of least privilege
+
+##### For Documentation Standards
+- Establishes pattern for future feature docs in `docs/features/`
+- Frodo (Tech Writer) owns all files in `docs/` and can maintain feature docs independently
+- Root-level docs/ remains focused on cross-cutting architecture concerns
+
+#### Alternatives Considered
+1. **Add to docs/FEATURES.md**: Would clutter the existing feature index; less discoverable for someone searching for Admin User Management docs
+2. **Create docs/admin-user-management.md at root**: Keeps feature docs at root level but doesn't scale as project grows (10+ features = 10+ root files)
+3. **Only update README.md**: Would lack technical depth needed for developers and operators
+
+#### Decisions Made During Implementation
+1. **No YAML front matter for feature docs**: The new admin-user-management.md is internal developer documentation, not a blog post, so no YAML metadata required
+2. **Auth0 M2M setup as primary prerequisite**: Emphasized that Auth0 dashboard M2M app creation is required before any local development can proceed
+3. **dotnet user-secrets for local configuration**: Used rather than appsettings.json to emphasize security best practices (secrets not in source control)
+4. **Immutable audit log pattern**: Documented as append-only MongoDB collection for compliance auditing, never modifiable
+
+---
+
+## Auth0 Management API (Gandalf — ADR #130)
+
+### 2025-07-15: ADR: Auth0 Management API Integration Strategy
+**Status:** Proposed  
+**Date:** 2025-07-15  
+**Author:** Gandalf  
+**Issue:** #130 — [Spike] Auth0 Management API — capabilities, rate limits, and SDK options
+
+#### Context
+IssueTrackerApp currently uses Auth0 for end-user authentication via the OIDC Authorization Code flow with PKCE (`src/Web/Auth/`). Role assignment (Admin / User) is managed manually in the Auth0 dashboard. As the platform scales and automated user-role provisioning becomes necessary (e.g., assigning roles programmatically upon user registration, syncing roles from an admin UI), direct calls to the **Auth0 Management API v2** are required.
+
+The existing `Auth0Options` binds `Domain`, `ClientId`, `ClientSecret`, and `RoleClaimNamespace` from configuration. The existing credential-based setup is an OIDC client app — it is **not** a Machine-to-Machine (M2M) app and does not hold Management API scopes. A separate M2M configuration is required.
+
+This spike evaluates:
+1. Which Management API v2 endpoints are needed
+2. How to obtain and cache M2M access tokens (client credentials flow)
+3. Auth0 rate limits and pagination strategy
+4. SDK choice: `Auth0.ManagementApi` NuGet package vs raw `HttpClient`
+5. Required Auth0 dashboard configuration
+6. Secrets management strategy
+
+#### Decision
+**Use the official `Auth0.ManagementApi` NuGet package (`ManagementApiClient`) with a dedicated M2M application, caching the Management API token in `IMemoryCache` with a TTL-based refresh strategy, and storing M2M credentials in .NET User Secrets (development) and Azure Key Vault (production).**
+
+Rationale:
+- The official SDK is actively maintained by Auth0/Okta, handles token acquisition internally, provides strongly-typed request/response objects, and reduces boilerplate.
+- A dedicated M2M app in Auth0 cleanly separates management-plane credentials from user-facing OIDC credentials, limiting blast radius on credential rotation.
+- The app already uses `IMemoryCache` for analytics TTLs; reusing the same pattern for token caching is idiomatic and avoids new infrastructure.
+
+#### Consequences
+
+##### Positive
+- Programmatic role assignment enables automated onboarding and admin UI workflows without manual Auth0 dashboard intervention.
+- Strongly-typed SDK reduces surface area for serialization bugs.
+- Token caching avoids unnecessary M2M token requests and respects rate limits.
+- Separation of M2M and OIDC credentials follows least-privilege principle.
+
+##### Negative / Trade-offs
+- Adds a new NuGet dependency (`Auth0.ManagementApi`).
+- Requires Auth0 dashboard configuration (new M2M app, API permission grants) — this is a manual step that cannot be automated by code alone.
+- M2M tokens are sensitive; any misconfiguration of Key Vault access policies would cause Management API calls to fail at runtime.
+- Rate limits on the free Auth0 tier (2 req/sec burst, ~1,000 req/month on some plan tiers) mean bulk operations must be throttled.
+
+#### Implementation Summary
+- **Auth0 Dashboard Setup:** Create M2M app with scopes `read:users`, `read:roles`, `read:role_members`, `update:users`, `create:role_members`, `delete:role_members`
+- **NuGet:** Add `Auth0.ManagementApi` to `Directory.Packages.props`
+- **Secrets:** `Auth0Management:ClientId`, `Auth0Management:ClientSecret`, `Auth0Management:Domain`, `Auth0Management:Audience`
+- **Token Caching:** `IMemoryCache` with 24h TTL (minus 5m safety margin)
+- **Rate Limits:** Polly retry policy for HTTP 429; paginate list endpoints sequentially
+- **SDK Usage:** `ManagementApiClient` for all role and user operations
+
+---
+
+## Process & Workflow
+
+### 2026-04-01T17:57Z: Branching strategy — rebase before merge
+**By:** mpaulosky (via Ralph session)  
+**What:** All squad PR branches must be rebased onto current `main` before Aragorn performs the merge ceremony. A PR that passes CI on a stale base is not considered mergeable — the rebase must happen first, then CI must be green on the updated tip.
+
+**Why:** PR #160 demonstrated the failure mode: branch cut before `99a446d` landed, conflicts discovered at review time rather than at author time. Rebasing before merge ensures CI tests the actual merged state, not a diverged snapshot.
+
+**How to enforce:** Aragorn's review gate checklist now includes: (1) check `gh pr view --json mergeStateStatus` — if `BEHIND`, rebase the branch first; (2) re-trigger CI after rebase; (3) only merge once CI is green on the rebased tip.
