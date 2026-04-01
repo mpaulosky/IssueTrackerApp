@@ -743,3 +743,19 @@ set the proper config key.
 - Implementation quality is high — just need architecture convention fix
 
 **Pattern Established:** When naming classes, respect team conventions enforced by Architecture.Tests. If a class violates naming patterns (e.g., `*Repository` but doesn't implement `IRepository<T>`), rename it to reflect its true purpose (`*Writer`, `*Service`, etc.) rather than forcing the pattern.
+
+## Learnings — Issue #149 (Labels Domain Model)
+
+**Date:** 2026-04-01
+**Branch:** squad/149-labels-domain-model
+**PR:** #168
+
+### What was done
+Added `Labels` as `List<string>` to `Issue` model and `IReadOnlyList<string>` to `IssueDto` positional record. Updated `IssueMapper` (both ToDto and ToModel), `IssueConfiguration` (EF Core Mongo `builder.Property(i => i.Labels)`), `IssueDto.Empty`, and all 5 test helper `CreateTestIssueDto()` methods across Domain.Tests, Web.Tests, and Web.Tests.Bunit.
+
+### Key decisions
+- Appended `Labels` **after** `VotedBy` in the positional record to avoid breaking any existing positional construction calls — safest approach for positional records.
+- Used `[..dto.Labels]` spread syntax in `IssueMapper.ToModel` for consistent defensive copy (same pattern as VotedBy).
+
+### Pitfall encountered
+Local branch name mismatch: `git checkout -b squad/149-labels-domain-model` left HEAD on a different branch because `squad/149-labels-domain-model` already existed locally. Always verify `git branch --show-current` after checkout before committing.

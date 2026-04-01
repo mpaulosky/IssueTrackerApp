@@ -1,0 +1,31 @@
+@* RoleBadge.razor — component to render a single role as a colored pill *@
+
+@if (!string.IsNullOrWhiteSpace(RoleName))
+{
+	<span class="@GetBadgeClasses()" aria-label="Role: @RoleName">@RoleName</span>
+}
+
+@code {
+	/// <summary>
+	///   The role name to display.
+	/// </summary>
+	[Parameter]
+	public string? RoleName { get; set; }
+
+	private static readonly Dictionary<string, string> RoleColorMap = new(StringComparer.OrdinalIgnoreCase)
+	{
+		["Admin"] = "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+		["Moderator"] = "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+		["User"] = "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+	};
+
+	private string GetBadgeClasses()
+	{
+		var baseClasses = "badge";
+		var colorClasses = RoleColorMap.TryGetValue(RoleName ?? string.Empty, out var css)
+			? css
+			: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
+
+		return $"{baseClasses} {colorClasses}";
+	}
+}
