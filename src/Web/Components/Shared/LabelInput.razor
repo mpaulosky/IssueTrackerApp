@@ -1,0 +1,202 @@
+@using Domain.Features.Issues
+
+@inject ILabelService LabelService
+
+<div class="relative">
+	<label class="form-label">Labels</label>
+	<div class="mt-1 flex flex-wrap gap-1.5 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 min-h-[42px] items-center cursor-text"
+		 @onclick="FocusInput">
+		@foreach (var label in Labels)
+		{
+			<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
+				@label
+				<button type="button" @onclick="() => RemoveLabel(label)" @onclick:stopPropagation="true"
+						class="ml-0.5 hover:text-blue-600 dark:hover:text-blue-300 focus:outline-none" aria-label="Remove label @label">
+					<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd"
+							  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+							  clip-rule="evenodd" />
+					</svg>
+				</button>
+			</span>
+		}
+		@if (Labels.Count < MaxLabels)
+		{
+			<input @ref="_inputRef"
+				   type="text"
+				   id="label-input"
+				   autocomplete="off"
+				   value="@_inputText"
+				   @oninput="HandleInput"
+				   @onkeydown="HandleKeyDown"
+				   @onblur="HandleBlur"
+				   @onfocus="HandleFocus"
+				   placeholder="@(Labels.Count == 0 ? "Add labels (comma or Enter to confirm)…" : "")"
+				   class="flex-1 min-w-[140px] border-none outline-none bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 p-0" />
+		}
+	</div>
+
+	@if (_showDropdown && _suggestions.Count > 0)
+	{
+		<div class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-48 overflow-auto"
+			 role="listbox" aria-label="Label suggestions">
+			@foreach (var suggestion in _suggestions)
+			{
+				<button type="button" role="option"
+						@onclick="() => SelectSuggestion(suggestion)"
+						class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+					@suggestion
+				</button>
+			}
+		</div>
+	}
+
+	@if (Labels.Count >= MaxLabels)
+	{
+		<p class="mt-1 text-xs text-amber-600 dark:text-amber-400" role="status">
+			Maximum of @MaxLabels labels reached.
+		</p>
+	}
+</div>
+
+@code {
+	[Parameter] public List<string> Labels { get; set; } = [];
+	[Parameter] public EventCallback<List<string>> LabelsChanged { get; set; }
+	[Parameter] public int MaxLabels { get; set; } = 10;
+
+	private ElementReference _inputRef;
+	private string _inputText = string.Empty;
+	private List<string> _suggestions = [];
+	private bool _showDropdown;
+	private CancellationTokenSource? _debounceCts;
+
+	private async Task HandleInput(ChangeEventArgs e)
+	{
+		_inputText = e.Value?.ToString() ?? string.Empty;
+		await FetchSuggestionsDebounced();
+	}
+
+	private async Task FetchSuggestionsDebounced()
+	{
+		_debounceCts?.Cancel();
+		_debounceCts = new CancellationTokenSource();
+
+		try
+		{
+			await Task.Delay(300, _debounceCts.Token);
+
+			if (!string.IsNullOrWhiteSpace(_inputText))
+			{
+				var results = await LabelService.GetSuggestionsAsync(_inputText.Trim(), 5, _debounceCts.Token);
+				_suggestions = [.. results.Where(s => !Labels.Any(l => string.Equals(l, s, StringComparison.OrdinalIgnoreCase)))];
+				_showDropdown = _suggestions.Count > 0;
+			}
+			else
+			{
+				_suggestions.Clear();
+				_showDropdown = false;
+			}
+
+			StateHasChanged();
+		}
+		catch (OperationCanceledException)
+		{
+			// Debounce was reset — ignore.
+		}
+	}
+
+	private async Task HandleKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key is "Enter" or ",")
+		{
+			var text = _inputText.TrimEnd(',');
+			await ConfirmLabel(text);
+		}
+		else if (e.Key == "Backspace" && string.IsNullOrEmpty(_inputText) && Labels.Count > 0)
+		{
+			await RemoveLastLabel();
+		}
+		else if (e.Key == "Escape")
+		{
+			_showDropdown = false;
+			_suggestions.Clear();
+		}
+	}
+
+	private async Task HandleFocus()
+	{
+		if (!string.IsNullOrWhiteSpace(_inputText))
+		{
+			await FetchSuggestionsDebounced();
+		}
+	}
+
+	private async Task HandleBlur()
+	{
+		// Delay to let a suggestion click register before hiding dropdown.
+		await Task.Delay(150);
+		_showDropdown = false;
+		StateHasChanged();
+	}
+
+	private async Task ConfirmLabel(string text)
+	{
+		var label = text.Trim();
+		if (string.IsNullOrWhiteSpace(label))
+		{
+			return;
+		}
+
+		if (Labels.Count >= MaxLabels)
+		{
+			return;
+		}
+
+		if (Labels.Any(l => string.Equals(l, label, StringComparison.OrdinalIgnoreCase)))
+		{
+			_inputText = string.Empty;
+			return;
+		}
+
+		Labels = [.. Labels, label];
+		_inputText = string.Empty;
+		_showDropdown = false;
+		_suggestions.Clear();
+		await LabelsChanged.InvokeAsync(Labels);
+	}
+
+	private async Task RemoveLabel(string label)
+	{
+		Labels = Labels.Where(l => l != label).ToList();
+		await LabelsChanged.InvokeAsync(Labels);
+	}
+
+	private async Task RemoveLastLabel()
+	{
+		Labels = Labels[..^1];
+		await LabelsChanged.InvokeAsync(Labels);
+	}
+
+	private async Task SelectSuggestion(string suggestion)
+	{
+		await ConfirmLabel(suggestion);
+	}
+
+	private async Task FocusInput()
+	{
+		try
+		{
+			await _inputRef.FocusAsync();
+		}
+		catch
+		{
+			// ElementReference may not yet be ready — ignore.
+		}
+	}
+
+	public void Dispose()
+	{
+		_debounceCts?.Cancel();
+		_debounceCts?.Dispose();
+	}
+}

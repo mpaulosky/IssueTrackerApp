@@ -415,6 +415,7 @@ public class CreatePageTests : BunitTestBase
 				Arg.Any<string>(),
 				Arg.Any<CategoryDto>(),
 				Arg.Any<UserDto>(),
+				Arg.Any<IReadOnlyList<string>?>(),
 				Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(createdIssue));
 
@@ -441,6 +442,7 @@ public class CreatePageTests : BunitTestBase
 			"This is a valid description that is long enough.",
 			Arg.Is<CategoryDto>(c => c.CategoryName == "Bug"),
 			Arg.Any<UserDto>(),
+			Arg.Any<IReadOnlyList<string>?>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -459,6 +461,7 @@ public class CreatePageTests : BunitTestBase
 				Arg.Any<string>(),
 				Arg.Any<CategoryDto>(),
 				Arg.Any<UserDto>(),
+				Arg.Any<IReadOnlyList<string>?>(),
 				Arg.Any<CancellationToken>())
 			.Returns(Result.Ok(createdIssue));
 
@@ -502,6 +505,7 @@ public class CreatePageTests : BunitTestBase
 				Arg.Any<string>(),
 				Arg.Any<CategoryDto>(),
 				Arg.Any<UserDto>(),
+				Arg.Any<IReadOnlyList<string>?>(),
 				Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<IssueDto>("Database connection failed"));
 
@@ -542,6 +546,7 @@ public class CreatePageTests : BunitTestBase
 				Arg.Any<string>(),
 				Arg.Any<CategoryDto>(),
 				Arg.Any<UserDto>(),
+				Arg.Any<IReadOnlyList<string>?>(),
 				Arg.Any<CancellationToken>())
 			.Returns<Result<IssueDto>>(_ => throw new Exception("Unexpected error occurred"));
 
@@ -586,6 +591,7 @@ public class CreatePageTests : BunitTestBase
 				Arg.Any<string>(),
 				Arg.Any<CategoryDto>(),
 				Arg.Any<UserDto>(),
+				Arg.Any<IReadOnlyList<string>?>(),
 				Arg.Any<CancellationToken>())
 			.Returns(tcs.Task);
 
@@ -631,6 +637,7 @@ public class CreatePageTests : BunitTestBase
 				Arg.Any<string>(),
 				Arg.Any<CategoryDto>(),
 				Arg.Any<UserDto>(),
+				Arg.Any<IReadOnlyList<string>?>(),
 				Arg.Any<CancellationToken>())
 			.Returns(Result.Fail<IssueDto>("Error"));
 
@@ -717,6 +724,7 @@ public class CreatePageTests : BunitTestBase
 				Arg.Any<string>(),
 				Arg.Any<CategoryDto>(),
 				Arg.Any<UserDto>(),
+				Arg.Any<IReadOnlyList<string>?>(),
 				Arg.Any<CancellationToken>())
 			.Returns(_ =>
 			{

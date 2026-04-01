@@ -107,6 +107,17 @@
 							<StatusBadge Status="@_issue.Status" />
 							<CategoryBadge Category="@_issue.Category" />
 						</div>
+						@if (_issue.Labels.Count > 0)
+						{
+							<div class="mt-2 flex flex-wrap gap-1.5">
+								@foreach (var label in _issue.Labels)
+								{
+									<span class="inline-flex items-center bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
+										@label
+									</span>
+								}
+							</div>
+						}
 					</div>
 					<div class="ml-4 flex-shrink-0 flex space-x-2">
 						@if (_canVote)
