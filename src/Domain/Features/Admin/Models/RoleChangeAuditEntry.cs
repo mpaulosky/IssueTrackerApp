@@ -22,8 +22,9 @@ public class RoleChangeAuditEntry
 	{
 	}
 
-	/// <summary>Gets or sets the document identifier.</summary>
-	public string Id { get; set; } = string.Empty;
+	/// <summary>Gets or sets the MongoDB document identifier.</summary>
+	[BsonId]
+	public ObjectId Id { get; set; } = ObjectId.Empty;
 
 	/// <summary>Gets or sets the Auth0 identifier of the admin who performed the action.</summary>
 	public string AdminUserId { get; set; } = string.Empty;
