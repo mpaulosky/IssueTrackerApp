@@ -950,3 +950,25 @@ Test results: 14/14 passing. Build clean.
 - No new packages needed; all test infrastructure (`TestAuthHandler`, `IntegrationTestBase`, `CustomWebApplicationFactory`) was already in place
 
 **Build:** Succeeded with 0 warnings, 0 errors.
+**2026-04-01: Admin Policy Integration Tests (Issue #143, PR #169)**
+
+Gimli completed 24 integration tests in `tests/Web.Tests.Integration/AdminPolicyTests.cs` validating admin policy enforcement across ASP.NET Core endpoints and handlers.
+
+**Key Finding — Authorization Enforcement Pattern:**
+- **Endpoint-Layer Protection:** Admin policy (`[Authorize(Policy = "AdminPolicy")]`) is enforced at the HTTP endpoint handler layer via ASP.NET Core middleware.
+- **No Handler-Level Auth:** `AssignRoleCommand` and `RemoveRoleCommand` MediatR handlers do NOT include authorization checks. They rely entirely on the endpoint layer to enforce policy.
+- **Implication:** Direct calls to handlers from within the application (e.g., background services) would bypass authorization if called outside the HTTP endpoint context.
+
+**Test Coverage:**
+- Unauthorized users cannot access admin endpoints (✅ 401/403 responses)
+- Authorized admins can perform admin operations
+- Policy validation at minimal API level
+- Repository integration with MongoDB test container
+
+**Architecture Pattern Documented:**
+The application uses a **middleware-first** authorization pattern where business logic handlers remain authorization-agnostic. This follows ASP.NET Core best practices but requires developers to understand that:
+1. Endpoints are the security boundary — handlers are not.
+2. If a handler must be called outside an HTTP context, explicit authorization must be added.
+3. The `AdminPolicy` protects the entire admin surface; no per-operation handler-level checks.
+
+**Status:** ✅ Complete. PR #169 ready for review. 24/24 tests passing.

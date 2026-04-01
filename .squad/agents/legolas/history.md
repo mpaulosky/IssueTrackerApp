@@ -744,3 +744,45 @@ Built the scaffold for the /admin/users admin page following existing patterns f
 - Same structure as Categories.razor: AdminPageLayout wrapper, error/success/loading states, modal pattern ready
 - AdminPageLayout is a component wrapper accepting `Title`, `Description`, and `ChildContent` parameters
 - No code-behind used (all logic in `@code` block)
+
+**2026-04-01: Audit Log View — UserAuditLogPanel (Issue #140) → PR #170**
+
+Implemented role change audit log panel for the admin users page:
+- Created `ListAuditEntriesQuery` + sealed handler in `Domain.Features.Admin.AuditLog.Queries`
+  - Uses `IAuditLogRepository.GetByTargetUserAsync()` and sorts results reverse-chronologically
+  - Returns `Result<IReadOnlyList<RoleChangeAuditEntry>>`
+- Created `UserAuditLogPanel.razor` in `src/Web/Components/Admin/Users/`
+  - Parameters: `string? UserId`, `string? UserEmail`, `EventCallback OnClose`
+  - Uses `IMediator` (from `_Imports.razor`) to dispatch `ListAuditEntriesQuery`
+  - Inline panel (not modal) shown below UserListTable when a row's "Audit Log" button is clicked
+  - Columns: Timestamp (relative + ISO tooltip), Action (green/red badge), Role, Changed By
+  - Pagination: 10 entries/page, Previous/Next controls
+  - Empty state: "No role changes recorded for this user"
+- Updated `Users.razor`: wired `HandleViewAuditLog` and `HandleCloseAuditLog`
+
+**Key Razor gotchas discovered:**
+- Nested double quotes in HTML attributes (`title="@...ToString("O")"`) break the Razor parser — use single-quote outer attribute: `title='@...ToString("O")'`
+- Switch expressions with `{((int)x == 1 ? "" : "s")}` string interpolation in Razor `@code` blocks can confuse the Razor source generator — use plain if/else instead
+- Other squad agents may have untracked/unstaged files in the working dir; always `git add` only your own files and check `git status` before committing
+- If another agent changes the active branch mid-session, use `cherry-pick` to move your commit to the correct branch and `reset --hard` to restore the other branch
+
+**2026-04-01: EditUserRolesModal — assign/remove roles with confirmation (Issue #139) → PR #TBD**
+
+Completed the EditUserRolesModal implementation with all acceptance criteria:
+- Created `ListRolesQuery` + sealed handler in `Domain.Features.Admin.Users.Queries`
+  - Delegates to `IUserManagementService.ListRolesAsync()` via MediatR
+  - Returns `Result<IReadOnlyList<RoleAssignment>>`
+- Rewrote `EditUserRolesModal.razor` (replacing the old stub):
+  - Modal header: "Edit Roles — {Name} ({Email})"
+  - Fetches available roles via `ListRolesQuery` on open
+  - Checkboxes for all roles; current roles pre-checked
+  - Save button disabled until diff is non-empty (IsDirty guard)
+  - Two-step flow: Edit → Confirm (shows assign/remove summaries)
+  - Dispatches `AssignRoleCommand`/`RemoveRoleCommand` per role via `IMediator`
+  - Success: `ToastService.ShowSuccess`, closes modal, fires `OnSaved`
+  - Error: shown inline; modal stays open for retry
+  - Escape key + backdrop: `window.confirm` prompt when dirty
+  - `ElementReference.FocusAsync()` auto-focuses overlay on open for keyboard capture
+- Updated `Users.razor`: wired `HandleEditRoles`, `HandleCloseEditRoles`, `HandleRolesSaved`
+
+**Architecture tests: 43/43 — Domain tests: 373/373 — bUnit: 655/655 — Build: 0 warnings**

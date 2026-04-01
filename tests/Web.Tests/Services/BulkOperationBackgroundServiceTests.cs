@@ -60,6 +60,18 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 			NullLogger<BulkOperationBackgroundService>.Instance);
 	}
 
+	private async Task WaitForTerminalStatusAsync(string operationId, int timeoutMs = 5000)
+	{
+		var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+		while (DateTime.UtcNow < deadline)
+		{
+			var status = await _queue.GetStatusAsync(operationId);
+			if (status is BulkOperationStatus.Completed or BulkOperationStatus.Failed)
+				return;
+			await Task.Delay(20);
+		}
+	}
+
 	private static StatusDto CreateStatusDto(string name = "In Progress")
 	{
 		return new StatusDto(
@@ -155,7 +167,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		// Act
 		var executeTask = service.StartAsync(cts.Token);
 		var operationId = await _queue.QueueAsync(command);
-		await Task.Delay(150); // Allow processing
+		await WaitForTerminalStatusAsync(operationId); // Allow processing
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -184,7 +196,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		// Act
 		var executeTask = service.StartAsync(cts.Token);
 		var operationId = await _queue.QueueAsync(command);
-		await Task.Delay(150);
+		await WaitForTerminalStatusAsync(operationId);
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -213,7 +225,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		// Act
 		var executeTask = service.StartAsync(cts.Token);
 		var operationId = await _queue.QueueAsync(command);
-		await Task.Delay(150);
+		await WaitForTerminalStatusAsync(operationId);
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -242,7 +254,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		// Act
 		var executeTask = service.StartAsync(cts.Token);
 		var operationId = await _queue.QueueAsync(command);
-		await Task.Delay(150);
+		await WaitForTerminalStatusAsync(operationId);
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -275,7 +287,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		// Act
 		var executeTask = service.StartAsync(cts.Token);
 		var operationId = await _queue.QueueAsync(command);
-		await Task.Delay(150);
+		await WaitForTerminalStatusAsync(operationId);
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -303,7 +315,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		// Act
 		var executeTask = service.StartAsync(cts.Token);
 		var operationId = await _queue.QueueAsync(command);
-		await Task.Delay(150);
+		await WaitForTerminalStatusAsync(operationId);
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -337,7 +349,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		var executeTask = service.StartAsync(cts.Token);
 		var opId1 = await _queue.QueueAsync(command1);
 		var opId2 = await _queue.QueueAsync(command2);
-		await Task.Delay(250);
+		await Task.WhenAll(WaitForTerminalStatusAsync(opId1), WaitForTerminalStatusAsync(opId2));
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -372,7 +384,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		// Act
 		var executeTask = service.StartAsync(cts.Token);
 		var operationId = await _queue.QueueAsync(command);
-		await Task.Delay(150);
+		await WaitForTerminalStatusAsync(operationId);
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 
@@ -409,7 +421,7 @@ public sealed class BulkOperationBackgroundServiceTests : IDisposable
 		var operationId = await _queue.QueueAsync(command);
 		await Task.Delay(50);
 		statusDuringProcessing = await _queue.GetStatusAsync(operationId);
-		await Task.Delay(150);
+		await WaitForTerminalStatusAsync(operationId);
 		cts.Cancel();
 		await service.StopAsync(CancellationToken.None);
 

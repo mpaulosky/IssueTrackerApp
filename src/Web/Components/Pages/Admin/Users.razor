@@ -127,12 +127,18 @@
 									 OnEditRoles="HandleEditRoles"
 									 OnViewAuditLog="HandleViewAuditLog" />
 	}
+
+	<!-- Edit Roles Modal -->
+	<EditUserRolesModal User="_editRolesUser"
+	                    OnClose="HandleCloseEditRoles"
+	                    OnSaved="HandleRolesSaved" />
 </AdminPageLayout>
 
 @code {
 	private IReadOnlyList<AdminUserSummary>? _users;
 	private bool _isLoading = true;
 	private string? _errorMessage;
+	private AdminUserSummary? _editRolesUser;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -172,8 +178,20 @@
 
 	private Task HandleEditRoles(AdminUserSummary user)
 	{
-		// TODO: Implement role editing modal/dialog in future issue
+		_editRolesUser = user;
 		return Task.CompletedTask;
+	}
+
+	private Task HandleCloseEditRoles()
+	{
+		_editRolesUser = null;
+		return Task.CompletedTask;
+	}
+
+	private async Task HandleRolesSaved()
+	{
+		_editRolesUser = null;
+		await LoadUsersAsync();
 	}
 
 	private Task HandleViewAuditLog(string userId)
