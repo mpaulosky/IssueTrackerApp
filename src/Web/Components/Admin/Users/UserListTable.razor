@@ -1,0 +1,137 @@
+@* ============================================
+   Copyright (c) 2026. All rights reserved.
+   File Name :     UserListTable.razor
+   Company :       mpaulosky
+   Author :        Matthew Paulosky
+   Solution Name : IssueManager
+   Project Name :  Web
+   ============================================ *@
+
+@using Domain.Features.Admin.Models
+
+<div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+	@if (Users is null || !Users.Any())
+	{
+		<div class="px-4 py-12 text-center">
+			<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+			</svg>
+			<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No users found.</p>
+		</div>
+	}
+	else
+	{
+		<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+			<thead class="bg-gray-50 dark:bg-gray-700">
+				<tr>
+					<th scope="col"
+							class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						Display Name
+					</th>
+					<th scope="col"
+							class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						Email
+					</th>
+					<th scope="col"
+							class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						Roles
+					</th>
+					<th scope="col"
+							class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+						Last Login
+					</th>
+					<th scope="col" class="relative px-6 py-3">
+						<span class="sr-only">Actions</span>
+					</th>
+				</tr>
+			</thead>
+			<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+				@foreach (var user in Users)
+				{
+					<tr class="@(user.IsBlocked ? "bg-red-50 dark:bg-red-900/20" : "")">
+						<td class="px-6 py-4 whitespace-nowrap">
+							<div class="flex items-center">
+								@if (!string.IsNullOrEmpty(user.Picture))
+								{
+									<img class="h-10 w-10 rounded-full mr-3" src="@user.Picture" alt="@user.Name" />
+								}
+								<div>
+									<div class="text-sm font-medium text-gray-900 dark:text-white">
+										@user.Name
+									</div>
+									@if (user.IsBlocked)
+									{
+										<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+											Blocked
+										</span>
+									}
+								</div>
+							</div>
+						</td>
+						<td class="px-6 py-4 whitespace-nowrap">
+							<div class="text-sm text-gray-900 dark:text-gray-300">@user.Email</div>
+						</td>
+						<td class="px-6 py-4">
+							<div class="flex flex-wrap gap-1">
+								@if (user.Roles is not null && user.Roles.Any())
+								{
+									@foreach (var role in user.Roles)
+									{
+										<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200">
+											@role
+										</span>
+									}
+								}
+								else
+								{
+									<span class="text-sm text-gray-400 dark:text-gray-500 italic">No roles</span>
+								}
+							</div>
+						</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+							@if (user.LastLogin.HasValue)
+							{
+								<span title="@user.LastLogin.Value.ToString("F")">
+									@user.LastLogin.Value.ToString("MMM d, yyyy")
+								</span>
+							}
+							else
+							{
+								<span class="text-gray-400 dark:text-gray-500 italic">Never</span>
+							}
+						</td>
+						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+							<div class="flex justify-end gap-2">
+								<button type="button"
+												class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
+												@onclick="() => OnEditRoles.InvokeAsync(user)">
+									Edit Roles
+								</button>
+								<button type="button"
+												class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
+												@onclick="() => OnViewAuditLog.InvokeAsync(user.UserId)">
+									Audit Log
+								</button>
+							</div>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	}
+</div>
+
+@code {
+	/// <summary>Gets or sets the list of users to display.</summary>
+	[Parameter]
+	public IReadOnlyList<AdminUserSummary> Users { get; set; } = [];
+
+	/// <summary>Gets or sets the callback invoked when editing user roles.</summary>
+	[Parameter]
+	public EventCallback<AdminUserSummary> OnEditRoles { get; set; }
+
+	/// <summary>Gets or sets the callback invoked when viewing the audit log for a user.</summary>
+	[Parameter]
+	public EventCallback<string> OnViewAuditLog { get; set; }
+}
