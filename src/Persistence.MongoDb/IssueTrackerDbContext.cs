@@ -7,6 +7,7 @@
 // Project Name :  Persistence.MongoDb
 // =======================================================
 
+using Domain.Features.Admin.Models;
 using Domain.Models;
 
 using Microsoft.Extensions.Options;
@@ -59,6 +60,11 @@ public sealed class IssueTrackerDbContext : DbContext, IIssueTrackerDbContext
 	/// </summary>
 	public DbSet<EmailQueueItem> EmailQueue => Set<EmailQueueItem>();
 
+	/// <summary>
+	///   Gets or sets the Role Change Audit Log collection.
+	/// </summary>
+	public DbSet<RoleChangeAuditEntry> RoleChangeAuditLog => Set<RoleChangeAuditEntry>();
+
 	// Note: Users are not stored in MongoDB - they come from Auth0
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -85,6 +91,7 @@ public sealed class IssueTrackerDbContext : DbContext, IIssueTrackerDbContext
 		modelBuilder.Entity<Comment>().HasKey(e => e.Id);
 		modelBuilder.Entity<Attachment>().HasKey(e => e.Id);
 		modelBuilder.Entity<EmailQueueItem>().HasKey(e => e.Id);
+		modelBuilder.Entity<RoleChangeAuditEntry>().HasKey(e => e.Id);
 		// Note: User entity is not persisted - comes from Auth0
 	}
 
