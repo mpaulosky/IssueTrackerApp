@@ -67,6 +67,13 @@ public interface IIssueService
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
+	///   Restores (unarchives) a previously archived issue.
+	/// </summary>
+	Task<Result<bool>> RestoreIssueAsync(
+		string id,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
 	///   Changes the status of an issue.
 	/// </summary>
 	Task<Result<IssueDto>> ChangeIssueStatusAsync(
@@ -222,6 +229,14 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new DeleteIssueCommand(id, archivedBy);
+		return await _mediator.Send(command, cancellationToken);
+	}
+
+	public async Task<Result<bool>> RestoreIssueAsync(
+		string id,
+		CancellationToken cancellationToken = default)
+	{
+		var command = new RestoreIssueCommand(id);
 		return await _mediator.Send(command, cancellationToken);
 	}
 

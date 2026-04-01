@@ -36,7 +36,8 @@ public static class IssueMapper
 			issue.Archived,
 			UserMapper.ToDto(issue.ArchivedBy),
 			issue.ApprovedForRelease,
-			issue.Rejected);
+			issue.Rejected,
+			UserMapper.ToDto(issue.Assignee));
 	}
 
 	/// <summary>

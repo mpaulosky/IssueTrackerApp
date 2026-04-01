@@ -97,15 +97,13 @@ public sealed class BulkAssignCommandHandler : IRequestHandler<BulkAssignCommand
 
 				var issue = existingResult.Value;
 
-				// Store snapshot for undo (Author serves as the assignee in this model)
+				// Store snapshot for undo — capture current Assignee before overwriting
 				undoSnapshots.Add(new IssueUndoSnapshot(
 					issue.Id.ToString(),
 					BulkOperationType.Assignment,
-					new AssignmentSnapshot(UserMapper.ToDto(issue.Author))));
+					new AssignmentSnapshot(UserMapper.ToDto(issue.Assignee))));
 
-				// Note: Using Author field for assignment as the model doesn't have a separate Assignee
-				// In a real scenario, you'd want to add an Assignee field to the Issue model
-				issue.Author = UserMapper.ToInfo(request.Assignee);
+				issue.Assignee = UserMapper.ToInfo(request.Assignee);
 				issue.DateModified = DateTime.UtcNow;
 
 				var updateResult = await _repository.UpdateAsync(issue, cancellationToken);

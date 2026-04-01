@@ -155,7 +155,8 @@ public sealed class DashboardServiceTests
 			false,
 			UserDto.Empty,
 			false,
-			false);
+			false,
+			UserDto.Empty);
 	}
 
 	private static CategoryDto CreateTestCategoryDto()

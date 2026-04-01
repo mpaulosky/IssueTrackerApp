@@ -9,32 +9,34 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj"/>
-		<ProjectReference Include="..\Domain\Domain.csproj"/>
-		<ProjectReference Include="..\Persistence.MongoDb\Persistence.MongoDb.csproj"/>
-		<ProjectReference Include="..\Persistence.AzureStorage\Persistence.AzureStorage.csproj"/>
+		<ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
+		<ProjectReference Include="..\Domain\Domain.csproj" />
+		<ProjectReference Include="..\Persistence.MongoDb\Persistence.MongoDb.csproj" />
+		<ProjectReference Include="..\Persistence.AzureStorage\Persistence.AzureStorage.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Auth0.AspNetCore.Authentication"/>
-		<PackageReference Include="Aspire.MongoDB.Driver"/>
-		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets"/>
-		<PackageReference Include="Azure.Identity"/>
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client"/>
-		<PackageReference Include="SendGrid"/>
-		<PackageReference Include="SixLabors.ImageSharp"/>
+		<PackageReference Include="Auth0.AspNetCore.Authentication" />
+		<PackageReference Include="Aspire.MongoDB.Driver" />
+		<PackageReference Include="Aspire.StackExchange.Redis" />
+		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
+		<PackageReference Include="Azure.Identity" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+		<PackageReference Include="SendGrid" />
+		<PackageReference Include="SixLabors.ImageSharp" />
 	</ItemGroup>
 
 	<!-- TailwindCSS Build Integration -->
 	<Target Name="CheckNodeModules" BeforeTargets="BuildTailwindCSS">
-		<Message Importance="high" Text="Checking for node_modules..."/>
-		<Exec Command="npm install" WorkingDirectory="$(ProjectDir)" Condition="!Exists('$(ProjectDir)node_modules')"/>
+		<Message Importance="high" Text="Checking for node_modules..." />
+		<Exec Command="npm install" WorkingDirectory="$(ProjectDir)" Condition="!Exists('$(ProjectDir)node_modules')" />
 	</Target>
 
 	<Target Name="BuildTailwindCSS" BeforeTargets="Build">
-		<Message Importance="high" Text="Building TailwindCSS..."/>
-		<Exec Command="npm run css:build" WorkingDirectory="$(ProjectDir)"/>
+		<Message Importance="high" Text="Building TailwindCSS..." />
+		<Exec Command="npm run css:build" WorkingDirectory="$(ProjectDir)" />
 	</Target>
 
 	<!--
@@ -42,22 +44,15 @@
 		FooterComponent reads BuildInfo.Version and BuildInfo.Commit at runtime.
 	-->
 	<ItemGroup>
-		<Compile Include="$(IntermediateOutputPath)BuildInfo.g.cs"
-						 Condition="Exists('$(IntermediateOutputPath)BuildInfo.g.cs')"/>
+		<Compile Include="$(IntermediateOutputPath)BuildInfo.g.cs" Condition="Exists('$(IntermediateOutputPath)BuildInfo.g.cs')" />
 	</ItemGroup>
 
 	<Target Name="GetGitBuildInfo" BeforeTargets="BeforeBuild" Condition="'$(DesignTimeBuild)' != 'true'">
-		<Exec Command="git describe --tags --abbrev=0 2>/dev/null"
-					ConsoleToMSBuild="true"
-					IgnoreExitCode="true"
-					StandardOutputImportance="Low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="_RawGitTag"/>
+		<Exec Command="git describe --tags --abbrev=0 2&gt;/dev/null" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="Low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="_RawGitTag" />
 		</Exec>
-		<Exec Command="git rev-parse --short HEAD 2>/dev/null"
-					ConsoleToMSBuild="true"
-					IgnoreExitCode="true"
-					StandardOutputImportance="Low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="_RawGitCommit"/>
+		<Exec Command="git rev-parse --short HEAD 2&gt;/dev/null" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="Low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="_RawGitCommit" />
 		</Exec>
 
 		<PropertyGroup>
@@ -68,25 +63,21 @@
 		</PropertyGroup>
 
 		<ItemGroup>
-			<_BuildInfoLine Include="// &lt;auto-generated /&gt;"/>
-			<_BuildInfoLine Include="// Copyright (c) 2026. All rights reserved."/>
-			<_BuildInfoLine Include="namespace Web%3B"/>
-			<_BuildInfoLine Include="/// &lt;summary&gt;Build-time git metadata baked in by GetGitBuildInfo MSBuild target.&lt;/summary&gt;"/>
-			<_BuildInfoLine Include="internal static class BuildInfo"/>
-			<_BuildInfoLine Include="{"/>
-			<_BuildInfoLine Include="    internal const string Version = &quot;$(_GitTag)&quot;%3B"/>
-			<_BuildInfoLine Include="    internal const string Commit = &quot;$(_GitCommit)&quot;%3B"/>
-			<_BuildInfoLine Include="}"/>
+			<_BuildInfoLine Include="// &lt;auto-generated /&gt;" />
+			<_BuildInfoLine Include="// Copyright (c) 2026. All rights reserved." />
+			<_BuildInfoLine Include="namespace Web%3B" />
+			<_BuildInfoLine Include="/// &lt;summary&gt;Build-time git metadata baked in by GetGitBuildInfo MSBuild target.&lt;/summary&gt;" />
+			<_BuildInfoLine Include="internal static class BuildInfo" />
+			<_BuildInfoLine Include="{" />
+			<_BuildInfoLine Include="    internal const string Version = &quot;$(_GitTag)&quot;%3B" />
+			<_BuildInfoLine Include="    internal const string Commit = &quot;$(_GitCommit)&quot;%3B" />
+			<_BuildInfoLine Include="}" />
 		</ItemGroup>
 
-		<WriteLinesToFile
-			File="$(IntermediateOutputPath)BuildInfo.g.cs"
-			Lines="@(_BuildInfoLine)"
-			Overwrite="true"
-			WriteOnlyWhenDifferent="true"/>
+		<WriteLinesToFile File="$(IntermediateOutputPath)BuildInfo.g.cs" Lines="@(_BuildInfoLine)" Overwrite="true" WriteOnlyWhenDifferent="true" />
 		<ItemGroup>
-			<Compile Remove="$(IntermediateOutputPath)BuildInfo.g.cs"/>
-			<Compile Include="$(IntermediateOutputPath)BuildInfo.g.cs"/>
+			<Compile Remove="$(IntermediateOutputPath)BuildInfo.g.cs" />
+			<Compile Include="$(IntermediateOutputPath)BuildInfo.g.cs" />
 		</ItemGroup>
 	</Target>
 

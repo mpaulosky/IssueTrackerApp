@@ -99,7 +99,7 @@ public sealed class UndoBulkOperationCommandHandler : IRequestHandler<UndoBulkOp
 					case BulkOperationType.Assignment:
 						if (snapshot.PreviousState is AssignmentSnapshot assignmentSnapshot)
 						{
-							issue.Author = UserMapper.ToInfo(assignmentSnapshot.PreviousAssignee);
+							issue.Assignee = UserMapper.ToInfo(assignmentSnapshot.PreviousAssignee);
 						}
 						break;
 

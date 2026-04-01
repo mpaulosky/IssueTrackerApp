@@ -10,6 +10,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -186,6 +187,17 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 		if (Services.GetService<IMemoryCache>() is MemoryCache mc)
 		{
 			mc.Compact(1.0);
+		}
+
+		// Clear distributed cache (MemoryDistributedCache wraps an internal MemoryCache)
+		if (Services.GetService<IDistributedCache>() is { } dc)
+		{
+			// Remove analytics cache keys with null date parameters (most common in tests)
+			await dc.RemoveAsync("analytics_summary__");
+			await dc.RemoveAsync("analytics_status__");
+			await dc.RemoveAsync("analytics_category__");
+			await dc.RemoveAsync("analytics_overtime__");
+			await dc.RemoveAsync("analytics_resolution__");
 		}
 	}
 }

@@ -136,8 +136,20 @@ else
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<SignalRClientService>();
 
-// Add memory cache for undo service
+// Add memory cache for undo service and in-memory bulk operations
 builder.Services.AddMemoryCache();
+
+// Add distributed cache — Redis in production/development, in-memory fallback in Testing/IntegrationTesting
+if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvironment("IntegrationTesting"))
+{
+	builder.AddRedisClient("redis");
+	builder.Services.AddStackExchangeRedisCache(options =>
+		options.Configuration = builder.Configuration.GetConnectionString("redis"));
+}
+else
+{
+	builder.Services.AddDistributedMemoryCache();
+}
 
 // Add bulk operations services
 builder.Services.AddScoped<BulkSelectionState>();

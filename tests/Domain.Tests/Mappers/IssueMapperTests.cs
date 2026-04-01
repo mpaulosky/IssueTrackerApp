@@ -77,6 +77,42 @@ public sealed class IssueMapperTests
 	}
 
 	[Fact]
+	public void ToDto_WithAssignee_MapsAssigneeToUserDto()
+	{
+		// Arrange
+		var issue = CreateTestIssue();
+		issue.Assignee = new UserInfo
+		{
+			Id = "auth0|assigned",
+			Name = "Assigned User",
+			Email = "assigned@example.com"
+		};
+
+		// Act
+		var result = IssueMapper.ToDto(issue);
+
+		// Assert
+		result.Assignee.Should().NotBeNull();
+		result.Assignee.Id.Should().Be("auth0|assigned");
+		result.Assignee.Name.Should().Be("Assigned User");
+		result.Assignee.Email.Should().Be("assigned@example.com");
+	}
+
+	[Fact]
+	public void ToDto_WhenAssigneeIsEmpty_MapsToEmptyUserDto()
+	{
+		// Arrange
+		var issue = CreateTestIssue();
+		issue.Assignee = UserInfo.Empty;
+
+		// Act
+		var result = IssueMapper.ToDto(issue);
+
+		// Assert
+		result.Assignee.Should().BeEquivalentTo(UserDto.Empty);
+	}
+
+	[Fact]
 	public void ToDto_WithCategory_MapsCategoryToCategoryDto()
 	{
 		// Arrange
@@ -475,7 +511,8 @@ public sealed class IssueMapperTests
 			false,
 			UserDto.Empty,
 			false,
-			false);
+			false,
+			UserDto.Empty);
 	}
 
 	#endregion
