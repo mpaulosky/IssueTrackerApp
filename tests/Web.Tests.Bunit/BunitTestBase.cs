@@ -285,4 +285,9 @@ internal class FakeNavigationManager : NavigationManager
 	{
 		Uri = ToAbsoluteUri(uri).ToString();
 	}
+
+	protected override void NavigateToCore(string uri, NavigationOptions options)
+	{
+		Uri = ToAbsoluteUri(uri).ToString();
+	}
 }
