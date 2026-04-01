@@ -28,6 +28,7 @@
     <PackageVersion Include="FluentValidation.TestHelper" Version="11.11.0" />
     <!-- Authentication -->
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.6.1" />
+    <PackageVersion Include="Auth0.ManagementApi" Version="7.46.0" />
     <!-- Email -->
     <PackageVersion Include="SendGrid" Version="9.29.3" />
     <!-- Microsoft Extensions -->

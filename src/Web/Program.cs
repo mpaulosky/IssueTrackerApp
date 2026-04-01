@@ -25,6 +25,7 @@ using Web.Components;
 using Web.Data;
 using Web.Endpoints;
 using Web.Features;
+using Web.Features.Admin.Users;
 using Web.Helpers;
 using Web.Hubs;
 using Web.Services;
@@ -137,6 +138,9 @@ else
 // Add real-time notification services
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<SignalRClientService>();
+
+// Register Auth0 Management API user-management service
+builder.Services.AddUserManagement(builder.Configuration);
 
 // Add memory cache for undo service and in-memory bulk operations
 builder.Services.AddMemoryCache();
