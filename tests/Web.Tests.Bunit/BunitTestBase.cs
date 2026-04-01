@@ -221,7 +221,8 @@ public abstract class BunitTestBase : BunitContext
 			Rejected: false,
 			Assignee: UserDto.Empty,
 			Votes: 0,
-			VotedBy: []
+			VotedBy: [],
+			Labels: []
 		);
 	}
 

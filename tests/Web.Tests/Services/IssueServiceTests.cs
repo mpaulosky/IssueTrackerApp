@@ -503,6 +503,7 @@ public sealed class IssueServiceTests
 			false,
 			UserDto.Empty,
 			0,
+			[],
 			[]);
 	}
 

@@ -29,7 +29,8 @@ public record IssueDto(
 	bool Rejected,
 	UserDto Assignee,
 	int Votes,
-	IReadOnlyList<string> VotedBy)
+	IReadOnlyList<string> VotedBy,
+	IReadOnlyList<string> Labels)
 {
 	/// <summary>
 	///   Initializes a new instance of the <see cref="IssueDto" /> record.
@@ -50,7 +51,8 @@ public record IssueDto(
 		issue.Rejected,
 		UserMapper.ToDto(issue.Assignee),
 		issue.Votes,
-		issue.VotedBy)
+		issue.VotedBy,
+		issue.Labels)
 	{
 	}
 
@@ -69,5 +71,6 @@ public record IssueDto(
 		false,
 		UserDto.Empty,
 		0,
+		[],
 		[]);
 }

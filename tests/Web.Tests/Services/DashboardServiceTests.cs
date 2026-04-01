@@ -158,6 +158,7 @@ public sealed class DashboardServiceTests
 			false,
 			UserDto.Empty,
 			0,
+			[],
 			[]);
 	}
 

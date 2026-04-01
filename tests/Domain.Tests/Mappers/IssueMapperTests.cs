@@ -514,6 +514,7 @@ public sealed class IssueMapperTests
 			false,
 			UserDto.Empty,
 			0,
+			[],
 			[]);
 	}
 

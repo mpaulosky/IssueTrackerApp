@@ -135,4 +135,12 @@ public class Issue
 	///   The collection of voter user IDs.
 	/// </value>
 	public List<string> VotedBy { get; set; } = [];
+
+	/// <summary>
+	///   Gets or sets the labels assigned to this issue.
+	/// </summary>
+	/// <value>
+	///   The collection of label strings.
+	/// </value>
+	public List<string> Labels { get; set; } = [];
 }
