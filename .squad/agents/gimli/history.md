@@ -916,3 +916,37 @@ Test results: 14/14 passing. Build clean.
 **Enforced by:** Matthew Paulosky (User directive)
 
 **Rule:** AppHost.Tests (Playwright E2E) MUST be run locally before every push. No exceptions. Gate 4 in CI now enforces this. Gimli to validate AppHost.Tests locally before pushing unit test changes.
+
+---
+
+### 2025: Issue #143 — Admin Policy Integration Tests
+
+**Task:** Implement integration tests for AdminPolicy enforcement on all `/admin` routes.
+
+**Branch:** `squad/143-admin-integration-tests`
+
+**File Created:**
+- `tests/Web.Tests.Integration/AdminPolicyTests.cs` — 24 tests across 5 admin routes + 3 API operations
+
+**Test Coverage:**
+1. **Blazor Admin Pages (GET):** `/admin`, `/admin/users`, `/admin/categories`, `/admin/statuses`, `/admin/analytics`
+   - Anonymous (`X-Test-Anonymous: true`) → 401 Unauthorized
+   - Authenticated User role, no Admin → 403 Forbidden
+   - Authenticated Admin role → 200 OK
+
+2. **Admin API Endpoints:**
+   - `POST /api/categories` (anonymous → 401, user → 403, admin → 201)
+   - `PUT /api/categories/{id}` (anonymous → 401, user → 403)
+   - `DELETE /api/categories/{id}` (anonymous → 401, user → 403)
+
+**Auth Mechanism:**
+- `TestAuthHandler` (already in test project) reads `X-Test-Anonymous` and `X-Test-Role` headers
+- `CustomWebApplicationFactory` configures TestAuthHandler as default auth scheme with AdminPolicy=RequireRole("Admin")
+
+**Key Findings:**
+- Auth is enforced by `UseAuthorization()` middleware BEFORE the Blazor rendering pipeline, so Blazor pages return 401/403 consistently with API endpoints
+- `AssignRoleCommand`/`RemoveRoleCommand` handlers have no handler-level auth enforcement — they rely on page-level protection
+- Admin pages that fail to connect to external services (Auth0) still return 200; component-level errors are rendered within the HTML
+- No new packages needed; all test infrastructure (`TestAuthHandler`, `IntegrationTestBase`, `CustomWebApplicationFactory`) was already in place
+
+**Build:** Succeeded with 0 warnings, 0 errors.
