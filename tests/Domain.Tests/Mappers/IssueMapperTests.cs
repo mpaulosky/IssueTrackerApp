@@ -512,7 +512,9 @@ public sealed class IssueMapperTests
 			UserDto.Empty,
 			false,
 			false,
-			UserDto.Empty);
+			UserDto.Empty,
+			0,
+			[]);
 	}
 
 	#endregion
