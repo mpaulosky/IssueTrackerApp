@@ -17,6 +17,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Auth0.AspNetCore.Authentication" />
+		<PackageReference Include="Auth0.ManagementApi" />
 		<PackageReference Include="Aspire.MongoDB.Driver" />
 		<PackageReference Include="Aspire.StackExchange.Redis" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />

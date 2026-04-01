@@ -1,0 +1,29 @@
+@* ============================================
+   Copyright (c) 2026. All rights reserved.
+   File Name :     Users.razor
+   Company :       mpaulosky
+   Author :        Matthew Paulosky
+   Solution Name : IssueManager
+   Project Name :  Web
+   ============================================ *@
+
+@page "/admin/users"
+@using Web.Auth
+
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminPolicy)]
+
+<PageTitle>Users - Admin - IssueTracker</PageTitle>
+
+<PageHeaderComponent Level="1" HeaderText="User Management" />
+
+<AdminPageLayout Title="User Management" Description="View and manage application users and their roles.">
+
+	<div class="card p-8 text-center">
+		<div class="text-5xl mb-4">👥</div>
+		<h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">User Management</h2>
+		<p class="text-gray-500 dark:text-gray-400">
+			Full user management — list, search, role assignment and deactivation — is coming in a future sprint.
+		</p>
+	</div>
+
+</AdminPageLayout>

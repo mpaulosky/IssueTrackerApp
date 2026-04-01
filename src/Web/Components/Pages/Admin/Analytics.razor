@@ -1,5 +1,6 @@
 @page "/admin/analytics"
-@attribute [Authorize(Policy = "AdminPolicy")]
+@using Web.Auth
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminPolicy)]
 @rendermode InteractiveServer
 
 @inject IMediator Mediator
