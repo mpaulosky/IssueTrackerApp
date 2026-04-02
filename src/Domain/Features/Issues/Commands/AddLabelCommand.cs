@@ -52,6 +52,7 @@ public sealed class AddLabelCommandHandler : IRequestHandler<AddLabelCommand, Re
 
 		var issue = existingResult.Value;
 		var normalised = request.Label.Trim().ToLowerInvariant();
+		issue.Labels ??= [];
 
 		if (issue.Labels.Contains(normalised))
 		{

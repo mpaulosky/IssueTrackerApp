@@ -142,5 +142,5 @@ public class Issue
 	/// <value>
 	///   The collection of label strings.
 	/// </value>
-	public List<string> Labels { get; set; } = [];
+	public List<string>? Labels { get; set; } = [];
 }

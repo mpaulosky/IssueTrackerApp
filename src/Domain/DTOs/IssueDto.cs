@@ -52,7 +52,7 @@ public record IssueDto(
 		UserMapper.ToDto(issue.Assignee),
 		issue.Votes,
 		issue.VotedBy,
-		issue.Labels)
+		issue.Labels ?? [])
 	{
 	}
 

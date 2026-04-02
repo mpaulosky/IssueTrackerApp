@@ -40,7 +40,7 @@ public static class IssueMapper
 			UserMapper.ToDto(issue.Assignee),
 			issue.Votes,
 			issue.VotedBy,
-			issue.Labels);
+			issue.Labels ?? []);
 	}
 
 	/// <summary>
@@ -68,7 +68,7 @@ public static class IssueMapper
 			Rejected = dto.Rejected,
 			Votes = dto.Votes,
 			VotedBy = [..dto.VotedBy],
-			Labels = [..dto.Labels]
+			Labels = [..dto.Labels ?? []]
 		};
 	}
 
