@@ -39,7 +39,7 @@ public static class IssueMapper
 			issue.Rejected,
 			UserMapper.ToDto(issue.Assignee),
 			issue.Votes,
-			issue.VotedBy,
+			issue.VotedBy ?? [],
 			issue.Labels ?? []);
 	}
 
@@ -67,7 +67,7 @@ public static class IssueMapper
 			ApprovedForRelease = dto.ApprovedForRelease,
 			Rejected = dto.Rejected,
 			Votes = dto.Votes,
-			VotedBy = [..dto.VotedBy],
+			VotedBy = [..dto.VotedBy ?? []],
 			Labels = [..dto.Labels ?? []]
 		};
 	}

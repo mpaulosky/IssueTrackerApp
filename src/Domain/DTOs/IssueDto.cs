@@ -51,7 +51,7 @@ public record IssueDto(
 		issue.Rejected,
 		UserMapper.ToDto(issue.Assignee),
 		issue.Votes,
-		issue.VotedBy,
+		issue.VotedBy ?? [],
 		issue.Labels ?? [])
 	{
 	}

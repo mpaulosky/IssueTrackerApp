@@ -45,6 +45,7 @@ public sealed class VoteIssueCommandHandler : IRequestHandler<VoteIssueCommand, 
 		}
 
 		var issue = existingResult.Value;
+		issue.VotedBy ??= [];
 
 		if (issue.VotedBy.Contains(request.UserId))
 		{

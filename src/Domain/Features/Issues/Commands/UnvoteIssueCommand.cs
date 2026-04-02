@@ -45,6 +45,7 @@ public sealed class UnvoteIssueCommandHandler : IRequestHandler<UnvoteIssueComma
 		}
 
 		var issue = existingResult.Value;
+		issue.VotedBy ??= [];
 
 		if (!issue.VotedBy.Contains(request.UserId))
 		{
