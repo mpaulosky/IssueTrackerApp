@@ -321,6 +321,38 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
    git branch -d squad/{issue-number}-{kebab-slug}
    ```
 
+### Sprint Review / Demo
+
+- **Trigger:** manual ("run sprint review", "sprint demo", "demo sprint {N}")
+- **When:** after sprint completion
+- **Facilitator:** Aragorn
+- **Participants:** Aragorn, Legolas, Sam, Gimli, Boromir, Frodo, Bilbo
+- **Purpose:** Review shipped deliverables, confirm all sprint issues closed and PRs merged, prepare for release
+
+#### Protocol
+
+1. Aragorn confirms all sprint issues are closed: `gh issue list --state open --label "sprint-{N}"`
+2. Aragorn summarizes what shipped: features, fixes, test counts added
+3. If a new version ships: flag Bilbo to write the release blog post
+4. Legolas demos any new UI components or UX changes (describe in summary if async)
+5. Record outcomes in `.squad/decisions/inbox/aragorn-sprint-review-{N}.md`
+
+### Issue Grooming
+
+- **Trigger:** manual ("groom issues", "groom backlog", "refine issues")
+- **When:** before sprint planning
+- **Facilitator:** Aragorn
+- **Participants:** Aragorn, Sam, Legolas, Gimli
+- **Purpose:** Ensure open issues are properly labeled, scoped, and ready before sprint planning
+
+#### Protocol
+
+1. List open issues: `gh issue list --label "squad" --state open --json number,title,labels`
+2. For each issue without `squad:{member}` sub-label: triage and assign appropriate sub-label
+3. For each issue: verify title and body are clear and actionable; add details if needed
+4. Identify issues that are too large and need splitting (create sub-issues)
+5. Identify and close duplicate issues with a note explaining the duplicate
+
 ### Integration Points
 
 - **Build Repair Check:** Enforced via pre-push hook (Phase 3, step 4)

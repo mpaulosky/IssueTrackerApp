@@ -358,3 +358,11 @@ Matthew Paulosky: "AppHost.Tests MUST be run locally before every push — no ex
 
 **Team Coordination:** Notified Sam (PR #158 author) of Architecture.Tests failure and `.squad/` diff issue. Gandalf's ADR work in PR #146 is excellent foundation for PR #158 implementation.
 
+
+---
+
+## Learnings (2026-04-02 — Process Review)
+- Added Sprint Review + Issue Grooming ceremonies to ceremonies.md
+- Added Admin User Mgmt + Labels domain routing signals to routing.md
+- Added 2 new skills: auth0-management-api, labels-feature-patterns
+- Audited 13 existing skills (see aragorn-skills-audit.md decision inbox)
