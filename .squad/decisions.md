@@ -2450,3 +2450,19 @@ Auth0 roles have internal ID (e.g., `rol_XXXXXXXXXXXXXX`) differing from display
 ---
 
 **Scribe Note:** Merged from decision inbox files 2026-04-01T21:01:59Z
+
+### 2026-04-02: Process documentation review — ceremonies + routing + skills
+**By:** Aragorn (Lead)
+Enhanced ceremonies.md with Sprint Review and Issue Grooming ceremonies. Updated routing.md with Admin and Labels domain signals. Audited and updated 2 skills; added 2 new skills (auth0-management-api, labels-feature-patterns). Reflects Sprints 5 and 6 new domains not previously in process docs.
+
+### 2026-04-02: Skills Audit — 13 skills reviewed
+**By:** Aragorn (Lead)
+13 skills audited: 9 accurate, 2 partially stale (solution file renamed IssueManager.sln → IssueTrackerApp.slnx), 2 not applicable (Minecraft-domain skills). Action items: update build-repair and pre-push-test-gate solution references; remove building-protection and post-build-validation; add confidence headers to 3 skills.
+
+### 2026-04-02: Post-Sprint 6 Documentation Accuracy Audit
+**By:** Frodo (Tech Writer)
+Audited README.md, CONTRIBUTING.md, docs/index.html, docs/blog/index.md, and XML docs after Sprints 5 and 6. All documentation found accurate and up-to-date — v0.5.0 (Admin User Management) and v0.6.0 (Labels Feature) correctly documented across all audit points. No changes required.
+
+### 2026-04-02: Security Review — Sprint 5/6 Admin Additions
+**By:** Gandalf (Security Officer)
+Auth0 Management API integration reviewed: secrets hygiene PASS, error handling PASS, token caching PASS, input validation PASS, page authorization PASS. One MEDIUM finding: no audit log for role assign/revoke in UserManagementService (track as follow-up issue). One LOW finding: no Polly retry for HTTP 429 (per ADR #130, non-blocking). Auth0ClaimsTransformation reviewed and accepted.
