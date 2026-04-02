@@ -568,113 +568,6 @@ The `GetGitBuildInfo` MSBuild target in `src/Web/Web.csproj` runs `git describe 
 
 ---
 
-### MongoDB Connection String Fallback (2025-03-21)
-
-**Author:** Sam (Backend Developer)  
-**Status:** Implemented
-
-The Web project crashed at startup with `System.TimeoutException` because the EF Core MongoDB provider reads `MongoDB:ConnectionString` (hardcoded to `mongodb://localhost:27017` in appsettings.Development.json), while the actual Atlas connection string lives in `ConnectionStrings:mongodb` (user secrets / Aspire injection). These two config paths never intersect.
-
-**Decision:** Added fallback logic in `AddMongoDbPersistence` that bridges the gap:
-
-1. Before binding `MongoDbSettings`, check if `MongoDB:ConnectionString` is empty or equals `mongodb://localhost:27017`
-2. If so, read `ConnectionStrings:mongodb` and overlay it into the MongoDB config section  
-3. Changed `appsettings.Development.json` to use empty string instead of the localhost default
-
-**Priority order:**
-- Explicit `MongoDB:ConnectionString` → used as-is
-- Empty/localhost → falls back to `ConnectionStrings:mongodb` (Aspire-injected or user secrets)
-
-**Impact:**
-- **Aspire AppHost:** Works — Aspire injects `ConnectionStrings:mongodb` as env var, fallback picks it up
-- **Standalone + user secrets:** Works — user secret `ConnectionStrings:mongodb` is read as fallback
-- **Explicit config:** Works — non-empty, non-localhost `MongoDB:ConnectionString` takes priority
-- **Tests:** Unaffected — `Testing` environment skips `AddMongoDBClient` and tests use TestContainers
-
-**Files Changed:** `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`, `src/Web/appsettings.Development.json`
-
-**Rationale:** When two config systems disagree (Aspire vs raw appsettings), bridge them at the DI registration layer using configuration overlay before binding Options.
-
-1. **DTO-Model Separation:** Clear boundaries between persistence and API contracts
-2. **Result<T> Pattern:** Explicit error handling without exceptions
-3. **Testcontainers for Integration:** Realistic testing without cloud dependencies
-4. **Aspire Orchestration:** Simplified local development with containerized dependencies
-5. **OpenTelemetry Observability:** Production-ready monitoring from day one
-6. **Auth0 Identity:** Enterprise-grade security without maintenance burden
-7. **Category-Based Documentation:** Developer-centric organization of resources
-8. **bUnit Test Optimization:** Explicit parallelism control; defer full suite optimization until failing tests fixed
-
-
----
-
-# Decision: Pre-Commit Review — Package Bumps, CSS Migration, ThemeToggle
-
-**Author:** Aragorn (Lead Developer)
-**Date:** 2025-07-23
-**Status:** APPROVED
-
-## Summary
-
-Reviewed all uncommitted working directory changes. The changeset includes NuGet package version bumps, Aspire SDK bump, CSS class migration (`gray-*` → `neutral-*`), ThemeToggle component extraction, dead CSS cleanup, and test updates.
-
-## Verdict: APPROVE
-
-All changes are architecturally sound, complete, and consistent. The `gray-*` → `neutral-*` migration has zero remaining references. The ThemeToggle extraction follows proper Blazor patterns (IDisposable, CascadingParameter, event lifecycle).
-
-## Action Required Before Commit
-
-Add these to `.gitignore`:
-- `.agents/`
-- `.claude/`
-- `.junie/`
-- `skills-lock.json`
-
-These are IDE/agent configuration directories that must not be committed to source control.
-
-## Decision: `docs/research/` Commitment
-
-Team should decide whether `docs/research/` (contains `github-github-sdk.md`, `tailwindcss-com.md`) should be committed or gitignored. These are research notes, not production code.
-
-## Patterns Reinforced
-
-- Tailwind neutral-* is the project standard for neutral/gray colors
-- ThemeProvider cascading parameter pattern is the approved theme mechanism
-- AppHost manages its own Aspire package versions (`ManagePackageVersionsCentrally=false`)
-- Bootstrap CSS has been fully deprecated — no references remain
-
-
----
-
-# Decision: GitHub Pages Deployment Path Scoping
-
-**Author:** Boromir (DevOps)
-**Date:** 2026-03-27
-**Status:** APPROVED
-
-## Summary
-
-GitHub Pages workflow artifact path must be scoped to `docs/` directory, not `.` (repository root).
-
-## Issue
-
-Publishing artifact from `.` exposes SECRETS.md and full source tree to public GitHub Pages endpoint—unacceptable security risk.
-
-## Resolution
-
-- **Path:** Changed from `.` to `docs/` in workflow configuration
-- **Permissions:** Moved from workflow level to job level (defense in depth)
-- **squad-docs.yml:** Removed workflow-level `pages: write` permission block
-
-## Rationale
-
-Principle of least privilege: only the build job requires `pages: write` permission. Workflow-level permissions are unnecessarily broad and increase attack surface.
-
-## Consequence
-
-GitHub Pages now publishes only contents of `docs/` directory, protecting sensitive files and source code.
-
----
-
 ### Test Quality & Semantics
 
 #### Test Fixes #78, #79, #80 (2026-03-27)
@@ -2139,11 +2032,6 @@ Sam applied fixes and requested re-review.
 
 ## Admin User Management v0.5.0
 
-### 2025-07-14: v0.5.0 — Admin User Management — Architectural Decisions
-**By:** Aragorn (Lead Developer) — Plan Ceremony  
-**Feature:** v0.5.0 Admin User Management  
-**Milestone:** #7 — v0.5.0 - Admin User Management
-
 #### Decision 1: Auth0 Management API via M2M client credentials
 **What:** The app will integrate with Auth0 Management API v2 using a dedicated Machine-to-Machine (M2M) application with the `client_credentials` grant. The M2M app is separate from the user-facing Auth0 application.
 
@@ -2384,12 +2272,6 @@ This structure is consistent with existing docs/FEATURES.md style but organized 
 ---
 
 ## Auth0 Management API (Gandalf — ADR #130)
-
-### 2025-07-15: ADR: Auth0 Management API Integration Strategy
-**Status:** Proposed  
-**Date:** 2025-07-15  
-**Author:** Gandalf  
-**Issue:** #130 — [Spike] Auth0 Management API — capabilities, rate limits, and SDK options
 
 #### Context
 IssueTrackerApp currently uses Auth0 for end-user authentication via the OIDC Authorization Code flow with PKCE (`src/Web/Auth/`). Role assignment (Admin / User) is managed manually in the Auth0 dashboard. As the platform scales and automated user-role provisioning becomes necessary (e.g., assigning roles programmatically upon user registration, syncing roles from an admin UI), direct calls to the **Auth0 Management API v2** are required.
