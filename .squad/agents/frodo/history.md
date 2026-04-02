@@ -122,3 +122,58 @@
 - Version numbers presented as links to their GitHub release pages
 - Included both release date and human-readable highlights for each version
 - Latest release clearly marked with a badge badge for visitor prominence
+
+---
+
+### Post-Sprint 6 Documentation Accuracy Audit (April 2026)
+
+**Context**: Comprehensive documentation audit after Sprint 5 (Admin User Management — v0.5.0) and Sprint 6 (Labels Feature — v0.6.0) to ensure accuracy and consistency.
+
+**Actions Taken**:
+1. **README.md Verification**
+   - ✅ Labels feature section accurate: mentions LabelInput, autocomplete suggestions, filter support, 10-label limit
+   - ✅ Admin User Management section present: documents user viewing, role assignment, audit log
+   - ✅ Architecture section complete with all domains
+   - ✅ Getting Started guide current
+
+2. **CONTRIBUTING.md Verification**
+   - ✅ Gate 3 correctly lists all unit test projects: Architecture.Tests, Domain.Tests, Web.Tests.Bunit, Persistence.MongoDb.Tests, Web.Tests, Persistence.AzureStorage.Tests
+   - ✅ Squad branch naming convention correctly documented: squad/{issue-number}-{slug}
+   - ✅ All testing guidance current
+
+3. **docs/index.html Verification**
+   - ✅ Release Notes section present with v0.5.0 and v0.6.0 entries
+   - ✅ v0.6.0 (Latest badge): "Labels Feature — multi-value tag input, filter by label, AddLabelCommand/RemoveLabelCommand CQRS, 1,167 tests"
+   - ✅ v0.5.0: "Admin User Management — Auth0 Management API, /admin/users, UserListTable, RoleBadge, EditUserRolesModal, UserAuditLogPanel"
+   - ✅ Dev Blog section includes both releases with correct blog links
+
+4. **docs/blog/index.md Verification**
+   - ✅ v0.6.0 entry present: Release v0.6.0 — Labels Feature (2026-04-02)
+   - ✅ v0.5.0 entry present: Release v0.5.0 — Admin User Management (2026-04-02)
+   - ✅ Tags include release, version number, and feature tags
+
+5. **XML Documentation Verification**
+   - ✅ AddLabelCommand: "Command to add a label to an issue." (complete)
+   - ✅ AddLabelCommandHandler: "Handler for adding a label to an issue." (complete)
+   - ✅ RemoveLabelCommand: "Command to remove a label from an issue." (complete)
+   - ✅ RemoveLabelCommandHandler: "Handler for removing a label from an issue." (complete)
+
+6. **Component Verification**
+   - ✅ src/Web/Components/Shared/LabelInput.razor — exists
+   - ✅ src/Web/Components/Admin/Users/UserListTable.razor — exists
+   - ✅ src/Web/Components/Admin/Users/RoleBadge.razor — exists
+   - ✅ src/Web/Components/Admin/Users/EditUserRolesModal.razor — exists
+   - ✅ src/Web/Components/Admin/Users/UserAuditLogPanel.razor — exists
+   - ✅ src/Domain/Features/Issues/ILabelService.cs — exists
+
+**Findings**: All documentation is accurate and up-to-date. No updates required.
+
+**Files Audited**:
+- /README.md
+- /CONTRIBUTING.md
+- /docs/index.html
+- /docs/blog/index.md
+- /src/Domain/Features/Issues/Commands/AddLabelCommand.cs
+- /src/Domain/Features/Issues/Commands/RemoveLabelCommand.cs
+
+**Decision Document**: Created .squad/decisions/inbox/frodo-docs-audit.md
