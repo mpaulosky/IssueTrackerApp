@@ -101,7 +101,7 @@ Present a summary table:
 |---------------|-------------------|
 | Any file | **Aragorn** (lead — always required) |
 | `.github/workflows/`, `AppHost.csproj`, `Directory.Packages.props` | **Boromir** |
-| `Auth/`, `appsettings*.json` auth sections, `Program.cs` auth sections | **Gandalf** |
+| `Auth/`, `appsettings*.json` auth sections, `Program.cs` auth sections, `UserManagementService.cs`, `Auth0ClaimsTransformation.cs` | **Gandalf** |
 | `tests/Domain.Tests/`, `tests/Web.Tests.Bunit/`, `tests/Persistence.*/` | **Gimli** |
 | `tests/AppHost.Tests/` (Playwright / Aspire E2E) | **Pippin** |
 | `src/Domain/`, `src/Persistence.*/`, `src/Web/Endpoints/`, `src/Web/Features/` | **Sam** |
