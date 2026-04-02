@@ -262,8 +262,8 @@ public sealed class BulkOperationEndpointTests : IntegrationTestBase
 		{
 			var updatedIssue = context.Issues.FirstOrDefault(i => i.Id == ObjectId.Parse(issueId));
 			updatedIssue.Should().NotBeNull();
-			updatedIssue!.Assignee.Id.Should().Be(newAssignee.Id);
-			updatedIssue.Assignee.Name.Should().Be(newAssignee.Name);
+			updatedIssue!.Assignee!.Id.Should().Be(newAssignee.Id);
+			updatedIssue.Assignee!.Name.Should().Be(newAssignee.Name);
 		}
 	}
 
@@ -345,7 +345,7 @@ public sealed class BulkOperationEndpointTests : IntegrationTestBase
 			var archivedIssue = context.Issues.FirstOrDefault(i => i.Id == ObjectId.Parse(issueId));
 			archivedIssue.Should().NotBeNull();
 			archivedIssue!.Archived.Should().BeTrue();
-			archivedIssue.ArchivedBy.Id.Should().Be(deletedBy.Id);
+			archivedIssue.ArchivedBy!.Id.Should().Be(deletedBy.Id);
 		}
 	}
 

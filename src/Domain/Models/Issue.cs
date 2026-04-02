@@ -94,7 +94,7 @@ public class Issue
 	/// <value>
 	///   Who archived the record.
 	/// </value>
-	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
+	public UserInfo? ArchivedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets the user assigned to this issue.
@@ -102,7 +102,7 @@ public class Issue
 	/// <value>
 	///   The assigned user, or <see cref="UserInfo.Empty" /> if unassigned.
 	/// </value>
-	public UserInfo Assignee { get; set; } = UserInfo.Empty;
+	public UserInfo? Assignee { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets a value indicating whether [approved for release].

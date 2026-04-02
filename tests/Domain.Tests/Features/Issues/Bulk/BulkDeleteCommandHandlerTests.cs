@@ -84,7 +84,7 @@ public sealed class BulkDeleteCommandHandlerTests
 
 		// Verify soft delete (archive) was applied
 		await _repository.Received(3).UpdateAsync(
-			Arg.Is<Issue>(i => i.Archived == true && i.ArchivedBy.Id == "admin1"),
+			Arg.Is<Issue>(i => i.Archived == true && i.ArchivedBy!.Id == "admin1"),
 			Arg.Any<CancellationToken>());
 	}
 
