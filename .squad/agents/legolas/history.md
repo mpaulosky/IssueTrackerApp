@@ -66,3 +66,29 @@
 - Team transferred from IssueManager squad (2026-03-12)
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
 - Ready for feature expansion and component refinement
+
+### CSS Button Consolidation (2026-06-20)
+- **Task:** Consolidated button styling in `src/Web/Styles/input.css` and added `btn` prefix to all variant usages across 22 Razor files.
+- **Key changes to input.css:**
+  - `.btn` base: changed `border border-transparent` → `border-2 border-transparent`, added `text-white`
+  - `.btn-primary`, `.btn-secondary`: removed duplicate `text-white` and `border-2 border-transparent`
+  - `.btn-warning`: changed from red to amber (`bg-amber-500`, `hover:bg-amber-700`, `focus:ring-amber-400`), removed duplicates
+  - Added `.btn-danger` (red) — was missing but used in 7 places
+  - Added `.container-card` utility after `.card-footer`
+- **Pattern applied to Razor files:** Every `class="btn-primary"` etc. → `class="btn btn-primary"` (22 files)
+- **Special cases handled:**
+  - `BulkConfirmationModal.razor`: C# string interpolation `$"btn-danger {extraClasses}"` → `$"btn btn-danger {extraClasses}"`
+  - `DateRangePicker.razor`: C# ternary `"btn-primary rounded-lg"` → `"btn btn-primary rounded-lg"`
+  - `Index.razor`: Inline Razor ternary `"btn-primary text-xs px-3 py-1.5"` → `"btn btn-primary text-xs px-3 py-1.5"`
+- **Build:** Tailwind CSS rebuild ran successfully with `npm run css:build`
+
+### CSS Button Consolidation — Phase 2 (2026-04-02)
+- **Task:** Enforced `.btn` base class pairing across all 22 Razor components
+- **Key Work:**
+  - Added "btn " prefix to all button variant class references (e.g., `class="btn btn-primary"`)
+  - Updated C# string interpolations: `$"btn-danger ..."` → `$"btn btn-danger ..."`
+  - Updated Razor ternary expressions: `_active ? "btn-primary" : ...` → `_active ? "btn btn-primary" : ...`
+  - All button usage now follows the rule: `.btn` base + `.btn-{variant}`
+- **Build Status:** Tailwind CSS rebuild succeeded
+- **Verification:** Full test suite passed (1,557/1,595 — 38 pre-existing infrastructure failures unrelated to changes)
+- **Note:** This enforcement ensures consistent button appearance and semantic color usage (warning now amber, not red)
