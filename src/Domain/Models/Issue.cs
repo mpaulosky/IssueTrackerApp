@@ -126,7 +126,7 @@ public class Issue
 	/// <value>
 	///   The vote count.
 	/// </value>
-	public int Votes { get; set; } = 0;
+	public int? Votes { get; set; } = 0;
 
 	/// <summary>
 	///   Gets or sets the list of user IDs that have voted for this issue.

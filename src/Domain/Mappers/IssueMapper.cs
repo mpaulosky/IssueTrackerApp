@@ -38,7 +38,7 @@ public static class IssueMapper
 			issue.ApprovedForRelease,
 			issue.Rejected,
 			UserMapper.ToDto(issue.Assignee),
-			issue.Votes,
+			issue.Votes ?? 0,
 			issue.VotedBy ?? [],
 			issue.Labels ?? []);
 	}
