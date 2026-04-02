@@ -50,9 +50,9 @@ public record IssueDto(
 		issue.ApprovedForRelease,
 		issue.Rejected,
 		UserMapper.ToDto(issue.Assignee),
-		issue.Votes,
-		issue.VotedBy,
-		issue.Labels)
+		issue.Votes ?? 0,
+		issue.VotedBy ?? [],
+		issue.Labels ?? [])
 	{
 	}
 

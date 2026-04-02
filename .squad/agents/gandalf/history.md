@@ -61,6 +61,37 @@
 
 ---
 
+## Learnings
+
+### User Authorization Failure Root Cause Analysis (2026-03-29)
+
+**Investigation:** Matthew Paulosky reported being authenticated but receiving Access Denied when accessing Dashboard, Issues, and Create pages.
+
+**Root Cause Identified:** `UserPolicy` requires the `User` role claim (`AuthorizationRoles.User = "User"`), but Auth0 is not sending role claims that the `Auth0ClaimsTransformation` can map to ASP.NET Core `ClaimTypes.Role`.
+
+**Diagnosis Chain:**
+1. **Pages affected:** Dashboard, Issues/Index, Issues/Create all have `[Authorize(Policy = AuthorizationPolicies.UserPolicy)]`
+2. **Policy definition:** `UserPolicy` requires `policy.RequireRole(AuthorizationRoles.User)` where `User = "User"` (src/Web/Program.cs:221-222)
+3. **Claims transformation:** `Auth0ClaimsTransformation` has 3-pass role mapping:
+   - Pass 1: Reads `Auth0:RoleClaimNamespace` config (empty in user secrets → skipped)
+   - Pass 2: Falls back to standard `"roles"` JWT claim
+   - Pass 3: Auto-detects any claim type ending in `/roles`
+4. **Configuration gap:** `Auth0:RoleClaimNamespace` is NOT configured in user secrets (only Domain, ClientId, ClientSecret present)
+5. **Auth0 tenant issue:** Auth0 tenant is not sending roles in the JWT token, either:
+   - No custom Action/Rule configured to add roles to the token, OR
+   - Roles are present but under a namespace that doesn't match Pass 2 or Pass 3 detection patterns
+
+**Possible Solutions:**
+1. **Auth0 tenant fix (recommended):** Configure Auth0 Action to add `roles` claim to ID token with values `["User"]` or `["Admin", "User"]`
+2. **Auth0 namespace fix:** If roles are already in token under a custom namespace (e.g., `https://issuetracker.com/roles`), set `Auth0:RoleClaimNamespace` in user secrets
+3. **Code workaround (not recommended):** Change `UserPolicy` to `RequireAuthenticatedUser()` instead of `RequireRole("User")` — but this breaks admin/user separation
+
+**Access Denied Flow:** Routes.razor → `<AuthorizeRouteView>` → `<NotAuthorized>` → authenticated user → `Navigation.NavigateTo("/access-denied")` (line 11)
+
+**Verification Needed:** Check Auth0 tenant JWT token (decoded at jwt.io) to see if `roles` claim exists and what namespace it uses.
+
+---
+
 ## Notes
 - Team transferred from IssueManager squad (2026-03-12)
 - Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR

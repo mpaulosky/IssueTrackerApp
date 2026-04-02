@@ -509,8 +509,8 @@ public sealed class IssueEndpointTests : IntegrationTestBase
 		// Assert - Verify the archived by user is set
 		await using var context = CreateDbContext();
 		var issue = await context.Issues.FindAsync(seededIssue.Id);
-		issue!.ArchivedBy.Id.Should().Be("admin-user-id");
-		issue.ArchivedBy.Name.Should().Be("Admin User");
+		issue!.ArchivedBy!.Id.Should().Be("admin-user-id");
+		issue.ArchivedBy!.Name.Should().Be("Admin User");
 	}
 
 	[Fact]

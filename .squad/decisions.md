@@ -2466,3 +2466,51 @@ Audited README.md, CONTRIBUTING.md, docs/index.html, docs/blog/index.md, and XML
 ### 2026-04-02: Security Review — Sprint 5/6 Admin Additions
 **By:** Gandalf (Security Officer)
 Auth0 Management API integration reviewed: secrets hygiene PASS, error handling PASS, token caching PASS, input validation PASS, page authorization PASS. One MEDIUM finding: no audit log for role assign/revoke in UserManagementService (track as follow-up issue). One LOW finding: no Polly retry for HTTP 429 (per ADR #130, non-blocking). Auth0ClaimsTransformation reviewed and accepted.
+---
+
+### Styling & Components
+
+#### Button CSS Consolidation (2026-04-02)
+
+**Author:** Legolas (Frontend Developer)
+**Status:** Accepted
+**Date:** 2026-04-02
+
+**Decision:** The `.btn` base class now includes shared properties (`text-white`, `border-2 border-transparent`) previously duplicated across variant classes. All button variant classes MUST pair with `.btn`.
+
+**Changes:**
+1. `.btn` base class now includes `border-2 border-transparent` and `text-white`
+2. `.btn-primary`, `.btn-secondary`, `.btn-warning`, `.btn-danger` — no longer declare duplicate properties
+3. `.btn-warning` color fixed: amber (`bg-amber-500 / hover:bg-amber-700`) instead of red (was semantic mismatch with danger)
+4. `.btn-danger` class created (was missing but referenced in 7 components)
+5. `.container-card` class created (was missing but referenced in Profile.razor, PageHeadingComponent.razor)
+6. All 22 Razor files updated to enforce `btn` + `btn-{variant}` pairing
+
+**Usage Rule (ENFORCED):**
+```html
+<!-- Correct -->
+<button class="btn btn-primary">Save</button>
+<button class="btn btn-danger w-full">Delete</button>
+
+<!-- Wrong (base class missing) -->
+<button class="btn-primary">Save</button>
+```
+
+Also applies in C# string interpolation and ternary expressions:
+```csharp
+$"btn btn-danger {extraClasses}"
+_active ? "btn btn-primary" : "btn btn-secondary"
+```
+
+**Rationale:**
+- Eliminates CSS duplication across 4+ variant classes
+- Enforces consistent button appearance
+- Fixes semantic mismatch (warning was red, identical to danger)
+- Resolves undefined `.btn-danger` runtime issue
+
+**Verification:**
+- Full test suite: 1,595 tests, 1,557 passed (38 pre-existing infrastructure failures unrelated to CSS changes)
+- No regressions introduced
+
+**Scribe Note:** Merged from decision inbox file `legolas-btn-consolidation.md`
+

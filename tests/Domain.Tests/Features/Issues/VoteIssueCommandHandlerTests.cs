@@ -55,7 +55,7 @@ public sealed class VoteIssueCommandHandlerTests
 		var issueId = ObjectId.GenerateNewId();
 		var userId = "user-123";
 		var issue = CreateTestIssue(issueId);
-		issue.VotedBy.Add(userId);
+		issue.VotedBy!.Add(userId);
 		issue.Votes = 1;
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())
@@ -148,7 +148,7 @@ public sealed class VoteIssueCommandHandlerTests
 		// Arrange
 		var issueId = ObjectId.GenerateNewId();
 		var issue = CreateTestIssue(issueId);
-		issue.VotedBy.Add("user-existing");
+		issue.VotedBy!.Add("user-existing");
 		issue.Votes = 1;
 
 		var newUserId = "user-new";
@@ -171,7 +171,7 @@ public sealed class VoteIssueCommandHandlerTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		capturedIssue!.Votes.Should().Be(capturedIssue.VotedBy.Count);
+		capturedIssue!.Votes.Should().Be(capturedIssue.VotedBy!.Count);
 		capturedIssue.VotedBy.Should().HaveCount(2);
 	}
 

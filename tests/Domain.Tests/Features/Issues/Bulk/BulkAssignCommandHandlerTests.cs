@@ -83,7 +83,7 @@ public sealed class BulkAssignCommandHandlerTests
 		result.Value!.FailureCount.Should().Be(0);
 
 		await _repository.Received(3).UpdateAsync(
-			Arg.Is<Issue>(i => i.Assignee.Id == "user2"),
+			Arg.Is<Issue>(i => i.Assignee!.Id == "user2"),
 			Arg.Any<CancellationToken>());
 
 		// Verify notifications were sent

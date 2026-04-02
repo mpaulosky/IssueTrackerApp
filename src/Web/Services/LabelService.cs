@@ -53,7 +53,7 @@ public sealed class LabelService : ILabelService
 
 		foreach (var issue in issuesResult.Value)
 		{
-			foreach (var label in issue.Labels)
+			foreach (var label in issue.Labels ?? [])
 			{
 				if (label.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
 				{

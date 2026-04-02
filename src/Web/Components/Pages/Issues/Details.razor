@@ -124,7 +124,7 @@
 						{
 							@if (_currentUserHasVoted)
 							{
-								<button type="button" @onclick="HandleUnvote" disabled="@_isVoting" class="btn-secondary px-3">
+								<button type="button" @onclick="HandleUnvote" disabled="@_isVoting" class="btn btn-secondary">
 									@if (_isVoting)
 									{
 										<span class="animate-spin mr-1.5">⟳</span>
@@ -134,7 +134,7 @@
 							}
 							else
 							{
-								<button type="button" @onclick="HandleVote" disabled="@_isVoting" class="btn-secondary px-3">
+								<button type="button" @onclick="HandleVote" disabled="@_isVoting" class="btn btn-secondary">
 									@if (_isVoting)
 									{
 										<span class="animate-spin mr-1.5">⟳</span>
@@ -151,7 +151,7 @@
 						}
 						@if (_currentUserId == _issue.Author?.Id || _isAdmin)
 						{
-							<a href="/issues/@Id/edit" class="btn-secondary px-3">
+							<a href="/issues/@Id/edit" class="btn btn-secondary">
 								<svg class="-ml-0.5 mr-1.5 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
 										 viewBox="0 0 20 20" fill="currentColor">
 									<path
@@ -161,7 +161,7 @@
 							</a>
 							@if (_isAdmin && _issue.Archived)
 							{
-								<button type="button" @onclick="HandleRestoreIssue" disabled="@_isRestoring" class="btn-secondary px-3">
+								<button type="button" @onclick="HandleRestoreIssue" disabled="@_isRestoring" class="btn btn-secondary">
 									@if (_isRestoring)
 									{
 										<span class="animate-spin mr-1.5">⟳</span>
@@ -178,7 +178,7 @@
 									Restore
 								</button>
 							}
-							<button type="button" @onclick="ShowDeleteModal" class="btn-danger">
+							<button type="button" @onclick="ShowDeleteModal" class="btn btn-danger">
 								<svg class="-ml-0.5 mr-1.5 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
 										 viewBox="0 0 20 20" fill="currentColor">
 									<path fill-rule="evenodd"

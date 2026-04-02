@@ -94,7 +94,7 @@ public class Issue
 	/// <value>
 	///   Who archived the record.
 	/// </value>
-	public UserInfo ArchivedBy { get; set; } = UserInfo.Empty;
+	public UserInfo? ArchivedBy { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets the user assigned to this issue.
@@ -102,7 +102,7 @@ public class Issue
 	/// <value>
 	///   The assigned user, or <see cref="UserInfo.Empty" /> if unassigned.
 	/// </value>
-	public UserInfo Assignee { get; set; } = UserInfo.Empty;
+	public UserInfo? Assignee { get; set; } = UserInfo.Empty;
 
 	/// <summary>
 	///   Gets or sets a value indicating whether [approved for release].
@@ -126,7 +126,7 @@ public class Issue
 	/// <value>
 	///   The vote count.
 	/// </value>
-	public int Votes { get; set; } = 0;
+	public int? Votes { get; set; } = 0;
 
 	/// <summary>
 	///   Gets or sets the list of user IDs that have voted for this issue.
@@ -134,7 +134,7 @@ public class Issue
 	/// <value>
 	///   The collection of voter user IDs.
 	/// </value>
-	public List<string> VotedBy { get; set; } = [];
+	public List<string>? VotedBy { get; set; } = [];
 
 	/// <summary>
 	///   Gets or sets the labels assigned to this issue.
@@ -142,5 +142,5 @@ public class Issue
 	/// <value>
 	///   The collection of label strings.
 	/// </value>
-	public List<string> Labels { get; set; } = [];
+	public List<string>? Labels { get; set; } = [];
 }

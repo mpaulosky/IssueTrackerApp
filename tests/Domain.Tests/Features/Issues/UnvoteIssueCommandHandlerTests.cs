@@ -148,8 +148,8 @@ public sealed class UnvoteIssueCommandHandlerTests
 		var userId = "user-123";
 		var otherUserId = "user-456";
 		var issue = CreateTestIssue(issueId);
-		issue.VotedBy.Add(userId);
-		issue.VotedBy.Add(otherUserId);
+		issue.VotedBy!.Add(userId);
+		issue.VotedBy!.Add(otherUserId);
 		issue.Votes = 2;
 
 		_issueRepository.GetByIdAsync(issueId.ToString(), Arg.Any<CancellationToken>())

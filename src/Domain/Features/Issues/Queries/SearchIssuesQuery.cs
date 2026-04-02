@@ -122,7 +122,7 @@ public sealed class SearchIssuesQueryHandler : IRequestHandler<SearchIssuesQuery
 		{
 			issues = issues
 				.Where(i => request.LabelFilter.All(label =>
-					i.Labels.Contains(label, StringComparer.OrdinalIgnoreCase)))
+					(i.Labels ?? []).Contains(label, StringComparer.OrdinalIgnoreCase)))
 				.ToList();
 		}
 

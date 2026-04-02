@@ -215,7 +215,7 @@ public class LoginDisplayTests : BunitTestBase
 
 		// Assert
 		cut.Markup.Should().Contain("Log out");
-		cut.Markup.Should().Contain("btn-danger");
+		cut.Markup.Should().Contain("hover:bg-red-100");
 	}
 
 	[Fact]
@@ -325,8 +325,8 @@ public class LoginDisplayTests : BunitTestBase
 		// Act
 		var cut = Render<LoginDisplay>();
 
-		// Assert — btn-danger utility class encapsulates button styling via @apply
-		cut.Markup.Should().Contain("btn-danger");
+		// Assert — hover utility classes encapsulate button styling (hover:bg-red-100 hover:text-red-700)
+		cut.Markup.Should().Contain("hover:bg-red-100");
 		cut.Markup.Should().Contain("transition-colors");
 	}
 
@@ -353,9 +353,9 @@ public class LoginDisplayTests : BunitTestBase
 		// Act
 		var cut = Render<LoginDisplay>();
 
-		// Assert — hover/focus states are encapsulated in the btn-danger utility class
+		// Assert — hover utility classes encapsulate button styling (hover:bg-red-100 hover:text-red-700)
 		var button = cut.Find("button[type='submit']");
-		button.GetAttribute("class").Should().Contain("btn-danger");
+		button.GetAttribute("class").Should().Contain("hover:bg-red-100");
 	}
 
 	[Fact]
@@ -395,7 +395,7 @@ public class LoginDisplayTests : BunitTestBase
 		var cut = Render<LoginDisplay>();
 
 		// Assert
-		cut.Markup.Should().Contain("gap-4");
+		cut.Markup.Should().Contain("gap-1");
 	}
 
 	[Fact]

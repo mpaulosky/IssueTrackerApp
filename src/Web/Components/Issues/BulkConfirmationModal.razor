@@ -71,7 +71,7 @@
 						}
 					</button>
 					<button type="button"
-						class="btn-secondary mt-3 w-full justify-center text-base sm:mt-0 sm:w-auto sm:text-sm"
+						class="btn btn-secondary mt-3 w-full justify-center text-base sm:mt-0 sm:w-auto sm:text-sm"
 						disabled="@IsProcessing"
 						@onclick="OnCancelClick">
 						Cancel
@@ -169,8 +169,8 @@
 
 		return ActionType switch
 		{
-			BulkActionType.Delete => $"btn-danger {extraClasses}",
-			_ => $"btn-primary {extraClasses}"
+			BulkActionType.Delete => $"btn btn-danger {extraClasses}",
+			_ => $"btn btn-primary {extraClasses}"
 		};
 	}
 }

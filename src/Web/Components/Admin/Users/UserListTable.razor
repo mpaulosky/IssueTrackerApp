@@ -9,7 +9,7 @@
 
 @using Domain.Features.Admin.Models
 
-<div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+<div class="card-bordered shadow overflow-hidden sm:rounded-lg">
 	@if (Users is null || !Users.Any())
 	{
 		<div class="px-4 py-12 text-center">
@@ -22,8 +22,8 @@
 	}
 	else
 	{
-		<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-			<thead class="bg-gray-50 dark:bg-gray-700">
+		<table class="min-w-full divide-y divide-primary-200 dark:divide-primary-700">
+			<thead class="bg-primary-200 dark:bg-primary-700">
 				<tr>
 					<th scope="col"
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -46,7 +46,7 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+			<tbody class="divide-y divide-primary-200 dark:divide-primary-700">
 				@foreach (var user in Users)
 				{
 					<tr class="@(user.IsBlocked ? "bg-red-50 dark:bg-red-900/20" : "")">

@@ -50,6 +50,7 @@ public sealed class RemoveLabelCommandHandler : IRequestHandler<RemoveLabelComma
 
 		var issue = existingResult.Value;
 		var normalised = request.Label.Trim().ToLowerInvariant();
+		issue.Labels ??= [];
 
 		if (!issue.Labels.Contains(normalised))
 		{
