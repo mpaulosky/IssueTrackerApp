@@ -92,3 +92,24 @@
 - **Build Status:** Tailwind CSS rebuild succeeded
 - **Verification:** Full test suite passed (1,557/1,595 — 38 pre-existing infrastructure failures unrelated to changes)
 - **Note:** This enforcement ensures consistent button appearance and semantic color usage (warning now amber, not red)
+
+## Learnings
+
+### Button Padding & Admin Color Palette Update (2026-06-21)
+- **Task:** Removed inline `px-*`/`py-*` overrides from buttons already using `.btn` class; updated Admin/Users components from gray to primary palette
+- **Button Padding Changes:**
+  - `.btn` base class already defines `px-5 py-2` in `input.css` — inline overrides removed from 11 locations
+  - Files cleaned: CommentsSection, AttachmentCard, BulkActionToolbar, Issues/Index, Issues/Details, Dashboard, Home
+  - Rule: Keep `.btn` padding consistent; only override for specific design intent (e.g., text-xs sizing)
+  - Removed `rounded-lg` from Home.razor CTA button — `.btn` base already defines `rounded-full`
+- **Admin Components Color Update (Components/Admin/Users/):**
+  - Converted from gray palette to primary palette for consistency with Home.razor visual style
+  - `bg-white dark:bg-gray-800` → `card-bordered` (existing CSS class with primary background)
+  - `bg-gray-50 dark:bg-gray-700` (table headers) → `bg-primary-200 dark:bg-primary-700`
+  - `border-gray-200 dark:border-gray-700` → `border-primary-200 dark:border-primary-700`
+  - `divide-gray-200 dark:divide-gray-700` → `divide-primary-200 dark:divide-primary-700`
+  - Pagination buttons in UserAuditLogPanel: converted from long inline classes → `btn btn-secondary`
+  - Files updated: UserListTable, UserAuditLogPanel, EditUserRolesModal
+  - Text color classes (`text-gray-*`, `text-neutral-*`) intentionally preserved for readability
+- **Build Status:** Tailwind CSS rebuild succeeded (80ms)
+- **Key Learning:** When base CSS class defines padding/spacing, avoid inline overrides unless required for visual hierarchy
