@@ -5,31 +5,30 @@
 
 @if (ConnectionState == HubConnectionState.Connected)
 {
-	<div class="flex items-center gap-1.5" title="Real-time updates active">
+	<div class="flex items-center gap-1.5 bg-primary-200 rounded-full px-2.5 py-1" title="Real-time updates active">
 		<span class="relative flex h-2.5 w-2.5">
-			<span
-			class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-600 dark:bg-green-600 opacity-75"></span>
-			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-600"></span>
+			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
 		</span>
-		<span class="hidden sm:inline text-green-600 dark:text-green-600">Live</span>
+		<span class="hidden sm:inline text-xs font-semibold">Live</span>
 	</div>
 }
 else if (ConnectionState == HubConnectionState.Connecting || ConnectionState == HubConnectionState.Reconnecting)
 {
-	<div class="flex items-center gap-1.5" title="Connecting to real-time updates">
+	<div class="flex items-center gap-1.5 bg-primary-200 rounded-full px-2.5 py-1" title="Connecting to real-time updates">
 		<span class="relative flex h-2.5 w-2.5">
-			<span
-			class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-600 dark:bg-yellow-600 opacity-75"></span>
-			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
+			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+			<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400"></span>
 		</span>
-		<span class="hidden sm:inline text-yellow-600 dark:text-yellow-600">Connecting</span>
+		<span class="hidden sm:inline text-xs font-semibold">Connecting</span>
 	</div>
 }
 else if (ConnectionState == HubConnectionState.Disconnected)
 {
-	<div class="flex items-center gap-1.5" title="Disconnected from real-time updates">
-		<span class="flex h-2.5 w-2.5 bg-red-600 rounded-full"></span>
-		<span class="hidden sm:inline text-red-600 dark:text-red-600">Offline</span>
+	<div class="flex items-center gap-1.5 bg-primary-200 rounded-full px-2.5 py-1"
+			 title="Disconnected from real-time updates">
+		<span class="flex h-2.5 w-2.5 bg-red-500 rounded-full"></span>
+		<span class="hidden sm:inline text-xs font-semibold">Offline</span>
 	</div>
 }
 
