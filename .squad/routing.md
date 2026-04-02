@@ -18,6 +18,9 @@
 | Docs, README, XML docs, comments, CONTRIBUTING | Frodo | Docs |
 | Blog posts, GitHub Pages, project announcements, changelog posts, feature write-ups | Bilbo | Tech Blogger |
 | Auth0, authentication, authorization, JWT, RBAC, security audit, vulnerabilities, injection, XSS, CSRF, secrets, HTTPS, CORS, security headers, security review | Gandalf | Security |
+| Auth0 Management API, management client, ManagementApiClient | Gandalf | Security review of management API usage |
+| admin role assignment, role revocation, user role management | Gandalf | Auth security — admin operations |
+| ResultErrorCode.ExternalService, external API failures | Gandalf + Sam | Auth0 error wrapping patterns |
 | GitHub board, issues, PRs, backlog, work queue | Ralph | Work Monitor |
 | Session log, orchestration log, history summarization, decisions archival, memory sweep | Scribe | Memory management |
 | PR with reviewDecision: CHANGES_REQUESTED | Aragorn | Lead routes fix to non-author agent |
