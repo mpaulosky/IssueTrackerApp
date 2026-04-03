@@ -117,10 +117,10 @@ public sealed class GetUserDashboardQueryHandlerTests
 		// Arrange
 		var issues = new List<Issue>
 		{
-			CreateIssue(UserId, "Open", archived: false),           // counted
-			CreateIssue(UserId, "Open", archived: true),            // excluded
-			CreateIssue(UserId, "Resolved", archived: false),       // counted
-			CreateIssue(UserId, "Resolved", archived: true),        // excluded
+			CreateIssue(UserId, "Open",     archived: false, daysAgo: 1, title: "Active-Open"),   // counted
+			CreateIssue(UserId, "Open",     archived: true,  daysAgo: 1, title: "Archived-Open"), // excluded
+			CreateIssue(UserId, "Resolved", archived: false, daysAgo: 1, title: "Active-Resolved"), // counted
+			CreateIssue(UserId, "Resolved", archived: true,  daysAgo: 1, title: "Archived-Resolved"), // excluded
 		};
 
 		_repository.GetAllAsync(Arg.Any<CancellationToken>())
@@ -131,10 +131,14 @@ public sealed class GetUserDashboardQueryHandlerTests
 		// Act
 		var result = await _handler.Handle(query, CancellationToken.None);
 
-		// Assert
+		// Assert — counts exclude archived
 		result.Value!.TotalIssues.Should().Be(2);
 		result.Value.OpenIssues.Should().Be(1);
 		result.Value.ResolvedIssues.Should().Be(1);
+
+		// RecentIssues also must not contain archived items
+		result.Value.RecentIssues.Select(i => i.Title).Should().NotContain("Archived-Open");
+		result.Value.RecentIssues.Select(i => i.Title).Should().NotContain("Archived-Resolved");
 	}
 
 	[Fact]
@@ -143,9 +147,9 @@ public sealed class GetUserDashboardQueryHandlerTests
 		// Arrange
 		var issues = new List<Issue>
 		{
-			CreateIssue(UserId, "Open"),          // mine
-			CreateIssue("stranger-456", "Open"),  // not mine
-			CreateIssue("stranger-456", "Open"),  // not mine
+			CreateIssue(UserId,        "Open", daysAgo: 1, title: "My-Issue"),    // mine
+			CreateIssue("stranger-456", "Open", daysAgo: 1, title: "Other-Issue"), // not mine
+			CreateIssue("stranger-456", "Open", daysAgo: 1, title: "Other-Issue2"),// not mine
 		};
 
 		_repository.GetAllAsync(Arg.Any<CancellationToken>())
@@ -156,9 +160,13 @@ public sealed class GetUserDashboardQueryHandlerTests
 		// Act
 		var result = await _handler.Handle(query, CancellationToken.None);
 
-		// Assert
+		// Assert — totals only reflect my issues
 		result.Value!.TotalIssues.Should().Be(1);
 		result.Value.OpenIssues.Should().Be(1);
+
+		// RecentIssues must not contain other-user issues
+		result.Value.RecentIssues.Select(i => i.Title).Should().NotContain("Other-Issue");
+		result.Value.RecentIssues.Select(i => i.Title).Should().NotContain("Other-Issue2");
 	}
 
 	// -------------------------------------------------------
@@ -233,7 +241,7 @@ public sealed class GetUserDashboardQueryHandlerTests
 		// Act
 		var result = await _handler.Handle(new GetUserDashboardQuery(UserId), CancellationToken.None);
 
-		// Assert
+		// Assert — issues within 7-day window counted; older ones excluded
 		result.Value!.ThisWeekIssues.Should().Be(2);
 	}
 
@@ -244,9 +252,9 @@ public sealed class GetUserDashboardQueryHandlerTests
 	[Fact]
 	public async Task Handle_RecentIssues_LimitedToTenMostRecent()
 	{
-		// Arrange — 15 issues for the user
+		// Arrange — 15 issues for the user, created 0..14 days ago
 		var issues = Enumerable.Range(0, 15)
-			.Select(i => CreateIssue(UserId, "Open", daysAgo: i))
+			.Select(i => CreateIssue(UserId, "Open", daysAgo: i, title: $"Issue-{i:D2}"))
 			.ToList();
 
 		_repository.GetAllAsync(Arg.Any<CancellationToken>())
@@ -255,9 +263,16 @@ public sealed class GetUserDashboardQueryHandlerTests
 		// Act
 		var result = await _handler.Handle(new GetUserDashboardQuery(UserId), CancellationToken.None);
 
-		// Assert
+		// Assert — count is capped, but TotalIssues reflects the full 15
 		result.Value!.RecentIssues.Should().HaveCount(10);
-		result.Value.TotalIssues.Should().Be(15);  // total is still 15
+		result.Value.TotalIssues.Should().Be(15);
+
+		// The 10 returned should be the most recent (daysAgo 0–9)
+		var returnedTitles = result.Value.RecentIssues.Select(i => i.Title).ToList();
+		returnedTitles.Should().Contain("Issue-00");  // newest
+		returnedTitles.Should().Contain("Issue-09");  // 10th newest
+		returnedTitles.Should().NotContain("Issue-10"); // 11th — excluded
+		returnedTitles.Should().NotContain("Issue-14"); // oldest — excluded
 	}
 
 	[Fact]
