@@ -295,19 +295,6 @@ public sealed class LocalFileStorageServiceTests : IDisposable
 		await act.Should().ThrowAsync<FileNotFoundException>();
 	}
 
-	[Fact]
-	public async Task DownloadAsync_Should_RethrowException_And_NotSwallow()
-	{
-		// Arrange — use the same sut (file simply doesn't exist)
-		var sut = CreateSut();
-
-		// Act
-		var act = () => sut.DownloadAsync("/uploads/never-created.bin");
-
-		// Assert — any exception propagates out; service must not return null silently
-		await act.Should().ThrowAsync<Exception>();
-	}
-
 	#endregion
 
 	// -----------------------------------------------------------------------
