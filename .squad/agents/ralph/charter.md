@@ -14,6 +14,7 @@ Tracks and drives the work queue. Makes sure the team never sits idle.
 - Monitor open PRs for CI failures, review feedback, and merge readiness
 - Report board status and trigger agent pickups
 - Run continuously until the board is clear or explicitly idled
+- **After every successful `gh pr merge`: trigger Post-Merge Orphan Branch Cleanup ceremony automatically**
 
 ## Work Style
 

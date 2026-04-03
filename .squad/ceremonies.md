@@ -133,8 +133,9 @@ Ralph MUST verify ALL of the following before the review cycle begins. Any faili
 ```bash
 gh pr merge {N} --squash --delete-branch
 git checkout main && git pull origin main && git fetch --prune
-git branch --merged main | grep -v "^\* main" | xargs git branch -d
 ```
+
+Then Ralph triggers **Post-Merge Orphan Branch Cleanup** (see ceremony below) to remove any stale local and remote `squad/*` branches.
 
 #### Lockout Rule
 
@@ -215,6 +216,93 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
 4. **CI must re-pass** after the merge commit
 5. **Existing reviews are invalidated** — all reviewers must re-approve after a merge commit
 6. Resume PR Review Gate from the beginning
+
+---
+
+### Post-Merge Orphan Branch Cleanup
+
+- **Trigger:** automatic — Ralph triggers after every successful `gh pr merge`; can also be run manually ("clean orphan branches", "prune branches")
+- **When:** immediately after merge completes; optionally run periodically (e.g. before each sprint)
+- **Facilitator:** Ralph
+- **Participants:** Ralph (executes cleanup autonomously)
+- **Purpose:** Remove stale `squad/*` branches from both origin and local to keep the branch list tidy and avoid confusion
+
+#### When to Run
+
+| Trigger | Who |
+|---------|-----|
+| After `gh pr merge` succeeds | Ralph (automatic) |
+| Manual request ("clean orphan branches") | Ralph (on demand) |
+| Before sprint planning | Aragorn (includes in pre-sprint checklist) |
+
+#### Protocol
+
+**Step 1 — Sync and prune remote tracking refs**
+
+```bash
+git checkout main
+git pull origin main
+git fetch --prune
+```
+
+`--prune` removes local tracking refs (`origin/squad/*`) for branches already deleted on origin.
+
+**Step 2 — Delete merged remote branches (origin)**
+
+Catches any `squad/*` branches not removed by `--delete-branch` at merge time:
+
+```bash
+git branch -r --merged origin/main \
+  | grep 'origin/squad/' \
+  | sed 's|origin/||' \
+  | xargs -r -I{} git push origin --delete {}
+```
+
+**Step 3 — Delete merged local branches**
+
+```bash
+git branch --merged main \
+  | grep -E '^\s+squad/' \
+  | xargs -r git branch -d
+```
+
+**Step 4 — Delete local branches whose remote is gone**
+
+Handles branches where the remote was already deleted but the local ref was not cleaned up:
+
+```bash
+git branch -vv \
+  | grep ': gone]' \
+  | grep 'squad/' \
+  | awk '{print $1}' \
+  | xargs -r git branch -D
+```
+
+> ⚠️ Step 4 uses `-D` (force delete) because these branches are already gone from origin. Only applies to `squad/` branches to avoid accidentally removing other local work.
+
+**Step 5 — Report**
+
+Print surviving branches for visibility:
+
+```bash
+echo "--- Remaining local branches ---"
+git branch -vv | grep -v "^\* main"
+
+echo "--- Remaining remote squad/ branches ---"
+git branch -r | grep 'origin/squad/' || echo "(none)"
+```
+
+#### Full one-liner (for convenience)
+
+```bash
+git checkout main && git pull origin main && git fetch --prune && \
+git branch -r --merged origin/main | grep 'origin/squad/' | sed 's|origin/||' | xargs -r -I{} git push origin --delete {} && \
+git branch --merged main | grep -E '^\s+squad/' | xargs -r git branch -d && \
+git branch -vv | grep ': gone]' | grep 'squad/' | awk '{print $1}' | xargs -r git branch -D && \
+echo "✅ Orphan branch cleanup complete."
+```
+
+---
 
 ### Standard Task Workflow
 
@@ -301,10 +389,7 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
    git fetch --prune
    ```
 
-6. **Clean up orphan local branches:**
-   ```bash
-   git branch --merged main | grep -v "^\* main" | xargs git branch -d
-   ```
+6. **Trigger Post-Merge Orphan Branch Cleanup** — Ralph runs the full cleanup ceremony (remote + local merged branches + stale tracking refs). See **Post-Merge Orphan Branch Cleanup** ceremony for the complete protocol.
 
 ##### Phase 5: Cleanup
 
@@ -315,11 +400,7 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
    git pull origin main
    ```
 
-2. Optionally delete local branch:
-
-   ```bash
-   git branch -d squad/{issue-number}-{kebab-slug}
-   ```
+2. Confirm the branch was deleted remotely; if not, the Orphan Branch Cleanup ceremony handles it automatically.
 
 ### Sprint Review / Demo
 
