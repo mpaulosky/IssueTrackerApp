@@ -29,6 +29,12 @@
 		<PackageReference Include="SixLabors.ImageSharp" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>Web.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
 	<!-- TailwindCSS Build Integration -->
 	<Target Name="CheckNodeModules" BeforeTargets="BuildTailwindCSS">
 		<Message Importance="high" Text="Checking for node_modules..." />

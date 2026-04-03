@@ -23,7 +23,7 @@ public sealed class SendGridEmailService : IEmailService
 {
 	private readonly SendGridSettings _settings;
 	private readonly ILogger<SendGridEmailService> _logger;
-	private readonly SendGridClient _client;
+	private readonly ISendGridClient _client;
 
 	public SendGridEmailService(
 		IOptions<SendGridSettings> settings,
@@ -32,6 +32,19 @@ public sealed class SendGridEmailService : IEmailService
 		_settings = settings.Value;
 		_logger = logger;
 		_client = new SendGridClient(_settings.ApiKey);
+	}
+
+	/// <summary>
+	///   Internal constructor for unit testing — accepts a pre-configured <see cref="ISendGridClient" />.
+	/// </summary>
+	internal SendGridEmailService(
+		IOptions<SendGridSettings> settings,
+		ILogger<SendGridEmailService> logger,
+		ISendGridClient client)
+	{
+		_settings = settings.Value;
+		_logger = logger;
+		_client = client;
 	}
 
 	public async Task<Result> SendAsync(EmailMessage message, CancellationToken ct = default)
