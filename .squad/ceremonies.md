@@ -434,8 +434,55 @@ echo "✅ Orphan branch cleanup complete."
 4. Identify issues that are too large and need splitting (create sub-issues)
 5. Identify and close duplicate issues with a note explaining the duplicate
 
+### Git Worktree Setup Ceremony
+
+- **Trigger:** manual — when starting a new sprint or when multiple squad branches are active simultaneously
+- **When:** before beginning sprint work
+- **Facilitator:** Boromir / Aragorn
+- **Purpose:** Isolate squad branch work, scribe/planning commits, and main branch to prevent `.squad/` files bleeding into feature branches
+
+#### Worktree Layout
+
+```
+~/Repos/
+├── IssueTrackerApp/            ← main worktree  (main branch, read-only reference)
+├── IssueTrackerApp-scribe/     ← scribe/planning worktree  (squad/scribe-* branches)
+└── IssueTrackerApp-sprint/     ← active sprint worktree    (squad/{issue}-{slug})
+```
+
+#### Setup Commands
+
+```bash
+# Scribe / planning worktree
+git worktree add ../IssueTrackerApp-scribe squad/scribe-log-updates
+
+# New sprint branch worktree
+git worktree add ../IssueTrackerApp-sprint -b squad/{issue-number}-{slug}
+
+# List all active worktrees
+git worktree list
+
+# Remove a worktree after the branch is merged
+git worktree remove ../IssueTrackerApp-sprint
+git branch -d squad/{issue-number}-{slug}
+```
+
+#### Rules
+
+| Rule | Detail |
+|------|--------|
+| **Main worktree** | Stays on `main`. Never used for active squad branch work. |
+| **Scribe worktree** | Only `.squad/` commits live here. No source code changes. |
+| **Sprint worktrees** | One per active squad branch. |
+| **No simultaneous builds** | `bin/` and `obj/` are shared; do not run `dotnet build` in two worktrees simultaneously. |
+| **Pre-push hook** | Runs in every worktree — all gates still enforced. |
+| **Branching guard** | `.squad/` files must never appear in sprint/feature worktree commits — the scribe worktree makes this physically impossible. |
+
+---
+
 ### Integration Points
 
 - **Build Repair Check:** Enforced via pre-push hook (Phase 3, step 4)
 - **Code Review:** Triggered when PR is opened (Phase 4, step 2-3)
 - **Merged-PR Branch Guard:** Check before committing to avoid stranded commits
+- **Git Worktree Setup:** Use worktrees when ≥2 squad branches are active to prevent branch contamination
