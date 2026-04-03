@@ -5,7 +5,7 @@
 @if (IsVisible)
 {
 	<div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 animate-slide-in-up">
-		<div class="bg-gray-900 dark:bg-gray-800 text-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-4 min-w-[300px] max-w-md">
+		<div class="bg-primary-900 dark:bg-primary-800 text-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-4 min-w-[300px] max-w-md">
 			<!-- Success icon -->
 			<div class="flex-shrink-0">
 				<svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -33,7 +33,7 @@
 
 			<!-- Close button -->
 			<button type="button"
-				class="flex-shrink-0 text-gray-400 hover:text-white transition-colors"
+				class="flex-shrink-0 text-primary-400 hover:text-white transition-colors"
 				@onclick="Dismiss">
 				<span class="sr-only">Dismiss</span>
 				<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -45,7 +45,7 @@
 		<!-- Progress bar for countdown -->
 		@if (!string.IsNullOrEmpty(UndoToken))
 		{
-			<div class="h-1 bg-gray-700 rounded-b-lg overflow-hidden -mt-1">
+			<div class="h-1 bg-primary-700 rounded-b-lg overflow-hidden -mt-1">
 				<div class="h-full bg-green-400 transition-all duration-1000 ease-linear"
 					style="width: @(_remainingSeconds * 100 / CountdownSeconds)%">
 				</div>

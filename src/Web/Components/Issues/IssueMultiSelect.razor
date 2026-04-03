@@ -10,7 +10,7 @@
 		<div class="flex items-center gap-2">
 			<input type="checkbox"
 				id="select-all-checkbox"
-				class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:bg-gray-700 dark:checked:bg-primary-600 cursor-pointer"
+				class="h-4 w-4 rounded border-primary-300 dark:border-primary-600 text-primary-600 focus:ring-primary-500 dark:bg-primary-700 dark:checked:bg-primary-600 cursor-pointer"
 				checked="@_isAllSelected"
 				@onchange="OnSelectAllChanged" />
 			<label for="select-all-checkbox" class="sr-only">Select all issues</label>
@@ -20,7 +20,7 @@
 	{
 		<input type="checkbox"
 			id="@($"issue-checkbox-{IssueId}")"
-			class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:bg-gray-700 dark:checked:bg-primary-600 cursor-pointer"
+			class="h-4 w-4 rounded border-primary-300 dark:border-primary-600 text-primary-600 focus:ring-primary-500 dark:bg-primary-700 dark:checked:bg-primary-600 cursor-pointer"
 			checked="@_isSelected"
 			@onchange="OnCheckboxChanged" />
 		<label for="@($"issue-checkbox-{IssueId}")" class="sr-only">Select issue @IssueId</label>

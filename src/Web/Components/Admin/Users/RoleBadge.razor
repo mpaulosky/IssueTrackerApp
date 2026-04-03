@@ -24,7 +24,7 @@
 		var baseClasses = "badge";
 		var colorClasses = RoleColorMap.TryGetValue(RoleName ?? string.Empty, out var css)
 			? css
-			: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
+			: "bg-primary-100 text-primary-800 dark:bg-primary-700 dark:text-primary-200";
 
 		return $"{baseClasses} {colorClasses}";
 	}

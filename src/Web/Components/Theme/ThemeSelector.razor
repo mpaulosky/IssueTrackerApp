@@ -1,6 +1,4 @@
-@* Copyright (c) 2024-2025. IssueTracker Project. *@
 @* Theme Selector - Combined color + brightness picker with pill buttons *@
-@* SPDX-License-Identifier: MIT *@
 
 @implements IDisposable
 
@@ -8,7 +6,7 @@
 	<div class="card-section">
 		<div class="mb-4">
 			<h2 class="heading-section">Choose Your Theme</h2>
-			<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Customize your experience with different color themes</p>
+			<p class="text-sm text-primary-600 dark:text-primary-400 mt-1">Customize your experience with different color themes</p>
 		</div>
 
 		<div class="flex flex-wrap gap-6">
@@ -50,7 +48,7 @@
 			</div>
 		</div>
 
-		<div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+		<div class="mt-4 text-sm text-primary-600 dark:text-primary-400">
 			Current: <strong class="text-primary-600 dark:text-primary-400">@GetCurrentLabel()</strong>
 		</div>
 	</div>
@@ -114,7 +112,7 @@
 		var baseClasses = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors";
 		var stateClasses = isSelected
 			? "bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 ring-2 ring-primary-500"
-			: "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600";
+			: "bg-primary-100 dark:bg-primary-700 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-600";
 		return $"{baseClasses} {stateClasses}";
 	}
 
@@ -124,7 +122,7 @@
 		var baseClasses = "px-3 py-1.5 rounded-full text-sm font-medium transition-colors";
 		var stateClasses = isSelected
 			? "bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 ring-2 ring-primary-500"
-			: "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600";
+			: "bg-primary-100 dark:bg-primary-700 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-600";
 		return $"{baseClasses} {stateClasses}";
 	}
 

@@ -1,12 +1,3 @@
-@* ============================================
-   Copyright (c) 2026. All rights reserved.
-   File Name :     EditUserRolesModal.razor
-   Company :       mpaulosky
-   Author :        Matthew Paulosky
-   Solution Name : IssueManager
-   Project Name :  Web
-   ============================================ *@
-
 @using Domain.Features.Admin.Models
 @using Domain.Features.Admin.Users.Commands
 @using Domain.Features.Admin.Users.Queries
@@ -40,11 +31,11 @@
 				<!-- Modal Header -->
 				<div class="border-b border-primary-200 dark:border-primary-700 px-6 py-4">
 					<div class="flex items-start justify-between">
-						<h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-title">
+						<h3 class="text-lg font-semibold text-primary-900 dark:text-white" id="modal-title">
 							Edit Roles \u2014 @User.Name (@User.Email)
 						</h3>
 						<button type="button"
-						        class="ml-4 flex-shrink-0 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						        class="ml-4 flex-shrink-0 rounded-md text-primary-400 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
 						        @onclick="HandleClose"
 						        disabled="@_isSaving">
 							<span class="sr-only">Close</span>
@@ -89,21 +80,21 @@
 
 						<!-- Role checkboxes: checked = currently assigned -->
 						<div class="space-y-3">
-							<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+							<p class="text-sm font-medium text-primary-700 dark:text-primary-300">
 								Select roles for this user:
 							</p>
 							@foreach (var role in _availableRoles)
 							{
-								<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+								<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-primary-50 dark:hover:bg-primary-700/50 cursor-pointer transition-colors">
 									<input type="checkbox"
-									       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
+									       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 dark:border-primary-600 rounded"
 									       checked="@_selectedRoles.Contains(role.RoleName)"
 									       @onchange="@(e => HandleRoleToggle(role.RoleName, e))"
 									       disabled="@_isSaving" />
-									<span class="text-sm font-medium text-gray-900 dark:text-gray-100">@role.RoleName</span>
+									<span class="text-sm font-medium text-primary-900 dark:text-primary-100">@role.RoleName</span>
 									@if (!string.IsNullOrEmpty(role.Description))
 									{
-										<span class="text-xs text-gray-500 dark:text-gray-400">\u2014 @role.Description</span>
+										<span class="text-xs text-primary-500 dark:text-primary-400">\u2014 @role.Description</span>
 									}
 								</label>
 							}
@@ -113,7 +104,7 @@
 					{
 						<!-- Confirmation step -->
 						<div class="space-y-4">
-							<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+							<p class="text-sm font-medium text-primary-700 dark:text-primary-300">
 								You are about to make the following role changes:
 							</p>
 

@@ -20,7 +20,7 @@
 				<h1 class="heading-page">
 					Welcome back, @_userName!
 				</h1>
-				<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+				<p class="mt-1 text-sm text-primary-500 dark:text-primary-400">
 					@DateTime.Now.ToString("dddd, MMMM d, yyyy 'at' h:mm tt")
 				</p>
 			</div>
@@ -83,8 +83,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Issues</dt>
-								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.TotalIssues</dd>
+								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">Total Issues</dt>
+								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.TotalIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -106,8 +106,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Open Issues</dt>
-								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.OpenIssues</dd>
+								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">Open Issues</dt>
+								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.OpenIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -129,8 +129,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Resolved Issues</dt>
-								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.ResolvedIssues</dd>
+								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">Resolved Issues</dt>
+								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.ResolvedIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -152,8 +152,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">This Week</dt>
-								<dd class="text-3xl font-semibold text-gray-900 dark:text-white">@_dashboard?.ThisWeekIssues</dd>
+								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">This Week</dt>
+								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.ThisWeekIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -165,7 +165,7 @@
 			<!-- My Recent Issues -->
 			<div class="lg:col-span-2">
 				<div class="card">
-					<div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+					<div class="px-4 py-5 sm:px-6 border-b border-primary-200 dark:border-primary-700">
 						<div class="flex items-center justify-between">
 							<h2 class="heading-section">My Recent Issues</h2>
 							<a href="/issues?author=@_userId" class="link-primary text-sm font-medium">
@@ -177,20 +177,20 @@
 						@if (_dashboard?.RecentIssues is null || !_dashboard.RecentIssues.Any())
 						{
 							<div class="px-4 py-8 text-center">
-								<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<svg class="mx-auto h-12 w-12 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 												d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
 								</svg>
-								<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No issues yet. Create your first issue!</p>
+								<p class="mt-2 text-sm text-primary-500 dark:text-primary-400">No issues yet. Create your first issue!</p>
 							</div>
 						}
 						else
 						{
-							<ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+							<ul role="list" class="divide-y divide-primary-200 dark:divide-primary-700">
 								@foreach (var issue in _dashboard.RecentIssues)
 								{
 									<li>
-										<a href="/issues/@issue.Id" class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+										<a href="/issues/@issue.Id" class="block hover:bg-primary-50 dark:hover:bg-primary-700 transition-colors">
 											<div class="px-4 py-4 sm:px-6">
 												<div class="flex items-center justify-between">
 													<p class="text-sm font-medium text-primary-600 dark:text-primary-400 truncate max-w-xs">
@@ -201,7 +201,7 @@
 														<CategoryBadge Category="@issue.Category" />
 													</div>
 												</div>
-												<div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+												<div class="mt-2 text-sm text-primary-500 dark:text-primary-400">
 													<time datetime="@issue.DateCreated.ToString("yyyy-MM-dd")">
 														@issue.DateCreated.ToString("MMM d, yyyy")
 													</time>
@@ -219,22 +219,22 @@
 			<!-- Quick Actions Panel -->
 			<div class="lg:col-span-1">
 				<div class="card">
-					<div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+					<div class="px-4 py-5 sm:px-6 border-b border-primary-200 dark:border-primary-700">
 						<h2 class="heading-section">Quick Actions</h2>
 					</div>
 					<div class="p-4 flex flex-col gap-3">
 						<a href="/issues/create"
-							 class="btn btn-primary w-full justify-center dark:focus:ring-offset-gray-800 transition-colors">
+							 class="btn btn-primary w-full justify-center dark:focus:ring-offset-primary-800 transition-colors">
 							Create New Issue
 						</a>
 						<a href="/issues"
-							 class="btn btn-secondary w-full justify-center dark:focus:ring-offset-gray-800 transition-colors">
+							 class="btn btn-secondary w-full justify-center dark:focus:ring-offset-primary-800 transition-colors">
 							View All Issues
 						</a>
 						<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy">
 							<Authorized>
 								<a href="/admin"
-									 class="btn btn-secondary w-full justify-center dark:focus:ring-offset-gray-800 transition-colors">
+									 class="btn btn-secondary w-full justify-center dark:focus:ring-offset-primary-800 transition-colors">
 									Admin Dashboard
 								</a>
 							</Authorized>

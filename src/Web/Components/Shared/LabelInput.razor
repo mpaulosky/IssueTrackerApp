@@ -4,7 +4,7 @@
 
 <div class="relative">
 	<label class="form-label">Labels</label>
-	<div class="mt-1 flex flex-wrap gap-1.5 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 min-h-[42px] items-center cursor-text"
+	<div class="mt-1 flex flex-wrap gap-1.5 p-2 border border-primary-300 dark:border-primary-600 rounded-md bg-white dark:bg-primary-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 min-h-[42px] items-center cursor-text"
 		 @onclick="FocusInput">
 		@foreach (var label in Labels)
 		{
@@ -32,19 +32,19 @@
 				   @onblur="HandleBlur"
 				   @onfocus="HandleFocus"
 				   placeholder="@(Labels.Count == 0 ? "Add labels (comma or Enter to confirm)…" : "")"
-				   class="flex-1 min-w-[140px] border-none outline-none bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 p-0" />
+				   class="flex-1 min-w-[140px] border-none outline-none bg-transparent text-sm text-primary-900 dark:text-primary-100 placeholder-primary-400 dark:placeholder-primary-500 focus:ring-0 p-0" />
 		}
 	</div>
 
 	@if (_showDropdown && _suggestions.Count > 0)
 	{
-		<div class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-48 overflow-auto"
+		<div class="absolute z-10 w-full mt-1 bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-600 rounded-md shadow-lg max-h-48 overflow-auto"
 			 role="listbox" aria-label="Label suggestions">
 			@foreach (var suggestion in _suggestions)
 			{
 				<button type="button" role="option"
 						@onclick="() => SelectSuggestion(suggestion)"
-						class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+						class="w-full text-left px-4 py-2 text-sm text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-700 transition-colors">
 					@suggestion
 				</button>
 			}
