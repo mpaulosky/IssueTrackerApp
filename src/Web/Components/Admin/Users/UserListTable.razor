@@ -22,14 +22,14 @@
 					<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
 						Email
 					</th>
-					<th scope="col" class="px-6 py-3 text-center text-xs font-medium text-primary-300 uppercase tracking-wider">
+					<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
 						Roles
 					</th>
 					<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
 						Last Login
 					</th>
-					<th scope="col" class="px-6 py-3 text-center text-xs font-medium text-primary-300 uppercase tracking-wider">
-						Actions
+					<th scope="col" class="relative px-6 py-3">
+						<span class="sr-only">Actions</span>
 					</th>
 				</tr>
 			</thead>
@@ -92,8 +92,9 @@
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 							<div class="flex justify-end gap-2">
-								<button type="button" class="text-green-600 hover:text-green-900"
-												@onclick="() => OnEditRoles.InvokeAsync(user)">
+								<button type="button"
+										class="btn btn-primary"
+										@onclick="() => OnEditRoles.InvokeAsync(user)">
 									Edit Roles
 								</button>
 								<button type="button"
