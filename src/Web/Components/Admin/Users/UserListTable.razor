@@ -16,24 +16,20 @@
 		<table class="min-w-full divide-y divide-primary-200 dark:divide-primary-700">
 			<thead class="bg-primary-700">
 				<tr>
-					<th scope="col"
-							class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+					<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
 						Display Name
 					</th>
-					<th scope="col"
-							class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+					<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
 						Email
 					</th>
-					<th scope="col"
-							class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+					<th scope="col" class="px-6 py-3 text-centerS text-xs font-medium text-primary-300 uppercase tracking-wider">
 						Roles
 					</th>
-					<th scope="col"
-							class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+					<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
 						Last Login
 					</th>
-					<th scope="col" class="relative px-6 py-3">
-						<span class="sr-only">Actions</span>
+					<th scope="col" class="px-6 py-3 text-center text-xs font-medium text-primary-300 uppercase tracking-wider">
+						Actions
 					</th>
 				</tr>
 			</thead>
@@ -48,12 +44,13 @@
 									<img class="h-10 w-10 rounded-full mr-3" src="@user.Picture" alt="@user.Name" />
 								}
 								<div>
-									<div class="text-sm font-medium text-primary-900 dark:text-white">
+									<div class="text-sm font-medium text-primary-900 dark:text-primary-50">
 										@user.Name
 									</div>
 									@if (user.IsBlocked)
 									{
-										<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+										<span
+											class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
 											Blocked
 										</span>
 									}
@@ -61,7 +58,7 @@
 							</div>
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap">
-							<div class="text-sm text-primary-900 dark:text-primary-300">@user.Email</div>
+							<div class="text-sm text-primary-900 dark:text-primary-50">@user.Email</div>
 						</td>
 						<td class="px-6 py-4">
 							<div class="flex flex-wrap gap-1">
@@ -69,18 +66,19 @@
 								{
 									@foreach (var role in user.Roles)
 									{
-										<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200">
+										<span
+											class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200">
 											@role
 										</span>
 									}
 								}
 								else
 								{
-									<span class="text-sm text-primary-400 dark:text-primary-500 italic">No roles</span>
+									<span class="text-sm text-primary-900 dark:text-primary-300 italic">No roles</span>
 								}
 							</div>
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-500 dark:text-primary-400">
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-900 dark:text-primary-50">
 							@if (user.LastLogin.HasValue)
 							{
 								<span title="@user.LastLogin.Value.ToString("F")">
@@ -89,13 +87,12 @@
 							}
 							else
 							{
-								<span class="text-primary-400 dark:text-primary-500 italic">Never</span>
+								<span class="text-primary-900 dark:text-primary-50italic">Never</span>
 							}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 							<div class="flex justify-end gap-2">
-								<button type="button"
-												class="btn btn-primary"
+								<button type="button" class="text-green-600 hover:text-green-900"
 												@onclick="() => OnEditRoles.InvokeAsync(user)">
 									Edit Roles
 								</button>
