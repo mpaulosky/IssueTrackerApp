@@ -245,9 +245,10 @@
 			_step = ModalStep.Edit;
 			_errorMessage = null;
 			_isSaving = false;
-			_selectedRoles = [.. User.Roles];
-			_initialRoles = [.. User.Roles];
 			_shouldFocus = true;
+
+			// Fetch fresh role assignments from Auth0 so the checkboxes reflect the current
+			// state even when the parent list data is cached or was loaded before a role change.
 			await LoadRolesAsync();
 		}
 		else if (User is null)
@@ -267,19 +268,38 @@
 
 	private async Task LoadRolesAsync()
 	{
+		if (User is null) return;
+
 		_isLoadingRoles = true;
 
 		try
 		{
-			var result = await Mediator.Send(new ListRolesQuery());
-			if (result.Success)
+			// Fetch available roles and the user's current assignments concurrently.
+			var rolesTask = Mediator.Send(new ListRolesQuery());
+			var userTask  = Mediator.Send(new GetUserByIdQuery(User.UserId));
+
+			await Task.WhenAll(rolesTask, userTask);
+
+			var rolesResult = await rolesTask;
+			var userResult  = await userTask;
+
+			if (rolesResult.Success)
 			{
-				_availableRoles = result.Value ?? [];
+				_availableRoles = rolesResult.Value ?? [];
 			}
 			else
 			{
-				_errorMessage = result.Error ?? "Failed to load available roles.";
+				_errorMessage = rolesResult.Error ?? "Failed to load available roles.";
 			}
+
+			// Seed selection from the freshly fetched user — falls back to the prop if the
+			// individual fetch fails (e.g., transient Auth0 error).
+			var currentRoles = userResult.Success
+				? userResult.Value?.Roles ?? User.Roles
+				: User.Roles;
+
+			_selectedRoles = [.. currentRoles];
+			_initialRoles  = [.. currentRoles];
 		}
 		finally
 		{

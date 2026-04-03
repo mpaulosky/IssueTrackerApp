@@ -2,8 +2,6 @@
 @using Web.Auth
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminPolicy)]
 
-<PageHeaderComponent Level="1" HeaderText="Admin Dashboard - IssueTracker" />
-
 <AdminPageLayout Title="Admin Dashboard" Description="Manage application settings and lookup data.">
 	<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 		<!-- Categories Card -->
@@ -18,10 +16,10 @@
 				</div>
 				<div class="ml-4">
 					<h3 class="text-lg font-medium text-gray-900 dark:text-white">Categories</h3>
-					<p class="mt-1 text-sm text-primary-700 dark:text-primary-300">Manage issue categories</p>
+					<p class="mt-1 text-sm text-primary-800 dark:text-primary-100">Manage issue categories</p>
 				</div>
 			</div>
-			<div class="mt-4 flex items-center text-sm font-medium text-primary-600 dark:text-primary-400">
+			<div class="mt-4 flex items-center text-sm font-medium text-primary-800 dark:text-primary-100">
 				<span>Manage categories</span>
 				<svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -39,11 +37,11 @@
 					</svg>
 				</div>
 				<div class="ml-4">
-					<h3 class="text-lg font-medium text-gray-900 dark:text-white">Statuses</h3>
-					<p class="mt-1 text-sm text-primary-700 dark:text-primary-300">Manage issue statuses</p>
+					<h3 class="text-lg font-medium text-gray-900 dark:text-gray-50">Statuses</h3>
+					<p class="mt-1 text-sm text-primary-800 dark:text-primary-100">Manage issue statuses</p>
 				</div>
 			</div>
-			<div class="mt-4 flex items-center text-sm font-medium text-primary-600 dark:text-primary-400">
+			<div class="mt-4 flex items-center text-sm font-medium text-primary-800 dark:text-primary-100">
 				<span>Manage statuses</span>
 				<svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -55,17 +53,18 @@
 		<a href="/admin/users" class="card-bordered block hover:shadow-lg transition-shadow p-6">
 			<div class="flex items-center">
 				<div class="flex-shrink-0 p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-					<svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
+							 viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 									d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
 					</svg>
 				</div>
 				<div class="ml-4">
-					<h3 class="text-lg font-medium text-gray-900 dark:text-white">User Management</h3>
-					<p class="mt-1 text-sm text-primary-700 dark:text-primary-300">Manage user roles and access</p>
+					<h3 class="text-lg font-medium text-gray-900 dark:text-gray-50">User Management</h3>
+					<p class="mt-1 text-sm text-primary-800 dark:text-primary-100">Manage user roles and access</p>
 				</div>
 			</div>
-			<div class="mt-4 flex items-center text-sm font-medium text-primary-600 dark:text-primary-400">
+			<div class="mt-4 flex items-center text-sm font-medium text-primary-800 dark:text-primary-100">
 				<span>Manage users</span>
 				<svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -84,11 +83,11 @@
 					</svg>
 				</div>
 				<div class="ml-4">
-					<h3 class="text-lg font-medium text-gray-900 dark:text-white">Issues</h3>
-					<p class="mt-1 text-sm text-primary-700 dark:text-primary-300">View and manage all issues</p>
+					<h3 class="text-lg font-medium text-gray-900 dark:text-gray-50">Issues</h3>
+					<p class="mt-1 text-sm text-primary-800 dark:text-primary-100">View and manage all issues</p>
 				</div>
 			</div>
-			<div class="mt-4 flex items-center text-sm font-medium text-primary-600 dark:text-primary-400">
+			<div class="mt-4 flex items-center text-sm font-medium text-primary-800 dark:text-primary-100">
 				<span>View issues</span>
 				<svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -101,7 +100,7 @@
 	<div class="mt-8">
 		<h2 class="heading-section mb-4">Quick Information</h2>
 		<div class="card-bordered p-6">
-			<p class="text-sm text-primary-700 dark:text-primary-300">
+			<p class="text-md text-primary-900 dark:text-primary-100">
 				Use the admin panel to manage lookup data used throughout the application. Categories and Statuses
 				can be created, updated, and archived as needed. Archived items will not appear in dropdown menus
 				for new issues but will remain associated with existing issues.

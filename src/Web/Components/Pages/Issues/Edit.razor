@@ -10,7 +10,7 @@
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 @attribute [StreamRendering]
 
-<PageHeaderComponent Level="1" HeaderText="@PageTitle" />
+<HeaderComponent Level="1" HeaderText="@PageTitle" />
 
 <div class="max-w-2xl mx-auto">
 	@if (_isLoading)

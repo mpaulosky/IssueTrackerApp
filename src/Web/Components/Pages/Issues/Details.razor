@@ -16,7 +16,7 @@
 @attribute [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 @attribute [StreamRendering]
 
-<PageHeaderComponent Level="1" HeaderText="@($"{(_issue?.Title ?? "Issue Details")} {PageTitle}")" />
+<HeaderComponent Level="1" HeaderText="@($"{(_issue?.Title ?? "Issue Details")} {PageTitle}")" />
 
 <div class="max-w-4xl mx-auto">
 	@if (_isLoading)
@@ -112,7 +112,8 @@
 							<div class="mt-2 flex flex-wrap gap-1.5">
 								@foreach (var label in _issue.Labels)
 								{
-									<span class="inline-flex items-center bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
+									<span
+										class="inline-flex items-center bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
 										@label
 									</span>
 								}
@@ -145,7 +146,8 @@
 						}
 						else if (_issue.Votes > 0)
 						{
-							<span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 rounded-md">
+							<span
+								class="inline-flex items-center px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 rounded-md">
 								▲ @_issue.Votes
 							</span>
 						}

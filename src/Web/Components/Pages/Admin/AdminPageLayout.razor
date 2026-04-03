@@ -8,37 +8,31 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between h-12 items-center">
 				<div class="flex items-center">
-					<a href="/admin" class="text-xl font-bold text-primary-900 dark:text-white mr-8">
+					<a href="/admin" class="text-xl font-bold mr-8">
 						Admin Portal
 					</a>
 					<div class="hidden sm:flex sm:space-x-1">
-						<NavLink href="/admin" Match="NavLinkMatch.All"
-						         class="@GetNavLinkClass("/admin")">
+						<NavLink href="/admin" Match="NavLinkMatch.All" class="@GetNavLinkClass("/admin")">
 							Dashboard
 						</NavLink>
-						<NavLink href="/admin/analytics"
-						         class="@GetNavLinkClass("/admin/analytics")">
+						<NavLink href="/admin/analytics" class="@GetNavLinkClass("/admin/analytics")">
 							Analytics
 						</NavLink>
-						<NavLink href="/admin/categories"
-						         class="@GetNavLinkClass("/admin/categories")">
+						<NavLink href="/admin/categories" class="@GetNavLinkClass("/admin/categories")">
 							Categories
 						</NavLink>
-						<NavLink href="/admin/statuses"
-						         class="@GetNavLinkClass("/admin/statuses")">
+						<NavLink href="/admin/statuses" class="@GetNavLinkClass("/admin/statuses")">
 							Statuses
 						</NavLink>
-						<NavLink href="/admin/users"
-						         class="@GetNavLinkClass("/admin/users")">
+						<NavLink href="/admin/users" class="@GetNavLinkClass("/admin/users")">
 							Users
 						</NavLink>
 					</div>
 				</div>
 				<div class="flex items-center">
-					<a href="/"
-					   class="inline-flex items-center px-3 py-2 text-sm font-medium rounded hover:bg-primary-100 hover:text-primary-700 transition-colors">
+					<a href="/" class="inline-flex items-center px-3 py-2 text-sm font-medium rounded">
 						<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
 						</svg>
 						Back to App
 					</a>
@@ -48,17 +42,9 @@
 	</nav>
 
 	<!-- Page Content -->
-	<main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-primary-900 dark:text-primary-200">
-		@if (!string.IsNullOrEmpty(Title))
-		{
-			<div class="mb-6">
-				<h1 class="heading-page">@Title</h1>
-				@if (!string.IsNullOrEmpty(Description))
-				{
-					<p class="mt-1 text-sm text-primary-700 dark:text-primary-300">@Description</p>
-				}
-			</div>
-		}
+	<main class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-primary-900 dark:text-primary-200">
+
+		<HeaderComponent Level="1" HeaderText="@Title" Description="@Description" />
 
 		@ChildContent
 	</main>
@@ -66,19 +52,19 @@
 
 @code {
 	/// <summary>
-	///   The page title.
+	/// The page title.
 	/// </summary>
 	[Parameter]
 	public string? Title { get; set; }
 
 	/// <summary>
-	///   The page description.
+	/// The page description.
 	/// </summary>
 	[Parameter]
 	public string? Description { get; set; }
 
 	/// <summary>
-	///   The child content to render.
+	/// The child content to render.
 	/// </summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -96,7 +82,7 @@
 			: currentPath.StartsWith(href, StringComparison.OrdinalIgnoreCase);
 
 		return isActive
-			? "border-primary-900 dark:border-white text-primary-900 dark:text-white inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium rounded"
-			: "border-transparent inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium rounded hover:bg-primary-100 hover:text-primary-700 transition-colors";
+			? "border-primary-900 dark:border-white text-primary-900 dark:text-primary-50 inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium rounded"
+			: "border-transparent inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium rounded transition-colors duration-150 hover:border-primary-300 dark:hover:border-primary-500 hover:text-primary-900 dark:hover:text-primary-50";
 	}
 }

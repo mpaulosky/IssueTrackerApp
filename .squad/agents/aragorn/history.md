@@ -366,3 +366,33 @@ Matthew Paulosky: "AppHost.Tests MUST be run locally before every push — no ex
 - Added Admin User Mgmt + Labels domain routing signals to routing.md
 - Added 2 new skills: auth0-management-api, labels-feature-patterns
 - Audited 13 existing skills (see aragorn-skills-audit.md decision inbox)
+
+---
+
+## Learnings (2026-04-02 — Feature Investigation)
+
+**Scope:** Full codebase feature gap analysis to surface 20 prioritised ideas for Matthew Paulosky.
+
+**Key findings from investigation:**
+
+### What is already well-built
+- Issue CRUD, Comments, Labels, Voting, Attachments, Bulk Operations, debounced Search+Filters, Analytics (5-min IMemoryCache), User Dashboard, Admin panel (Categories/Statuses/Users/Audit), Email Notifications pipeline (SendGrid/SMTP), SignalR real-time, dark mode + 4 colour themes, Auth0 RBAC.
+- `NotificationPreferences` model already models per-user email opt-ins (assigned, comment, status change, mention) — but **has zero UI**.
+- `ExportAnalyticsQuery` already generates CSV export bytes — but **it is not wired to a download button on the Analytics page**.
+- `IAuditLogRepository` + `IAuditLogWriterService` exist for role-change audits — **generalising to system-wide audit is low-effort**.
+- Redis is provisioned by AppHost and health-checked by ServiceDefaults — but **the app uses `IMemoryCache` everywhere, never `IDistributedCache`**.
+- `IBulkOperationQueue` interface is clean and injectable — but the implementation is **`InMemoryBulkOperationQueue` (not durable)**.
+
+### Critical performance gap
+`SearchIssuesQueryHandler` and `GetIssuesQueryHandler` both call `GetAllAsync()` (full collection load) then apply LINQ in-memory. This is **O(N)** and will collapse at scale. MongoDB Atlas Search is the correct fix at the database layer.
+
+### Top 5 quick wins (high-value, low-complexity)
+1. **User Notification Preferences UI** — model exists, page is missing (S)
+2. **Due Dates + Priority Fields** — additive model change, no migration (S)
+3. **Issue Watchers / Subscriptions** — `WatcherIds` on Issue + handler tweak (S)
+4. **Redis Distributed Cache for Analytics** — Redis is already running, swap `IMemoryCache` → `IDistributedCache` (S)
+5. **Background Job Visibility Admin Page** — `IBulkOperationQueue.GetStatusAsync` exists, new page only (S)
+
+### Investigation output
+Full structured investigation (20 ideas, prioritised) written to:
+`.squad/decisions/inbox/aragorn-feature-ideas-2026-04-02.md`
