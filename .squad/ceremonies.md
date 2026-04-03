@@ -436,9 +436,12 @@ echo "✅ Orphan branch cleanup complete."
 
 ### Git Worktree Setup Ceremony
 
-- **Trigger:** manual — when starting a new sprint or when multiple squad branches are active simultaneously
-- **When:** before beginning sprint work
-- **Facilitator:** Boromir / Aragorn
+- **Trigger:** any of the following:
+  - User says "use worktrees", "use a worktree", "isolate in a worktree", or "set up a sprint worktree"
+  - ≥2 squad branches are active simultaneously
+  - A new sprint begins with parallel workstreams planned
+- **When:** before beginning sprint work, or at plan creation time when isolation is requested
+- **Facilitator:** Boromir / Aragorn / Copilot (Coding Agent)
 - **Purpose:** Isolate squad branch work, scribe/planning commits, and main branch to prevent `.squad/` files bleeding into feature branches
 
 #### Worktree Layout
