@@ -2514,3 +2514,39 @@ _active ? "btn btn-primary" : "btn btn-secondary"
 
 **Scribe Note:** Merged from decision inbox file `legolas-btn-consolidation.md`
 
+
+---
+
+### Git Workflow
+
+#### Git Worktrees as Standard Isolation Strategy (2026-04-03)
+
+**By:** Matthew Paulosky (via Copilot)
+**What:** Adopt git worktrees as the standard isolation strategy for squad planning, scribe, and sprint branch work.
+**Why:** Single-worktree workflow caused recurring `.squad/` files bleeding into `feature/*` branches, context-switching overhead, and inability to run parallel sprint branches without interference.
+
+**Layout:**
+```
+~/Repos/
+├── IssueTrackerApp/            ← main worktree  (stays on main)
+├── IssueTrackerApp-scribe/     ← scribe/planning worktree (.squad/ commits only)
+└── IssueTrackerApp-sprint/     ← active sprint worktree (squad/{issue}-{slug})
+```
+
+**Trigger phrases:** "use worktrees", "use a worktree", "isolate in a worktree", "set up a sprint worktree", or automatically when ≥2 squad branches are active.
+
+**Rules:**
+- Main worktree stays on `main` — never used for active squad branch work
+- Scribe worktree: only `.squad/` commits — no source code changes
+- Sprint worktrees: one per active squad branch
+- No simultaneous `dotnet build` — `bin/`/`obj/` are shared
+- Pre-push hook enforced in every worktree
+
+**Setup:**
+```bash
+git worktree add ../IssueTrackerApp-scribe squad/scribe-log-updates
+git worktree add ../IssueTrackerApp-sprint -b squad/{issue-number}-{slug}
+git worktree remove ../IssueTrackerApp-sprint  # after merge
+```
+
+**Scribe Note:** Merged from decision inbox file `copilot-git-worktrees.md`
