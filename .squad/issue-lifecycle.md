@@ -173,8 +173,23 @@ git push -u origin squad/{issue-number}-{slug}
 **Actions:**
 1. Open PR from feature branch to base branch
 2. Reference issue in PR description
-3. Apply labels if needed
+3. Apply required labels (see below)
 4. Transition issue to `needsReview` state
+
+**Required PR labels (apply on every PR):**
+
+| Label | How to pick |
+|-------|-------------|
+| `type:*` | Match commit prefix: `feat`→`type:feature`, `fix`→`type:bug`, `chore`/`style`/`refactor`/`build`/`ci`→`type:chore`, `docs`→`type:docs` |
+| `squad:{member}` | Who did the work (e.g. `squad:copilot`, `squad:sam`) |
+| `sprint-{N}` | Current sprint number (check `.squad/team.md` or open sprint label) |
+
+**Optional PR labels:**
+
+| Label | When |
+|-------|------|
+| `release:v{X}` | When targeting a specific release milestone |
+| `priority:p{N}` | When PR is urgent or blocking |
 
 **PR creation commands:**
 
@@ -183,7 +198,8 @@ git push -u origin squad/{issue-number}-{slug}
 gh pr create --title "{title}" \
   --body "Closes #{issue-number}\n\n{description}" \
   --head squad/{issue-number}-{slug} \
-  --base main
+  --base main \
+  --label "type:{type},squad:{member},sprint-{N}"
 ```
 
 **Azure DevOps:**
