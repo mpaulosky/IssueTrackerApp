@@ -101,8 +101,12 @@ public sealed class LabelEndpointTests : IntegrationTestBase
 		// Act
 		var response = await client.GetAsync("/api/labels/suggestions?prefix=BU");
 
-		// Assert – endpoint should either return matches or empty (documents actual behavior)
+		// Assert – case-insensitive matching must return both lower-case labels
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
+		var suggestions = await response.Content.ReadFromJsonAsync<List<string>>(JsonOptions);
+		suggestions.Should().NotBeNull();
+		suggestions.Should().Contain("bug");
+		suggestions.Should().Contain("build");
 	}
 
 	[Fact]
@@ -145,11 +149,12 @@ public sealed class LabelEndpointTests : IntegrationTestBase
 		// Act
 		var response = await client.GetAsync("/api/labels/suggestions?prefix=feat&max=2");
 
-		// Assert
+		// Assert – max=2, we seeded 5+ matching labels → must get exactly 2
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 		var suggestions = await response.Content.ReadFromJsonAsync<List<string>>(JsonOptions);
 		suggestions.Should().NotBeNull();
-		suggestions!.Count.Should().BeLessThanOrEqualTo(2);
+		suggestions!.Count.Should().Be(2);
+		suggestions.Should().OnlyContain(s => s.StartsWith("feat", StringComparison.OrdinalIgnoreCase));
 	}
 
 	[Fact]
@@ -164,11 +169,12 @@ public sealed class LabelEndpointTests : IntegrationTestBase
 		// Act
 		var response = await client.GetAsync("/api/labels/suggestions?prefix=lbl");
 
-		// Assert – default cap is 10
+		// Assert – default cap is 10; we have 15 matching labels → expect exactly 10
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 		var suggestions = await response.Content.ReadFromJsonAsync<List<string>>(JsonOptions);
 		suggestions.Should().NotBeNull();
-		suggestions!.Count.Should().BeLessThanOrEqualTo(10);
+		suggestions!.Count.Should().Be(10);
+		suggestions.Should().OnlyContain(s => s.StartsWith("lbl", StringComparison.OrdinalIgnoreCase));
 	}
 
 	#endregion
