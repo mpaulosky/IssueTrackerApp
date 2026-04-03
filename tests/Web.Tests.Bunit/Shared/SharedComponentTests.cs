@@ -355,7 +355,7 @@ public class StatusBadgeTests : BunitTestBase
 	}
 
 	[Fact]
-	public void StatusBadge_ClosedStatus_AppliesGrayColorClass()
+	public void StatusBadge_ClosedStatus_AppliesPrimaryColorClass()
 	{
 		// Arrange
 		var status = CreateTestStatus(name: "Closed");
@@ -365,8 +365,8 @@ public class StatusBadgeTests : BunitTestBase
 			.Add(p => p.Status, status));
 
 		// Assert
-		cut.Find("span").GetAttribute("class").Should().Contain("bg-gray-100");
-		cut.Find("span").GetAttribute("class").Should().Contain("text-gray-800");
+		cut.Find("span").GetAttribute("class").Should().Contain("bg-primary-100");
+		cut.Find("span").GetAttribute("class").Should().Contain("text-primary-800");
 	}
 
 	[Fact]
