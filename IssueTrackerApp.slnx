@@ -17,5 +17,6 @@
     <Project Path="tests/Persistence.MongoDb.Tests.Integration/Persistence.MongoDb.Tests.Integration.csproj" />
     <Project Path="tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj" />
     <Project Path="tests/Web.Tests.Integration/Web.Tests.Integration.csproj" />
+    <Project Path="tests/Web.Tests/Web.Tests.csproj" />
   </Folder>
 </Solution>
