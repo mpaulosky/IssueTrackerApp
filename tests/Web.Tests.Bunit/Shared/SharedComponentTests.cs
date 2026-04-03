@@ -310,7 +310,7 @@ public class StatusBadgeTests : BunitTestBase
 	}
 
 	[Fact]
-	public void StatusBadge_OpenStatus_AppliesBlueColorClass()
+	public void StatusBadge_OpenStatus_AppliesPrimaryColorClass()
 	{
 		// Arrange
 		var status = CreateTestStatus(name: "Open");
