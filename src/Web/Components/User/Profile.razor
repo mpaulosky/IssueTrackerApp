@@ -76,24 +76,26 @@
 				<h2 class="text-2xl mb-4">All Claims</h2>
 				<h4 class="text-sm mb-4">Debug information showing all claims for this user:</h4>
 
-				<div class="bg-primary-400 dark:bg-primary-800 rounded p-4 overflow-auto">
-					<table class="w-full text-sm">
-						<thead>
-							<tr class="border-b border-primary-600">
-								<th class="text-left text-primary-800 dark:text-primary-100 pb-2">Claim Type</th>
-								<th class="text-left text-primary-800 dark:text-primary-100 pb-2">Value</th>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach (var claim in context.User.Claims.OrderBy(c => c.Type))
-							{
-								<tr class="border-b border-primary-700">
-									<td class="px-4 font-semibold text-primary-800 dark:text-primary-100">@claim.Type</td>
-									<td class="px-4 font-semibold text-primary-800 dark:text-primary-100">@claim.Value</td>
+				<div class="card-bordered shadow overflow-hidden sm:rounded-lg">
+					<div class="overflow-x-auto">
+						<table class="min-w-full divide-y divide-primary-200 dark:divide-primary-700">
+							<thead class="bg-primary-700">
+								<tr>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">Claim Type</th>
+									<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">Value</th>
 								</tr>
-							}
-						</tbody>
-					</table>
+							</thead>
+							<tbody class="divide-y divide-primary-200 dark:divide-primary-700">
+								@foreach (var claim in context.User.Claims.OrderBy(c => c.Type))
+								{
+									<tr>
+										<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-900 dark:text-white">@claim.Type</td>
+										<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-900 dark:text-white">@claim.Value</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</Authorized>

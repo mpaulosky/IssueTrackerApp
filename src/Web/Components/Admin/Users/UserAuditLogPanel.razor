@@ -67,32 +67,32 @@
 			{
 				<div class="overflow-x-auto">
 					<table class="min-w-full divide-y divide-primary-200 dark:divide-primary-700">
-						<thead class="bg-primary-200 dark:bg-primary-700">
-							<tr>
-								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-primary-500 dark:text-primary-300 uppercase tracking-wider">
-									Timestamp
-								</th>
-								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-primary-500 dark:text-primary-300 uppercase tracking-wider">
-									Action
-								</th>
-								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-primary-500 dark:text-primary-300 uppercase tracking-wider">
-									Role
-								</th>
-								<th scope="col" class="px-4 py-3 text-left text-xs font-medium text-primary-500 dark:text-primary-300 uppercase tracking-wider">
-									Changed By
-								</th>
-							</tr>
-						</thead>
+						<thead class="bg-primary-700">
+						<tr>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+								Timestamp
+							</th>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+								Action
+							</th>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+								Role
+							</th>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+								Changed By
+							</th>
+						</tr>
+					</thead>
 						<tbody class="divide-y divide-primary-200 dark:divide-primary-700">
 							@foreach (var entry in PagedEntries)
 							{
 								<tr>
-									<td class="px-4 py-3 whitespace-nowrap text-sm text-primary-500 dark:text-primary-400">
+									<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-500 dark:text-primary-400">
 										<span title='@entry.Timestamp.ToLocalTime().ToString("O")'>
 											@FormatRelativeTime(entry.Timestamp)
 										</span>
 									</td>
-									<td class="px-4 py-3 whitespace-nowrap text-sm">
+									<td class="px-6 py-4 whitespace-nowrap text-sm">
 										@if (string.Equals(entry.Action, "assigned", StringComparison.OrdinalIgnoreCase))
 										{
 											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
@@ -106,10 +106,10 @@
 											</span>
 										}
 									</td>
-									<td class="px-4 py-3 whitespace-nowrap text-sm text-primary-900 dark:text-primary-100">
+									<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-900 dark:text-primary-100">
 										@entry.RoleName
 									</td>
-									<td class="px-4 py-3 whitespace-nowrap text-sm text-primary-500 dark:text-primary-400">
+									<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-500 dark:text-primary-400">
 										@(string.IsNullOrEmpty(entry.AdminUserName) ? entry.AdminUserId : entry.AdminUserName)
 									</td>
 								</tr>
