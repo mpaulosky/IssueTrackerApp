@@ -698,10 +698,13 @@ jobs:
             coverage=$(jq -r '.lineCoverage' ./coverage-output/Summary.json 2>/dev/null || echo "0")
             echo "Line Coverage: $coverage%"
             if (( $(echo "$coverage < 80" | bc -l) )); then
-              echo "::warning::Code coverage is below 80% threshold: $coverage%"
+              echo "::error::Code coverage is below 80% threshold: $coverage% (required: 80%)"
+              exit 1
+            else
+              echo "::notice::Coverage gate passed: $coverage% >= 80%"
             fi
           else
-            echo "::notice::Coverage report not available"
+            echo "::warning::Coverage report not available — skipping threshold check"
           fi
 
       - name: Upload coverage reports
