@@ -699,7 +699,7 @@ public class CreatePageTests : BunitTestBase
 		await cut.InvokeAsync(() => Task.Delay(50));
 
 		// Assert
-		cut.Markup.Should().Contain("bg-gray-50");
+		cut.Markup.Should().Contain("bg-primary-50");
 		cut.Markup.Should().Contain("flex");
 		cut.Markup.Should().Contain("justify-end");
 	}

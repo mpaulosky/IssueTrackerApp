@@ -1,11 +1,11 @@
 <div class="card-bordered p-6">
 	<div class="flex items-center justify-between">
 		<div class="flex-1">
-			<p class="text-sm font-medium text-gray-600 dark:text-gray-400">@Title</p>
-			<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">@Value</p>
+			<p class="text-sm font-medium text-primary-600 dark:text-primary-400">@Title</p>
+			<p class="mt-2 text-3xl font-bold text-primary-900 dark:text-white">@Value</p>
 			@if (!string.IsNullOrEmpty(Subtitle))
 			{
-				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">@Subtitle</p>
+				<p class="mt-1 text-xs text-primary-500 dark:text-primary-400">@Subtitle</p>
 			}
 		</div>
 		@if (!string.IsNullOrEmpty(Icon))
@@ -40,11 +40,11 @@
 			}
 			else
 			{
-				<span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+				<span class="text-sm font-medium text-primary-600 dark:text-primary-400">
 					No change
 				</span>
 			}
-			<span class="ml-2 text-xs text-gray-500 dark:text-gray-400">vs last period</span>
+			<span class="ml-2 text-xs text-primary-500 dark:text-primary-400">vs last period</span>
 		</div>
 	}
 </div>

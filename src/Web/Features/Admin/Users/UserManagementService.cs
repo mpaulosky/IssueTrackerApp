@@ -77,8 +77,21 @@ public sealed class UserManagementService : IUserManagementService
 				.GetAllAsync(new GetUsersRequest(), new PaginationInfo(auth0Page, perPage, false), ct)
 				.ConfigureAwait(false);
 
-			var summaries = users.Select(MapUser).ToList();
-			return Result.Ok<IReadOnlyList<AdminUserSummary>>(summaries);
+			// Auth0's list endpoint does not include role assignments; fetch them per user in
+			// parallel to avoid sequential N+1 latency.
+			var summaries = await Task.WhenAll(users.Select(async u =>
+			{
+				var roles = await client.Users
+					.GetRolesAsync(u.UserId, new PaginationInfo(0, 100, false), ct)
+					.ConfigureAwait(false);
+
+				return MapUser(u) with
+				{
+					Roles = roles.Select(r => r.Name ?? string.Empty).ToList()
+				};
+			})).ConfigureAwait(false);
+
+			return Result.Ok<IReadOnlyList<AdminUserSummary>>(summaries.ToList());
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{

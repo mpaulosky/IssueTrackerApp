@@ -44,14 +44,14 @@
 						</button>
 						@if (_showStatusDropdown)
 						{
-							<div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+							<div class="absolute right-0 mt-2 w-48 bg-white dark:bg-primary-800 rounded-md shadow-lg z-50 border border-primary-200 dark:border-primary-700">
 								<div class="py-1">
 									@if (Statuses is not null)
 									{
 										@foreach (var status in Statuses)
 										{
 											<button type="button"
-												class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+												class="w-full text-left px-4 py-2 text-sm text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-700"
 												@onclick="() => OnStatusSelected(status)">
 												@status.StatusName
 											</button>
@@ -77,14 +77,14 @@
 						</button>
 						@if (_showCategoryDropdown)
 						{
-							<div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+							<div class="absolute right-0 mt-2 w-48 bg-white dark:bg-primary-800 rounded-md shadow-lg z-50 border border-primary-200 dark:border-primary-700">
 								<div class="py-1">
 									@if (Categories is not null)
 									{
 										@foreach (var category in Categories)
 										{
 											<button type="button"
-												class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+												class="w-full text-left px-4 py-2 text-sm text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-700"
 												@onclick="() => OnCategorySelected(category)">
 												@category.CategoryName
 											</button>
@@ -131,27 +131,27 @@
 					</button>
 					@if (_showMobileMenu)
 					{
-						<div class="absolute right-0 left-0 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+						<div class="absolute right-0 left-0 mt-2 bg-white dark:bg-primary-800 rounded-md shadow-lg z-50 border border-primary-200 dark:border-primary-700">
 							<div class="py-1">
 								<button type="button"
-									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+									class="w-full text-left px-4 py-2 text-sm text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-700"
 									@onclick="() => { _showMobileMenu = false; _showStatusDropdown = true; }">
 									Change Status
 								</button>
 								<button type="button"
-									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+									class="w-full text-left px-4 py-2 text-sm text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-700"
 									@onclick="() => { _showMobileMenu = false; _showCategoryDropdown = true; }">
 									Change Category
 								</button>
 								<button type="button"
-									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+									class="w-full text-left px-4 py-2 text-sm text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-700"
 									@onclick="OnExportClicked">
 									Export
 								</button>
 								@if (IsAdmin)
 								{
 									<button type="button"
-										class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+										class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-primary-100 dark:hover:bg-primary-700"
 										@onclick="OnDeleteClicked">
 										Delete Selected
 									</button>

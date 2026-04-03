@@ -9,6 +9,9 @@
 
 using System.Security.Claims;
 
+using Domain.Features.Admin.Models;
+using Domain.Features.Admin.Users.Queries;
+
 using MediatR;
 
 using Microsoft.Extensions.Logging;
@@ -107,6 +110,11 @@ public abstract class BunitTestBase : BunitContext
 			.Returns(Task.FromResult(Result.Fail<AnalyticsSummaryDto>("No data")));
 		LabelService.GetSuggestionsAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>()));
+
+		// Returning a failed result causes EditUserRolesModal to fall back to User.Roles (safe
+		// default). Tests that need specific role data can override this with their own setup.
+		Mediator.Send(Arg.Any<GetUserByIdQuery>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Fail<AdminUserSummary>("Not configured in test")));
 
 		// Register logging infrastructure
 		Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);

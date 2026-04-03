@@ -7,15 +7,11 @@
 @inject IJSRuntime JSRuntime
 @inject ILogger<Analytics> Logger
 
-<PageTitle>Analytics - IssueTrackerApp</PageTitle>
-
 <AdminPageLayout Title="Analytics Dashboard" Description="View comprehensive analytics and insights about your issues">
 
 	<!-- Date Range Picker -->
 	<div class="card-bordered mb-6 p-4">
-		<DateRangePicker StartDate="_startDate"
-		                 EndDate="_endDate"
-		                 OnRangeChanged="OnDateRangeChanged" />
+		<DateRangePicker StartDate="_startDate" EndDate="_endDate" OnRangeChanged="OnDateRangeChanged" />
 	</div>
 
 	@if (_isLoading)
@@ -26,8 +22,8 @@
 				@for (int i = 0; i < 4; i++)
 				{
 					<div class="card-bordered p-6 animate-pulse">
-						<div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-						<div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+						<div class="h-4 bg-primary-200 dark:bg-primary-700 rounded w-1/2 mb-4"></div>
+						<div class="h-8 bg-primary-200 dark:bg-primary-700 rounded w-3/4"></div>
 					</div>
 				}
 			</div>
@@ -44,26 +40,18 @@
 	{
 		<!-- Summary Cards -->
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-			<SummaryCard Title="Total Issues"
-			             Value="@_analyticsData.TotalIssues.ToString()"
-			             Icon="@TotalIssuesIcon"
-			             IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400" />
+			<SummaryCard Title="Total Issues" Value="@_analyticsData.TotalIssues.ToString()" Icon="@TotalIssuesIcon"
+									 IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400" />
 
-			<SummaryCard Title="Open Issues"
-			             Value="@_analyticsData.OpenIssues.ToString()"
-			             Icon="@OpenIssuesIcon"
-			             IconBackgroundClass="bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400" />
+			<SummaryCard Title="Open Issues" Value="@_analyticsData.OpenIssues.ToString()" Icon="@OpenIssuesIcon"
+									 IconBackgroundClass="bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400" />
 
-			<SummaryCard Title="Closed Issues"
-			             Value="@_analyticsData.ClosedIssues.ToString()"
-			             Icon="@ClosedIssuesIcon"
-			             IconBackgroundClass="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400" />
+			<SummaryCard Title="Closed Issues" Value="@_analyticsData.ClosedIssues.ToString()" Icon="@ClosedIssuesIcon"
+									 IconBackgroundClass="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400" />
 
-			<SummaryCard Title="Avg Resolution Time"
-			             Value="@FormatResolutionTime(_analyticsData.AverageResolutionHours)"
-			             Subtitle="hours"
-			             Icon="@TimeIcon"
-			             IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400" />
+			<SummaryCard Title="Avg Resolution Time" Value="@FormatResolutionTime(_analyticsData.AverageResolutionHours)"
+									 Subtitle="hours" Icon="@TimeIcon"
+									 IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400" />
 		</div>
 
 		<!-- Charts Grid -->
@@ -72,11 +60,8 @@
 			<div class="card-bordered p-6">
 				<h3 class="heading-section mb-4">Issues by Status</h3>
 				<div class="h-64">
-					<PieChart ChartId="statusChart"
-					          Labels="@_statusLabels"
-					          Data="@_statusData"
-					          Colors="@_statusColors"
-					          IsLoading="_isLoading" />
+					<PieChart ChartId="statusChart" Labels="@_statusLabels" Data="@_statusData" Colors="@_statusColors"
+										IsLoading="_isLoading" />
 				</div>
 			</div>
 
@@ -84,11 +69,8 @@
 			<div class="card-bordered p-6">
 				<h3 class="heading-section mb-4">Issues by Category</h3>
 				<div class="h-64">
-					<BarChart ChartId="categoryChart"
-					          Labels="@_categoryLabels"
-					          Data="@_categoryData"
-					          Color="#3b82f6"
-					          IsLoading="_isLoading" />
+					<BarChart ChartId="categoryChart" Labels="@_categoryLabels" Data="@_categoryData" Color="#3b82f6"
+										IsLoading="_isLoading" />
 				</div>
 			</div>
 
@@ -96,10 +78,7 @@
 			<div class="card-bordered p-6 lg:col-span-2">
 				<h3 class="heading-section mb-4">Issues Over Time</h3>
 				<div class="h-64">
-					<LineChart ChartId="timeChart"
-					           Labels="@_timeLabels"
-					           Datasets="@_timeDatasets"
-					           IsLoading="_isLoading" />
+					<LineChart ChartId="timeChart" Labels="@_timeLabels" Datasets="@_timeDatasets" IsLoading="_isLoading" />
 				</div>
 			</div>
 
@@ -107,32 +86,30 @@
 			<div class="card-bordered p-6 lg:col-span-2">
 				<h3 class="heading-section mb-4">Top Contributors</h3>
 				<div class="h-64">
-					<BarChart ChartId="contributorsChart"
-					          Labels="@_contributorLabels"
-					          Data="@_contributorData"
-					          Color="#10b981"
-					          IsLoading="_isLoading" />
+					<BarChart ChartId="contributorsChart" Labels="@_contributorLabels" Data="@_contributorData" Color="#10b981"
+										IsLoading="_isLoading" />
 				</div>
 			</div>
 		</div>
 
 		<!-- Export Button -->
 		<div class="mt-6 flex justify-end">
-			<button @onclick="ExportToCsv"
-			        disabled="@_isExporting"
-			        class="btn btn-primary rounded-lg">
+			<button @onclick="ExportToCsv" disabled="@_isExporting" class="btn btn-primary rounded-lg">
 				@if (_isExporting)
 				{
 					<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						<path class="opacity-75" fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+						</path>
 					</svg>
 					<span>Exporting...</span>
 				}
 				else
 				{
 					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+									d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 					</svg>
 					<span>Export to CSV</span>
 				}

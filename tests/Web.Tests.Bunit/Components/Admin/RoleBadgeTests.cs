@@ -95,7 +95,7 @@ public class RoleBadgeTests : BunitTestBase
 	}
 
 	[Fact]
-	public void RoleBadge_UnknownRole_RendersGreyColorClasses()
+	public void RoleBadge_UnknownRole_RendersPrimaryColorClasses()
 	{
 		// Arrange & Act
 		var cut = Render<RoleBadge>(parameters => parameters
@@ -103,8 +103,8 @@ public class RoleBadgeTests : BunitTestBase
 
 		// Assert
 		var span = cut.Find("span");
-		span.ClassList.Should().Contain("bg-gray-100", "Unknown role should have grey background");
-		span.ClassList.Should().Contain("text-gray-800", "Unknown role should have grey text");
+		span.ClassList.Should().Contain("bg-primary-100", "Unknown role should have primary background");
+		span.ClassList.Should().Contain("text-primary-800", "Unknown role should have primary text");
 	}
 
 	[Fact]

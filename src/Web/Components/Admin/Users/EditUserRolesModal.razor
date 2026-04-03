@@ -1,12 +1,3 @@
-@* ============================================
-   Copyright (c) 2026. All rights reserved.
-   File Name :     EditUserRolesModal.razor
-   Company :       mpaulosky
-   Author :        Matthew Paulosky
-   Solution Name : IssueManager
-   Project Name :  Web
-   ============================================ *@
-
 @using Domain.Features.Admin.Models
 @using Domain.Features.Admin.Users.Commands
 @using Domain.Features.Admin.Users.Queries
@@ -40,11 +31,11 @@
 				<!-- Modal Header -->
 				<div class="border-b border-primary-200 dark:border-primary-700 px-6 py-4">
 					<div class="flex items-start justify-between">
-						<h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-title">
+						<h3 class="text-lg font-semibold text-primary-900 dark:text-white" id="modal-title">
 							Edit Roles \u2014 @User.Name (@User.Email)
 						</h3>
 						<button type="button"
-						        class="ml-4 flex-shrink-0 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						        class="ml-4 flex-shrink-0 rounded-md text-primary-400 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
 						        @onclick="HandleClose"
 						        disabled="@_isSaving">
 							<span class="sr-only">Close</span>
@@ -89,21 +80,21 @@
 
 						<!-- Role checkboxes: checked = currently assigned -->
 						<div class="space-y-3">
-							<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+							<p class="text-sm font-medium text-primary-700 dark:text-primary-300">
 								Select roles for this user:
 							</p>
 							@foreach (var role in _availableRoles)
 							{
-								<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+								<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-primary-50 dark:hover:bg-primary-700/50 cursor-pointer transition-colors">
 									<input type="checkbox"
-									       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
+									       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 dark:border-primary-600 rounded"
 									       checked="@_selectedRoles.Contains(role.RoleName)"
 									       @onchange="@(e => HandleRoleToggle(role.RoleName, e))"
 									       disabled="@_isSaving" />
-									<span class="text-sm font-medium text-gray-900 dark:text-gray-100">@role.RoleName</span>
+									<span class="text-sm font-medium text-primary-900 dark:text-primary-100">@role.RoleName</span>
 									@if (!string.IsNullOrEmpty(role.Description))
 									{
-										<span class="text-xs text-gray-500 dark:text-gray-400">\u2014 @role.Description</span>
+										<span class="text-xs text-primary-500 dark:text-primary-400">\u2014 @role.Description</span>
 									}
 								</label>
 							}
@@ -113,7 +104,7 @@
 					{
 						<!-- Confirmation step -->
 						<div class="space-y-4">
-							<p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+							<p class="text-sm font-medium text-primary-700 dark:text-primary-300">
 								You are about to make the following role changes:
 							</p>
 
@@ -245,9 +236,10 @@
 			_step = ModalStep.Edit;
 			_errorMessage = null;
 			_isSaving = false;
-			_selectedRoles = [.. User.Roles];
-			_initialRoles = [.. User.Roles];
 			_shouldFocus = true;
+
+			// Fetch fresh role assignments from Auth0 so the checkboxes reflect the current
+			// state even when the parent list data is cached or was loaded before a role change.
 			await LoadRolesAsync();
 		}
 		else if (User is null)
@@ -267,19 +259,38 @@
 
 	private async Task LoadRolesAsync()
 	{
+		if (User is null) return;
+
 		_isLoadingRoles = true;
 
 		try
 		{
-			var result = await Mediator.Send(new ListRolesQuery());
-			if (result.Success)
+			// Fetch available roles and the user's current assignments concurrently.
+			var rolesTask = Mediator.Send(new ListRolesQuery());
+			var userTask  = Mediator.Send(new GetUserByIdQuery(User.UserId));
+
+			await Task.WhenAll(rolesTask, userTask);
+
+			var rolesResult = await rolesTask;
+			var userResult  = await userTask;
+
+			if (rolesResult.Success)
 			{
-				_availableRoles = result.Value ?? [];
+				_availableRoles = rolesResult.Value ?? [];
 			}
 			else
 			{
-				_errorMessage = result.Error ?? "Failed to load available roles.";
+				_errorMessage = rolesResult.Error ?? "Failed to load available roles.";
 			}
+
+			// Seed selection from the freshly fetched user — falls back to the prop if the
+			// individual fetch fails (e.g., transient Auth0 error).
+			var currentRoles = userResult.Success
+				? userResult.Value?.Roles ?? User.Roles
+				: User.Roles;
+
+			_selectedRoles = [.. currentRoles];
+			_initialRoles  = [.. currentRoles];
 		}
 		finally
 		{
