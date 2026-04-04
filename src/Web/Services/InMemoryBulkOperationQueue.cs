@@ -54,10 +54,11 @@ public sealed class InMemoryBulkOperationQueue : IBulkOperationQueue
 			typeof(T).Name,
 			DateTime.UtcNow);
 
-		await _channel.Writer.WriteAsync(queuedOperation, cancellationToken);
-
-		// Store initial status
+		// Store initial status before writing to channel to avoid race condition
+		// where background service processes and sets terminal status before Queued is set
 		await UpdateStatusAsync(operationId, BulkOperationStatus.Queued, null, cancellationToken);
+
+		await _channel.Writer.WriteAsync(queuedOperation, cancellationToken);
 
 		_logger.LogInformation(
 			"Queued bulk operation {OperationId} of type {Type}",
