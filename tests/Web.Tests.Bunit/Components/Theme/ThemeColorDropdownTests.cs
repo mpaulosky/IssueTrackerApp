@@ -136,9 +136,13 @@ public class ThemeColorDropdownTests : BunitTestBase
 		// Act
 		await cut.InvokeAsync(() => cut.Find("button[aria-label='Blue color theme']").Click());
 
-		// Assert – the JS call was made (Loose mode still captures invocations)
-		JSInterop.Invocations.Count(x => x.Identifier == "themeManager.setColor")
-			.Should().BeGreaterThan(0,
-			"selecting a color must persist the choice via themeManager.setColor");
+		// Assert – exactly one call with the correct lowercase argument
+		var setColorCalls = JSInterop.Invocations
+			.Where(x => x.Identifier == "themeManager.setColor")
+			.ToList();
+		setColorCalls.Should().HaveCount(1,
+			"selecting a color must persist the choice via exactly one themeManager.setColor call");
+		setColorCalls[0].Arguments[0].Should().Be("blue",
+			"clicking the Blue swatch must call setColor with lowercase \"blue\"");
 	}
 }

@@ -95,10 +95,16 @@ public class ThemeBrightnessToggleTests : BunitTestBase
 		// Act
 		await cut.InvokeAsync(() => cut.Find($"button#{ToggleButtonId}").Click());
 
-		// Assert – after toggle the title should invite switching back to light
+		// Assert – UI reflects dark mode
 		var button = cut.Find($"button#{ToggleButtonId}");
 		button.GetAttribute("title").Should().Be("Switch to light mode",
 			"clicking in light mode should activate dark mode");
+		// Assert – brightness was persisted to JS
+		JSInterop.Invocations.Count(x => x.Identifier == "themeManager.setBrightness")
+			.Should().Be(1, "setBrightness must be called exactly once");
+		JSInterop.Invocations.First(x => x.Identifier == "themeManager.setBrightness")
+			.Arguments[0].Should().Be("dark",
+			"clicking from light mode must persist \"dark\" brightness");
 	}
 
 	[Fact]
@@ -111,9 +117,15 @@ public class ThemeBrightnessToggleTests : BunitTestBase
 		// Act
 		await cut.InvokeAsync(() => cut.Find($"button#{ToggleButtonId}").Click());
 
-		// Assert – after toggle the title should invite switching back to dark
+		// Assert – UI reflects light mode
 		var button = cut.Find($"button#{ToggleButtonId}");
 		button.GetAttribute("title").Should().Be("Switch to dark mode",
 			"clicking in dark mode should activate light mode");
+		// Assert – brightness was persisted to JS
+		JSInterop.Invocations.Count(x => x.Identifier == "themeManager.setBrightness")
+			.Should().Be(1, "setBrightness must be called exactly once");
+		JSInterop.Invocations.First(x => x.Identifier == "themeManager.setBrightness")
+			.Arguments[0].Should().Be("light",
+			"clicking from dark mode must persist \"light\" brightness");
 	}
 }
