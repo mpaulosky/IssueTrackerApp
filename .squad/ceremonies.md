@@ -122,11 +122,17 @@ Ralph MUST verify ALL of the following before the review cycle begins. Any faili
 #### Review Protocol
 
 1. Determine required reviewers from the files-changed table above
-2. Spawn Aragorn + all required domain reviewers **in parallel**
-3. Each reviewer posts their verdict as a GitHub PR review (`gh pr review {N} --approve` or `--request-changes --body "..."`)
-4. Collect all verdicts — **unanimous approval required** (all spawned reviewers must approve)
-5. If ANY reviewer submits CHANGES_REQUESTED → trigger **CHANGES_REQUESTED Ceremony** (see below)
-6. All approved + CI green → squash merge
+2. **Read GitHub Copilot's automated review comments first:**
+   ```bash
+   gh pr view {N} --json reviews -q '.reviews[] | select(.author.login == "copilot-pull-request-reviewer") | .body'
+   ```
+   Aragorn must address any Copilot-flagged bugs, security issues, or logic errors
+   before posting his own verdict. Copilot style suggestions are discretionary.
+3. Spawn Aragorn + all required domain reviewers **in parallel**
+4. Each reviewer posts their verdict as a GitHub PR review (`gh pr review {N} --approve` or `--request-changes --body "..."`)
+5. Collect all verdicts — **unanimous approval required** (all spawned reviewers must approve)
+6. If ANY reviewer submits CHANGES_REQUESTED → trigger **CHANGES_REQUESTED Ceremony** (see below)
+7. All approved + CI green → squash merge
 
 #### Merge
 

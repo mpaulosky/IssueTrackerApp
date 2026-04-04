@@ -115,7 +115,7 @@ These instructions define the required coding, architecture, and project rules f
 - **Require CONTRIBUTING.md:** `true` (see `docs/CONTRIBUTING.md`)
 - **Require LICENSE:** `true` (see `LICENSE`)
 - **Require Code of Conduct:** `true` (see `CODE_OF_CONDUCT.md`)
-- **Require File Copyright Headers:** `true`
+- **Require File Copyright Headers:** `true` — C# (`.cs`) files only; do NOT add copyright headers to `.razor` files
 
 ### Logging (Required)
 
