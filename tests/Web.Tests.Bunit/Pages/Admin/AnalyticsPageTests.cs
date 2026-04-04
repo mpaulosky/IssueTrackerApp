@@ -175,7 +175,11 @@ public class AnalyticsPageTests : BunitTestBase
 		var cut = Render<Analytics>();
 		await cut.InvokeAsync(() => Task.Delay(50));
 
-		// Assert – summary content must not bleed through the error branch
+		// Assert – positive: the error block must be present (guards against blank-markup false pass)
+		cut.Markup.Should().Contain("Failed to load analytics data",
+			"the error block must be present to confirm the error branch rendered");
+
+		// Assert – negative: summary content must not bleed through the error branch
 		cut.Markup.Should().NotContain("Total Issues",
 			"the summary cards should not be rendered when loading fails");
 		cut.Markup.Should().NotContain("Export to CSV",
@@ -195,11 +199,14 @@ public class AnalyticsPageTests : BunitTestBase
 		var cut = Render<Analytics>();
 		await cut.InvokeAsync(() => Task.Delay(50));
 
-		// Assert
-		cut.Markup.Should().Contain("142",
-			"TotalIssues value of 142 should be rendered in the summary card");
-		cut.Markup.Should().Contain("Total Issues",
-			"Total Issues card title should be present");
+		// Assert – find the specific SummaryCard that contains "Total Issues" and verify
+		// its value element shows 142. This scopes the assertion to the right card rather
+		// than relying on a global substring match.
+		var allCards = cut.FindAll(".card-bordered.p-6");
+		var totalCard = allCards.FirstOrDefault(c => c.TextContent.Contains("Total Issues"));
+		totalCard.Should().NotBeNull("Total Issues summary card should be rendered");
+		totalCard!.TextContent.Should().Contain("142",
+			"Total Issues card should display the TotalIssues value");
 	}
 
 	[Fact]
@@ -213,11 +220,12 @@ public class AnalyticsPageTests : BunitTestBase
 		var cut = Render<Analytics>();
 		await cut.InvokeAsync(() => Task.Delay(50));
 
-		// Assert
-		cut.Markup.Should().Contain("37",
-			"OpenIssues value of 37 should be rendered in the summary card");
-		cut.Markup.Should().Contain("Open Issues",
-			"Open Issues card title should be present");
+		// Assert – scoped to the Open Issues card element
+		var allCards = cut.FindAll(".card-bordered.p-6");
+		var openCard = allCards.FirstOrDefault(c => c.TextContent.Contains("Open Issues"));
+		openCard.Should().NotBeNull("Open Issues summary card should be rendered");
+		openCard!.TextContent.Should().Contain("37",
+			"Open Issues card should display the OpenIssues value");
 	}
 
 	[Fact]
@@ -231,11 +239,12 @@ public class AnalyticsPageTests : BunitTestBase
 		var cut = Render<Analytics>();
 		await cut.InvokeAsync(() => Task.Delay(50));
 
-		// Assert
-		cut.Markup.Should().Contain("88",
-			"ClosedIssues value of 88 should be rendered in the summary card");
-		cut.Markup.Should().Contain("Closed Issues",
-			"Closed Issues card title should be present");
+		// Assert – scoped to the Closed Issues card element
+		var allCards = cut.FindAll(".card-bordered.p-6");
+		var closedCard = allCards.FirstOrDefault(c => c.TextContent.Contains("Closed Issues"));
+		closedCard.Should().NotBeNull("Closed Issues summary card should be rendered");
+		closedCard!.TextContent.Should().Contain("88",
+			"Closed Issues card should display the ClosedIssues value");
 	}
 
 	[Fact]
