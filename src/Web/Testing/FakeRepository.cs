@@ -7,6 +7,7 @@
 // Project Name :  Web
 // =============================================
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -18,6 +19,7 @@ namespace Web.Testing;
 /// Thread-safe in-memory implementation of <see cref="IRepository{TEntity}"/> used in the
 /// Testing environment to provide fast, self-contained E2E test data without a real database.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class FakeRepository<TEntity> : IRepository<TEntity> where TEntity : class
 {
 	private readonly List<TEntity> _store;

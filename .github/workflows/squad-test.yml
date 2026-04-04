@@ -690,6 +690,7 @@ jobs:
             -reports:"coverage-reports/**/**/coverage.cobertura.xml" \
             -targetdir:"./coverage-output" \
             -reporttypes:"Html;Cobertura;JsonSummary" \
+            -filefilters:"-**/obj/**/*.cs;-**/*.generated.cs" \
             -verbosity:verbose || echo "::warning::No coverage files found"
 
       - name: Check coverage threshold

@@ -7,6 +7,8 @@
 // Project Name :  Web
 // =============================================
 
+using System.Diagnostics.CodeAnalysis;
+
 using Domain.Models;
 
 using MongoDB.Bson;
@@ -17,6 +19,7 @@ namespace Web.Testing;
 /// Provides deterministic seed data for the Testing environment in-memory repositories.
 /// Hard-coded ObjectIds ensure stable IDs across test runs.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class FakeSeedData
 {
 	// --- Status IDs (deterministic, stable across runs) ---
