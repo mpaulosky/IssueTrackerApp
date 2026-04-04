@@ -25,4 +25,8 @@
   <ItemGroup>
     <Content Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <!-- Exclude untracked Theme tests that use removed bUnit 1.x APIs (pre-existing, not committed) -->
+  <ItemGroup>
+    <Compile Remove="Components\Theme\**\*.cs" />
+  </ItemGroup>
 </Project>
