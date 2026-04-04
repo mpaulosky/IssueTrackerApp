@@ -7,6 +7,8 @@
 // Project Name :  Web.Tests.Bunit
 // =======================================================
 
+using Microsoft.JSInterop;
+
 using Web.Components.Theme;
 
 namespace Web.Tests.Bunit.Components.Theme;
@@ -209,5 +211,60 @@ public class ThemeProviderTests : BunitTestBase
 		// Act & Assert
 		var act = async () => await cut.Instance.DisposeAsync();
 		await act.Should().NotThrowAsync("DisposeAsync must be safe to call");
+	}
+
+	// -----------------------------------------------------------------------
+	// Guard-path: initialization failure keeps setters as no-ops
+	// -----------------------------------------------------------------------
+
+	[Fact]
+	public async Task ThemeProvider_WhenJsInitFails_SetColorAsync_IsNoOp_AndDoesNotFireEvent()
+	{
+		// Arrange – make the first JS call (getColor) throw so InitializeThemeAsync
+		// is caught and _isInitialized stays false.
+		JSInterop.Setup<string>("themeManager.getColor")
+			.SetException(new JSException("simulated JS error"));
+
+		var cut = Render<ThemeProvider>(p =>
+			p.AddChildContent("<span>child</span>"));
+		var provider = cut.Instance;
+
+		var eventFired = false;
+		provider.OnThemeChanged += () => eventFired = true;
+
+		// Act – SetColorAsync guards on _isInitialized; should be a pure no-op
+		await cut.InvokeAsync(() => provider.SetColorAsync("red"));
+
+		// Assert
+		eventFired.Should().BeFalse(
+			"SetColorAsync must not fire OnThemeChanged when initialization failed");
+		JSInterop.Invocations.Should().NotContain(
+			x => x.Identifier == "themeManager.setColor",
+			"SetColorAsync must not reach the JS setColor call when not initialized");
+	}
+
+	[Fact]
+	public async Task ThemeProvider_WhenJsInitFails_SetBrightnessAsync_IsNoOp_AndDoesNotFireEvent()
+	{
+		// Arrange – same initialization failure scenario
+		JSInterop.Setup<string>("themeManager.getColor")
+			.SetException(new JSException("simulated JS error"));
+
+		var cut = Render<ThemeProvider>(p =>
+			p.AddChildContent("<span>child</span>"));
+		var provider = cut.Instance;
+
+		var eventFired = false;
+		provider.OnThemeChanged += () => eventFired = true;
+
+		// Act
+		await cut.InvokeAsync(() => provider.SetBrightnessAsync("dark"));
+
+		// Assert
+		eventFired.Should().BeFalse(
+			"SetBrightnessAsync must not fire OnThemeChanged when initialization failed");
+		JSInterop.Invocations.Should().NotContain(
+			x => x.Identifier == "themeManager.setBrightness",
+			"SetBrightnessAsync must not reach the JS setBrightness call when not initialized");
 	}
 }
