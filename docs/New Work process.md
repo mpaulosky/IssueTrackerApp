@@ -82,6 +82,17 @@ Ralph checks all gates before spawning reviewers:
    ```bash
    gh pr merge {N} --squash --delete-branch
    ```
+   **Why squash?** One commit per PR keeps `git log --oneline main` readable as a
+   changelog. GitHub auto-links the squash commit to the PR and issue, so full
+   traceability is preserved without merge-commit topology noise.
+
+   The squash commit message **must** follow Conventional Commits format and include
+   the issue reference — this makes `git log` double as release notes:
+   ```
+   feat: add label suggestions to issue form (Closes #215)
+   fix: resolve race condition in bulk operation queue (Closes #198)
+   docs: rewrite New Work process to reflect squad ceremonies (Closes #215)
+   ```
 5. Ralph runs **Post-Merge Orphan Branch Cleanup** ceremony automatically —
    removes stale local and remote `squad/*` refs and the sprint worktree
 
