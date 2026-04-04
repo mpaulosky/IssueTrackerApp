@@ -15,6 +15,7 @@ Tracks and drives the work queue. Makes sure the team never sits idle.
 - Report board status and trigger agent pickups
 - Run continuously until the board is clear or explicitly idled
 - **After every successful `gh pr merge`: trigger Post-Merge Orphan Branch Cleanup ceremony automatically**
+- **After every milestone closes: review the `📋 Milestone Review` issue (squad:ralph label), apply `release-candidate` or `blog-only`, triggering the Milestone Review → Release or Blog ceremony**
 
 ## Work Style
 

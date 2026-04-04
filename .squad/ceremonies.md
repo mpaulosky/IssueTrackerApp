@@ -489,3 +489,79 @@ git branch -d squad/{issue-number}-{slug}
 - **Code Review:** Triggered when PR is opened (Phase 4, step 2-3)
 - **Merged-PR Branch Guard:** Check before committing to avoid stranded commits
 - **Git Worktree Setup:** Use worktrees when ≥2 squad branches are active to prevent branch contamination
+
+---
+
+### Milestone Review → Release or Blog Ceremony
+
+- **Trigger:** automatic — `milestone-blog.yml` fires when any milestone is closed
+- **Facilitator:** Ralph (Work Monitor)
+- **Participants:** Ralph (decision), Bilbo (blog post), Boromir (release tagging via automation)
+- **Purpose:** Ensure every completed milestone gets either a full release or a blog post, and that the blog page is always updated.
+
+#### Flow
+
+```
+Milestone closed
+      ↓
+[milestone-blog.yml] creates Ralph review issue (squad:ralph + pending-review)
+      ↓
+Ralph reviews closed issues, checks release criteria
+      ↓
+Ralph labels the issue:
+  ├── "release-candidate"  →  [milestone-release-decision.yml]
+  │     ├── Dispatches squad-milestone-release.yml (tag + GitHub Release)
+  │     └── release-blog.yml fires on publish → creates squad:bilbo brief
+  └── "blog-only"          →  [milestone-release-decision.yml]
+        └── Creates squad:bilbo blog brief directly
+              ↓
+        Bilbo writes post + updates docs/blog/index.md
+              ↓
+        [blog-readme-sync.yml] → README.md updated (the Page)
+```
+
+#### Release Criteria (Ralph's checklist)
+
+| Criteria | Weight |
+|----------|--------|
+| Contains user-facing features or enhancements? | High |
+| Contains breaking changes or migration steps? | High (forces release) |
+| Sufficient scope for a version bump? (≥3 features, or ≥1 significant feature) | Medium |
+| All CI gates green on `main`? | Gate (must be green) |
+| More than a hotfix / documentation / process change only? | Low |
+
+**Default rule:** If in doubt, use `blog-only`. Releases should mark meaningful user-facing milestones.
+
+#### Version Bump Convention
+
+| Change type | Bump |
+|-------------|------|
+| Breaking API/schema change | `major` |
+| New user-facing features | `minor` |
+| Bug fixes, perf, polish only | `patch` |
+
+To override the default `minor` bump, add a line to the review issue body:
+```
+bump: patch
+```
+before applying the `release-candidate` label.
+
+#### Workflows Involved
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `milestone-blog.yml` | `milestone: closed` | Creates Ralph review issue |
+| `milestone-release-decision.yml` | Issue labeled `release-candidate` or `blog-only` | Routes to release or blog path |
+| `squad-milestone-release.yml` | `workflow_dispatch` | Creates tag + GitHub Release |
+| `release-blog.yml` | `release: published` | Creates Bilbo release blog brief |
+| `blog-readme-sync.yml` | `docs/blog/index.md` pushed to `main` | Updates README Dev Blog section |
+
+#### Rules
+
+| Rule | Detail |
+|------|--------|
+| **Every milestone gets a blog post** | No exceptions — `blog-only` is the minimum outcome |
+| **Ralph owns the decision** | No other agent applies `release-candidate` or `blog-only` labels |
+| **The Page always updates** | Bilbo must always update `docs/blog/index.md` — the sync workflow does the rest |
+| **Release = blog post** | A GitHub Release always triggers a blog post via `release-blog.yml` |
+| **Ralph closes the review issue** | The decision workflow closes it automatically after routing |
