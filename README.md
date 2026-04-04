@@ -12,6 +12,7 @@ A modern issue tracking application built with .NET Aspire, Blazor, and MongoDB.
 
 [![CodeCov Coverage](https://codecov.io/gh/mpaulosky/IssueTrackerApp/branch/main/graph/badge.svg)](https://codecov.io/gh/mpaulosky/IssueTrackerApp)
 [![Coverage Trend](https://img.shields.io/badge/Coverage-Trend-blue?logo=codecov)](https://codecov.io/gh/mpaulosky/IssueTrackerApp/commits/main)
+[![Coverage Gate](https://img.shields.io/badge/Coverage%20Gate-≥80%25-brightgreen?logo=codecov)](https://github.com/mpaulosky/IssueTrackerApp/actions/workflows/squad-test.yml)
 
 [![Open Issues](https://img.shields.io/github/issues/mpaulosky/IssueTrackerApp?color=0366d6)](https://github.com/mpaulosky/IssueTrackerApp/issues?q=is%3Aopen+is%3Aissue)
 [![Closed Issues](https://img.shields.io/github/issues-closed/mpaulosky/IssueTrackerApp?color=6f42c1)](https://github.com/mpaulosky/IssueTrackerApp/issues?q=is%3Aclosed+is%3Aissue)

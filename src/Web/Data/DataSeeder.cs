@@ -7,6 +7,8 @@
 // Project Name :  Web
 // =======================================================
 
+using System.Diagnostics.CodeAnalysis;
+
 using Domain.Abstractions;
 using Domain.DTOs;
 using Domain.Models;
@@ -31,6 +33,7 @@ public interface IDataSeeder
 /// <summary>
 ///   Implementation of IDataSeeder.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class DataSeeder : IDataSeeder
 {
 	private readonly IRepository<Category> _categoryRepository;
@@ -190,6 +193,7 @@ public sealed class DataSeeder : IDataSeeder
 /// <summary>
 ///   Extension methods for registering the DataSeeder.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class DataSeederExtensions
 {
 	/// <summary>

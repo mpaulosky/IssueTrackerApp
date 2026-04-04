@@ -144,6 +144,11 @@ public abstract class BunitTestBase : BunitContext
 
 		if (isAdmin)
 		{
+			// SetRoles must come first: in bUnit 2.x it rebuilds the ClaimsIdentity, which
+			// would otherwise overwrite the claims set below.  SetClaims after SetRoles
+			// re-establishes NameIdentifier (required by components that look up the userId)
+			// and the full role/name claims alongside the admin role.
+			_authContext.SetRoles(AuthorizationRoles.User, AuthorizationRoles.Admin);
 			_authContext.SetClaims(
 				new Claim(ClaimTypes.NameIdentifier, userId),
 				new Claim(ClaimTypes.Name, userName),
@@ -151,7 +156,6 @@ public abstract class BunitTestBase : BunitContext
 				new Claim(ClaimTypes.Role, AuthorizationRoles.User),
 				new Claim(ClaimTypes.Role, AuthorizationRoles.Admin)
 			);
-			_authContext.SetRoles(AuthorizationRoles.User, AuthorizationRoles.Admin);
 			_authContext.SetPolicies(AuthorizationPolicies.UserPolicy, AuthorizationPolicies.AdminPolicy);
 		}
 	}

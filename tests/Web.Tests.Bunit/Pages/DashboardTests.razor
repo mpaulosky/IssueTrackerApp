@@ -1,0 +1,494 @@
+@* =======================================================
+   Copyright (c) 2025. All rights reserved.
+   File Name :     DashboardTests.razor
+   Company :       mpaulosky
+   Author :        Matthew Paulosky
+   Solution Name : IssueTrackerApp
+   Project Name :  Web.Tests.Bunit
+   ======================================================= *@
+
+@inherits Web.Tests.Bunit.BunitTestBase
+
+@code {
+
+	// ──────────────────────────────────────────────────────────
+	// Loading-state tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public void Dashboard_ShowsLoadingSpinnerWhileDataIsPending()
+	{
+		// Arrange – never resolve the task so the component stays in _isLoading = true
+		var tcs = new TaskCompletionSource<Result<UserDashboardDto>>();
+		DashboardService
+			.GetUserDashboardAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(tcs.Task);
+
+		// Act
+		var cut = Render<Dashboard>();
+
+		// Assert – spinner SVG is present
+		cut.Markup.Should().Contain("animate-spin",
+			"a loading spinner should be visible before data arrives");
+	}
+
+	[Fact]
+	public async Task Dashboard_HidesLoadingSpinnerAfterDataLoads()
+	{
+		// Arrange
+		SetupDashboardService(new UserDashboardDto(3, 1, 2, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().NotContain("animate-spin",
+			"the spinner should disappear once data has loaded");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Stats-count tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_DisplaysCorrectTotalIssuesCount()
+	{
+		// Arrange – use a large distinctive value (142) that won't accidentally
+		// appear in SVG path data rendered by the component.
+		SetupDashboardService(new UserDashboardDto(142, 107, 130, 15, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – label and distinctive number must both be present
+		cut.Markup.Should().Contain("Total Issues");
+		cut.Markup.Should().Contain("142",
+			"TotalIssues value should be rendered in the stats card");
+	}
+
+	[Fact]
+	public async Task Dashboard_DisplaysCorrectOpenIssuesCount()
+	{
+		// Arrange – use 107 which will not appear in any SVG path attribute
+		SetupDashboardService(new UserDashboardDto(200, 107, 80, 13, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("Open Issues");
+		cut.Markup.Should().Contain("107",
+			"OpenIssues value should be rendered in the stats card");
+	}
+
+	[Fact]
+	public async Task Dashboard_DisplaysCorrectResolvedIssuesCount()
+	{
+		// Arrange – use 311 as a three-digit sentinel
+		SetupDashboardService(new UserDashboardDto(400, 89, 311, 3, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("Resolved Issues");
+		cut.Markup.Should().Contain("311",
+			"ResolvedIssues value should be rendered in the stats card");
+	}
+
+	[Fact]
+	public async Task Dashboard_DisplaysCorrectThisWeekCount()
+	{
+		// Arrange – use 205 as sentinel
+		SetupDashboardService(new UserDashboardDto(500, 100, 200, 205, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("This Week");
+		cut.Markup.Should().Contain("205",
+			"ThisWeekIssues value should be rendered in the stats card");
+	}
+
+	[Fact]
+	public async Task Dashboard_DisplaysAllFourStatCardHeadings()
+	{
+		// Arrange
+		SetupDashboardService(new UserDashboardDto(1, 1, 0, 1, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – all four card labels present
+		cut.Markup.Should().Contain("Total Issues");
+		cut.Markup.Should().Contain("Open Issues");
+		cut.Markup.Should().Contain("Resolved Issues");
+		cut.Markup.Should().Contain("This Week");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Recent-issues list tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_DisplaysRecentIssueTitles()
+	{
+		// Arrange
+		var issues = new List<IssueDto>
+		{
+			CreateTestIssue(title: "Login page crashes on Safari"),
+			CreateTestIssue(title: "Dark mode flicker on reload"),
+		};
+		SetupDashboardService(new UserDashboardDto(2, 2, 0, 2, issues));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("Login page crashes on Safari");
+		cut.Markup.Should().Contain("Dark mode flicker on reload");
+	}
+
+	[Fact]
+	public async Task Dashboard_RecentIssueLinksPointToCorrectDetailUrls()
+	{
+		// Arrange
+		var issue = CreateTestIssue(title: "Linked Issue");
+		var issues = new List<IssueDto> { issue };
+		SetupDashboardService(new UserDashboardDto(1, 1, 0, 1, issues));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – there should be an anchor whose href contains /issues/{id}
+		var issueLink = cut.FindAll("a")
+			.FirstOrDefault(a => a.GetAttribute("href")?.Contains($"/issues/{issue.Id}") == true);
+
+		issueLink.Should().NotBeNull(
+			$"an anchor with href /issues/{issue.Id} should exist for recent issue '{issue.Title}'");
+	}
+
+	[Fact]
+	public async Task Dashboard_RecentIssueListShowsFormattedDate()
+	{
+		// Arrange
+		var knownDate = new DateTime(2024, 6, 15);
+		var issue = CreateTestIssue() with { DateCreated = knownDate };
+		SetupDashboardService(new UserDashboardDto(1, 1, 0, 1, new[] { issue }));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – component formats as "Jun 15, 2024"
+		cut.Markup.Should().Contain("Jun 15, 2024",
+			"each recent-issue row should show the creation date formatted as 'MMM d, yyyy'");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Empty-state tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_ShowsEmptyStateMessageWhenNoRecentIssues()
+	{
+		// Arrange – zero issues
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("No issues yet",
+			"when the recent-issues list is empty the component should prompt the user");
+		cut.Markup.Should().Contain("Create your first issue",
+			"the empty state should include a call to action");
+	}
+
+	[Fact]
+	public async Task Dashboard_EmptyStateSummaryCardPromptsCreation()
+	{
+		// Arrange
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – summary card shows "haven't created any issues yet" text
+		cut.Markup.Should().Contain(
+			"You haven't created any issues yet",
+			"the summary gradient card should encourage the user to create their first issue when counts are zero");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Error-state tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_ShowsErrorSectionWhenServiceReturnsFail()
+	{
+		// Arrange
+		DashboardService
+			.GetUserDashboardAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Fail<UserDashboardDto>("Service temporarily unavailable")));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("Error loading dashboard");
+		cut.Markup.Should().Contain("Service temporarily unavailable");
+	}
+
+	[Fact]
+	public async Task Dashboard_ShowsExceptionMessageWhenServiceThrows()
+	{
+		// Arrange
+		DashboardService
+			.GetUserDashboardAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromException<Result<UserDashboardDto>>(
+				new InvalidOperationException("Database connection lost")));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("Database connection lost",
+			"unhandled exceptions should surface as the error message");
+	}
+
+	[Fact]
+	public async Task Dashboard_ErrorStateDoesNotRenderStatCards()
+	{
+		// Arrange
+		DashboardService
+			.GetUserDashboardAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Fail<UserDashboardDto>("Oops")));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – stats section must not be rendered when there's an error
+		cut.Markup.Should().NotContain("Total Issues",
+			"stat cards should not appear when the service has returned an error");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Welcome / user-identity tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_DisplaysWelcomeBackWithAuthenticatedUserName()
+	{
+		// Arrange
+		SetupAuthenticatedUser(userId: "u1", userName: "Alice Wonderland");
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("Welcome back");
+		cut.Markup.Should().Contain("Alice Wonderland");
+	}
+
+	[Fact]
+	public async Task Dashboard_DisplaysAuthenticatedUserName()
+	{
+		// Verifies that the welcome section shows the signed-in user's display name.
+		// (The fallback path "User" cannot be exercised through BunitTestBase alone
+		// because SetupAuthenticatedUser always provides identity name claims.)
+		// Arrange
+		SetupAuthenticatedUser(userId: "u2", userName: "Bob Builder");
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – name appears in welcome section
+		cut.Markup.Should().Contain("Bob Builder");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Quick-actions tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_QuickActionsContainsCreateNewIssueLink()
+	{
+		// Arrange
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		var createLink = cut.FindAll("a")
+			.FirstOrDefault(a => a.GetAttribute("href") == "/issues/create");
+
+		createLink.Should().NotBeNull("a 'Create New Issue' link should always appear in Quick Actions");
+		createLink!.TextContent.Should().Contain("Create New Issue");
+	}
+
+	[Fact]
+	public async Task Dashboard_QuickActionsContainsViewAllIssuesLink()
+	{
+		// Arrange
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		var viewAllLink = cut.FindAll("a")
+			.FirstOrDefault(a => a.GetAttribute("href") == "/issues");
+
+		viewAllLink.Should().NotBeNull("a 'View All Issues' link should always appear in Quick Actions");
+		viewAllLink!.TextContent.Should().Contain("View All Issues");
+	}
+
+	[Fact]
+	public async Task Dashboard_AdminUserSeesAdminDashboardLink()
+	{
+		// Arrange
+		SetupAuthenticatedUser(userId: "admin1", userName: "Admin User", isAdmin: true);
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		var adminLink = cut.FindAll("a")
+			.FirstOrDefault(a => a.GetAttribute("href") == "/admin");
+
+		adminLink.Should().NotBeNull("admin users should see an 'Admin Dashboard' link in Quick Actions");
+	}
+
+	[Fact]
+	public async Task Dashboard_NonAdminUserDoesNotSeeAdminDashboardLink()
+	{
+		// Arrange – regular authenticated user (default from BunitTestBase)
+		SetupAuthenticatedUser(userId: "user1", userName: "Regular User", isAdmin: false);
+		SetupDashboardService(new UserDashboardDto(0, 0, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		var adminLink = cut.FindAll("a")
+			.FirstOrDefault(a => a.GetAttribute("href") == "/admin");
+
+		adminLink.Should().BeNull("non-admin users must NOT see the Admin Dashboard link");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Summary-card / Issue-summary tests
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_SummaryCardShowsOpenIssueCountAndPercentage()
+	{
+		// Arrange – 100 total, 40 open → exactly 40 %; use sentinel 100/40 values
+		// that won't appear in SVG path data.
+		SetupDashboardService(new UserDashboardDto(100, 40, 60, 2, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – summary card text should mention "40" open issues and "40%"
+		cut.Markup.Should().Contain("Issue Summary");
+		cut.Markup.Should().Contain("40",
+			"the open-issue count should be bold inside the summary card");
+		cut.Markup.Should().Contain("40%",
+			"the percentage of open issues should be calculated and rendered");
+	}
+
+	[Fact]
+	public async Task Dashboard_SummaryCardShowsThisWeekIssuesParagraph()
+	{
+		// Arrange
+		SetupDashboardService(new UserDashboardDto(8, 3, 5, 3, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().Contain("issue(s) created this week",
+			"when ThisWeekIssues > 0 the summary card should mention them");
+	}
+
+	[Fact]
+	public async Task Dashboard_SummaryCardOmitsThisWeekParagraphWhenZero()
+	{
+		// Arrange
+		SetupDashboardService(new UserDashboardDto(5, 2, 3, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert
+		cut.Markup.Should().NotContain("issue(s) created this week",
+			"the 'this week' paragraph must be suppressed when count is 0");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// View-All link for recent issues
+	// ──────────────────────────────────────────────────────────
+
+	[Fact]
+	public async Task Dashboard_ViewAllLinkContainsAuthenticatedUserId()
+	{
+		// Arrange
+		SetupAuthenticatedUser(userId: "uid-xyz");
+		SetupDashboardService(new UserDashboardDto(5, 5, 0, 0, []));
+
+		// Act
+		var cut = Render<Dashboard>();
+		await cut.InvokeAsync(() => Task.Delay(100));
+
+		// Assert – "View All →" link should include the user's ID as the author filter
+		var viewAllLink = cut.FindAll("a")
+			.FirstOrDefault(a => a.GetAttribute("href")?.Contains("author=uid-xyz") == true);
+
+		viewAllLink.Should().NotBeNull(
+			"the 'View All →' anchor in My Recent Issues must include ?author={userId}");
+	}
+
+	// ──────────────────────────────────────────────────────────
+	// Helpers
+	// ──────────────────────────────────────────────────────────
+
+	/// <summary>
+	/// Configures <see cref="IDashboardService"/> to return a successful result
+	/// for any user ID.
+	/// </summary>
+	private void SetupDashboardService(UserDashboardDto dto)
+	{
+		DashboardService
+			.GetUserDashboardAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(Result.Ok(dto)));
+	}
+}
