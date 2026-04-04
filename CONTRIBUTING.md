@@ -19,6 +19,7 @@ If you hit a snag at any point, open an issue or drop a question in the relevant
   - [Gate 4 — Integration Tests + Playwright E2E (Docker required)](#gate-4--integration-tests--playwright-e2e-docker-required)
 - [The Docker Requirement](#the-docker-requirement)
 - [Running Tests Manually](#running-tests-manually)
+- [Code Coverage](#code-coverage)
 - [Code Conventions](#code-conventions)
 - [PR Process](#pr-process)
 - [Troubleshooting](#troubleshooting)
@@ -292,6 +293,84 @@ dotnet test IssueTrackerApp.slnx --configuration Release
 ```
 
 > Note: The full solution run includes integration tests and therefore requires Docker.
+
+---
+
+## Code Coverage
+
+The CI pipeline enforces an **80% line coverage gate** via the `Coverage Analysis` job in `.github/workflows/squad-test.yml`. PRs that drop below this threshold will fail CI and cannot be merged.
+
+Coverage is collected with [coverlet](https://github.com/coverlet-coverage/coverlet) (`coverlet.collector` v8.0.0) and merged into a single Cobertura report by [ReportGenerator](https://reportgenerator.io/). Results are also published to [Codecov](https://codecov.io/gh/mpaulosky/IssueTrackerApp) — see the badges at the top of `README.md`.
+
+### Running coverage locally
+
+**Step 1 — collect coverage:**
+
+```bash
+dotnet test IssueTrackerApp.slnx \
+  --collect:"XPlat Code Coverage" \
+  --results-directory ./coverage-results
+```
+
+**Step 2 — generate an HTML report:**
+
+```bash
+dotnet tool run reportgenerator \
+  -reports:"coverage-results/**/coverage.cobertura.xml" \
+  -targetdir:"coverage-report" \
+  -reporttypes:Html
+```
+
+Then open `coverage-report/index.html` in your browser.
+
+> If `dotnet tool run reportgenerator` fails, install it globally first:
+> ```bash
+> dotnet tool install -g dotnet-reportgenerator-globaltool
+> ```
+
+### What counts toward coverage
+
+Only source projects under `src/` are measured. The following test projects all contribute coverage data:
+
+| Test project | What it covers |
+|---|---|
+| `tests/Architecture.Tests` | Layer boundary and naming-convention checks |
+| `tests/Domain.Tests` | Domain command/query handlers and validators |
+| `tests/Web.Tests` | Web service unit tests (mocked dependencies) |
+| `tests/Web.Tests.Bunit` | Blazor component rendering (bUnit) |
+| `tests/Web.Tests.Integration` | API endpoints and SignalR (requires Docker) |
+| `tests/Persistence.MongoDb.Tests` | MongoDB repository unit tests (mocked) |
+| `tests/Persistence.MongoDb.Tests.Integration` | Repository integration tests (requires Docker) |
+
+Test projects themselves, generated code, and `obj/` directories are excluded automatically by coverlet.
+
+### The 80% threshold
+
+The `Coverage Analysis` CI job reads `Summary.json` produced by ReportGenerator and compares `linecoverage` against `80`. If the value is below 80, the job exits with an error and the PR cannot be merged:
+
+```
+::error::Code coverage is below 80% threshold: 74.3% (required: 80%)
+```
+
+When coverage passes the gate you will see:
+
+```
+::notice::Coverage gate passed: 83.1% >= 80%
+```
+
+### The coverage badge
+
+The `CodeCov Coverage` badge in `README.md` is served by Codecov and reflects the most recent successful merge to `main`. Click the badge to see the full Codecov dashboard with per-file breakdown and trend graphs.
+
+### Adding new tests
+
+Use the correct test project for each test type:
+
+- **`tests/Domain.Tests/`** — unit tests for domain command/query handlers
+- **`tests/Web.Tests/`** — unit tests for web services with mocked dependencies
+- **`tests/Web.Tests.Bunit/`** — Blazor component tests with bUnit
+- **`tests/Web.Tests.Integration/`** — API endpoint and SignalR integration tests (requires Docker)
+- **`tests/Persistence.MongoDb.Tests.Integration/`** — repository integration tests against real MongoDB (requires Docker)
 
 ---
 
