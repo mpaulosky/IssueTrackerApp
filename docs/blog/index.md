@@ -8,6 +8,7 @@ Here we document new features, architectural decisions, testing milestones, and 
 
 | Date | Title | Tags |
 |------|-------|------|
+| 2026-04-04 | [Release v0.7.0 — Code Quality & UI Polish](2026-04-04-release-v0-7-0.md) | release, v0.7.0, testing, coverage, ui, blazor, ci |
 | 2026-04-02 | [Release v0.6.0 — Labels Feature](2026-04-02-release-v0-6-0.md) | release, v0.6.0, labels, cqrs, blazor, bunit |
 | 2026-04-02 | [Release v0.5.0 — Admin User Management](2026-04-02-release-v0-5-0.md) | release, v0.5.0, admin, auth0, blazor |
 | 2026-04-01 | [Release v0.4.0 — Voting & Prioritization](2026-04-01-release-v0-4-0.md) | release, v0.4.0, voting, cqrs, signalr |
