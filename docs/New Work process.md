@@ -36,9 +36,9 @@
 
 ### Do the work
 
-3. Implements the feature, including tests and documentation, following all
+1. Implements the feature, including tests and documentation, following all
    `.github/instructions/` coding standards
-4. All new C# (`.cs`) files must include the copyright block header — `.razor`
+2. All new C# (`.cs`) files must include the copyright block header — `.razor`
    files do **not** get copyright headers
 
 ### Pre-push gate *(mandatory — enforced by `.git/hooks/pre-push`)*
