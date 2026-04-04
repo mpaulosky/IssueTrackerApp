@@ -89,7 +89,11 @@ Ralph checks all gates before spawning reviewers:
 
 ## Phase 4 — Sprint Close
 
-- Ralph monitors: when all issues in a sprint are closed, the sprint is complete
+- Ralph monitors: when all issues in a sprint are merged and closed, the sprint
+  is complete
+- **The previous sprint's PR must be merged to `main` before the next sprint
+  begins** — this eliminates merge conflicts and ensures each sprint builds on a
+  stable, fully-integrated baseline
 - Begin next sprint (return to Phase 2)
 
 ---
