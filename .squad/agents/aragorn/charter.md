@@ -44,7 +44,7 @@ Preferred: auto
 3. PRs on `feature/*` branches must NEVER include `.squad/` files in their diff.
 4. Integration tests MUST have `[Collection("Integration")]` attribute.
 5. `IssueDto.Empty` is not a singleton — never compare two `.Empty` instances.
-6. **File header REQUIRED** — All new C#/Razor files must use block copyright format:
+6. **File header REQUIRED** — All new C# (`.cs`) files must use block copyright format:
    ```csharp
    // ============================================
    // Copyright (c) 2026. All rights reserved.
@@ -55,5 +55,5 @@ Preferred: auto
    // Project Name :  {ProjectName}
    // =============================================
    ```
-   For `.razor` files, use `@* ... *@` comment syntax. See `.github/instructions/csharp.instructions.md` for details.
+   `.razor` files do **NOT** get copyright headers.
 7. **PR merge sequence:** CI pass → parallel review → fix cycle if rejected → approve → squash merge → pull main. Never merge without unanimous reviewer approval.
