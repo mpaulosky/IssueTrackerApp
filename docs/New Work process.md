@@ -95,7 +95,7 @@ Ralph checks all gates before spawning reviewers:
    the issue reference — this makes `git log` double as release notes:
 
    ```text
-   feat: add label suggestions to issue form (Closes #215)
+   feat: add label suggestions to issue form (Closes #201)
    fix: resolve race condition in bulk operation queue (Closes #198)
    docs: rewrite New Work process to reflect squad ceremonies (Closes #215)
    ```
@@ -135,7 +135,7 @@ blog-only
   └─ squad:bilbo brief issue created directly
 ```
 
-1. **Bilbo** picks up the brief, writes the blog post, and adds a row to
+5. **Bilbo** picks up the brief, writes the blog post, and adds a row to
    `docs/blog/index.md`
-2. `blog-readme-sync.yml` detects the index change and auto-updates the
+6. `blog-readme-sync.yml` detects the index change and auto-updates the
    **README Dev Blog section** — no manual README edit needed
