@@ -189,40 +189,38 @@ public sealed class SearchInputTests : BunitTestBase
 	[Fact]
 	public async Task Input_Change_FiresValueChanged_AfterDebounce()
 	{
-		// Arrange — use a short debounce so the test doesn't take 300ms
-		string? capturedValue = null;
+		// Arrange — TaskCompletionSource avoids wall-clock racing; the callback
+		// completes the task and we await with a generous timeout for CI headroom.
+		var tcs = new TaskCompletionSource<string?>();
 		var cut = Render<SearchInput>(p => p
 			.Add(c => c.DebounceMs, 100)
-			.Add(c => c.ValueChanged, EventCallback.Factory.Create<string?>(this, v => capturedValue = v)));
+			.Add(c => c.ValueChanged, EventCallback.Factory.Create<string?>(this, v => tcs.TrySetResult(v))));
 
 		// Act
 		var input = cut.Find("input");
 		await cut.InvokeAsync(() => input.Input("blazor"));
 
-		// Wait for the 100 ms debounce to elapse and InvokeAsync to dispatch
-		await Task.Delay(400);
-
-		// Assert
-		capturedValue.Should().Be("blazor");
+		// Assert — wait for debounce to fire (100 ms) with a 2-second CI safety margin
+		var result = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(2));
+		result.Should().Be("blazor");
 	}
 
 	[Fact]
 	public async Task Input_Change_FiresOnSearch_AfterDebounce()
 	{
 		// Arrange
-		string? capturedSearch = null;
+		var tcs = new TaskCompletionSource<string?>();
 		var cut = Render<SearchInput>(p => p
 			.Add(c => c.DebounceMs, 100)
-			.Add(c => c.OnSearch, EventCallback.Factory.Create<string?>(this, v => capturedSearch = v)));
+			.Add(c => c.OnSearch, EventCallback.Factory.Create<string?>(this, v => tcs.TrySetResult(v))));
 
 		// Act
 		var input = cut.Find("input");
 		await cut.InvokeAsync(() => input.Input("issues"));
 
-		await Task.Delay(400);
-
 		// Assert
-		capturedSearch.Should().Be("issues");
+		var result = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(2));
+		result.Should().Be("issues");
 	}
 
 	#endregion

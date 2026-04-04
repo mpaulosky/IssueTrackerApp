@@ -260,6 +260,35 @@ public sealed class PaginationTests : BunitTestBase
 	}
 
 	[Fact]
+	public void Ellipsis_NotShownAtStart_WhenCurrentPageIsExactlyFour()
+	{
+		// Arrange & Act — showEllipsisStart = (CurrentPage > 4) = false at page 4
+		var cut = Render<Pagination>(p => p
+			.Add(c => c.TotalPages, 20)
+			.Add(c => c.CurrentPage, 4)
+			.Add(c => c.TotalItems, 200));
+
+		// Assert — page 4 is NOT > 4 so no start ellipsis; page 1 is adjacent to window
+		var ellipsisSpans = cut.FindAll("span").Where(s => s.TextContent.Contains("...")).ToList();
+		// There may be a trailing ellipsis but NOT a leading one — total should be exactly 1
+		ellipsisSpans.Should().HaveCount(1);
+	}
+
+	[Fact]
+	public void Ellipsis_ShownAtStart_WhenCurrentPageIsFive()
+	{
+		// Arrange & Act — showEllipsisStart = (5 > 4) = true at page 5
+		var cut = Render<Pagination>(p => p
+			.Add(c => c.TotalPages, 20)
+			.Add(c => c.CurrentPage, 5)
+			.Add(c => c.TotalItems, 200));
+
+		// Assert — both start AND end ellipsis should appear → 2 ellipsis spans
+		var ellipsisSpans = cut.FindAll("span").Where(s => s.TextContent.Contains("...")).ToList();
+		ellipsisSpans.Should().HaveCount(2);
+	}
+
+	[Fact]
 	public void StatusText_ShowsCurrentPageOfTotalAndTotalItems()
 	{
 		// Arrange & Act
