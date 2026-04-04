@@ -56,4 +56,5 @@ Preferred: auto
    // =============================================
    ```
    `.razor` files do **NOT** get copyright headers.
-7. **PR merge sequence:** CI pass → parallel review → fix cycle if rejected → approve → squash merge → pull main. Never merge without unanimous reviewer approval.
+7. **PR merge sequence:** CI pass → read Copilot review comments → parallel review → fix cycle if rejected → approve → squash merge → pull main. Never merge without unanimous reviewer approval.
+8. **Copilot review:** Before posting any PR review verdict, read GitHub Copilot's automated review comments (`gh pr view {N} --json reviews`). Address flagged bugs or security issues; style suggestions are discretionary.

@@ -75,7 +75,10 @@ Ralph checks all gates before spawning reviewers:
 | Branch naming      | Starts with `squad/`        |
 | PR template filled | At least one `[x]` checkbox |
 
-1. **Ralph spawns parallel domain reviewers** — Aragorn always reviews; relevant
+1. **Aragorn reads GitHub Copilot's automated review comments first** — bugs and
+   security issues flagged by Copilot must be addressed; style suggestions are
+   discretionary
+2. **Ralph spawns parallel domain reviewers** — Aragorn always reviews; relevant
    specialists (Legolas, Gimli, etc.) review their domain
 2. Reviewers post verdicts via GitHub PR review (`--approve` or
    `--request-changes`)
