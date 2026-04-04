@@ -25,4 +25,5 @@
   <ItemGroup>
     <Content Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
 </Project>

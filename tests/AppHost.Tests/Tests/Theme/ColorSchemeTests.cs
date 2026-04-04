@@ -58,6 +58,9 @@ public class ColorSchemeTests : BasePlaywrightTests
 			await schemeBtn.WaitForAsync();
 			await schemeBtn.ClickAsync();
 
+			// Allow Blazor Server to process the click via SignalR before checking the dropdown
+			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
 			// Color swatch buttons: title="Blue theme", title="Red theme", etc.
 			var blueOption = page.Locator("button[aria-label=\"Blue color theme\"]");
 			var redOption = page.Locator("button[aria-label=\"Red color theme\"]");
