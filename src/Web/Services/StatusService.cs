@@ -1,9 +1,9 @@
 // =======================================================
-// Copyright (c) 2025. All rights reserved.
+// Copyright (c) 2026. All rights reserved.
 // File Name :     StatusService.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
-// Solution Name : IssueTrackerApp
+// Solution Name : IssueManager
 // Project Name :  Web
 // =======================================================
 
@@ -61,29 +61,68 @@ public interface IStatusService
 }
 
 /// <summary>
-///   Implementation of IStatusService using MediatR.
+///   Implementation of IStatusService using MediatR with cache-aside reads
+///   (60-minute TTL) and write-through invalidation.
 /// </summary>
 public sealed class StatusService : IStatusService
 {
-	private readonly IMediator _mediator;
+	private const string CacheKeyList = "statuses_list";
+	private const string CacheKeyPrefix = "status_";
+	private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(60);
 
-	public StatusService(IMediator mediator)
+	private readonly IMediator _mediator;
+	private readonly DistributedCacheHelper _cacheHelper;
+
+	public StatusService(IMediator mediator, DistributedCacheHelper cacheHelper)
 	{
 		_mediator = mediator;
+		_cacheHelper = cacheHelper;
 	}
 
 	public async Task<Result<IEnumerable<StatusDto>>> GetStatusesAsync(
 		bool includeArchived = false,
 		CancellationToken cancellationToken = default)
 	{
+		var cacheKey = $"{CacheKeyList}_{includeArchived}";
+
+		var cached = await _cacheHelper.GetAsync<List<StatusDto>>(cacheKey, cancellationToken);
+		if (cached is not null)
+		{
+			return Result.Ok<IEnumerable<StatusDto>>(cached);
+		}
+
 		var query = new GetStatusesQuery(includeArchived);
-		return await _mediator.Send(query, cancellationToken);
+		var result = await _mediator.Send(query, cancellationToken);
+
+		if (result.Success && result.Value is not null)
+		{
+			await _cacheHelper.SetAsync(cacheKey, result.Value.ToList(), CacheTtl, cancellationToken);
+		}
+
+		return result;
 	}
 
-	public async Task<Result<StatusDto>> GetStatusByIdAsync(string id, CancellationToken cancellationToken = default)
+	public async Task<Result<StatusDto>> GetStatusByIdAsync(
+		string id,
+		CancellationToken cancellationToken = default)
 	{
+		var cacheKey = $"{CacheKeyPrefix}{id}";
+
+		var cached = await _cacheHelper.GetAsync<StatusDto>(cacheKey, cancellationToken);
+		if (cached is not null)
+		{
+			return Result.Ok(cached);
+		}
+
 		var query = new GetStatusByIdQuery(id);
-		return await _mediator.Send(query, cancellationToken);
+		var result = await _mediator.Send(query, cancellationToken);
+
+		if (result.Success && result.Value is not null)
+		{
+			await _cacheHelper.SetAsync(cacheKey, result.Value, CacheTtl, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<StatusDto>> CreateStatusAsync(
@@ -92,7 +131,14 @@ public sealed class StatusService : IStatusService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new CreateStatusCommand(statusName, statusDescription);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await InvalidateListCacheAsync(cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<StatusDto>> UpdateStatusAsync(
@@ -102,7 +148,15 @@ public sealed class StatusService : IStatusService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new UpdateStatusCommand(id, statusName, statusDescription);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cacheHelper.RemoveAsync($"{CacheKeyPrefix}{id}", cancellationToken);
+			await InvalidateListCacheAsync(cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<StatusDto>> ArchiveStatusAsync(
@@ -112,6 +166,20 @@ public sealed class StatusService : IStatusService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new ArchiveStatusCommand(id, archive, archivedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cacheHelper.RemoveAsync($"{CacheKeyPrefix}{id}", cancellationToken);
+			await InvalidateListCacheAsync(cancellationToken);
+		}
+
+		return result;
+	}
+
+	private async Task InvalidateListCacheAsync(CancellationToken ct)
+	{
+		await _cacheHelper.RemoveAsync($"{CacheKeyList}_True", ct);
+		await _cacheHelper.RemoveAsync($"{CacheKeyList}_False", ct);
 	}
 }
