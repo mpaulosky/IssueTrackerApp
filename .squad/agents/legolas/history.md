@@ -95,6 +95,32 @@
 
 ## Learnings
 
+### Styling-Fixes Branch Review (2026-06-22)
+- **Task:** Full frontend review of `feature/styling-fixes` branch (28 Razor files + 2 CSS files)
+- **Theme of the PR:** Readability uplift — `text-sm text-primary-500 dark:text-primary-400` → `text-base text-primary-800 dark:text-primary-50` across all components, CSS palette migration from `gray-*` to `primary-*`, Tailwind modernization.
+- **Critical bugs found (❌):**
+  - `FileUpload.razor`: `text-primary-6800` typo (line 59) — invalid class, upload link will be unstyled
+  - `input.css` `.form-input`: `dark:bg-primary-50` — very light bg in dark mode, should be `dark:bg-primary-900` or similar dark tone
+  - `input.css` Blazor error boundary: `color: #929292` (gray) on `#b32121` red bg — fails WCAG contrast (was `color: white`)
+  - `SearchInput.razor`: outer wrapper gets `bg-primary-800` while inner input has `bg-primary-50` from `.form-input` — visual mismatch in light mode
+  - `Details.razor`: error-state back-link div gets `bg-primary-700` hardcoded in light mode — dark box around link in error state
+  - `UserListTable.razor`: "Edit Roles" button stripped of `btn btn-primary` → bare `text-green-600` text link — loses button affordance, inconsistent with "Audit Log" button beside it
+- **Minor issues found (⚠️):**
+  - `CommentsSection.razor`: tab character artifact in `InputTextArea` class string
+  - `UserAuditLogPanel.razor`: table header still uses `text-primary-300` (not updated to `text-primary-100` like UserListTable)
+  - `FilterPanel.razor`: active filter count badge changed from `text-xs` to `text-base` — too large for compact badge
+  - `Details.razor`: bottom "Back to Issues" div `hover:bg-primary-700` on already `bg-primary-700` = invisible hover
+  - `SummaryCard.razor`: `@Value` text still uses `dark:text-white` while rest of card uses `dark:text-primary-50`
+  - `LabelInput.razor`: `placeholder-primary-800 dark:placeholder-primary-800` — no dark mode adjustment
+  - `Analytics.razor`: removed `heading-section` class from all 4 chart headings — relies on global h3 styles now
+- **Patterns confirmed working:**
+  - All `@bind`, `@onclick`, `@onkeydown`, `@ref` event handlers fully preserved
+  - All ARIA attributes (`aria-label`, `aria-expanded`, `aria-modal`, `role="dialog"`) preserved
+  - `flex-shrink-0` → `shrink-0` throughout — valid Tailwind modernization
+  - `gray-*` → `primary-*` in CSS utilities (btn-icon, modals, links, headings) — excellent systematic palette work
+  - `text-md` → `text-base` in FooterComponent — legitimate bug fix (`text-md` is invalid Tailwind)
+- **Key learning:** When applying a bulk text color migration, always check that dark-mode variants are actually darker, not accidentally the same light shade as light mode (the `dark:bg-primary-50` bug in `.form-input` is the canonical example).
+
 ### Button Padding & Admin Color Palette Update (2026-06-21)
 - **Task:** Removed inline `px-*`/`py-*` overrides from buttons already using `.btn` class; updated Admin/Users components from gray to primary palette
 - **Button Padding Changes:**
@@ -113,3 +139,51 @@
   - Text color classes (`text-gray-*`, `text-neutral-*`) intentionally preserved for readability
 - **Build Status:** Tailwind CSS rebuild succeeded (80ms)
 - **Key Learning:** When base CSS class defines padding/spacing, avoid inline overrides unless required for visual hierarchy
+
+## Styling Review — `feature/styling-fixes` (2026-06-22)
+
+**Task:** Full review of 30 changed files on `feature/styling-fixes` branch.
+**Verdict:** Needs fixes (5 critical, ~14 minor) — do NOT merge as-is.
+
+### Critical bugs found
+
+1. **`CommentsSection.razor:194`** — `primary-50space-pre-wrap` is a corrupted class (merge artefact). Should be `whitespace-pre-wrap`. Comment content loses whitespace preservation.
+2. **`FileUpload.razor:59`** — `text-primary-6800` is an invalid TW class. Should be `text-primary-800`.
+3. **`input.css .form-input`** — `dark:bg-primary-50` is same as light value — all form inputs render with light background in dark mode. Fix: `dark:bg-primary-800`.
+4. **`Issues/Index.razor:193`** — Removed null guard: `@issue.Author.Name` (was `?.Name ?? "Unknown"`). Potential NullReferenceException.
+5. **`input.css .blazor-error-boundary`** — `color: #929292` (hardcoded hex) on `#b32121` red background. ~2.5:1 contrast, fails WCAG AA. Fix: `color: white`.
+
+### Important patterns learned
+
+- **Always pair `dark:` variants** when applying any `bg-*` or `text-*` that differs in dark mode. Several containers in this branch gained a hardcoded dark `bg-primary-700` with no `dark:` pair (wrong in light mode).
+- **`.form-input` now includes `p-2`** in input.css — do NOT add inline `p-2` on top of `form-input`; it doubles padding.
+- **`text-md` is not a Tailwind class** — the correct utility is `text-base`. This was caught and fixed throughout this PR.
+- **`flex-shrink-0` → `shrink-0`** — `shrink-0` is the correct Tailwind v4 utility (though both work in v3/v4, `shrink-0` is canonical).
+- **`heading-page` / `heading-section`** CSS classes can be dropped where the global h1–h6 rule (added in input.css) already supplies `font-bold tracking-tight text-primary-800 dark:text-primary-50`. But dropping them changes `font-medium` sections to `font-bold` — subtle weight regression.
+- **Bracket syntax safer for arbitrary max-w values** — `max-w-[150px]` is more portable than `max-w-37.5` even if TW4 JIT handles decimals.
+- **Non-styling commits (version bumps)** should not be mixed into styling PRs — Aspire 13.2.0→13.2.1 bumps landed in this PR.
+- **Design token hygiene**: `dark:text-primary-800` (same as light value) and `dark:bg-primary-800` (identical to non-dark) are no-ops and indicate the dark: variant was copy-pasted without review.
+
+### PR Review Clarifications — Items 6 & 7 (2026-06-23)
+
+#### Item 6 — Details.razor `bg-primary-700` dark-mode scoping
+
+Two `bg-primary-700` occurrences land in the diff without a `dark:` prefix:
+
+1. **Error-state back-link div** (`<div class="mt-4 bg-primary-700 text-primary-50">`):
+   - In light mode: renders a dark-navy box around the "← Back to Issues" link in the error banner — jarring against the page's light background.
+   - Fix: add `dark:` prefix → `<div class="mt-4 dark:bg-primary-700 dark:text-primary-50">` (or revert to `<div class="mt-4">` with `class="link-primary"` on the `<a>`).
+
+2. **Bottom card back-link strip** (`<div class="bg-primary-700 px-4 py-3 sm:px-6">`):
+   - Original was `bg-primary-50 dark:bg-primary-700` (light in light mode, dark in dark mode). Matthew dropped the `bg-primary-50` and the `dark:` scope, making it always dark navy.
+   - Fix: revert to `bg-primary-50 dark:bg-primary-700`.
+
+**Rule reinforced:** Any `bg-primary-700` applied without a `dark:` scope will render a dark navy block in light mode — always add `dark:bg-primary-700`, never bare.
+
+#### Item 7 — UserListTable "Edit Roles" button text-link pattern
+
+- Matthew changed `btn btn-primary` → `text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300`.
+- Categories.razor and Statuses.razor both use this exact text-link pattern for in-table action buttons (Edit, Restore, Archive).
+- The "Audit Log" button on the same row is also a text link (`text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300`).
+- Matthew is correct — text-link style IS the established pattern for admin table actions. `btn btn-primary` was the inconsistency.
+- Existing bUnit tests (`UserListTableTests.cs`) do NOT assert on CSS classes — they only check text content and callback invocation. No test update required.

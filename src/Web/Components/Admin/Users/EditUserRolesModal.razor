@@ -12,32 +12,27 @@
 @if (User is not null)
 {
 	<!-- Modal Overlay: tabindex enables keyboard events; focusable so Escape fires here -->
-	<div class="fixed inset-0 z-50 overflow-y-auto"
-	     tabindex="-1"
-	     @ref="_overlayRef"
-	     @onkeydown="HandleKeyDown"
-	     aria-labelledby="modal-title"
-	     role="dialog"
-	     aria-modal="true">
+	<div class="fixed inset-0 z-50 overflow-y-auto" tabindex="-1" @ref="_overlayRef" @onkeydown="HandleKeyDown"
+			 aria-labelledby="modal-title" role="dialog" aria-modal="true">
 
 		<!-- Background overlay -->
 		<div class="fixed inset-0 bg-black/50 transition-opacity" @onclick="HandleClose"></div>
 
 		<!-- Modal Container — stop click bubbling to backdrop -->
 		<div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-			<div class="relative transform overflow-hidden rounded-lg card-bordered shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
-			     @onclick:stopPropagation="true">
+			<div
+				class="relative transform overflow-hidden rounded-lg card-bordered shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+				@onclick:stopPropagation="true">
 
 				<!-- Modal Header -->
 				<div class="border-b border-primary-200 dark:border-primary-700 px-6 py-4">
 					<div class="flex items-start justify-between">
-						<h3 class="text-lg font-semibold text-primary-900 dark:text-white" id="modal-title">
+						<h3 class="text-lg font-semibold text-primary-800 dark:text-primary-50" id="modal-title">
 							Edit Roles \u2014 @User.Name (@User.Email)
 						</h3>
 						<button type="button"
-						        class="ml-4 flex-shrink-0 rounded-md text-primary-400 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-						        @onclick="HandleClose"
-						        disabled="@_isSaving">
+										class="ml-4 flex-shrink-0 rounded-md text-primary-400 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+										@onclick="HandleClose" disabled="@_isSaving">
 							<span class="sr-only">Close</span>
 							<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -54,7 +49,8 @@
 							<svg class="animate-spin h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24">
 								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 								<path class="opacity-75" fill="currentColor"
-								      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+								</path>
 							</svg>
 						</div>
 					}
@@ -67,12 +63,12 @@
 								<div class="flex">
 									<svg class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
 										<path fill-rule="evenodd"
-										      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-										      clip-rule="evenodd" />
+													d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+													clip-rule="evenodd" />
 									</svg>
 									<div class="ml-3">
-										<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
-										<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+										<h3 class="text-base font-medium text-red-800 dark:text-red-200">Error</h3>
+										<p class="mt-1 text-base text-red-700 dark:text-red-300">@_errorMessage</p>
 									</div>
 								</div>
 							</div>
@@ -80,21 +76,21 @@
 
 						<!-- Role checkboxes: checked = currently assigned -->
 						<div class="space-y-3">
-							<p class="text-sm font-medium text-primary-700 dark:text-primary-300">
+							<p class="text-base font-medium text-primary-800 dark:text-primary-50">
 								Select roles for this user:
 							</p>
 							@foreach (var role in _availableRoles)
 							{
-								<label class="flex items-center space-x-3 p-3 rounded-md hover:bg-primary-50 dark:hover:bg-primary-700/50 cursor-pointer transition-colors">
+								<label
+									class="flex items-center space-x-3 p-3 rounded-md hover:bg-primary-50 dark:hover:bg-primary-700/50 cursor-pointer transition-colors">
 									<input type="checkbox"
-									       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 dark:border-primary-600 rounded"
-									       checked="@_selectedRoles.Contains(role.RoleName)"
-									       @onchange="@(e => HandleRoleToggle(role.RoleName, e))"
-									       disabled="@_isSaving" />
-									<span class="text-sm font-medium text-primary-900 dark:text-primary-100">@role.RoleName</span>
+												 class="h-4 w-4 text-primary-800 focus:ring-primary-500 border-primary-300 dark:border-primary-600 rounded"
+												 checked="@_selectedRoles.Contains(role.RoleName)" @onchange="@(e => HandleRoleToggle(role.RoleName, e))"
+												 disabled="@_isSaving" />
+									<span class="text-base font-medium text-primary-800 dark:text-primary-50">@role.RoleName</span>
 									@if (!string.IsNullOrEmpty(role.Description))
 									{
-										<span class="text-xs text-primary-500 dark:text-primary-400">\u2014 @role.Description</span>
+										<span class="text-base text-primary-800 dark:text-primary-50">@role.Description</span>
 									}
 								</label>
 							}
@@ -104,14 +100,14 @@
 					{
 						<!-- Confirmation step -->
 						<div class="space-y-4">
-							<p class="text-sm font-medium text-primary-700 dark:text-primary-300">
+							<p class="text-base font-medium text-primary-800 dark:text-primary-50">
 								You are about to make the following role changes:
 							</p>
 
 							@if (RolesToAdd.Any())
 							{
 								<div class="rounded-md bg-green-50 dark:bg-green-900/30 p-3">
-									<p class="text-sm font-medium text-green-800 dark:text-green-200">
+									<p class="text-base font-medium text-green-800 dark:text-green-200">
 										Assign: @string.Join(", ", RolesToAdd)
 									</p>
 								</div>
@@ -133,8 +129,8 @@
 									<div class="flex">
 										<svg class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
 											<path fill-rule="evenodd"
-											      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-											      clip-rule="evenodd" />
+														d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+														clip-rule="evenodd" />
 										</svg>
 										<div class="ml-3">
 											<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
@@ -151,38 +147,30 @@
 				<div class="border-t border-primary-200 dark:border-primary-700 px-6 py-4 flex justify-end space-x-3">
 					@if (_step == ModalStep.Edit)
 					{
-						<button type="button"
-						        class="btn btn-secondary"
-						        @onclick="HandleClose"
-						        disabled="@_isSaving">
+						<button type="button" class="btn btn-secondary" @onclick="HandleClose" disabled="@_isSaving">
 							Cancel
 						</button>
 						<!-- Disabled until at least one change is made -->
-						<button type="button"
-						        class="btn btn-primary"
-						        @onclick="HandleProceedToConfirm"
-						        disabled="@(!IsDirty || _isSaving)">
+						<button type="button" class="btn btn-primary" @onclick="HandleProceedToConfirm"
+										disabled="@(!IsDirty || _isSaving)">
 							Save Changes
 						</button>
 					}
 					else
 					{
-						<button type="button"
-						        class="btn btn-secondary"
-						        @onclick="HandleBackToEdit"
-						        disabled="@_isSaving">
+						<button type="button" class="btn btn-secondary" @onclick="HandleBackToEdit" disabled="@_isSaving">
 							Back
 						</button>
-						<button type="button"
-						        class="btn btn-primary inline-flex items-center"
-						        @onclick="HandleConfirmSave"
-						        disabled="@_isSaving">
+						<button type="button" class="btn btn-primary inline-flex items-center" @onclick="HandleConfirmSave"
+										disabled="@_isSaving">
 							@if (_isSaving)
 							{
-								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+										 viewBox="0 0 24 24">
 									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 									<path class="opacity-75" fill="currentColor"
-									      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+												d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+									</path>
 								</svg>
 								<span>Saving...</span>
 							}
@@ -267,12 +255,12 @@
 		{
 			// Fetch available roles and the user's current assignments concurrently.
 			var rolesTask = Mediator.Send(new ListRolesQuery());
-			var userTask  = Mediator.Send(new GetUserByIdQuery(User.UserId));
+			var userTask = Mediator.Send(new GetUserByIdQuery(User.UserId));
 
 			await Task.WhenAll(rolesTask, userTask);
 
 			var rolesResult = await rolesTask;
-			var userResult  = await userTask;
+			var userResult = await userTask;
 
 			if (rolesResult.Success)
 			{
@@ -290,7 +278,7 @@
 				: User.Roles;
 
 			_selectedRoles = [.. currentRoles];
-			_initialRoles  = [.. currentRoles];
+			_initialRoles = [.. currentRoles];
 		}
 		finally
 		{

@@ -18,8 +18,8 @@
 				</h3>
 			</div>
 			<button type="button"
-			        class="rounded-md text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
-			        @onclick="HandleClose">
+							class="rounded-md text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+							@onclick="HandleClose">
 				<span class="sr-only">Close</span>
 				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -32,10 +32,11 @@
 			@if (_isLoading)
 			{
 				<div class="flex justify-center py-8">
-					<svg class="animate-spin h-6 w-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+					<svg class="animate-spin h-6 w-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+							 viewBox="0 0 24 24">
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 						<path class="opacity-75" fill="currentColor"
-						      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
 						</path>
 					</svg>
 				</div>
@@ -46,8 +47,8 @@
 					<div class="flex">
 						<svg class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
 							<path fill-rule="evenodd"
-							      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-							      clip-rule="evenodd" />
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+										clip-rule="evenodd" />
 						</svg>
 						<p class="ml-3 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
 					</div>
@@ -56,11 +57,12 @@
 			else if (_allEntries.Count == 0)
 			{
 				<div class="text-center py-8">
-					<svg class="mx-auto h-10 w-10 text-primary-300 dark:text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<svg class="mx-auto h-10 w-10 text-primary-300 dark:text-primary-600" fill="none" viewBox="0 0 24 24"
+							 stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-						      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
 					</svg>
-					<p class="mt-2 text-sm text-primary-500 dark:text-primary-400">No role changes recorded for this user</p>
+					<p class="mt-2 text-base text-primary-800 dark:text-primary-50">No role changes recorded for this user</p>
 				</div>
 			}
 			else
@@ -68,26 +70,26 @@
 				<div class="overflow-x-auto">
 					<table class="min-w-full divide-y divide-primary-200 dark:divide-primary-700">
 						<thead class="bg-primary-700">
-						<tr>
-							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-								Timestamp
-							</th>
-							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-								Action
-							</th>
-							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-								Role
-							</th>
-							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-								Changed By
-							</th>
-						</tr>
-					</thead>
+							<tr>
+								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+									Timestamp
+								</th>
+								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+									Action
+								</th>
+								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+									Role
+								</th>
+								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
+									Changed By
+								</th>
+							</tr>
+						</thead>
 						<tbody class="divide-y divide-primary-200 dark:divide-primary-700">
 							@foreach (var entry in PagedEntries)
 							{
 								<tr>
-									<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-500 dark:text-primary-400">
+									<td class="px-6 py-4 whitespace-nowrap text-base text-primary-800 dark:text-primary-50">
 										<span title='@entry.Timestamp.ToLocalTime().ToString("O")'>
 											@FormatRelativeTime(entry.Timestamp)
 										</span>
@@ -95,13 +97,15 @@
 									<td class="px-6 py-4 whitespace-nowrap text-sm">
 										@if (string.Equals(entry.Action, "assigned", StringComparison.OrdinalIgnoreCase))
 										{
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+											<span
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
 												Assigned
 											</span>
 										}
 										else
 										{
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+											<span
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
 												Removed
 											</span>
 										}
@@ -109,7 +113,7 @@
 									<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-900 dark:text-primary-100">
 										@entry.RoleName
 									</td>
-									<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-500 dark:text-primary-400">
+									<td class="px-6 py-4 whitespace-nowrap text-base text-primary-800 dark:text-primary-50">
 										@(string.IsNullOrEmpty(entry.AdminUserName) ? entry.AdminUserId : entry.AdminUserName)
 									</td>
 								</tr>
@@ -122,22 +126,16 @@
 				@if (TotalPages > 1)
 				{
 					<div class="mt-4 flex items-center justify-between border-t border-primary-200 dark:border-primary-700 pt-4">
-						<p class="text-sm text-primary-500 dark:text-primary-400">
+						<p class="text-base text-primary-800 dark:text-primary-50">
 							Showing <span class="font-medium">@((_currentPage - 1) * PageSize + 1)</span>
 							to <span class="font-medium">@Math.Min(_currentPage * PageSize, _allEntries.Count)</span>
 							of <span class="font-medium">@_allEntries.Count</span> entries
 						</p>
 						<div class="flex gap-2">
-							<button type="button"
-							        class="btn btn-secondary"
-							        @onclick="PreviousPage"
-							        disabled="@(_currentPage <= 1)">
+							<button type="button" class="btn btn-secondary" @onclick="PreviousPage" disabled="@(_currentPage <= 1)">
 								Previous
 							</button>
-							<button type="button"
-							        class="btn btn-secondary"
-							        @onclick="NextPage"
-							        disabled="@(_currentPage >= TotalPages)">
+							<button type="button" class="btn btn-secondary" @onclick="NextPage" disabled="@(_currentPage >= TotalPages)">
 								Next
 							</button>
 						</div>

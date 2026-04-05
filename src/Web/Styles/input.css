@@ -121,7 +121,7 @@
 				no-repeat 1rem/1.8rem,
 			#b32121;
 		padding: 1rem 1rem 1rem 3.7rem;
-		color: white;
+		color: #faf9f9;
 	}
 
 	.blazor-error-boundary::after {
@@ -164,7 +164,7 @@
 		text-sm
 		font-semibold
 		leading-tight
-		text-white
+		text-primary-50
 		shadow-md
 		cursor-pointer
 		focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -197,8 +197,8 @@
 	.btn-icon {
 		@apply p-2
 		rounded-lg
-		text-gray-500 dark:text-gray-400
-		hover:bg-gray-100 dark:hover:bg-gray-700
+		text-primary-500 dark:text-primary-400
+		hover:bg-primary-100 dark:hover:bg-primary-700
 		focus:outline-none focus:ring-2 focus:ring-primary-500
 		transition-colors;
 	}
@@ -240,14 +240,14 @@
 
 	/* Forms */
 	.form-input {
-		@apply block w-full rounded-md
-		border-gray-300 dark:border-gray-600
-		dark:bg-gray-700 dark:text-white
-		shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+		@apply block w-full rounded-md p-2
+		border-primary-300 dark:border-primary-600
+		bg-primary-50 dark:bg-primary-800
+		shadow-md focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
 	}
 
 	.form-label {
-		@apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+		@apply block text-base font-medium text-primary-800 dark:text-primary-50;
 	}
 
 	/* Badges */
@@ -257,20 +257,20 @@
 
 	/* Links */
 	.link-primary {
-		@apply text-primary-600 dark:text-primary-400 hover:underline;
+		@apply text-primary-800 dark:text-primary-50 hover:underline;
 	}
 
 	.link-muted {
-		@apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300;
+		@apply text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300;
 	}
 
 	/* Headings */
 	.heading-page {
-		@apply text-2xl font-bold text-gray-900 dark:text-white;
+		@apply text-2xl font-bold text-primary-800 dark:text-primary-50;
 	}
 
 	.heading-section {
-		@apply text-lg font-medium text-gray-900 dark:text-white;
+		@apply text-lg font-medium text-primary-800 dark:text-primary-50;
 	}
 
 	/* Modals */
@@ -279,19 +279,19 @@
 	}
 
 	.modal-backdrop {
-		@apply fixed inset-0 bg-gray-500/75 dark:bg-gray-900/75 transition-opacity;
+		@apply fixed inset-0 bg-primary-500/75 dark:bg-primary-900/75 transition-opacity;
 	}
 
 	.modal-panel {
 		@apply relative inline-block
 		align-bottom
-		bg-white dark:bg-gray-800
+		bg-primary-50 dark:bg-primary-800
 		rounded-lg text-left overflow-hidden shadow-xl
 		transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full;
 	}
 
 	.modal-body {
-		@apply bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4;
+		@apply bg-primary-50 dark:bg-primary-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4;
 	}
 
 	nav {
@@ -303,13 +303,13 @@
 	h4,
 	h5,
 	h6 {
-		@apply font-bold tracking-tight text-primary-900 dark:text-primary-50;
+		@apply font-bold tracking-tight text-primary-800 dark:text-primary-50;
 	}
 
 	a {
 		@apply p-1 font-semibold transition-colors duration-150
-		text-primary-900 dark:text-primary-50
+		text-primary-800 dark:text-primary-50
 		hover:bg-primary-300 dark:hover:bg-primary-500
-		hover:text-primary-700 dark:hover:text-primary-900;
+		hover:text-primary-50 dark:hover:text-primary-900;
 	}
 }
