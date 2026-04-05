@@ -1,11 +1,15 @@
-// =======================================================
-// Copyright (c) 2025. All rights reserved.
+// ============================================
+// Copyright (c) 2026. All rights reserved.
 // File Name :     IssueServiceTests.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
-// Solution Name : IssueTrackerApp
+// Solution Name : IssueManager
 // Project Name :  Web.Tests
-// =======================================================
+// =============================================
+
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 using Web.Services;
 
@@ -14,6 +18,7 @@ namespace Web.Tests.Services;
 /// <summary>
 ///   Unit tests for IssueService facade operations.
 ///   Tests CRUD orchestration and MediatR integration.
+///   Uses a cold (empty) DistributedCacheHelper so all reads fall through to MediatR.
 /// </summary>
 public sealed class IssueServiceTests
 {
@@ -27,7 +32,13 @@ public sealed class IssueServiceTests
 		_mediator = Substitute.For<IMediator>();
 		_notificationService = Substitute.For<Domain.Abstractions.INotificationService>();
 		_bulkQueue = Substitute.For<IBulkOperationQueue>();
-		_sut = new IssueService(_mediator, _notificationService, _bulkQueue);
+
+		// Cold cache — every GetAsync returns null so all reads fall through to MediatR.
+		var coldCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		var cacheLogger = Substitute.For<ILogger<DistributedCacheHelper>>();
+		var cacheHelper = new DistributedCacheHelper(coldCache, cacheLogger);
+
+		_sut = new IssueService(_mediator, _notificationService, _bulkQueue, cacheHelper);
 	}
 
 	#region GetIssuesAsync Tests

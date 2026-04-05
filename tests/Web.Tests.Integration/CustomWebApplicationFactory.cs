@@ -206,6 +206,13 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 			await dc.RemoveAsync("statuses_list_True");
 			await dc.RemoveAsync("lookup_categories");
 			await dc.RemoveAsync("lookup_statuses");
+
+			// Bump the issues version counter so all previously cached paginated
+			// list pages (keyed by version number) become orphaned and will not
+			// be served to the next test in the same factory instance.
+			await using var scope = Services.CreateAsyncScope();
+			var cacheHelper = scope.ServiceProvider.GetRequiredService<Web.Services.DistributedCacheHelper>();
+			await cacheHelper.BumpVersionAsync("issues_version");
 		}
 	}
 }
