@@ -640,7 +640,7 @@ public class CommentsSectionTests : BunitTestBase
 		var updatedComment = comment with { Title = "Updated Title" };
 		CommentService.GetCommentsAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<CommentDto>>(new[] { comment })));
-		CommentService.UpdateCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+		CommentService.UpdateCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok(updatedComment)));
 
 		var cut = Render<CommentsSection>(parameters => parameters
@@ -660,6 +660,7 @@ public class CommentsSectionTests : BunitTestBase
 			comment.Id.ToString(),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
+			Arg.Any<string>(),
 			"test-user-id",
 			Arg.Any<CancellationToken>());
 	}
@@ -674,7 +675,7 @@ public class CommentsSectionTests : BunitTestBase
 		var updatedComment = comment with { Title = "Updated Title" };
 		CommentService.GetCommentsAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<CommentDto>>(new[] { comment })));
-		CommentService.UpdateCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+		CommentService.UpdateCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok(updatedComment)));
 
 		var cut = Render<CommentsSection>(parameters => parameters
@@ -768,7 +769,7 @@ public class CommentsSectionTests : BunitTestBase
 		var comment = CreateTestComment(author: author);
 		CommentService.GetCommentsAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<CommentDto>>(new[] { comment })));
-		CommentService.DeleteCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
+		CommentService.DeleteCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok(true)));
 
 		var cut = Render<CommentsSection>(parameters => parameters
@@ -792,6 +793,7 @@ public class CommentsSectionTests : BunitTestBase
 			// Assert
 			await CommentService.Received(1).DeleteCommentAsync(
 				comment.Id.ToString(),
+				Arg.Any<string>(),
 				"test-user-id",
 				false,
 				Arg.Any<UserDto>(),
@@ -808,7 +810,7 @@ public class CommentsSectionTests : BunitTestBase
 		var comment = CreateTestComment(author: author);
 		CommentService.GetCommentsAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<CommentDto>>(new[] { comment })));
-		CommentService.DeleteCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
+		CommentService.DeleteCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<UserDto>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok(true)));
 
 		var cut = Render<CommentsSection>(parameters => parameters
@@ -890,7 +892,7 @@ public class CommentsSectionTests : BunitTestBase
 		var comment = CreateTestComment(author: author);
 		CommentService.GetCommentsAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Ok<IReadOnlyList<CommentDto>>(new[] { comment })));
-		CommentService.UpdateCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+		CommentService.UpdateCommentAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
 			.Returns(Task.FromResult(Result.Fail<CommentDto>("Failed to update comment")));
 
 		var cut = Render<CommentsSection>(parameters => parameters

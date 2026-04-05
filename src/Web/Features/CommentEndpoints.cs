@@ -145,6 +145,7 @@ public static class CommentEndpoints
 
 		var result = await commentService.UpdateCommentAsync(
 			id,
+			request.IssueId ?? string.Empty,
 			request.Title,
 			request.Description,
 			userId,
@@ -168,7 +169,8 @@ public static class CommentEndpoints
 		string id,
 		ICommentService commentService,
 		ClaimsPrincipal user,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken = default,
+		string? issueId = null)
 	{
 		var userId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 		var userName = user.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
@@ -178,6 +180,7 @@ public static class CommentEndpoints
 
 		var result = await commentService.DeleteCommentAsync(
 			id,
+			issueId ?? string.Empty,
 			userId,
 			isAdmin,
 			archivedBy,
@@ -206,4 +209,4 @@ public record AddCommentRequest(string Title, string Description);
 /// <summary>
 /// Request model for updating a comment.
 /// </summary>
-public record UpdateCommentRequest(string Title, string Description);
+public record UpdateCommentRequest(string Title, string Description, string? IssueId = null);

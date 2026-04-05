@@ -1,11 +1,11 @@
-// =======================================================
-// Copyright (c) 2025. All rights reserved.
+// ============================================
+// Copyright (c) 2026. All rights reserved.
 // File Name :     DashboardService.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
-// Solution Name : IssueTrackerApp
+// Solution Name : IssueManager
 // Project Name :  Web
-// =======================================================
+// =============================================
 
 using Domain.Abstractions;
 using Domain.DTOs;
@@ -27,22 +27,50 @@ public interface IDashboardService
 }
 
 /// <summary>
-///   Implementation of IDashboardService using MediatR.
+///   Implementation of IDashboardService using MediatR with cache-aside reads
+///   (5-minute TTL per user).
+///
+///   Dashboard entries expire after <see cref="DashboardCacheTtl"/> (5 minutes).
+///   Write-side invalidation is not implemented because DashboardService has no
+///   write methods.  Dashboard counts may lag issue mutations by up to 5 minutes;
+///   this is an accepted trade-off.  If real-time accuracy is required, consider
+///   embedding the <c>issues_version</c> counter into the dashboard cache key so
+///   that <see cref="IIssueService"/> write operations invalidate it implicitly.
 /// </summary>
 public sealed class DashboardService : IDashboardService
 {
-	private readonly IMediator _mediator;
+	private const string DashboardKeyPrefix = "dashboard_user_";
+	private static readonly TimeSpan DashboardCacheTtl = TimeSpan.FromMinutes(5);
 
-	public DashboardService(IMediator mediator)
+	private readonly IMediator _mediator;
+	private readonly DistributedCacheHelper _cache;
+
+	public DashboardService(IMediator mediator, DistributedCacheHelper cache)
 	{
 		_mediator = mediator;
+		_cache = cache;
 	}
 
 	public async Task<Result<UserDashboardDto>> GetUserDashboardAsync(
 		string userId,
 		CancellationToken cancellationToken = default)
 	{
+		var cacheKey = $"{DashboardKeyPrefix}{userId}";
+
+		var cached = await _cache.GetAsync<UserDashboardDto>(cacheKey, cancellationToken);
+		if (cached is not null)
+		{
+			return Result.Ok(cached);
+		}
+
 		var query = new GetUserDashboardQuery(userId);
-		return await _mediator.Send(query, cancellationToken);
+		var result = await _mediator.Send(query, cancellationToken);
+
+		if (result.Success && result.Value is not null)
+		{
+			await _cache.SetAsync(cacheKey, result.Value, DashboardCacheTtl, cancellationToken);
+		}
+
+		return result;
 	}
 }
