@@ -20,7 +20,7 @@ namespace Web.Services;
 ///   Shared helper that wraps <see cref="IDistributedCache" /> with JSON
 ///   serialisation, structured logging, and a simple version-counter API.
 /// </summary>
-public sealed class DistributedCacheHelper
+public sealed partial class DistributedCacheHelper
 {
 	private readonly IDistributedCache _cache;
 	private readonly ILogger<DistributedCacheHelper> _logger;
@@ -51,10 +51,13 @@ public sealed class DistributedCacheHelper
 			var bytes = await _cache.GetAsync(key, ct);
 			if (bytes is null)
 			{
+				Log.CacheMiss(_logger, key);
 				return default;
 			}
 
-			return JsonSerializer.Deserialize<T>(bytes, JsonOptions);
+			var value = JsonSerializer.Deserialize<T>(bytes, JsonOptions);
+			Log.CacheHit(_logger, key);
+			return value;
 		}
 		catch (OperationCanceledException)
 		{
@@ -62,7 +65,7 @@ public sealed class DistributedCacheHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex, "Failed to deserialise cache entry for key '{Key}'", key);
+			Log.CacheError(_logger, ex, key);
 			return default;
 		}
 	}
@@ -80,6 +83,7 @@ public sealed class DistributedCacheHelper
 				AbsoluteExpirationRelativeToNow = ttl
 			};
 			await _cache.SetAsync(key, bytes, options, ct);
+			Log.CacheSet(_logger, key, ttl);
 		}
 		catch (OperationCanceledException)
 		{
@@ -87,7 +91,7 @@ public sealed class DistributedCacheHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex, "Failed to set cache entry for key '{Key}'", key);
+			Log.CacheError(_logger, ex, key);
 		}
 	}
 
@@ -99,6 +103,7 @@ public sealed class DistributedCacheHelper
 		try
 		{
 			await _cache.RemoveAsync(key, ct);
+			Log.CacheRemove(_logger, key);
 		}
 		catch (OperationCanceledException)
 		{
@@ -106,7 +111,7 @@ public sealed class DistributedCacheHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex, "Failed to remove cache entry for key '{Key}'", key);
+			Log.CacheError(_logger, ex, key);
 		}
 	}
 
@@ -133,7 +138,7 @@ public sealed class DistributedCacheHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex, "Failed to read version counter for key '{Key}'", key);
+			Log.CacheError(_logger, ex, key);
 			return 0L;
 		}
 	}
@@ -168,8 +173,29 @@ public sealed class DistributedCacheHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex, "Failed to bump version counter for key '{Key}'", key);
+			Log.CacheError(_logger, ex, key);
 			return 0L;
 		}
+	}
+
+	/// <summary>
+	///   Source-generated high-performance log delegates (avoids boxing allocations on hot paths).
+	/// </summary>
+	private static partial class Log
+	{
+		[LoggerMessage(EventId = 5001, Level = LogLevel.Debug, Message = "Cache HIT {Key}")]
+		internal static partial void CacheHit(ILogger logger, string key);
+
+		[LoggerMessage(EventId = 5002, Level = LogLevel.Debug, Message = "Cache MISS {Key}")]
+		internal static partial void CacheMiss(ILogger logger, string key);
+
+		[LoggerMessage(EventId = 5003, Level = LogLevel.Debug, Message = "Cache SET {Key} TTL={Ttl}")]
+		internal static partial void CacheSet(ILogger logger, string key, TimeSpan ttl);
+
+		[LoggerMessage(EventId = 5004, Level = LogLevel.Debug, Message = "Cache REMOVE {Key}")]
+		internal static partial void CacheRemove(ILogger logger, string key);
+
+		[LoggerMessage(EventId = 5005, Level = LogLevel.Warning, Message = "Cache error for key {Key}")]
+		internal static partial void CacheError(ILogger logger, Exception ex, string key);
 	}
 }
