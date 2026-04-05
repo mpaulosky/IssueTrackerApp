@@ -4,8 +4,8 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Aspire -->
-    <PackageVersion Include="Aspire.MongoDB.Driver" Version="13.2.0" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.1.2" />
+    <PackageVersion Include="Aspire.MongoDB.Driver" Version="13.2.1" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.2.1" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.2" />
     <!-- MongoDB -->
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
