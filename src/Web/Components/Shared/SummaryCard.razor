@@ -1,11 +1,11 @@
 <div class="card-bordered p-6">
 	<div class="flex items-center justify-between">
 		<div class="flex-1">
-			<p class="text-sm font-medium text-primary-600 dark:text-primary-400">@Title</p>
+			<p class="text-base font-medium text-primary-800 dark:text-primary-50">@Title</p>
 			<p class="mt-2 text-3xl font-bold text-primary-900 dark:text-white">@Value</p>
 			@if (!string.IsNullOrEmpty(Subtitle))
 			{
-				<p class="mt-1 text-xs text-primary-500 dark:text-primary-400">@Subtitle</p>
+				<p class="mt-1 text-base text-primary-500 dark:text-primary-400">@Subtitle</p>
 			}
 		</div>
 		@if (!string.IsNullOrEmpty(Icon))
@@ -23,7 +23,9 @@
 			@if (TrendPercentage.Value > 0)
 			{
 				<svg class="w-4 h-4 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
-					<path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+					<path fill-rule="evenodd"
+								d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+								clip-rule="evenodd" />
 				</svg>
 				<span class="text-sm font-medium text-green-600 dark:text-green-400">
 					@($"+{TrendPercentage.Value:F1}%")
@@ -32,7 +34,9 @@
 			else if (TrendPercentage.Value < 0)
 			{
 				<svg class="w-4 h-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
-					<path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+					<path fill-rule="evenodd"
+								d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+								clip-rule="evenodd" />
 				</svg>
 				<span class="text-sm font-medium text-red-600 dark:text-red-400">
 					@($"{TrendPercentage.Value:F1}%")

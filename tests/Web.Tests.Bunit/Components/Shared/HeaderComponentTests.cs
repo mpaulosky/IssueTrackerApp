@@ -42,7 +42,6 @@ public class HeaderComponentTests : BunitTestBase
 		// Assert
 		var heading = cut.Find(tag);
 		heading.TextContent.Should().Be("Header Text");
-		heading.GetAttribute("class").Should().Contain("heading-page");
 		heading.GetAttribute("class").Should().Contain(sizeClass);
 	}
 

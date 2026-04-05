@@ -41,7 +41,7 @@
 		<!-- Summary Cards -->
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 			<SummaryCard Title="Total Issues" Value="@_analyticsData.TotalIssues.ToString()" Icon="@TotalIssuesIcon"
-									 IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400" />
+									 IconBackgroundClass="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-50" />
 
 			<SummaryCard Title="Open Issues" Value="@_analyticsData.OpenIssues.ToString()" Icon="@OpenIssuesIcon"
 									 IconBackgroundClass="bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400" />
@@ -58,7 +58,7 @@
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			<!-- Issues by Status - Pie Chart -->
 			<div class="card-bordered p-6">
-				<h3 class="heading-section mb-4">Issues by Status</h3>
+				<h3 class="mb-4">Issues by Status</h3>
 				<div class="h-64">
 					<PieChart ChartId="statusChart" Labels="@_statusLabels" Data="@_statusData" Colors="@_statusColors"
 										IsLoading="_isLoading" />
@@ -67,7 +67,7 @@
 
 			<!-- Issues by Category - Bar Chart -->
 			<div class="card-bordered p-6">
-				<h3 class="heading-section mb-4">Issues by Category</h3>
+				<h3 class="mb-4">Issues by Category</h3>
 				<div class="h-64">
 					<BarChart ChartId="categoryChart" Labels="@_categoryLabels" Data="@_categoryData" Color="#3b82f6"
 										IsLoading="_isLoading" />
@@ -76,7 +76,7 @@
 
 			<!-- Issues Over Time - Line Chart -->
 			<div class="card-bordered p-6 lg:col-span-2">
-				<h3 class="heading-section mb-4">Issues Over Time</h3>
+				<h3 class="mb-4">Issues Over Time</h3>
 				<div class="h-64">
 					<LineChart ChartId="timeChart" Labels="@_timeLabels" Datasets="@_timeDatasets" IsLoading="_isLoading" />
 				</div>
@@ -84,7 +84,7 @@
 
 			<!-- Top Contributors - Bar Chart -->
 			<div class="card-bordered p-6 lg:col-span-2">
-				<h3 class="heading-section mb-4">Top Contributors</h3>
+				<h3 class="mb-4">Top Contributors</h3>
 				<div class="h-64">
 					<BarChart ChartId="contributorsChart" Labels="@_contributorLabels" Data="@_contributorData" Color="#10b981"
 										IsLoading="_isLoading" />

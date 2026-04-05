@@ -70,7 +70,7 @@
 	public RenderFragment? ChildContent { get; set; }
 
 	[Inject]
-	private NavigationManager NavigationManager { get; set; } = default!;
+	private NavigationManager NavigationManager { get; set; } = null!;
 
 	private string GetNavLinkClass(string href)
 	{

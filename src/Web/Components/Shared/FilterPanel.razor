@@ -3,37 +3,37 @@
 <div class="card">
 	<!-- Search Bar -->
 	<div class="p-4 border-b border-primary-200 dark:border-primary-700">
-		<SearchInput Value="@SearchText"
-		             ValueChanged="OnSearchTextChanged"
-		             OnSearch="TriggerSearch"
-		             Placeholder="Search issues by title or description..."
-		             DebounceMs="300"
-		             Id="issue-search"
-		             AriaLabel="Search issues" />
+		<SearchInput Value="@SearchText" ValueChanged="OnSearchTextChanged" OnSearch="TriggerSearch"
+								 Placeholder="Search issues by title or description..." DebounceMs="300" Id="issue-search"
+								 AriaLabel="Search issues" />
 	</div>
 
 	<!-- Collapsible Filters -->
 	<div class="p-4">
 		<button type="button"
-		        class="flex w-full items-center justify-between text-sm font-medium text-primary-700 dark:text-primary-300"
-		        @onclick="ToggleFilters"
-		        aria-expanded="@_isExpanded"
-		        aria-controls="filter-options">
+						class="flex w-full items-center justify-between text-base font-medium text-primary-700 dark:text-primary-300"
+						@onclick="ToggleFilters" aria-expanded="@_isExpanded" aria-controls="filter-options">
 			<span class="flex items-center">
-				<svg class="mr-2 h-5 w-5 text-primary-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-					<path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+				<svg class="mr-2 h-5 w-5 text-primary-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+						 fill="currentColor">
+					<path fill-rule="evenodd"
+								d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z"
+								clip-rule="evenodd" />
 				</svg>
 				Filters
 				@if (HasActiveFilters)
 				{
-					<span class="ml-2 inline-flex items-center rounded-full bg-primary-100 dark:bg-primary-900 px-2 py-0.5 text-xs font-medium text-primary-800 dark:text-primary-200">
+					<span
+						class="ml-2 inline-flex items-center rounded-full bg-primary-100 dark:bg-primary-900 px-2 py-0.5 text-base font-medium text-primary-800 dark:text-primary-50">
 						@ActiveFilterCount active
 					</span>
 				}
 			</span>
 			<svg class="h-5 w-5 transform transition-transform duration-200 @(_isExpanded ? "rotate-180" : "")"
-			     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-				<path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+					 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+				<path fill-rule="evenodd"
+							d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+							clip-rule="evenodd" />
 			</svg>
 		</button>
 
@@ -46,10 +46,8 @@
 						<label for="status-filter" class="form-label">
 							Status
 						</label>
-						<select id="status-filter"
-						        class="form-input mt-1 py-2 pl-3 pr-10"
-						        value="@StatusFilter"
-						        @onchange="OnStatusChanged">
+						<select id="status-filter" class="form-input mt-1 py-2 pl-3 pr-10" value="@StatusFilter"
+										@onchange="OnStatusChanged">
 							<option value="">All Statuses</option>
 							@if (Statuses is not null)
 							{
@@ -66,10 +64,8 @@
 						<label for="category-filter" class="form-label">
 							Category
 						</label>
-						<select id="category-filter"
-						        class="form-input mt-1 py-2 pl-3 pr-10"
-						        value="@CategoryFilter"
-						        @onchange="OnCategoryChanged">
+						<select id="category-filter" class="form-input mt-1 py-2 pl-3 pr-10" value="@CategoryFilter"
+										@onchange="OnCategoryChanged">
 							<option value="">All Categories</option>
 							@if (Categories is not null)
 							{
@@ -86,11 +82,8 @@
 						<label for="date-from" class="form-label">
 							From Date
 						</label>
-						<input type="date"
-						       id="date-from"
-						       class="form-input mt-1 py-2 px-3"
-						       value="@DateFrom?.ToString("yyyy-MM-dd")"
-						       @onchange="OnDateFromChanged" />
+						<input type="date" id="date-from" class="form-input mt-1 py-2 px-3" value="@DateFrom?.ToString("yyyy-MM-dd")"
+									 @onchange="OnDateFromChanged" />
 					</div>
 
 					<!-- Date To -->
@@ -98,17 +91,14 @@
 						<label for="date-to" class="form-label">
 							To Date
 						</label>
-						<input type="date"
-						       id="date-to"
-						       class="form-input mt-1 py-2 px-3"
-						       value="@DateTo?.ToString("yyyy-MM-dd")"
-						       @onchange="OnDateToChanged" />
+						<input type="date" id="date-to" class="form-input mt-1 py-2 px-3" value="@DateTo?.ToString("yyyy-MM-dd")"
+									 @onchange="OnDateToChanged" />
 					</div>
 				</div>
 
 				<!-- Filter Actions -->
 				<div class="flex items-center justify-between pt-4 border-t border-primary-200 dark:border-primary-700">
-					<div class="text-sm text-primary-500 dark:text-primary-400">
+					<div class="text-base text-primary-800 dark:text-primary-50">
 						@if (TotalResults.HasValue)
 						{
 							<span>@TotalResults.Value results found</span>
@@ -117,20 +107,22 @@
 					<div class="flex space-x-3">
 						@if (HasActiveFilters)
 						{
-							<button type="button"
-							        class="btn btn-secondary"
-							        @onclick="ClearAllFilters">
-								<svg class="-ml-0.5 mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-									<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+							<button type="button" class="btn btn-secondary" @onclick="ClearAllFilters">
+								<svg class="-ml-0.5 mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+										 fill="currentColor">
+									<path fill-rule="evenodd"
+												d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+												clip-rule="evenodd" />
 								</svg>
 								Clear All
 							</button>
 						}
-						<button type="button"
-						        class="btn btn-primary"
-						        @onclick="ApplyFilters">
-							<svg class="-ml-0.5 mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+						<button type="button" class="btn btn-primary" @onclick="ApplyFilters">
+							<svg class="-ml-0.5 mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+									 fill="currentColor">
+								<path fill-rule="evenodd"
+											d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z"
+											clip-rule="evenodd" />
 							</svg>
 							Apply Filters
 						</button>
@@ -142,94 +134,94 @@
 </div>
 
 @code {
-	private bool _isExpanded = false;
+	private bool _isExpanded;
 
 	/// <summary>
-	///   The current search text.
+	/// The current search text.
 	/// </summary>
 	[Parameter]
 	public string? SearchText { get; set; }
 
 	/// <summary>
-	///   Event callback when search text changes.
+	/// Event callback when search text changes.
 	/// </summary>
 	[Parameter]
 	public EventCallback<string?> SearchTextChanged { get; set; }
 
 	/// <summary>
-	///   The current status filter.
+	/// The current status filter.
 	/// </summary>
 	[Parameter]
 	public string? StatusFilter { get; set; }
 
 	/// <summary>
-	///   Event callback when status filter changes.
+	/// Event callback when the status filter changes.
 	/// </summary>
 	[Parameter]
 	public EventCallback<string?> StatusFilterChanged { get; set; }
 
 	/// <summary>
-	///   The current category filter.
+	/// The current category filter.
 	/// </summary>
 	[Parameter]
 	public string? CategoryFilter { get; set; }
 
 	/// <summary>
-	///   Event callback when category filter changes.
+	/// Event callback when category filter changes.
 	/// </summary>
 	[Parameter]
 	public EventCallback<string?> CategoryFilterChanged { get; set; }
 
 	/// <summary>
-	///   The start date filter.
+	/// The start date filter.
 	/// </summary>
 	[Parameter]
 	public DateOnly? DateFrom { get; set; }
 
 	/// <summary>
-	///   Event callback when date from changes.
+	/// Event callback when date from changes.
 	/// </summary>
 	[Parameter]
 	public EventCallback<DateOnly?> DateFromChanged { get; set; }
 
 	/// <summary>
-	///   The end date filter.
+	/// The end date filter.
 	/// </summary>
 	[Parameter]
 	public DateOnly? DateTo { get; set; }
 
 	/// <summary>
-	///   Event callback when date to changes.
+	/// Event callback when date to changes.
 	/// </summary>
 	[Parameter]
 	public EventCallback<DateOnly?> DateToChanged { get; set; }
 
 	/// <summary>
-	///   Available statuses for the filter.
+	/// Available statuses for the filter.
 	/// </summary>
 	[Parameter]
 	public IEnumerable<StatusDto>? Statuses { get; set; }
 
 	/// <summary>
-	///   Available categories for the filter.
+	/// Available categories for the filter.
 	/// </summary>
 	[Parameter]
 	public IEnumerable<CategoryDto>? Categories { get; set; }
 
 	/// <summary>
-	///   Total results count to display.
+	/// Total results count to display.
 	/// </summary>
 	[Parameter]
 	public int? TotalResults { get; set; }
 
 	/// <summary>
-	///   Event callback when filters are applied.
+	/// Event callback when filters are applied.
 	/// </summary>
 	[Parameter]
 	public EventCallback OnFiltersApplied { get; set; }
 
 	/// <summary>
-	///   Event callback when filters are cleared.
+	/// Event callback when filters are cleared.
 	/// </summary>
 	[Parameter]
 	public EventCallback OnFiltersCleared { get; set; }

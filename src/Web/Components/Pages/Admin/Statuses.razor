@@ -106,7 +106,7 @@
 							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
 			</svg>
 			<h3 class="mt-2 text-sm font-medium text-primary-900 dark:text-white">No statuses</h3>
-			<p class="mt-1 text-sm text-primary-500 dark:text-primary-400">Get started by creating a new status.</p>
+			<p class="mt-1 text-base text-primary-800 dark:text-primary-50">Get started by creating a new status.</p>
 			<div class="mt-6">
 				<button type="button" class="btn btn-primary" @onclick="OpenCreateModal">
 					<svg class="-ml-0.5 mr-1.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -123,82 +123,83 @@
 		<!-- Statuses Table -->
 		<div class="card-bordered shadow overflow-hidden sm:rounded-lg">
 			<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-primary-200 dark:divide-primary-700">
-				<thead class="bg-primary-700">
-					<tr>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-							Name
-						</th>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-							Description
-						</th>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-							Status
-						</th>
-						<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-300 uppercase tracking-wider">
-							Created
-						</th>
-						<th scope="col" class="relative px-6 py-3">
-							<span class="sr-only">Actions</span>
-						</th>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-primary-200 dark:divide-primary-700">
-					@foreach (var status in _statuses)
-					{
-						<tr class="@(status.Archived ? "bg-primary-50 dark:bg-primary-900/50" : "")">
-							<td class="px-6 py-4 whitespace-nowrap">
-								<div class="text-sm font-medium text-primary-900 dark:text-primary-50">
-									@status.StatusName
-								</div>
-							</td>
-							<td class="px-6 py-4">
-								<div class="text-sm text-primary-900 dark:text-primary-50 max-w-xs truncate"
-										 title="@status.StatusDescription">
-									@status.StatusDescription
-								</div>
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								@if (status.Archived)
-								{
-									<span class="badge bg-primary-100 dark:bg-primary-700 text-primary-800 dark:text-primary-300">
-										Archived
-									</span>
-								}
-								else
-								{
-									<span class="badge bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300">
-										Active
-									</span>
-								}
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-900 dark:text-primary-50">
-								@status.DateCreated.ToString("MMM d, yyyy")
-							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-								<button type="button" class="text-green-600 hover:text-green-900" @onclick="() => OpenEditModal(status)">
-									Edit
-								</button>
-								@if (status.Archived)
-								{
-									<button type="button"
-													class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
-													@onclick="() => ToggleArchive(status)">
-										Restore
-									</button>
-								}
-								else
-								{
-									<button type="button" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-													@onclick="() => ToggleArchive(status)">
-										Archive
-									</button>
-								}
-							</td>
+				<table class="min-w-full divide-y divide-primary-200 dark:divide-primary-700">
+					<thead class="bg-primary-700">
+						<tr>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-100 uppercase tracking-wider">
+								Name
+							</th>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-100 uppercase tracking-wider">
+								Description
+							</th>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-100 uppercase tracking-wider">
+								Status
+							</th>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-100 uppercase tracking-wider">
+								Created
+							</th>
+							<th scope="col"
+									class="relative px-6 py-3 text-center text-xs font-medium text-primary-100 uppercase tracking-wider">
+								Actions
+							</th>
 						</tr>
-					}
-				</tbody>
-			</table>
+					</thead>
+					<tbody class="divide-y divide-primary-200 dark:divide-primary-700">
+						@foreach (var status in _statuses)
+						{
+							<tr class="@(status.Archived ? "bg-primary-50 dark:bg-primary-900/50" : "")">
+								<td class="px-6 py-4 whitespace-nowrap">
+									<div class="text-sm font-medium text-primary-900 dark:text-primary-50">
+										@status.StatusName
+									</div>
+								</td>
+								<td class="px-6 py-4">
+									<div class="text-sm text-primary-900 dark:text-primary-50 max-w-xs truncate"
+											 title="@status.StatusDescription">
+										@status.StatusDescription
+									</div>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap">
+									@if (status.Archived)
+									{
+										<span class="badge bg-primary-100 dark:bg-primary-700 text-primary-800 dark:text-primary-300">
+											Archived
+										</span>
+									}
+									else
+									{
+										<span class="badge bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300">
+											Active
+										</span>
+									}
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-primary-900 dark:text-primary-50">
+									@status.DateCreated.ToString("MMM d, yyyy")
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+									<button type="button" class="text-green-600 hover:text-green-900" @onclick="() => OpenEditModal(status)">
+										Edit
+									</button>
+									@if (status.Archived)
+									{
+										<button type="button"
+														class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
+														@onclick="() => ToggleArchive(status)">
+											Restore
+										</button>
+									}
+									else
+									{
+										<button type="button" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+														@onclick="() => ToggleArchive(status)">
+											Archive
+										</button>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
 			</div>
 		</div>
 	}

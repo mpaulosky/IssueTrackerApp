@@ -55,23 +55,24 @@
 			<nav class="flex" aria-label="Breadcrumb">
 				<ol class="flex items-center space-x-2">
 					<li>
-						<a href="/issues" class="text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
+						<a href="/issues"
+							 class="text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
 							Issues
 						</a>
 					</li>
 					<li class="flex items-center">
-						<svg class="h-5 w-5 flex-shrink-0 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+						<svg class="h-5 w-5 shrink-0 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
 							<path fill-rule="evenodd"
 										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
 										clip-rule="evenodd" />
 						</svg>
 						<a href="/issues/@Id"
-							 class="ml-2 text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 truncate max-w-[150px]">
+							 class="ml-2 text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 truncate max-w-37.5">
 							@_issue.Title
 						</a>
 					</li>
 					<li class="flex items-center">
-						<svg class="h-5 w-5 flex-shrink-0 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+						<svg class="h-5 w-5 shrink-0 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
 							<path fill-rule="evenodd"
 										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
 										clip-rule="evenodd" />
@@ -81,7 +82,7 @@
 				</ol>
 			</nav>
 			<h1 class="heading-page mt-4">Edit Issue</h1>
-			<p class="mt-1 text-sm text-primary-500 dark:text-primary-400">
+			<p class="mt-1 text-base text-primary-800 dark:text-primary-50">
 				Update the issue details below.
 			</p>
 		</div>
@@ -90,7 +91,7 @@
 		{
 			<div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4 mb-6" role="alert">
 				<div class="flex">
-					<div class="flex-shrink-0">
+					<div class="shrink-0">
 						<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
 							<path fill-rule="evenodd"
 										d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
@@ -190,7 +191,7 @@
 
 @code {
 	[Parameter]
-	public string Id { get; set; } = default!;
+	public string Id { get; set; } = null!;
 
 	private const string PageTitle = "Edit Issue - IssueTracker";
 
@@ -222,7 +223,7 @@
 			var issueResult = await issueTask;
 			var categoryResult = await categoryTask;
 
-			if (issueResult.Success && issueResult.Value is not null)
+			if (issueResult is { Success: true, Value: not null })
 			{
 				_issue = issueResult.Value;
 				_model = new EditIssueModel

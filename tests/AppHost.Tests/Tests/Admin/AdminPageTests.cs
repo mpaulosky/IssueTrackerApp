@@ -47,9 +47,8 @@ public class AdminPageTests : BasePlaywrightTests
 			await page.GotoAsync("/admin");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			// Assert — use .heading-page selector to target AdminPageLayout's h1
-			// (PageHeaderComponent also renders an h1, so strict "h1" is ambiguous)
-			var heading = page.Locator("h1.heading-page");
+			// Assert — HeaderComponent renders h1.text-2xl; filter by text to be specific
+			var heading = page.Locator("h1").Filter(new() { HasText = "Admin Dashboard" });
 			await heading.WaitForAsync();
 			var text = await heading.InnerTextAsync();
 			text.Should().Contain("Admin Dashboard");

@@ -46,11 +46,10 @@ public class DashboardPageTests : BasePlaywrightTests
 			await page.GotoAsync("/dashboard");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-			var heading = page.Locator("h1.heading-page", new() { HasText = "Welcome" });
+			var heading = page.Locator("h2").Filter(new() { HasText = "Welcome back" });
 			await heading.WaitForAsync();
 
-			// Assert — filter by "Welcome" text to target the inline welcome h1 specifically,
-			// since HeaderComponent also renders an h1.heading-page for the page title.
+			// Assert — welcome section uses h2 (HeaderComponent renders the page-title h1)
 			var text = await heading.TextContentAsync();
 			text.Should().Contain("Welcome back");
 		});

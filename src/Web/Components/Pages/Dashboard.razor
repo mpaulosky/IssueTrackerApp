@@ -15,23 +15,9 @@
 <div class="space-y-6">
 	<!-- Welcome Section -->
 	<div class="card p-6">
-		<div class="sm:flex sm:items-center sm:justify-between">
-			<div>
-				<h1 class="heading-page">
-					Welcome back, @_userName!
-				</h1>
-				<p class="mt-1 text-sm text-primary-500 dark:text-primary-400">
-					@DateTime.Now.ToString("dddd, MMMM d, yyyy 'at' h:mm tt")
-				</p>
-			</div>
-			<div class="mt-4 sm:mt-0 flex-shrink-0">
-				<svg class="h-12 w-12 text-primary-600 dark:text-primary-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-						 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round"
-								d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
-				</svg>
-			</div>
-		</div>
+		<h2 class="text-lg font-medium text-primary-800 dark:text-primary-50">
+			Welcome back, @_userName!
+		</h2>
 	</div>
 
 	@if (_isLoading)
@@ -58,8 +44,8 @@
 					</svg>
 				</div>
 				<div class="ml-3">
-					<h3 class="text-sm font-medium text-red-800 dark:text-red-200">Error loading dashboard</h3>
-					<p class="mt-1 text-sm text-red-700 dark:text-red-300">@_errorMessage</p>
+					<h3 class="text-base font-medium text-red-800 dark:text-red-200">Error loading dashboard</h3>
+					<p class="mt-1 text-base text-red-700 dark:text-red-300">@_errorMessage</p>
 				</div>
 			</div>
 		</div>
@@ -83,8 +69,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">Total Issues</dt>
-								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.TotalIssues</dd>
+								<dt class="truncate text-base font-medium text-primary-800 dark:text-primary-50">Total Issues</dt>
+								<dd class="text-3xl font-semibold text-primary-800 dark:text-primary-50">@_dashboard?.TotalIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -106,8 +92,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">Open Issues</dt>
-								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.OpenIssues</dd>
+								<dt class="truncate text-base font-medium text-primary-800 dark:text-primary-50">Open Issues</dt>
+								<dd class="text-3xl font-semibold text-primary-800 dark:text-primary-50">@_dashboard?.OpenIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -129,8 +115,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">Resolved Issues</dt>
-								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.ResolvedIssues</dd>
+								<dt class="truncate text-base font-medium text-primary-800 dark:text-primary-50">Resolved Issues</dt>
+								<dd class="text-3xl font-semibold text-primary-800 dark:text-primary-50">@_dashboard?.ResolvedIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -152,8 +138,8 @@
 						</div>
 						<div class="ml-5 w-0 flex-1">
 							<dl>
-								<dt class="truncate text-sm font-medium text-primary-500 dark:text-primary-400">This Week</dt>
-								<dd class="text-3xl font-semibold text-primary-900 dark:text-white">@_dashboard?.ThisWeekIssues</dd>
+								<dt class="truncate text-base font-medium text-primary-800 dark:text-primary-50">This Week</dt>
+								<dd class="text-3xl font-semibold text-primary-800 dark:text-primary-50">@_dashboard?.ThisWeekIssues</dd>
 							</dl>
 						</div>
 					</div>
@@ -167,8 +153,8 @@
 				<div class="card">
 					<div class="px-4 py-5 sm:px-6 border-b border-primary-200 dark:border-primary-700">
 						<div class="flex items-center justify-between">
-							<h2 class="heading-section">My Recent Issues</h2>
-							<a href="/issues?author=@_userId" class="link-primary text-sm font-medium">
+							<h2 class="text-primary-800 dark:text-primary-50">My Recent Issues</h2>
+							<a href="/issues?author=@_userId" class="link-primary text-base font-medium">
 								View All →
 							</a>
 						</div>
@@ -181,7 +167,7 @@
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 												d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
 								</svg>
-								<p class="mt-2 text-sm text-primary-500 dark:text-primary-400">No issues yet. Create your first issue!</p>
+								<p class="mt-2 text-base text-primary-800 dark:text-primary-50">No issues yet. Create your first issue!</p>
 							</div>
 						}
 						else
@@ -193,7 +179,7 @@
 										<a href="/issues/@issue.Id" class="block hover:bg-primary-50 dark:hover:bg-primary-700 transition-colors">
 											<div class="px-4 py-4 sm:px-6">
 												<div class="flex items-center justify-between">
-													<p class="text-sm font-medium text-primary-600 dark:text-primary-400 truncate max-w-xs">
+													<p class="text-base font-medium text-primary-800 dark:text-primary-50 truncate max-w-xs">
 														@issue.Title
 													</p>
 													<div class="ml-2 flex-shrink-0 flex items-center space-x-2">
@@ -201,7 +187,7 @@
 														<CategoryBadge Category="@issue.Category" />
 													</div>
 												</div>
-												<div class="mt-2 text-sm text-primary-500 dark:text-primary-400">
+												<div class="mt-2 text-base text-primary-800 dark:text-primary-50">
 													<time datetime="@issue.DateCreated.ToString("yyyy-MM-dd")">
 														@issue.DateCreated.ToString("MMM d, yyyy")
 													</time>
@@ -220,7 +206,7 @@
 			<div class="lg:col-span-1">
 				<div class="card">
 					<div class="px-4 py-5 sm:px-6 border-b border-primary-200 dark:border-primary-700">
-						<h2 class="heading-section">Quick Actions</h2>
+						<h2 class="text-primary-800 dark:text-primary-50">Quick Actions</h2>
 					</div>
 					<div class="p-4 flex flex-col gap-3">
 						<a href="/issues/create"
