@@ -198,6 +198,14 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 			await dc.RemoveAsync("analytics_category__");
 			await dc.RemoveAsync("analytics_overtime__");
 			await dc.RemoveAsync("analytics_resolution__");
+
+			// Remove reference-data cache keys added in Sprint 1
+			await dc.RemoveAsync("categories_list_False");
+			await dc.RemoveAsync("categories_list_True");
+			await dc.RemoveAsync("statuses_list_False");
+			await dc.RemoveAsync("statuses_list_True");
+			await dc.RemoveAsync("lookup_categories");
+			await dc.RemoveAsync("lookup_statuses");
 		}
 	}
 }

@@ -10,6 +10,10 @@
 using Domain.Features.Statuses.Commands;
 using Domain.Features.Statuses.Queries;
 
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+
 using Web.Services;
 
 namespace Web.Tests.Services;
@@ -26,7 +30,10 @@ public sealed class StatusServiceTests
 	public StatusServiceTests()
 	{
 		_mediator = Substitute.For<IMediator>();
-		_sut = new StatusService(_mediator);
+		var cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		var cacheLogger = Substitute.For<ILogger<DistributedCacheHelper>>();
+		var cacheHelper = new DistributedCacheHelper(cache, cacheLogger);
+		_sut = new StatusService(_mediator, cacheHelper);
 	}
 
 	#region GetStatusesAsync Tests

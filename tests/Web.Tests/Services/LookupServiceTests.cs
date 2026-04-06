@@ -9,6 +9,10 @@
 
 using Domain.Models;
 
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+
 using Web.Services;
 
 namespace Web.Tests.Services;
@@ -27,7 +31,10 @@ public sealed class LookupServiceTests
 	{
 		_categoryRepository = Substitute.For<IRepository<Category>>();
 		_statusRepository = Substitute.For<IRepository<Status>>();
-		_sut = new LookupService(_categoryRepository, _statusRepository);
+		var cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		var cacheLogger = Substitute.For<ILogger<DistributedCacheHelper>>();
+		var cacheHelper = new DistributedCacheHelper(cache, cacheLogger);
+		_sut = new LookupService(_categoryRepository, _statusRepository, cacheHelper);
 	}
 
 	#region GetCategoriesAsync Tests

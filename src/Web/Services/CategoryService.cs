@@ -1,9 +1,9 @@
 // =======================================================
-// Copyright (c) 2025. All rights reserved.
+// Copyright (c) 2026. All rights reserved.
 // File Name :     CategoryService.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
-// Solution Name : IssueTrackerApp
+// Solution Name : IssueManager
 // Project Name :  Web
 // =======================================================
 
@@ -61,29 +61,68 @@ public interface ICategoryService
 }
 
 /// <summary>
-///   Implementation of ICategoryService using MediatR.
+///   Implementation of ICategoryService using MediatR with cache-aside reads
+///   (60-minute TTL) and write-through invalidation.
 /// </summary>
 public sealed class CategoryService : ICategoryService
 {
-	private readonly IMediator _mediator;
+	private const string CacheKeyList = "categories_list";
+	private const string CacheKeyPrefix = "category_";
+	private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(60);
 
-	public CategoryService(IMediator mediator)
+	private readonly IMediator _mediator;
+	private readonly DistributedCacheHelper _cacheHelper;
+
+	public CategoryService(IMediator mediator, DistributedCacheHelper cacheHelper)
 	{
 		_mediator = mediator;
+		_cacheHelper = cacheHelper;
 	}
 
 	public async Task<Result<IEnumerable<CategoryDto>>> GetCategoriesAsync(
 		bool includeArchived = false,
 		CancellationToken cancellationToken = default)
 	{
+		var cacheKey = $"{CacheKeyList}_{includeArchived}";
+
+		var cached = await _cacheHelper.GetAsync<List<CategoryDto>>(cacheKey, cancellationToken);
+		if (cached is not null)
+		{
+			return Result.Ok<IEnumerable<CategoryDto>>(cached);
+		}
+
 		var query = new GetCategoriesQuery(includeArchived);
-		return await _mediator.Send(query, cancellationToken);
+		var result = await _mediator.Send(query, cancellationToken);
+
+		if (result.Success && result.Value is not null)
+		{
+			await _cacheHelper.SetAsync(cacheKey, result.Value.ToList(), CacheTtl, cancellationToken);
+		}
+
+		return result;
 	}
 
-	public async Task<Result<CategoryDto>> GetCategoryByIdAsync(string id, CancellationToken cancellationToken = default)
+	public async Task<Result<CategoryDto>> GetCategoryByIdAsync(
+		string id,
+		CancellationToken cancellationToken = default)
 	{
+		var cacheKey = $"{CacheKeyPrefix}{id}";
+
+		var cached = await _cacheHelper.GetAsync<CategoryDto>(cacheKey, cancellationToken);
+		if (cached is not null)
+		{
+			return Result.Ok(cached);
+		}
+
 		var query = new GetCategoryByIdQuery(id);
-		return await _mediator.Send(query, cancellationToken);
+		var result = await _mediator.Send(query, cancellationToken);
+
+		if (result.Success && result.Value is not null)
+		{
+			await _cacheHelper.SetAsync(cacheKey, result.Value, CacheTtl, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<CategoryDto>> CreateCategoryAsync(
@@ -92,7 +131,14 @@ public sealed class CategoryService : ICategoryService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new CreateCategoryCommand(categoryName, categoryDescription);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await InvalidateListCacheAsync(cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<CategoryDto>> UpdateCategoryAsync(
@@ -102,7 +148,15 @@ public sealed class CategoryService : ICategoryService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new UpdateCategoryCommand(id, categoryName, categoryDescription);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cacheHelper.RemoveAsync($"{CacheKeyPrefix}{id}", cancellationToken);
+			await InvalidateListCacheAsync(cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<CategoryDto>> ArchiveCategoryAsync(
@@ -112,6 +166,20 @@ public sealed class CategoryService : ICategoryService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new ArchiveCategoryCommand(id, archive, archivedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cacheHelper.RemoveAsync($"{CacheKeyPrefix}{id}", cancellationToken);
+			await InvalidateListCacheAsync(cancellationToken);
+		}
+
+		return result;
+	}
+
+	private async Task InvalidateListCacheAsync(CancellationToken ct)
+	{
+		await _cacheHelper.RemoveAsync($"{CacheKeyList}_True", ct);
+		await _cacheHelper.RemoveAsync($"{CacheKeyList}_False", ct);
 	}
 }
