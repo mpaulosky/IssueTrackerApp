@@ -1,11 +1,11 @@
-// =======================================================
-// Copyright (c) 2025. All rights reserved.
+// ============================================
+// Copyright (c) 2026. All rights reserved.
 // File Name :     IssueService.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
-// Solution Name : IssueTrackerApp
+// Solution Name : IssueManager
 // Project Name :  Web
-// =======================================================
+// =============================================
 
 using Domain.Abstractions;
 using Domain.DTOs;
@@ -151,22 +151,31 @@ public interface IIssueService
 }
 
 /// <summary>
-///   Implementation of IIssueService using MediatR.
+///   Implementation of IIssueService using MediatR with cache-aside reads
+///   and version-token invalidation on all write operations.
 /// </summary>
 public sealed class IssueService : IIssueService
 {
+	private const string IssuesVersionKey   = "issues_version";
+	private const string IssueByIdKeyPrefix = "issue_";
+	private static readonly TimeSpan ListCacheTtl  = TimeSpan.FromMinutes(5);
+	private static readonly TimeSpan ByIdCacheTtl  = TimeSpan.FromMinutes(10);
+
 	private readonly IMediator _mediator;
 	private readonly INotificationService _notificationService;
 	private readonly IBulkOperationQueue _bulkQueue;
+	private readonly DistributedCacheHelper _cache;
 
 	public IssueService(
 		IMediator mediator,
 		INotificationService notificationService,
-		IBulkOperationQueue bulkQueue)
+		IBulkOperationQueue bulkQueue,
+		DistributedCacheHelper cache)
 	{
 		_mediator = mediator;
 		_notificationService = notificationService;
 		_bulkQueue = bulkQueue;
+		_cache = cache;
 	}
 
 	public async Task<Result<PaginatedResponse<IssueDto>>> GetIssuesAsync(
@@ -177,14 +186,46 @@ public sealed class IssueService : IIssueService
 		bool includeArchived = false,
 		CancellationToken cancellationToken = default)
 	{
+		var version = await _cache.GetVersionAsync(IssuesVersionKey, cancellationToken);
+		// Use | as segment separator to prevent collisions between filter values that contain _.
+		var cacheKey = $"issues_list_{version}_{page}_{pageSize}|{statusFilter ?? ""}|{categoryFilter ?? ""}|{includeArchived}";
+
+		var cached = await _cache.GetAsync<PaginatedResponse<IssueDto>>(cacheKey, cancellationToken);
+		if (cached is not null)
+		{
+			return Result.Ok(cached);
+		}
+
 		var query = new GetIssuesQuery(page, pageSize, statusFilter, categoryFilter, includeArchived);
-		return await _mediator.Send(query, cancellationToken);
+		var result = await _mediator.Send(query, cancellationToken);
+
+		if (result.Success && result.Value is not null)
+		{
+			await _cache.SetAsync(cacheKey, result.Value, ListCacheTtl, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<IssueDto>> GetIssueByIdAsync(string id, CancellationToken cancellationToken = default)
 	{
+		var cacheKey = $"{IssueByIdKeyPrefix}{id}";
+
+		var cached = await _cache.GetAsync<IssueDto>(cacheKey, cancellationToken);
+		if (cached is not null)
+		{
+			return Result.Ok(cached);
+		}
+
 		var query = new GetIssueByIdQuery(id);
-		return await _mediator.Send(query, cancellationToken);
+		var result = await _mediator.Send(query, cancellationToken);
+
+		if (result.Success && result.Value is not null)
+		{
+			await _cache.SetAsync(cacheKey, result.Value, ByIdCacheTtl, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<IssueDto>> CreateIssueAsync(
@@ -200,6 +241,10 @@ public sealed class IssueService : IIssueService
 
 		if (result.Success && result.Value is not null)
 		{
+			// Bump version immediately after the write succeeds — before optional side
+			// effects (label attachment, notifications) that might throw.
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+
 			// Attach labels one-by-one using the dedicated command.
 			if (labels is { Count: > 0 })
 			{
@@ -239,6 +284,11 @@ public sealed class IssueService : IIssueService
 
 		if (result.Success && result.Value is not null)
 		{
+			// Invalidate caches immediately after the write succeeds — before optional
+			// side effects (label sync, notifications) that might throw.
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+			await _cache.RemoveAsync($"{IssueByIdKeyPrefix}{id}", cancellationToken);
+
 			// Sync labels: add new ones, remove stale ones.
 			if (labels is not null)
 			{
@@ -279,7 +329,15 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new DeleteIssueCommand(id, archivedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+			await _cache.RemoveAsync($"{IssueByIdKeyPrefix}{id}", cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<bool>> RestoreIssueAsync(
@@ -287,7 +345,15 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new RestoreIssueCommand(id);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+			await _cache.RemoveAsync($"{IssueByIdKeyPrefix}{id}", cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<IssueDto>> ChangeIssueStatusAsync(
@@ -298,9 +364,10 @@ public sealed class IssueService : IIssueService
 		var command = new ChangeIssueStatusCommand(id, newStatus);
 		var result = await _mediator.Send(command, cancellationToken);
 
-		// Notify clients if successful
 		if (result.Success && result.Value is not null)
 		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+			await _cache.RemoveAsync($"{IssueByIdKeyPrefix}{id}", cancellationToken);
 			await _notificationService.NotifyIssueUpdatedAsync(result.Value, cancellationToken);
 		}
 
@@ -322,7 +389,14 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new BulkUpdateStatusCommand(issueIds, newStatus, requestedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<BulkOperationResult>> BulkUpdateCategoryAsync(
@@ -332,7 +406,14 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new BulkUpdateCategoryCommand(issueIds, newCategory, requestedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<BulkOperationResult>> BulkAssignAsync(
@@ -342,7 +423,14 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new BulkAssignCommand(issueIds, assignee, requestedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<BulkOperationResult>> BulkDeleteAsync(
@@ -352,7 +440,14 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new BulkDeleteCommand(issueIds, deletedBy, requestedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<Result<BulkExportResult>> BulkExportAsync(
@@ -370,7 +465,14 @@ public sealed class IssueService : IIssueService
 		CancellationToken cancellationToken = default)
 	{
 		var command = new UndoBulkOperationCommand(undoToken, requestedBy);
-		return await _mediator.Send(command, cancellationToken);
+		var result = await _mediator.Send(command, cancellationToken);
+
+		if (result.Success)
+		{
+			await _cache.BumpVersionAsync(IssuesVersionKey, cancellationToken);
+		}
+
+		return result;
 	}
 
 	public async Task<BulkOperationStatus?> GetBulkOperationStatusAsync(
