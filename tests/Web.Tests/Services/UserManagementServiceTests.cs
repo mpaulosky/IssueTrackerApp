@@ -12,6 +12,7 @@ using System.Text.Json;
 
 using Domain.Abstractions;
 
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -50,12 +51,14 @@ public sealed class UserManagementServiceTests
 
 	private static UserManagementService CreateSut(
 		IMemoryCache? cache = null,
+		IDistributedCache? distributedCache = null,
 		IHttpClientFactory? httpClientFactory = null,
 		Auth0ManagementOptions? options = null,
 		ILogger<UserManagementService>? logger = null)
 	{
 		return new UserManagementService(
 			cache ?? new MemoryCache(new MemoryCacheOptions()),
+			distributedCache ?? Substitute.For<IDistributedCache>(),
 			httpClientFactory ?? Substitute.For<IHttpClientFactory>(),
 			Options.Create(options ?? DefaultOptions),
 			logger ?? Substitute.For<ILogger<UserManagementService>>());

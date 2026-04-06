@@ -7,7 +7,9 @@
 // Project Name :  Web
 // =============================================
 
+using System.Buffers.Binary;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Auth0.ManagementApi;
@@ -18,6 +20,7 @@ using Domain.Abstractions;
 using Domain.Features.Admin.Abstractions;
 using Domain.Features.Admin.Models;
 
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -38,10 +41,23 @@ namespace Web.Features.Admin.Users;
 /// </remarks>
 public sealed class UserManagementService : IUserManagementService
 {
+	// ── IMemoryCache keys (token + role-ID map — DO NOT CHANGE) ──────────────
 	private const string TokenCacheKey = "Auth0Management:Token";
 	private const string RolesCacheKey = "Auth0Management:Roles";
 
+	// ── IDistributedCache keys (result data — Sprint 2) ──────────────────────
+	private const string UserListCacheKeyPrefix = "auth0_users_page_";
+	private const string UserByIdCacheKeyPrefix  = "auth0_user_";
+	private const string RolesListCacheKey       = "auth0_roles_list";
+	private const string UserListVersionKey      = "auth0_users_version";
+
+	// ── TTLs ──────────────────────────────────────────────────────────────────
+	private static readonly TimeSpan UserListTtl   = TimeSpan.FromMinutes(5);
+	private static readonly TimeSpan UserByIdTtl   = TimeSpan.FromMinutes(10);
+	private static readonly TimeSpan RolesListTtl  = TimeSpan.FromMinutes(30);
+
 	private readonly IMemoryCache _cache;
+	private readonly IDistributedCache _distributedCache;
 	private readonly IHttpClientFactory _httpClientFactory;
 	private readonly Auth0ManagementOptions _options;
 	private readonly ILogger<UserManagementService> _logger;
@@ -51,11 +67,13 @@ public sealed class UserManagementService : IUserManagementService
 	/// </summary>
 	public UserManagementService(
 		IMemoryCache cache,
+		IDistributedCache distributedCache,
 		IHttpClientFactory httpClientFactory,
 		IOptions<Auth0ManagementOptions> options,
 		ILogger<UserManagementService> logger)
 	{
 		_cache = cache;
+		_distributedCache = distributedCache;
 		_httpClientFactory = httpClientFactory;
 		_options = options.Value;
 		_logger = logger;
@@ -69,6 +87,20 @@ public sealed class UserManagementService : IUserManagementService
 	{
 		try
 		{
+			var version = await GetUserListVersionAsync(ct).ConfigureAwait(false);
+			var cacheKey = $"{UserListCacheKeyPrefix}{version}_{page}_{perPage}";
+
+			var cached = await GetFromDistributedCacheAsync<List<AdminUserSummary>>(cacheKey, ct)
+				.ConfigureAwait(false);
+
+			if (cached is not null)
+			{
+				_logger.LogDebug(
+					"Returning cached user list. Page={Page}, PerPage={PerPage}, Version={Version}",
+					page, perPage, version);
+				return Result.Ok<IReadOnlyList<AdminUserSummary>>(cached);
+			}
+
 			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
 
 			// Auth0 uses 0-based page numbering; callers pass 1-based pages.
@@ -91,7 +123,10 @@ public sealed class UserManagementService : IUserManagementService
 				};
 			})).ConfigureAwait(false);
 
-			return Result.Ok<IReadOnlyList<AdminUserSummary>>(summaries.ToList());
+			var result = summaries.ToList();
+			await SetInDistributedCacheAsync(cacheKey, result, UserListTtl, ct).ConfigureAwait(false);
+
+			return Result.Ok<IReadOnlyList<AdminUserSummary>>(result);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -121,6 +156,17 @@ public sealed class UserManagementService : IUserManagementService
 
 		try
 		{
+			var cacheKey = $"{UserByIdCacheKeyPrefix}{userId}";
+
+			var cached = await GetFromDistributedCacheAsync<AdminUserSummary>(cacheKey, ct)
+				.ConfigureAwait(false);
+
+			if (cached is not null)
+			{
+				_logger.LogDebug("Returning cached user. UserId={UserId}", userId);
+				return Result.Ok(cached);
+			}
+
 			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
 
 			var user = await client.Users
@@ -136,6 +182,8 @@ public sealed class UserManagementService : IUserManagementService
 			{
 				Roles = rolesList.Select(r => r.Name ?? string.Empty).ToList()
 			};
+
+			await SetInDistributedCacheAsync(cacheKey, summary, UserByIdTtl, ct).ConfigureAwait(false);
 
 			return Result.Ok(summary);
 		}
@@ -184,8 +232,6 @@ public sealed class UserManagementService : IUserManagementService
 			await client.Users
 				.AssignRolesAsync(userId, new AssignRolesRequest { Roles = roleIds }, ct)
 				.ConfigureAwait(false);
-
-			return Result.Ok(true);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -199,6 +245,26 @@ public sealed class UserManagementService : IUserManagementService
 				$"Failed to assign roles: {ex.Message}",
 				ResultErrorCode.ExternalService);
 		}
+
+		// Auth0 commit succeeded — invalidate cache outside the Auth0 try/catch so a
+		// Redis failure is logged as a warning but never rolls back a successful role change.
+		try
+		{
+			await _distributedCache
+				.RemoveAsync($"{UserByIdCacheKeyPrefix}{userId}", ct)
+				.ConfigureAwait(false);
+			await BumpUserListVersionAsync(ct).ConfigureAwait(false);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			_logger.LogError(
+				ex,
+				"Cache invalidation failed after AssignRolesAsync for UserId={UserId}. " +
+				"Stale data may be served until TTL expires.",
+				userId);
+		}
+
+		return Result.Ok(true);
 	}
 
 	/// <inheritdoc />
@@ -236,8 +302,6 @@ public sealed class UserManagementService : IUserManagementService
 			await client.Users
 				.RemoveRolesAsync(userId, new AssignRolesRequest { Roles = roleIds }, ct)
 				.ConfigureAwait(false);
-
-			return Result.Ok(true);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -251,6 +315,25 @@ public sealed class UserManagementService : IUserManagementService
 				$"Failed to remove roles: {ex.Message}",
 				ResultErrorCode.ExternalService);
 		}
+
+		// Auth0 commit succeeded — invalidate cache outside the Auth0 try/catch.
+		try
+		{
+			await _distributedCache
+				.RemoveAsync($"{UserByIdCacheKeyPrefix}{userId}", ct)
+				.ConfigureAwait(false);
+			await BumpUserListVersionAsync(ct).ConfigureAwait(false);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			_logger.LogError(
+				ex,
+				"Cache invalidation failed after RemoveRolesAsync for UserId={UserId}. " +
+				"Stale data may be served until TTL expires.",
+				userId);
+		}
+
+		return Result.Ok(true);
 	}
 
 	/// <inheritdoc />
@@ -258,6 +341,15 @@ public sealed class UserManagementService : IUserManagementService
 	{
 		try
 		{
+			var cached = await GetFromDistributedCacheAsync<List<RoleAssignment>>(RolesListCacheKey, ct)
+				.ConfigureAwait(false);
+
+			if (cached is not null)
+			{
+				_logger.LogDebug("Returning cached roles list.");
+				return Result.Ok<IReadOnlyList<RoleAssignment>>(cached);
+			}
+
 			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
 
 			var roles = await client.Roles
@@ -272,6 +364,9 @@ public sealed class UserManagementService : IUserManagementService
 					Description = r.Description ?? string.Empty
 				})
 				.ToList();
+
+			await SetInDistributedCacheAsync(RolesListCacheKey, result, RolesListTtl, ct)
+				.ConfigureAwait(false);
 
 			return Result.Ok<IReadOnlyList<RoleAssignment>>(result);
 		}
@@ -288,6 +383,101 @@ public sealed class UserManagementService : IUserManagementService
 	// ──────────────────────────────────────────────────────────────────────────
 	// Private helpers
 	// ──────────────────────────────────────────────────────────────────────────
+
+	/// <summary>
+	///   Attempts to deserialize a value from <see cref="IDistributedCache" />.
+	///   Returns <see langword="null" /> on miss or deserialization failure.
+	/// </summary>
+	private async Task<T?> GetFromDistributedCacheAsync<T>(string key, CancellationToken ct)
+	{
+		try
+		{
+			var bytes = await _distributedCache.GetAsync(key, ct).ConfigureAwait(false);
+			return bytes is null ? default : JsonSerializer.Deserialize<T>(bytes);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			_logger.LogWarning(ex, "Distributed cache read failed for key '{Key}'. Treating as miss.", key);
+			return default;
+		}
+	}
+
+	/// <summary>
+	///   Serializes and stores a value in <see cref="IDistributedCache" /> with the given TTL.
+	///   Errors are logged as warnings so a cache write failure never breaks the caller.
+	/// </summary>
+	private async Task SetInDistributedCacheAsync<T>(string key, T value, TimeSpan ttl, CancellationToken ct)
+	{
+		try
+		{
+			var bytes = JsonSerializer.SerializeToUtf8Bytes(value);
+			await _distributedCache.SetAsync(
+				key,
+				bytes,
+				new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl },
+				ct).ConfigureAwait(false);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			_logger.LogWarning(ex, "Distributed cache write failed for key '{Key}'. Continuing without cache.", key);
+		}
+	}
+
+	/// <summary>
+	///   Returns the current user-list cache version counter.
+	///   Returns 0 when no version entry exists yet (cold start).
+	///   On a cache read error returns a sentinel (<see cref="long.MinValue" />) that cannot
+	///   match any previously written paginated-list key, guaranteeing a cache miss rather than
+	///   accidentally serving stale data under a real but lower-numbered version key.
+	/// </summary>
+	private async Task<long> GetUserListVersionAsync(CancellationToken ct)
+	{
+		try
+		{
+			var bytes = await _distributedCache.GetAsync(UserListVersionKey, ct).ConfigureAwait(false);
+			if (bytes is null) return 0L;
+			return BinaryPrimitives.ReadInt64LittleEndian(bytes);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			// Return a sentinel that will never match an existing cache key, forcing a live
+			// Auth0 call. Do NOT return 0: version-0 paginated entries from before the first
+			// role change may still be in cache and would be incorrectly served as hits.
+			_logger.LogWarning(ex,
+				"Failed to read user-list version from distributed cache. Using sentinel to force cache miss.");
+			return long.MinValue;
+		}
+	}
+
+	/// <summary>
+	///   Increments the user-list version counter in <see cref="IDistributedCache" /> using an
+	///   endian-stable encoding, which logically invalidates all existing paginated list entries.
+	///   The version key TTL is set to <c>UserListTtl + 1 minute</c> so the key always outlives
+	///   any paginated entry it governs, preventing Redis LRU eviction from resurrecting stale
+	///   version-0 entries.
+	/// </summary>
+	private async Task BumpUserListVersionAsync(CancellationToken ct)
+	{
+		// Throws on error — callers wrap this in their own try/catch with appropriate logging.
+		var current = await GetUserListVersionAsync(ct).ConfigureAwait(false);
+		// If GetUserListVersionAsync returned the sentinel, start from 1 so version 0 entries
+		// (which may still be in cache) are never matched.
+		var nextValue = current == long.MinValue ? 1L : current + 1L;
+		var next = new byte[sizeof(long)];
+		BinaryPrimitives.WriteInt64LittleEndian(next, nextValue);
+
+		// TTL must exceed UserListTtl so the key is never evicted while paginated entries live.
+		await _distributedCache.SetAsync(
+			UserListVersionKey,
+			next,
+			new DistributedCacheEntryOptions
+			{
+				AbsoluteExpirationRelativeToNow = UserListTtl + TimeSpan.FromMinutes(1)
+			},
+			ct).ConfigureAwait(false);
+
+		_logger.LogDebug("User-list cache version bumped to {Version}.", nextValue);
+	}
 
 	/// <summary>
 	///   Creates a <see cref="ManagementApiClient" /> using a cached M2M access token.
