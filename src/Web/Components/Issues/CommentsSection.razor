@@ -392,6 +392,7 @@
 		{
 			var result = await CommentService.UpdateCommentAsync(
 				commentId,
+				IssueId,
 				_editTitle,
 				_editDescription,
 				_currentUser.Id);
@@ -444,6 +445,7 @@
 		{
 			var result = await CommentService.DeleteCommentAsync(
 				_commentToDelete.Id.ToString(),
+				IssueId,
 				_currentUser.Id,
 				_isAdmin,
 				_currentUser);

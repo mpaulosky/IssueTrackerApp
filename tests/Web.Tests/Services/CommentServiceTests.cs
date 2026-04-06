@@ -7,6 +7,10 @@
 // Project Name :  Web.Tests
 // =======================================================
 
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+
 using Web.Services;
 
 namespace Web.Tests.Services;
@@ -25,7 +29,13 @@ public sealed class CommentServiceTests
 	{
 		_mediator = Substitute.For<IMediator>();
 		_notificationService = Substitute.For<Domain.Abstractions.INotificationService>();
-		_sut = new CommentService(_mediator, _notificationService);
+
+		// Cold (empty) distributed cache — ensures no stale entries between tests.
+		var cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		var cacheLogger = Substitute.For<ILogger<DistributedCacheHelper>>();
+		var cacheHelper = new DistributedCacheHelper(cache, cacheLogger);
+
+		_sut = new CommentService(_mediator, _notificationService, cacheHelper);
 
 		// Default mock for GetIssueByIdQuery used by AddCommentAsync notification flow
 		var testIssue = IssueDto.Empty with
@@ -208,7 +218,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Ok(updatedComment));
 
 		// Act
-		var result = await _sut.UpdateCommentAsync("comment-123", "Updated Comment", "New Description", "user1");
+		var result = await _sut.UpdateCommentAsync("comment-123", "issue-123", "Updated Comment", "New Description", "user1");
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -223,7 +233,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Fail<CommentDto>("Comment not found"));
 
 		// Act
-		var result = await _sut.UpdateCommentAsync("invalid-id", "Title", "Desc", "user1");
+		var result = await _sut.UpdateCommentAsync("invalid-id", "issue-123", "Title", "Desc", "user1");
 
 		// Assert
 		result.Success.Should().BeFalse();
@@ -238,7 +248,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Fail<CommentDto>("Unauthorized: Only the author can update this comment"));
 
 		// Act
-		var result = await _sut.UpdateCommentAsync("comment-123", "Title", "Desc", "different-user");
+		var result = await _sut.UpdateCommentAsync("comment-123", "issue-123", "Title", "Desc", "different-user");
 
 		// Assert
 		result.Success.Should().BeFalse();
@@ -254,7 +264,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Ok(updatedComment));
 
 		// Act
-		await _sut.UpdateCommentAsync("comment-123", "New Title", "New Desc", "user1");
+		await _sut.UpdateCommentAsync("comment-123", "issue-123", "New Title", "New Desc", "user1");
 
 		// Assert
 		await _mediator.Received(1).Send(
@@ -278,7 +288,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Ok(true));
 
 		// Act
-		var result = await _sut.DeleteCommentAsync("comment-123", "user1", false, CreateTestUserDto());
+		var result = await _sut.DeleteCommentAsync("comment-123", "issue-123", "user1", false, CreateTestUserDto());
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -293,7 +303,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Fail<bool>("Comment not found"));
 
 		// Act
-		var result = await _sut.DeleteCommentAsync("invalid-id", "user1", false, CreateTestUserDto());
+		var result = await _sut.DeleteCommentAsync("invalid-id", "issue-123", "user1", false, CreateTestUserDto());
 
 		// Assert
 		result.Success.Should().BeFalse();
@@ -308,7 +318,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Fail<bool>("Unauthorized: Only the author or admin can delete this comment"));
 
 		// Act
-		var result = await _sut.DeleteCommentAsync("comment-123", "different-user", false, CreateTestUserDto());
+		var result = await _sut.DeleteCommentAsync("comment-123", "issue-123", "different-user", false, CreateTestUserDto());
 
 		// Assert
 		result.Success.Should().BeFalse();
@@ -324,7 +334,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Ok(true));
 
 		// Act
-		await _sut.DeleteCommentAsync("comment-123", "admin-user", true, archivedBy);
+		await _sut.DeleteCommentAsync("comment-123", "issue-123", "admin-user", true, archivedBy);
 
 		// Assert
 		await _mediator.Received(1).Send(
@@ -345,7 +355,7 @@ public sealed class CommentServiceTests
 			.Returns(Result.Ok(true));
 
 		// Act
-		await _sut.DeleteCommentAsync("comment-123", "user1", false, archivedBy);
+		await _sut.DeleteCommentAsync("comment-123", "issue-123", "user1", false, archivedBy);
 
 		// Assert
 		await _mediator.Received(1).Send(

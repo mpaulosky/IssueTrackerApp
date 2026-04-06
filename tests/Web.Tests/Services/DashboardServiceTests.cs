@@ -8,6 +8,11 @@
 // =======================================================
 
 using Domain.Features.Dashboard.Queries;
+
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+
 using Web.Services;
 
 namespace Web.Tests.Services;
@@ -24,7 +29,13 @@ public sealed class DashboardServiceTests
 	public DashboardServiceTests()
 	{
 		_mediator = Substitute.For<IMediator>();
-		_sut = new DashboardService(_mediator);
+
+		// Cold (empty) distributed cache — ensures no stale entries between tests.
+		var cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		var cacheLogger = Substitute.For<ILogger<DistributedCacheHelper>>();
+		var cacheHelper = new DistributedCacheHelper(cache, cacheLogger);
+
+		_sut = new DashboardService(_mediator, cacheHelper);
 	}
 
 	#region GetUserDashboardAsync Tests

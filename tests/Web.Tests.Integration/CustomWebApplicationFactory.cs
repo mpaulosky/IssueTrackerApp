@@ -213,6 +213,14 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 			await using var scope = Services.CreateAsyncScope();
 			var cacheHelper = scope.ServiceProvider.GetRequiredService<Web.Services.DistributedCacheHelper>();
 			await cacheHelper.BumpVersionAsync("issues_version");
+
+			// Sprint 4 — comment and dashboard caches use static per-resource keys
+			// (e.g. "comments_issue_{id}", "dashboard_user_{id}").  They do NOT embed
+			// a version counter in their keys, so BumpVersionAsync has no effect on
+			// them.  They are already cleared by mc.Compact(1.0) above, which
+			// evacuates the shared MemoryCache that backs the IDistributedCache
+			// (AddDistributedMemoryCache re-uses the same IMemoryCache instance).
+			// No additional cleanup is needed here for Sprint 4 services.
 		}
 	}
 }
