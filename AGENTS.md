@@ -14,6 +14,7 @@
 - `src/Web/Components/Theme/` holds `ThemeProvider.razor` and `ThemeSelector.razor` for system-aware dark mode with 4 colour schemes.
 - `src/Web/Components/Charts/` holds `BarChart.razor`, `LineChart.razor`, and `PieChart.razor` Blazor components used in the Analytics admin page.
 - `src/Web/Helpers/` holds `ObjectIdJsonConverter` (registered globally in `Program.cs` for MongoDB `ObjectId` ↔ JSON string) and `CsvExportHelper` (reflection-based CSV export used by bulk-export).
+- Cache strategy: `DistributedCacheHelper` (`src/Web/Services/DistributedCacheHelper.cs`) wraps `IDistributedCache` (Redis in prod, `DistributedMemoryCache` in test) with typed JSON get/set/remove and version-token helpers. All services inject it for cache-aside reads (miss → DB → cache) and CRUD invalidation. TTLs: reference data (Category/Status) 60 min, lookups 30 min, issues/comments/dashboard 5–10 min, Auth0 users 5–10 min. See Sprint issues #218–#240 for full invalidation matrix.
 
 ## Request and data flow
 - Typical flow is `Web` page/endpoint -> `src/Web/Services/*` facade -> MediatR command/query in `src/Domain/Features/*` -> `IRepository<T>` -> MongoDB.
