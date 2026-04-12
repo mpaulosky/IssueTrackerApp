@@ -6,158 +6,32 @@
 
 ---
 
-## Learnings
+## Core Context
 
-### 2025-07-22 — DTO–Model Separation Analysis
+### Historical Foundation (July 2025 – March 27)
 
-**Architecture Decision:** Models must NOT embed DTO types. DTOs are transfer-only; Models are persistence-only. Mappers bridge the two. See `.squad/decisions/inbox/aragorn-dto-model-separation.md`.
+**DTO–Model Separation Analysis (2025-07-22):**
+- Architecture Decision: Models must NOT embed DTO types. DTOs are transfer-only; Models are persistence-only.
+- Key Findings: 5 domain Models embed DTOs as persisted properties. Comment.Issue stores full IssueDto creating circular dependency — must change to ObjectId IssueId.
+- No mapper classes exist — conversion via DTO constructors.
+- Key file paths: Models in `src/Domain/Models/`, DTOs in `src/Domain/DTOs/`, CQRS in `src/Domain/Features/`, Persistence in `src/Persistence.MongoDb/`, Services in `src/Web/Services/`.
+- Generic Repository<TEntity> wraps DbContext with Result<T> error handling; Services are MediatR facades.
+- 31 CQRS handlers total; PaginatedResponse<T> and PagedResult<T> duplication noted for future cleanup.
+- User Preference: Matthew Paulosky wants strict clean architecture enforcement.
 
-**Key Findings:**
-- 5 domain Models (Issue, Category, Status, Comment, Attachment) embed DTOs (`CategoryDto`, `UserDto`, `StatusDto`, `IssueDto`) as properties persisted to MongoDB
-- `Comment.Issue` stores a full `IssueDto` creating a circular dependency — must change to `ObjectId IssueId`
-- No mapper classes exist — conversion happens via DTO constructors (`new IssueDto(issue)`)
-- `IssueConfiguration` uses `builder.Ignore()` to skip DTO properties for EF Core, letting MongoDB BSON serializer handle them directly
-- `EmailQueueItem`, `NotificationPreferences`, `User` models are already clean (no DTO references)
+**PR #76 Review & Fixes (2026-07-23):**
+- AppHost.Tests added: Aspire integration + Playwright E2E tests.
+- AspireManager lifecycle: chains PlaywrightManager.InitializeAsync() + StartAppAsync().
+- Testing seam: cookie auth, fake repos, skipped background services (correct Aspire E2E pattern).
+- Fixed HTTPS port 7043 with IsProxied = false for predictable base URL.
+- Six Gimli blocking issues resolved: false skip docs, visibility, context leak, fragile assertions, EOF newline, dashboard disabled.
 
-**Key File Paths:**
-- Models: `src/Domain/Models/` (Issue.cs, Category.cs, Status.cs, Comment.cs, Attachment.cs)
-- DTOs: `src/Domain/DTOs/` (IssueDto.cs, CategoryDto.cs, StatusDto.cs, CommentDto.cs, UserDto.cs, AttachmentDto.cs, Analytics/)
-- CQRS Handlers: `src/Domain/Features/` (Issues, Categories, Statuses, Comments, Attachments, Analytics, Dashboard, Notifications)
-- Persistence: `src/Persistence.MongoDb/` (Repository.cs, IssueTrackerDbContext.cs, Configurations/)
-- Services: `src/Web/Services/` (IssueService.cs, LookupService.cs uses direct repo access)
-- Tests: 81 test files across 5 projects (Domain.Tests ~50, Web.Tests ~9, Bunit ~9, Integration ~9, Architecture ~4)
-
-**Patterns Confirmed:**
-- Generic `Repository<TEntity>` wraps `DbContext` with `Result<T>` error handling
-- Services are MediatR facades — delegate to handlers, no business logic
-- `LookupService` is the only service with direct repository access and inline Model→DTO conversion
-- 31 CQRS handlers total across all features
-- Blazor components consume DTOs for display — minimal UI impact from this refactoring
-- `PaginatedResponse<T>` and `PagedResult<T>` both exist (pagination duplication — future cleanup candidate)
-
-**User Preference:** Matthew Paulosky wants strict clean architecture enforcement
+**PR Review Sessions (2026-03-27):**
+- Lead reviewer for Pippin (#84) & Legolas (#83).
 
 ---
 
-## Notes
-
-- Team transferred from IssueManager squad
-- Same tech stack: .NET 10, Blazor, Aspire, MongoDB, Redis, Auth0, MediatR
-- Ready to begin development
----
-
-### 2026-07-23 — PR #76 Review: AppHost.Tests — Aspire integration + Playwright E2E tests
-
-**Verdict:** APPROVED (posted as comment — GitHub prevented self-approval by PR author)
-
-**PR:** `feat(tests): AppHost.Tests — Aspire integration + Playwright E2E tests`  
-**Branch:** `squad/apphost-tests-clean`  
-**Files reviewed:** 37 changed files (18 new C# files, test infrastructure, Program.cs, CI)
-
-**Key findings:**
-- All 18 new C# files carry the required copyright block ✅
-- `.squad/` files on a `squad/*` branch — permissible per charter (prohibition is `feature/*` only) ✅
-- xUnit collection structure correct: `[Collection]` on abstract `BasePlaywrightTests` inherits to all derived test classes ✅
-- `AspireManager` lifecycle correct: chains `PlaywrightManager.InitializeAsync()` + `StartAppAsync()` ✅
-- Testing-environment seam in `Program.cs` (cookie auth, fake repos, skipped background services) is the right Aspire E2E pattern ✅
-- `EnvironmentCallbackAnnotation` to inject `ASPNETCORE_ENVIRONMENT=Testing` past DCP override — sophisticated and correct ✅
-- Fixed HTTPS port 7043 with `IsProxied = false` — predictable base URL ✅
-
-**Nits flagged (non-blocking):**
-1. `EnvVarTests.cs`: Add a TODO alongside `#pragma warning disable CS0618` for the obsolete `GetEnvironmentVariableValuesAsync` API
-2. `FakeRepository.cs` / `FakeSeedData.cs` in `src/Web/Testing/`: decorate with `[ExcludeFromCodeCoverage]` to avoid coverage inflation
-3. `WebPlaywrightTests.cs` home-page tests overlap with `HomePageTests.cs` — remove in follow-up
-
-**Decision recorded:** `.squad/decisions/inbox/aragorn-pr76-review.md`
-
----
-
-### 2026-07-23 — PR #76 Fixes: Gimli Blocking Issues Resolved
-
-**Trigger:** Gimli (Tester) rejected PR #76 with 6 blocking issues.
-
-**Fixes applied on `squad/apphost-tests-clean`:**
-
-1. **False "skip gracefully" docs (3 files)** — `AdminPageTests.cs`, `LayoutAdminTests.cs`, `LayoutAuthenticatedTests.cs` had file-top comments and class summary docstrings claiming tests skip when `PLAYWRIGHT_TEST_*` env vars are absent. This is factually wrong — the tests use `/test/login?role=...` cookie auth and always run. Removed all misleading comments; rewrote docstrings to describe the actual cookie-based auth mechanism.
-
-2. **`InteractWithPageAsync` visibility** — Changed from `public` to `protected` in `BasePlaywrightTests.cs` to match all sibling helper methods.
-
-3. **`IBrowserContext` leak** — `CreatePageAsync` was overwriting a single `_context` field on every call, leaking all but the last context. Replaced with `private readonly List<IBrowserContext> _contexts = new()` and `foreach` disposal in `DisposeAsync`.
-
-4. **Fragile redirect assertion** — `AdminPage_RedirectsNonAdminUser` used `NotContain("/admin")` which is brittle. Replaced with `Contain("/Account/AccessDenied")` — the redirect destination set by ASP.NET Core cookie auth when `AccessDeniedPath` is not explicitly overridden (default: `/Account/AccessDenied`).
-
-5. **Missing EOF newline** — `EnvVarTests.cs` was missing the trailing newline. Fixed.
-
-6. **`DisableDashboard = false → true`** — The Aspire dashboard should be disabled in tests to avoid unnecessary resource usage and port conflicts.
-
-**Build:** `dotnet build tests/AppHost.Tests/AppHost.Tests.csproj --no-restore` — 0 errors, 0 warnings ✅
-
-
----
-
-### 2026-03-27 — PR Review Session: Pippin (#84) & Legolas (#83)
-
-**Role:** Lead Reviewer
-
-**PRs Reviewed:**
-
-1. **PR #84 (Pippin):** Test fixes for #78, #79, #80
-   - TimeoutException semantics in `WaitForWebReadyAsync`
-   - `DisableDashboard = true` in `EnvVarTests.cs`
-   - Specific assertion on Admin dashboard heading
-   - **Verdict:** ✅ Approved — all fixes semantically correct and well-scoped
-
-2. **PR #83 (Legolas):** `/Account/AccessDenied` Blazor page (#77)
-   - Public, unauthorized page for Auth0 redirect flow
-   - Consistent layout, friendly copy, Tailwind styling
-   - **Verdict:** ✅ Approved — proper auth flow design, UX improvement
-
-**Team Coordination:** Both PRs merged same session; squad decisions recorded and deduplicated.
-
----
-
-### 2026-03-28 — Theme System Unification: Resolved Dual localStorage Conflict
-
-**Trigger:** Pippin discovered during E2E test analysis (PR #86) that two conflicting theme systems were active, causing user theme preferences to not persist across page reloads.
-
-**Problem:**
-- **Old System:** `theme.js` with `window.themeManager` (lowercase), used `theme-color-brightness` localStorage key, consumed by `ThemeProvider.razor.cs`
-- **New System:** `theme-manager.js` with `window.ThemeManager` (uppercase), used `tailwind-color-theme` localStorage key, consumed by `ThemeColorDropdownComponent` and `ThemeBrightnessToggleComponent` (added in PR #86)
-- User selects red theme → New components write to `tailwind-color-theme` → Page reload → ThemeProvider reads `theme-color-brightness` → Theme reverts to blue
-
-**Solution Chosen:** Option A — Adapt new components to old system, keep ThemeProvider as single source of truth
-
-**Rationale:**
-- `theme.js` / `themeManager` is well-established, sets `data-theme-ready` for E2E tests, has complete API
-- `ThemeProvider.razor.cs` is the architectural authority for theme state
-- Pippin already updated E2E tests to expect `tailwind-color-theme` key (PR #86), so aligned `theme.js` STORAGE_KEY to match
-- Single localStorage key + single JS API eliminates persistence bugs
-
-**Changes Applied:**
-1. **theme.js:** Changed `STORAGE_KEY` from `'theme-color-brightness'` to `'tailwind-color-theme'` (line 20)
-2. **ThemeColorDropdownComponent.razor:**
-   - `OnAfterRenderAsync`: Changed `ThemeManager.getCurrentColor()` → `themeManager.getColor()`, uppercase color response
-   - `SelectColorAsync`: Changed `ThemeManager.selectColorAndUpdateUI(color)` → `themeManager.setColor(color.ToLowerInvariant())`
-3. **ThemeBrightnessToggleComponent.razor:**
-   - `OnAfterRenderAsync`: Changed `ThemeManager.syncUI()` → `themeManager.getBrightness()`, read current brightness
-   - `ToggleBrightnessAsync`: Changed `ThemeManager.selectBrightnessAndUpdateUI(next)` → `themeManager.setBrightness(next)`
-4. **App.razor:**
-   - Removed `<script src="js/theme-manager.js"></script>` reference (line 53 deleted)
-   - Updated inline script comment: `theme-manager.js` → `theme.js`
-
-**Files Changed:**
-- `src/Web/wwwroot/js/theme.js` (1 line)
-- `src/Web/Components/Theme/ThemeColorDropdownComponent.razor` (3 lines)
-- `src/Web/Components/Theme/ThemeBrightnessToggleComponent.razor` (3 lines)
-- `src/Web/Components/App.razor` (2 lines removed, 1 comment updated)
-
-**Build:** ✅ `dotnet build IssueTrackerApp.slnx --configuration Release` — 0 errors, 0 warnings
-
-**Test Compatibility:** E2E tests in `AppHost.Tests/Tests/Theme/` (ThemeToggleTests.cs, ColorSchemeTests.cs) now align with production code — both use `tailwind-color-theme` key.
-
-**Architectural Note:** `theme-manager.js` still exists in `wwwroot/js/` but is no longer referenced or loaded. Should be deleted in a follow-up cleanup commit to avoid confusion.
-
-**Decision recorded:** `.squad/decisions/inbox/aragorn-unified-theme-system.md`
+## Recent Learnings (March 28+)
 
 ---
 
@@ -396,3 +270,99 @@ Matthew Paulosky: "AppHost.Tests MUST be run locally before every push — no ex
 ### Investigation output
 Full structured investigation (20 ideas, prioritised) written to:
 `.squad/decisions/inbox/aragorn-feature-ideas-2026-04-02.md`
+
+---
+
+## Learnings (2026-04-12 — Release-Process Abstraction)
+
+### Release-Process Skill Refactoring Complete
+**Decision:** Extracted monolithic, hardcoded release-process skill into generic two-layer architecture.
+
+**Layer 1 — Generic Skill (`release-process-base/SKILL.md`):**
+- Framework-agnostic patterns: versioning systems, merge strategies, branch models, CI/CD architecture
+- Decision trees: "When to squash vs. merge?", "Which version system?", "How do I handle conflicts?"
+- Anti-patterns: version bumps on release branch, manual publishing, mixed version systems
+- 13,674 lines; reusable across .NET, Node.js, Python, Java ecosystems
+- Replaces all hardcoded values with `{PLACEHOLDER}` parameters
+
+**Layer 2 — Project Playbooks (e.g., `.release-config.json`):**
+- Bind generic patterns to concrete project config
+- Parameters: devBranch, releaseBranch, versionSystem, workflows, packageId, etc.
+- Optional; can be inferred from repo state via `gh CLI`
+
+### Hardcoding Analysis
+**15+ hardcoded assumptions removed:**
+- Repository: `FritzAndFriends/BlazorWebFormsComponents` → `{OWNER}/{REPO}` (inferred)
+- Package ID: `Fritz.BlazorWebFormsComponents` → `{PACKAGE_ID}` (inferred from .csproj)
+- Registry: `ghcr.io/fritzandfriends/...` → `{CONTAINER_REGISTRY}` (from secrets)
+- Workflows: `.github/workflows/release.yml` → array of workflow names
+- Versioning: NBGV only → supports 3 patterns (static file, tool-computed, tag-only)
+- Merge strategy: merge commit → parameterized with decision criteria
+- Branches: dev + main → `{DEV_BRANCH}` and `{RELEASE_BRANCH}`
+
+### GitHub Metadata Inference (Safe)
+**Read-only detection via gh CLI:**
+- ✅ `gh repo view --field {name,owner,parent,defaultBranchRef}` — repo metadata
+- ✅ `gh workflow list --all` — workflow file names
+- ✅ `gh secret list --json name` — secret names only (never values)
+- ✅ File inspection: `version.json`, `package.json`, `.csproj` for version scheme + package name
+- ❌ Never use `gh secret get` (exposes values)
+- ❌ Never parse `.github/workflows/*.yml` content (brittle)
+
+### Architecture Patterns Documented
+- **Two-branch model (recommended):** dev (features) + main (releases); preserves history, auditable tags
+- **Single-branch model:** simpler for small projects; all history on main
+- **Merge strategies:** merge commits (preferred for release history), squash (clean but loses context), rebase (linear but rewrites)
+
+### Version System Abstraction
+**Three patterns, each with trade-offs:**
+1. Static file (`version.json`, `package.json`) — simple but requires manual bump
+2. Tool-computed (`NBGV`, Maven, Cargo) — auto-increment but tool dependency
+3. Tag-only — minimal deps but CI must parse tag
+
+**Recommendation:** Choose one; mixing causes conflicts.
+
+### Common Issues Resolved
+- Version mismatch (tag vs. file) — root cause + diagnostic steps provided
+- Merge conflicts during release PR — conflict resolution strategies
+- CI/CD doesn't trigger — workflow trigger configuration debugging
+- Package publishing fails — secret rotation + package ID verification
+
+### Reusability Impact
+**Before:** Skill locked to BlazorWebFormsComponents; manual editing for other projects
+**After:** Generic skill + `.release-config.json` binding → reusable on any project
+**Next Phase:** IssueTrackerApp playbook binding + validation
+
+### Key Files Created
+- `.squad/skills/release-process-base/SKILL.md` — generic skill, 13.6 KB
+- `.squad/decisions/inbox/aragorn-release-process-generic.md` — decision + refactor roadmap
+- *Pending:* IssueTrackerApp `.release-config.json` + project playbook
+
+### Session Notes
+- NBGV version conflicts in release CI well-understood (tool removal in release.yml mitigates)
+- Fork + upstream pattern is BlazorWebFormsComponents-specific; single-repo common (removed assumption)
+- Merge commits preserve release branch history for auditing; critical for long-lived branches
+- Version bumps must be separate, reviewable commits on dev (prevents tag-version skew)
+
+
+---
+
+### 2026-04-12 — Release-Process Skill Genericization Review (Team Sync)
+
+**Context:** Concurrent three-agent review of release-process skill portability across multiple projects. Aragorn led architecture design; Boromir validated GitHub discovery; Frodo designed portable template.
+
+**Aragorn's Contribution:** Architected two-layer skill refactoring
+- **Layer 1 (Generic):** release-process-base SKILL — framework-agnostic patterns (version bump mechanics, merge strategies, tagging semantics, CI/CD flow, troubleshooting)
+- **Layer 2 (Project-Specific):** Project playbook binding — concrete parameters (REPO_OWNER, RELEASE_BRANCH, VERSION_FILE, PACKAGE_ID, WORKFLOWS, ARTIFACTS, DOCS_TOOL, CONTAINER_REGISTRY)
+- **Inference Strategy:** Safe gh CLI discovery (repo owner, branches, workflows, secret names) plus filesystem detection (version.json, Dockerfile, mkdocs.yml) plus user prompts for release type and targets
+- **Guardrails:** No hardcoded repo/workflow names, URLs, registries; never expose secret values; read-only gh access only
+
+**Refactor Roadmap (P1-P4):**
+1. P1 (Unblock) — Create generic skill base
+2. P2 (Validate) — IssueTrackerApp playbook and .release-config.json
+3. P3 (Deprecate, with Boromir) — Legacy skill markup
+4. P4 (Automate, optional) — Inference scripting
+
+**Key Decisions:** Approved — aligns with VSA abstraction principles. Boromir to review Phase 3. Frodo to document public generic skill.
+
+**Merged to decisions.md:** 2026-04-12T19:37:30Z

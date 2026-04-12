@@ -107,18 +107,69 @@
 
 **PR:** #162
 
-### 2026-04-01 — Auth0 Management API Secrets Wired into CI/CD (#145)
+### 2026-04-05 — Release-Process Genericization Analysis
 
 **By:** Boromir (DevOps)
 
-**Changes:**
-- Added `Auth0Management__ClientId`, `Auth0Management__ClientSecret`, `Auth0Management__Domain`, and `Auth0Management__Audience` env vars to `.github/workflows/squad-test.yml` and `.github/workflows/codeql-analysis.yml`
-- Added Aspire parameters `auth0-mgmt-client-id` and `auth0-mgmt-client-secret` in `src/AppHost/AppHost.cs` with `secret: true` flag
-- Passed these parameters to Web project via `.WithEnvironment()` calls
-- Added `Auth0Management` placeholder section to `src/Web/appsettings.Development.json` (empty strings for local dev)
+**Task:** Review release-process skill and plan genericization for multi-project use without editing.
 
-**Key insight:** `UserManagementService.GetOrFetchTokenAsync()` uses `_options.ClientId` and `_options.ClientSecret` directly in token fetch requests. If these are empty (from placeholders), Auth0 will return 401/403, but service gracefully catches exceptions and returns `Result.Fail` with `ResultErrorCode.ExternalService`. Sam (Backend) owns this service and may add explicit validation in a follow-up.
+**Key Findings:**
 
-**GitHub Secrets required:** Repository admin must add `AUTH0_MANAGEMENT_CLIENT_ID` and `AUTH0_MANAGEMENT_CLIENT_SECRET` to GitHub secrets for CI/CD to use the admin user management feature.
+1. **`gh` provides complete repository discovery**: Owner, repo, default branch, language all queryable via `gh repo view --json`; Branch protection, secrets, workflows readable at runtime
 
-**PR:** #162
+2. **Runtime discovery capability** (verified on IssueTrackerApp):
+   - Repository: mpaulosky/IssueTrackerApp
+   - Default branch: main
+   - Latest tag: v0.7.0
+   - Versioning: GitVersion.yml + global.json
+   - Language: C# (primary)
+   - Secrets: 9+ deployment secrets enumerable
+   - Branch protection: queryable via gh API
+
+3. **Genericization strategy**: Ask minimally (version, release type, publish targets, deploy decision); Infer aggressively (repo owner/name, default branch, language, capabilities); Detect patterns (version.json, GitVersion.yml, Dockerfile, .csproj); Fallback gracefully (default to main, skip deployment if unclear)
+
+4. **Key insight**: Current BlazorWebFormsComponents skill is 90% hardcoded (dev→main branches, NBGV, MkDocs, Azure). Portable version needs: detection script, interactive wizard, parameterized workflow, override mechanism.
+
+**Deliverable:** Decision file .squad/decisions/inbox/boromir-release-process-generic.md with full analysis, Ask/Infer matrix, fallback strategies, verified test results.
+
+**Status:** Completed comprehensive analysis with discovery testing on live repo. Verified gh discovery works perfectly.
+
+
+---
+
+### 2026-04-12 — Release-Process Skill Genericization Review (Team Sync)
+
+**Context:** Concurrent three-agent review of release-process skill portability across multiple projects. Boromir validated GitHub discovery; Aragorn led architecture; Frodo designed portable template.
+
+**Boromir's Contribution:** GitHub metadata discovery validation and runtime inference strategy
+- **100% Discoverable (Safe):** Repo owner/name, branches, workflows (names), secrets (names only — no values), branch protection, language, latest tag
+- **95% Confidence:** Docker detection (Dockerfile present), language inference
+- **85% Confidence:** Version tool detection (version.json, GitVersion.yml, setup.py, Cargo.toml)
+- **80% Confidence:** Package registry inference (from language + secrets)
+- **70% Confidence:** Deployment capability (secrets + workflow presence)
+
+**Ask vs. Infer Matrix:**
+- User asks: Release type (major/minor/patch), publish targets (github/nuget/npm/docker/all), deployment URL (if custom)
+- System auto-detects: Repo, branches, version from tags, package name, build commands, registry capabilities
+
+**Safe GitHub Access Patterns:**
+- OK: gh repo view --field, gh workflow list, gh secret list --json name, git branch/tag commands (read-only)
+- Never: gh secret get (exposes values), parsing .github/workflows content (brittle), pushing without confirmation
+
+**Fallback Strategies:**
+- Version auto-detect → manual prompt
+- Branch inference → default to main
+- Deployment → skip unless explicitly configured
+- Registry choice → GitHub plus user selects one other
+
+**Test Results (IssueTrackerApp Validation):**
+- gh repo view returns owner, repo, default branch reliably
+- git describe finds v0.7.0 with multiple releases
+- 9+ secrets discovered (AUTH0, MONGODB, PLAYWRIGHT)
+- GitVersion.yml plus global.json coexist
+- Workflows detectable via gh workflow list
+- Caveats: Single-job CI, multiple version tools, secrets without workflows
+
+**Key Learning:** Combine three discovery tiers (gh metadata, filesystem patterns, user interaction) for robust, flexible runtime inference.
+
+**Merged to decisions.md:** 2026-04-12T19:37:30Z
