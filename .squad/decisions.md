@@ -2001,3 +2001,83 @@ Dev/main branch model is documentation-feasible. Overhead is moderate and manage
 
 **Source:** .squad/decisions/inbox/frodo-dev-main-docs-audit.md (merged 2026-04-12)
 
+
+---
+
+## Adoption Decision: dev/main Two-Branch Strategy
+
+**Author:** Aragorn (Lead Developer)  
+**Date:** 2026-04-13  
+**Status:** Recommended  
+**Prior Audits:** Boromir (DevOps — FEASIBLE), Frodo (Tech Writer — FEASIBLE)
+
+### Verdict: ADOPT WITH ADJUSTMENTS
+
+Recommend adopting the two-branch model (dev + main), deferring the preview tier. The existing squad infrastructure is ~80% pre-built for this transition.
+
+### Model
+
+| Branch | Purpose | Merge Strategy | Protection |
+|--------|---------|----------------|------------|
+| dev | Integration — all squad/* branches land here | Squash merge | PR-only, CI required |
+| main | Releases — tagged, published, production-ready | Merge commit (from dev) | PR-only, CI required |
+
+Flow: squad/{issue}-{slug} → PR → dev (squash) → release PR → main (merge commit) → git tag v*.*.* → GitHub Release
+
+### Evidence Summary
+
+Already Built (no changes needed):
+- squad-ci.yml — Multi-branch (PR: dev, preview, main, insider; Push: dev, insider)
+- squad-release.yml — Tag-based (v*.*.* branch-agnostic)
+- squad-promote.yml — Promotion pipeline (dev→preview→main with .squad/ stripping)
+- .copilot/skills/git-workflow/SKILL.md — Documents target model
+- squad-milestone-release.yml — Tags from main (correct for releases)
+- Release-only workflows — Main-only (blog-readme-sync, static, sync-readme)
+
+Requires Changes:
+- Create dev branch (1 min)
+- GitVersion.yml: Add dev config, add dev to feature source-branches (10 min)
+- .github/hooks/pre-push: Gate 0 blocks dev AND main (2 min)
+- squad-test.yml: Add dev to push triggers (2 min)
+- GitHub branch protection: Protect dev (5 min, admin action)
+- CONTRIBUTING.md: Update 3 sections + new release flow (30 min)
+- docs/New Work process.md: Update 2 sections + release flow (30 min)
+- squad-promote.yml: Replace package.json reads with NBGV (15 min)
+- Dependabot: Verify targets dev (5 min)
+- merged-pr-guard skill: Update refs (5 min)
+- Release playbook: Update single-branch refs (20 min)
+
+Total estimated effort: ~2 hours (implementation + testing)
+
+### Key Risks
+
+1. GitVersion pre-release labeling: Builds on dev produce versions like 0.7.0-alpha.3. Ensure CI and consumers handle this.
+
+2. squad-promote.yml Node.js artifact: package.json version extraction will fail. Must replace with nbgv get-version.
+
+3. Stale dev after hotfix: If hotfix goes directly to main, dev must be synced back.
+
+4. Preview tier deferred: squad-preview.yml is stub. Recommend starting two-branch, add preview when needed.
+
+### Recommendation
+
+Proceed with implementation in two phases:
+
+Phase 1 — Infrastructure (P0, ~30 min):
+- Create dev branch
+- Update GitVersion.yml
+- Update pre-push hook Gate 0
+- Update squad-test.yml
+- Configure GitHub branch protection for dev
+
+Phase 2 — Documentation & Polish (P1, ~1.5 hours):
+- Update CONTRIBUTING.md
+- Update docs/New Work process.md
+- Fix squad-promote.yml
+- Update release playbook
+- Update merged-pr-guard skill
+- Verify Dependabot
+
+**Approval Required:** Matthew Paulosky (repository owner)
+
+**Source:** .squad/decisions/inbox/aragorn-dev-main-branching.md (merged 2026-04-12)

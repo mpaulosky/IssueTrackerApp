@@ -173,3 +173,66 @@
 **Key Learning:** Combine three discovery tiers (gh metadata, filesystem patterns, user interaction) for robust, flexible runtime inference.
 
 **Merged to decisions.md:** 2026-04-12T19:37:30Z
+
+---
+
+### 2026-04-13 — Branch Strategy Audit: `dev` / `main` Model Feasibility
+
+**By:** Boromir (DevOps)
+
+**Request:** Matthew Paulosky asked team to evaluate shifting to `dev` (active development, squash merge) and `main` (releases only, merge commit) model.
+
+**Audit Scope:** Read-only audit of workflows, pre-push hook, branch protection, release tagging, documentation, edge cases.
+
+**Key Findings:**
+
+1. **Workflows already multi-branch capable** — squad-promote.yml (dev→preview→main), squad-ci.yml (PR to dev/preview/main/insider), squad-test.yml (any branch).
+2. **Pre-push hook Gate 0 currently blocks only `main`** — must extend to block both `dev` and `main` (one-line change in `.github/hooks/pre-push`).
+3. **.squad/ path guard already in squad-promote** — .squad/ files correctly stripped on dev→preview merge; never reach main.
+4. **Release flow (tag-based) branch-agnostic** — squad-release.yml triggers on `v*.*.*` tags (detached from branch).
+5. **Documentation needs updates** — CONTRIBUTING.md: "Create branch from dev" (not main), "PR targets dev" (not main), add release section explaining dev→main flow.
+6. **GitHub branch protection must be configured on `dev`** — squash-only merge, required checks, same gates as main.
+7. **Dependabot configuration** — if Dependabot targets main, must reconfigure to target dev (avoid bypassing integration branch).
+8. **Coverage & blog workflows** — already main-only; remain unchanged (release artifacts).
+
+**Risk Assessment:** 🟢 **LOW** — Framework already built for multi-branch; activating one more integration branch.
+
+**Effort:** ~30 min (pre-push hook, docs, GitHub settings).
+
+**Verdict:** **FEASIBLE WITH MINOR CHANGES** — No architectural blockers, no workflow rewrites, minimal config changes.
+
+**Decision file:** `.squad/decisions/inbox/boromir-dev-main-workflows.md`
+
+---
+
+### 2026-04-12 — dev/main Branching Model Review (CI/CD Assessment)
+
+**Context:** Matthew Paulosky requested team review of adopting `dev` as active development branch and `main` as release-only. Three-agent concurrent review coordinated by Aragorn.
+
+**Boromir's Role:** CI/CD and workflow feasibility assessment (claude-haiku-4.5, background).
+
+**Audit Scope:** Read-only audit of existing workflows, pre-push hook, branch protection, release tagging, documentation, edge cases.
+
+**Key Findings:**
+1. **Workflows already multi-branch capable** — squad-promote.yml (dev→preview→main), squad-ci.yml (PR to dev/preview/main/insider), squad-test.yml (any branch push/PR)
+2. **Pre-push hook Gate 0 blocks only `main` currently** — must extend to block both `dev` and `main` (one-line change in `.github/hooks/pre-push`)
+3. **.squad/ path guard already in squad-promote** — .squad/ files correctly stripped on dev→preview merge; never reach main
+4. **Release flow (tag-based) is branch-agnostic** — squad-release.yml triggers on `v*.*.*` tags detached from branch
+5. **GitHub branch protection must be configured on `dev`** — squash-only merge, required checks, matching main rules
+6. **Dependabot configuration** — if targeting main, must reconfigure to target dev (avoid bypassing integration branch)
+7. **Coverage & blog workflows** — already main-only; remain unchanged (release artifacts only)
+
+**Risk Assessment:** 🟢 **LOW** — Framework already built for multi-branch; activating one more integration branch with no architectural blockers.
+
+**Effort:** ~30 min (pre-push hook, docs, GitHub settings).
+
+**Verdict:** **FEASIBLE WITH MINIMAL FRICTION** — No workflow rewrites, minimal config changes, all changes well-understood.
+
+**Coordination:**
+- Aligns with Aragorn's full architectural review
+- Frodo handling documentation updates
+- Three independent audits converged on same verdict — strong signal
+
+**Output:** Technical feasibility document filed to `.squad/orchestration-log/2026-04-12T20-17-00Z-boromir-workflows.md` and `.squad/decisions.md`.
+
+**Status:** ✅ Complete — Recommendation merged to team decisions.
