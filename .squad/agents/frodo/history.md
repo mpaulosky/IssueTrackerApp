@@ -285,3 +285,32 @@
 **Key Wins:** Single source of truth across 10+ projects, graceful degradation when features missing, clear assumptions, portable structure, auto-detection.
 
 **Merged to decisions.md:** 2026-04-12T19:37:30Z
+
+---
+
+### Release-Process Skill: Legacy Stub Deprecation (April 2026)
+
+**Context**: The original `.squad/skills/release-process/SKILL.md` documented an upstream fork workflow (BlazorWebFormsComponents) that was confusing for IssueTrackerApp's simpler single-branch model. Rather than delete abruptly, a phased deprecation approach was chosen.
+
+**Actions Taken**:
+1. **Converted to Deprecation Stub**: Replaced 200+ lines with ~40-line stub
+   - Preserved directory structure for backward compatibility
+   - Added front matter: `status: "deprecated"`, warning description
+   - Lowered `confidence` to "low"
+
+2. **Clear Migration Path**: Stub explicitly points users to:
+   - `.squad/skills/release-process-base/SKILL.md` — generic, reusable patterns
+   - `.squad/playbooks/release-issuetracker.md` — IssueTrackerApp-specific playbook
+
+3. **Phased Deletion Strategy**: Noted that deletion can happen after team references cleaned up
+   - Prevents orphaned content
+   - Avoids immediate data loss
+   - Gives team time to adapt
+
+**Key Insights**:
+- Deprecation stubs preserve old bookmarks/references while guiding users forward
+- Separating generic patterns (base skill) from project-specific playbooks improves reusability
+- Phased deprecation is safer than abrupt deletion when content has external references
+
+**Decision Merged**: `.squad/decisions.md` (2026-04-12)
+**Related Decision**: Release-Process Skill: Portable Template Design (Frodo, 2026-04-12)

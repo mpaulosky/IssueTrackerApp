@@ -1809,3 +1809,54 @@ git worktree remove ../IssueTrackerApp-sprint  # after merge
 ---
 
 **Scribe Note:** Three concurrent agent reviews (Aragorn architecture, Boromir discovery validation, Frodo template design) merged into single decision entry 2026-04-12T19:37:30Z. Orchestration logs written to `.squad/orchestration-log/`. Session log written to `.squad/log/`. Inbox files deleted after merge.
+
+---
+
+#### Release-Process Skill: Legacy Stub Deprecation — Frodo (Tech Writer)
+
+**Status:** Implemented | **Date:** 2026-04-13 | **Scope:** team
+
+## Decision
+
+Replaced the content of `.squad/skills/release-process/SKILL.md` with a concise deprecation stub instead of deleting the directory.
+
+## Rationale
+
+1. **Preserve Old References:** Keeping the skill name `release-process` and directory ensures that old bookmarks, wiki links, and team documentation still land on a useful page.
+
+2. **Clear Migration Path:** The stub explicitly points users to:
+   - `.squad/skills/release-process-base/SKILL.md` — for generic, reusable release patterns
+   - `.squad/playbooks/release-issuetracker.md` — for IssueTrackerApp-specific steps
+
+3. **Avoid Orphaned Content:** The original content was project-specific (BlazorWebFormsComponents upstream fork) and created confusion with IssueTrackerApp's simpler single-branch model. Moving to a base skill + project playbook separates concerns.
+
+4. **Phased Deletion:** The stub notes that deletion can happen later once all references are cleaned up, avoiding immediate data loss and giving the team time to adapt.
+
+## What Changed
+
+- **Old:** 200+ lines of upstream-fork-specific release workflow
+- **New:** ~40 lines of deprecation guidance with clear next steps
+- **Front Matter Updated:**
+  - `status: "deprecated"` added
+  - `description` updated to warn users
+  - `confidence` lowered to "low"
+
+## Next Steps (Out of Scope)
+
+1. Track cleanup of old references to `release-process` in docs, wikis, and scripts
+2. Once cleanup is complete, delete `.squad/skills/release-process/` directory
+3. Update any `.squad/routing.md` rules pointing to this skill
+
+## Impact
+
+- **Team Adoption:** Quick, clear; users immediately know where to go
+- **Documentation:** No orphaned or confusing content
+- **Long-term:** Enables safe deletion once migration is verified
+
+---
+
+**Related Files:**
+- `.squad/skills/release-process-base/SKILL.md` — generic patterns (already exists)
+- `.squad/playbooks/release-issuetracker.md` — IssueTrackerApp playbook (already exists)
+
+**Source:** `.squad/decisions/inbox/frodo-release-process-legacy-stub.md` (merged 2026-04-12)
