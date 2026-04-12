@@ -14,6 +14,7 @@ on:
   workflow_call:
   push:
     branches:
+      - dev
       - main
   pull_request:
     branches:

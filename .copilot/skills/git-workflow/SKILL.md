@@ -8,13 +8,12 @@ source: "team-decision"
 
 ## Context
 
-Squad uses a three-branch model. **All feature work starts from `dev`, not `main`.**
+Squad uses a two-branch model. **All feature work starts from `dev`, not `main`.**
 
 | Branch | Purpose | Publishes |
 |--------|---------|-----------|
-| `main` | Released, tagged, in-npm code only | `npm publish` on tag |
-| `dev` | Integration branch — all feature work lands here | `npm publish --tag preview` on merge |
-| `insiders` | Early-access channel — synced from dev | `npm publish --tag insiders` on sync |
+| `main` | Released, tagged code only | GitHub Release on tag (via `squad-milestone-release`) |
+| `dev` | Integration branch — all feature work lands here | Preview builds via `squad-preview` on merge |
 
 ## Branch Naming Convention
 
@@ -161,22 +160,16 @@ Each repo gets its own issue branch following its own naming convention. If the 
 
 ### Local Linking for Testing
 
-Before pushing, verify cross-repo changes work together:
+Before pushing, verify cross-project changes work together:
 
 ```bash
-# Node.js / npm
-cd ../squad-sdk && npm link
-cd ../squad-pr && npm link squad-sdk
-
-# Go
-# Use replace directive in go.mod:
-# replace github.com/org/squad-sdk => ../squad-sdk
-
-# Python
-cd ../squad-sdk && pip install -e .
+# .NET — use project references in solution for local testing
+# In the dependent project's .csproj, temporarily use:
+# <ProjectReference Include="../../squad-sdk/src/SdkProject.csproj" />
+# Revert to PackageReference before committing.
 ```
 
-**Important:** Remove local links before committing. `npm link` and `go replace` are dev-only — CI must use published packages or PR-specific refs.
+**Important:** Remove local project references before committing. CI must use published NuGet packages or PR-specific refs.
 
 ### Worktrees + Multi-Repo
 
@@ -199,6 +192,6 @@ These compose naturally. You can have:
 
 ## Promotion Pipeline
 
-- dev → insiders: Automated sync on green build
-- dev → main: Manual merge when ready for stable release, then tag
+- dev → main: Manual promotion via `squad-promote` workflow (opens a PR from dev → main), then merge
+- main → release: Tag on main via `squad-milestone-release` workflow, creates GitHub Release
 - Hotfixes: Branch from main as `hotfix/{slug}`, PR to dev, cherry-pick to main if urgent
