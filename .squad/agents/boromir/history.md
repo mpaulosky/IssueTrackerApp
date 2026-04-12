@@ -107,18 +107,132 @@
 
 **PR:** #162
 
-### 2026-04-01 — Auth0 Management API Secrets Wired into CI/CD (#145)
+### 2026-04-05 — Release-Process Genericization Analysis
 
 **By:** Boromir (DevOps)
 
-**Changes:**
-- Added `Auth0Management__ClientId`, `Auth0Management__ClientSecret`, `Auth0Management__Domain`, and `Auth0Management__Audience` env vars to `.github/workflows/squad-test.yml` and `.github/workflows/codeql-analysis.yml`
-- Added Aspire parameters `auth0-mgmt-client-id` and `auth0-mgmt-client-secret` in `src/AppHost/AppHost.cs` with `secret: true` flag
-- Passed these parameters to Web project via `.WithEnvironment()` calls
-- Added `Auth0Management` placeholder section to `src/Web/appsettings.Development.json` (empty strings for local dev)
+**Task:** Review release-process skill and plan genericization for multi-project use without editing.
 
-**Key insight:** `UserManagementService.GetOrFetchTokenAsync()` uses `_options.ClientId` and `_options.ClientSecret` directly in token fetch requests. If these are empty (from placeholders), Auth0 will return 401/403, but service gracefully catches exceptions and returns `Result.Fail` with `ResultErrorCode.ExternalService`. Sam (Backend) owns this service and may add explicit validation in a follow-up.
+**Key Findings:**
 
-**GitHub Secrets required:** Repository admin must add `AUTH0_MANAGEMENT_CLIENT_ID` and `AUTH0_MANAGEMENT_CLIENT_SECRET` to GitHub secrets for CI/CD to use the admin user management feature.
+1. **`gh` provides complete repository discovery**: Owner, repo, default branch, language all queryable via `gh repo view --json`; Branch protection, secrets, workflows readable at runtime
 
-**PR:** #162
+2. **Runtime discovery capability** (verified on IssueTrackerApp):
+   - Repository: mpaulosky/IssueTrackerApp
+   - Default branch: main
+   - Latest tag: v0.7.0
+   - Versioning: GitVersion.yml + global.json
+   - Language: C# (primary)
+   - Secrets: 9+ deployment secrets enumerable
+   - Branch protection: queryable via gh API
+
+3. **Genericization strategy**: Ask minimally (version, release type, publish targets, deploy decision); Infer aggressively (repo owner/name, default branch, language, capabilities); Detect patterns (version.json, GitVersion.yml, Dockerfile, .csproj); Fallback gracefully (default to main, skip deployment if unclear)
+
+4. **Key insight**: Current BlazorWebFormsComponents skill is 90% hardcoded (dev→main branches, NBGV, MkDocs, Azure). Portable version needs: detection script, interactive wizard, parameterized workflow, override mechanism.
+
+**Deliverable:** Decision file .squad/decisions/inbox/boromir-release-process-generic.md with full analysis, Ask/Infer matrix, fallback strategies, verified test results.
+
+**Status:** Completed comprehensive analysis with discovery testing on live repo. Verified gh discovery works perfectly.
+
+
+---
+
+### 2026-04-12 — Release-Process Skill Genericization Review (Team Sync)
+
+**Context:** Concurrent three-agent review of release-process skill portability across multiple projects. Boromir validated GitHub discovery; Aragorn led architecture; Frodo designed portable template.
+
+**Boromir's Contribution:** GitHub metadata discovery validation and runtime inference strategy
+- **100% Discoverable (Safe):** Repo owner/name, branches, workflows (names), secrets (names only — no values), branch protection, language, latest tag
+- **95% Confidence:** Docker detection (Dockerfile present), language inference
+- **85% Confidence:** Version tool detection (version.json, GitVersion.yml, setup.py, Cargo.toml)
+- **80% Confidence:** Package registry inference (from language + secrets)
+- **70% Confidence:** Deployment capability (secrets + workflow presence)
+
+**Ask vs. Infer Matrix:**
+- User asks: Release type (major/minor/patch), publish targets (github/nuget/npm/docker/all), deployment URL (if custom)
+- System auto-detects: Repo, branches, version from tags, package name, build commands, registry capabilities
+
+**Safe GitHub Access Patterns:**
+- OK: gh repo view --field, gh workflow list, gh secret list --json name, git branch/tag commands (read-only)
+- Never: gh secret get (exposes values), parsing .github/workflows content (brittle), pushing without confirmation
+
+**Fallback Strategies:**
+- Version auto-detect → manual prompt
+- Branch inference → default to main
+- Deployment → skip unless explicitly configured
+- Registry choice → GitHub plus user selects one other
+
+**Test Results (IssueTrackerApp Validation):**
+- gh repo view returns owner, repo, default branch reliably
+- git describe finds v0.7.0 with multiple releases
+- 9+ secrets discovered (AUTH0, MONGODB, PLAYWRIGHT)
+- GitVersion.yml plus global.json coexist
+- Workflows detectable via gh workflow list
+- Caveats: Single-job CI, multiple version tools, secrets without workflows
+
+**Key Learning:** Combine three discovery tiers (gh metadata, filesystem patterns, user interaction) for robust, flexible runtime inference.
+
+**Merged to decisions.md:** 2026-04-12T19:37:30Z
+
+---
+
+### 2026-04-13 — Branch Strategy Audit: `dev` / `main` Model Feasibility
+
+**By:** Boromir (DevOps)
+
+**Request:** Matthew Paulosky asked team to evaluate shifting to `dev` (active development, squash merge) and `main` (releases only, merge commit) model.
+
+**Audit Scope:** Read-only audit of workflows, pre-push hook, branch protection, release tagging, documentation, edge cases.
+
+**Key Findings:**
+
+1. **Workflows already multi-branch capable** — squad-promote.yml (dev→preview→main), squad-ci.yml (PR to dev/preview/main/insider), squad-test.yml (any branch).
+2. **Pre-push hook Gate 0 currently blocks only `main`** — must extend to block both `dev` and `main` (one-line change in `.github/hooks/pre-push`).
+3. **.squad/ path guard already in squad-promote** — .squad/ files correctly stripped on dev→preview merge; never reach main.
+4. **Release flow (tag-based) branch-agnostic** — squad-release.yml triggers on `v*.*.*` tags (detached from branch).
+5. **Documentation needs updates** — CONTRIBUTING.md: "Create branch from dev" (not main), "PR targets dev" (not main), add release section explaining dev→main flow.
+6. **GitHub branch protection must be configured on `dev`** — squash-only merge, required checks, same gates as main.
+7. **Dependabot configuration** — if Dependabot targets main, must reconfigure to target dev (avoid bypassing integration branch).
+8. **Coverage & blog workflows** — already main-only; remain unchanged (release artifacts).
+
+**Risk Assessment:** 🟢 **LOW** — Framework already built for multi-branch; activating one more integration branch.
+
+**Effort:** ~30 min (pre-push hook, docs, GitHub settings).
+
+**Verdict:** **FEASIBLE WITH MINOR CHANGES** — No architectural blockers, no workflow rewrites, minimal config changes.
+
+**Decision file:** `.squad/decisions/inbox/boromir-dev-main-workflows.md`
+
+---
+
+### 2026-04-12 — dev/main Branching Model Review (CI/CD Assessment)
+
+**Context:** Matthew Paulosky requested team review of adopting `dev` as active development branch and `main` as release-only. Three-agent concurrent review coordinated by Aragorn.
+
+**Boromir's Role:** CI/CD and workflow feasibility assessment (claude-haiku-4.5, background).
+
+**Audit Scope:** Read-only audit of existing workflows, pre-push hook, branch protection, release tagging, documentation, edge cases.
+
+**Key Findings:**
+1. **Workflows already multi-branch capable** — squad-promote.yml (dev→preview→main), squad-ci.yml (PR to dev/preview/main/insider), squad-test.yml (any branch push/PR)
+2. **Pre-push hook Gate 0 blocks only `main` currently** — must extend to block both `dev` and `main` (one-line change in `.github/hooks/pre-push`)
+3. **.squad/ path guard already in squad-promote** — .squad/ files correctly stripped on dev→preview merge; never reach main
+4. **Release flow (tag-based) is branch-agnostic** — squad-release.yml triggers on `v*.*.*` tags detached from branch
+5. **GitHub branch protection must be configured on `dev`** — squash-only merge, required checks, matching main rules
+6. **Dependabot configuration** — if targeting main, must reconfigure to target dev (avoid bypassing integration branch)
+7. **Coverage & blog workflows** — already main-only; remain unchanged (release artifacts only)
+
+**Risk Assessment:** 🟢 **LOW** — Framework already built for multi-branch; activating one more integration branch with no architectural blockers.
+
+**Effort:** ~30 min (pre-push hook, docs, GitHub settings).
+
+**Verdict:** **FEASIBLE WITH MINIMAL FRICTION** — No workflow rewrites, minimal config changes, all changes well-understood.
+
+**Coordination:**
+- Aligns with Aragorn's full architectural review
+- Frodo handling documentation updates
+- Three independent audits converged on same verdict — strong signal
+
+**Output:** Technical feasibility document filed to `.squad/orchestration-log/2026-04-12T20-17-00Z-boromir-workflows.md` and `.squad/decisions.md`.
+
+**Status:** ✅ Complete — Recommendation merged to team decisions.
