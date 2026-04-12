@@ -1860,3 +1860,144 @@ Replaced the content of `.squad/skills/release-process/SKILL.md` with a concise 
 - `.squad/playbooks/release-issuetracker.md` — IssueTrackerApp playbook (already exists)
 
 **Source:** `.squad/decisions/inbox/frodo-release-process-legacy-stub.md` (merged 2026-04-12)
+
+---
+
+## Branch Strategy: dev/main Two-Branch Model
+
+**Author:** Boromir (DevOps)  
+**Date:** 2026-04-13  
+**Status:** ✅ Audit Complete — Feasible  
+
+### Proposal
+
+Implement a two-branch release model:
+- **dev**: Active development branch — all feature/squad branches merge via **squash merge**
+- **main**: Release-only branch — dev merges into main via **merge commit**, then tag + GitHub Release
+
+### Current State
+
+Repository already operates a **multi-branch model**:
+- main — protected, squash-only merge
+- preview — staging, manually promoted from dev
+- insider — canary, auto-promoted on push
+- squad/* — feature branches (current integration point: PR to main)
+
+**Key infrastructure already in place:**
+- squad-promote.yml workflow (dev → preview → main promotions)
+- .squad/ path stripping on preview merge (forbidden paths never reach main)
+- Tag-based release flow (squad-release.yml triggers on v*.*.*)
+- Multi-branch CI (squad-ci.yml runs on dev/preview/main/insider)
+
+### Audit Findings
+
+**No Workflow Rewrites Needed** — Existing infrastructure supports this model.
+
+**Pre-Push Hook Gate 0: One-Line Change**
+- Current: blocks main only
+- Required: block both dev and main
+
+**.squad/ Path Guard Already Correct** — Already strips on dev → preview merge.
+
+**Documentation Updates Required** (CONTRIBUTING.md):
+1. Line 101 — Branch naming section
+2. Line 120 — Create branch section (from dev, not main)
+3. Line 431 — PR process section (target dev)
+4. New section — Add release flow documentation
+
+**GitHub Branch Protection Configuration** (admin task):
+- Protect dev branch with same rules as main
+- Require status checks, squash-only merges, auto-delete head branches
+
+### Risk Assessment
+
+| Risk | Severity | Mitigation |
+|------|----------|-----------|
+| Gate 0 pre-push hook not updated | Medium | One-line change |
+| dev branch not protected | Medium | Admin configures |
+| Dependabot bypasses dev | Low | Verify config |
+| Release tagged from dev | Low | Enforce discipline |
+| Documentation out of date | Low | Update CONTRIBUTING.md |
+
+### Verdict
+
+**✅ FEASIBLE** — Effort ~30 minutes; Risk: LOW. Framework already built for this.
+
+**Source:** .squad/decisions/inbox/boromir-dev-main-workflows.md (merged 2026-04-12)
+
+---
+
+## MCP Configuration Commit Safety
+
+**Author:** Boromir (DevOps)  
+**Date:** 2026-04-12  
+**Decision:** Committed MCP configuration files to squad/scribe-log-mcp-export  
+**Verdict:** ✅ SAFE  
+
+### Files Committed
+
+- .copilot/mcp-config.json (modified)
+- .mcp.json (new, untracked)
+- squad-export.json (modified)
+
+### Safety Assessment
+
+All three files are **safe to commit**:
+
+- **.copilot/mcp-config.json and .mcp.json:** MCP server configurations reference CONTEXT7_API_KEY only via input:CONTEXT7_API_KEY (VS Code input prompt). No hardcoded credentials.
+- **squad-export.json:** Team metadata (agent charters, capabilities, decisions). No secrets embedded.
+
+### Commit Hash
+
+e8b1c22 on squad/scribe-log-mcp-export
+
+**Security:** 🟢 No exposure risk; no credential leakage.
+
+**Source:** .squad/decisions/inbox/boromir-mcp-config-commit.md (merged 2026-04-12)
+
+---
+
+## Documentation Audit: dev/main Branch Strategy
+
+**Author:** Frodo (Tech Writer)  
+**Date:** 2026-04-12  
+**Status:** ✅ Recommended  
+
+### Executive Summary
+
+Reviewed 8 documentation files and 22 GitHub workflows to assess dev/main branch model impact. **Verdict: MODERATE documentation impact, FEASIBLE to implement.**
+
+### Critical Updates (Must-do)
+
+1. CONTRIBUTING.md Line 122 — Create branch from dev (not main)
+2. CONTRIBUTING.md Lines 150–156 — Gate 0 protects dev AND main
+3. CONTRIBUTING.md Line 431 — PR targets dev (features) or main (releases)
+4. docs/New Work process.md Line 30 — Branch from origin/dev
+5. docs/New Work process.md Line 115 — Merge to dev before sprint
+6. docs/New Work process.md New Section — Add Release Flow documentation
+7. squad-test.yml Workflow — Add dev to push trigger branches
+
+### Impact Classification
+
+| Metric | Assessment |
+|--------|-----------|
+| Severity | MODERATE |
+| Files to update | 4 primary; 1 optional |
+| Workflow updates | 1 (squad-test.yml) |
+| Breaking changes | None |
+| Estimated effort | 3–4 hours (docs) + 15 min (workflow) |
+| Risk | Low |
+| Recommendation | **PROCEED** with dev/main model |
+
+### Implementation Roadmap
+
+**Phase 1:** Update CONTRIBUTING.md (root) and docs/New Work process.md  
+**Phase 2:** Update squad-test.yml (add dev to push triggers)  
+**Phase 3:** Polish docs/CONTRIBUTING.md (optional)
+
+### Conclusion
+
+Dev/main branch model is documentation-feasible. Overhead is moderate and manageable.
+
+**Source:** .squad/decisions/inbox/frodo-dev-main-docs-audit.md (merged 2026-04-12)
+
