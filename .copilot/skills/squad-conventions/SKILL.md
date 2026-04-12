@@ -6,6 +6,8 @@ confidence: "high"
 source: "manual"
 ---
 
+> ⚠️ **Squad CLI Only** — This skill documents conventions for the [Squad CLI](https://github.com/bradygaster/squad) Node.js package. It is NOT applicable to IssueTrackerApp (.NET/Blazor). Agents working on IssueTrackerApp should ignore this skill.
+
 ## Context
 These conventions apply to all work on the Squad CLI tool (`create-squad`). Squad is a zero-dependency Node.js package that adds AI agent teams to any project. Understanding these patterns is essential before modifying any Squad source code.
 
