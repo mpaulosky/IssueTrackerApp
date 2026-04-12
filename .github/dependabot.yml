@@ -10,6 +10,7 @@ updates:
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "sunday"
@@ -26,7 +27,8 @@ updates:
 
   # Maintain dependencies for nuget
   - package-ecosystem: "nuget"
-    directory: "/nuget/helpers/lib/NuGetUpdater"
+    directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "sunday"
@@ -41,9 +43,10 @@ updates:
       all-actions:
         patterns: [ "*" ]
 
-  #Maintain DotNet Sdk
+  # Maintain DotNet Sdk
   - package-ecosystem: "dotnet-sdk"
-    directory: "/nuget/helpers/lib/NuGetUpdater"
+    directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "sunday"

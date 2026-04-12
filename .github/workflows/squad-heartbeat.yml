@@ -142,11 +142,9 @@ jobs:
                 return;
               }
 
-              // Get repo default branch
-              const { data: repoData } = await github.rest.repos.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo
-              });
+              // Feature branches should be created from dev (the active development branch).
+              // main is for releases only.
+              const baseBranch = 'dev';
 
               for (const issue of unassigned) {
                 try {
@@ -157,7 +155,7 @@ jobs:
                     assignees: ['copilot-swe-agent[bot]'],
                     agent_assignment: {
                       target_repo: `${context.repo.owner}/${context.repo.repo}`,
-                      base_branch: repoData.default_branch,
+                      base_branch: baseBranch,
                       custom_instructions: `Read .squad/team.md (or .ai-team/team.md) for team context and .squad/routing.md (or .ai-team/routing.md) for routing rules.`
                     }
                   });
