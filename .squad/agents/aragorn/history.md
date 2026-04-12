@@ -366,3 +366,91 @@ Full structured investigation (20 ideas, prioritised) written to:
 **Key Decisions:** Approved — aligns with VSA abstraction principles. Boromir to review Phase 3. Frodo to document public generic skill.
 
 **Merged to decisions.md:** 2026-04-12T19:37:30Z
+
+---
+
+### 2026-04-13 — Feasibility Assessment: dev/main Two-Branch Strategy
+
+**Context:** Matthew Paulosky requested a read-only feasibility assessment of switching from single-branch (`main`) to two-branch (`dev` + `main`) model. Aragorn led comprehensive analysis across all documentation, workflows, squad conventions, release processes, and CI/CD pipelines.
+
+**Scope:** 8 documentation files, 7 GitHub Actions workflows, GitVersion.yml, pre-push hook, 4 squad skills, release playbook, squad-promote pipeline, branch protection configuration.
+
+**Prior Team Audits Reviewed:**
+- Boromir (DevOps): Workflow/infrastructure audit — verdict: FEASIBLE, ~30 min effort, LOW risk
+- Frodo (Tech Writer): Documentation audit — verdict: MODERATE impact, FEASIBLE, 3-4 hours + 15 min workflow
+
+**Aragorn's Lead Assessment — Key Findings:**
+
+1. **Infrastructure is pre-built.** `squad-promote.yml` already implements `dev → preview → main` flow. `squad-ci.yml` already triggers on `dev`. Tag-based release flow (`squad-release.yml`) is branch-agnostic. The `.copilot/skills/git-workflow/SKILL.md` already documents the three-branch model with dev-first workflow.
+
+2. **Three discovery areas of concern:**
+   - **GitVersion.yml gap:** No `dev` branch definition exists. Needs new branch config block with `is-release-branch: false`, appropriate pre-release label (e.g., `alpha`), and `source-branches: [main]`. Feature branches need `dev` added to their `source-branches`.
+   - **squad-promote.yml Node.js artifact:** Lines 57, 90, 95, 114 reference `package.json` for version extraction. This is a .NET project using NBGV — these lines will fail. Must be replaced with `nbgv get-version -v NuGetPackageVersion` or `dotnet nbgv get-version -v Version`.
+   - **squad-preview.yml is a stub:** Contains TODO placeholders. If going two-branch (skip preview), this is irrelevant. If going three-branch, it needs implementation.
+
+3. **Recommendation: ADOPT WITH ADJUSTMENTS — Two-branch model (`dev` + `main`), defer `preview` tier.**
+
+**Changes Required (by category):**
+
+| Category | Item | Effort | Priority |
+|----------|------|--------|----------|
+| Branch creation | Create `dev` branch from `main` HEAD | 1 min | P0 |
+| GitVersion.yml | Add `dev` branch config, update feature source-branches | 10 min | P0 |
+| Pre-push hook | Gate 0: block `dev` AND `main` | 2 min | P0 |
+| squad-test.yml | Add `dev` to push trigger | 2 min | P0 |
+| CONTRIBUTING.md | 3 line changes + new release section | 30 min | P1 |
+| New Work process.md | 3 line changes + release flow section | 30 min | P1 |
+| squad-promote.yml | Fix `package.json` → NBGV version extraction | 15 min | P1 |
+| GitHub branch protection | Protect `dev` (squash-only, required checks) | 5 min | P0 |
+| Dependabot config | Verify targeting `dev` not `main` | 5 min | P1 |
+| merged-pr-guard skill | Update "sync to main" → "sync to dev" | 5 min | P2 |
+| release playbook | Update single-branch references → two-branch | 20 min | P2 |
+
+**Risk Assessment:** 🟢 LOW — All three auditors (Aragorn, Boromir, Frodo) independently reached FEASIBLE verdict. No architectural blockers. Framework is 80% pre-built.
+
+**Decision:** Filed to `.squad/decisions/inbox/aragorn-dev-main-branching.md`
+
+**Learnings:**
+- Squad infrastructure was designed for multi-branch from the start (promote, ci, preview workflows all pre-positioned)
+- The `.copilot/skills/git-workflow/SKILL.md` already documents the target model — it was aspirational, not descriptive
+- GitVersion.yml is the most technically nuanced change — pre-release labeling strategy affects SemVer output for all builds on `dev`
+- squad-promote.yml contains Node.js artifacts (`package.json` version reads) that will fail in this .NET project — template debt from original squad framework
+- Three prior assessments (Aragorn, Boromir, Frodo) converged on same verdict independently — strong signal
+
+---
+
+### 2026-04-12 — dev/main Branching Model Review (Architectural Lead)
+
+**Context:** Matthew Paulosky requested team review of adopting `dev` as active development branch and `main` as release-only. Three-agent concurrent review: Aragorn (full), Aragorn (fast), Boromir (CI/CD), Frodo (docs).
+
+**Aragorn's Role:** Full architectural and governance review (claude-opus-4.6, background).
+
+**Analysis Scope:**
+- Repository structure impact (branch naming, protection rules, role contract)
+- CI/CD workflow implications (multi-branch triggers, promote flow, release gating)
+- Release process alignment (tag-based triggers, version numbering, production deployment)
+- Team collaboration patterns (PR routing, review expectations, developer workflows)
+- Risk assessment and contingency planning
+
+**Key Recommendations:**
+1. **Adopt** — branch model is architecturally sound and alignment with squad framework
+2. Treat `dev` as default PR merge target (change from `main`)
+3. Update pre-push protection rules to gate on BOTH `dev` and `main`
+4. Simplify preview/promotion assumptions in workflows — use explicit branch gating, not heuristics
+5. Clear team communication on branch contracts: dev = "unstable", main = "production-ready"
+
+**Architectural Findings:**
+- Squad infrastructure was designed for multi-branch from the start; promote/ci/preview workflows pre-positioned
+- `.copilot/skills/git-workflow/SKILL.md` already documents the target model — was aspirational, now descriptive
+- GitVersion.yml pre-release labeling strategy is key nuance for dev builds (affects SemVer output)
+- squad-promote.yml contains Node.js artifacts that will fail in this .NET project — template debt
+
+**Coordination:**
+- Fast verdict (Haiku) confirmed adoption path
+- Boromir validated CI/CD feasibility with minimal friction
+- Frodo assessed moderate documentation impact
+- Coordinator synthesis: trending toward adoption with workflow/docs adjustments
+
+**Output:** Detailed technical analysis, risk matrix, implementation roadmap filed to `.squad/orchestration-log/2026-04-12T20-17-00Z-aragorn-full-review.md` and `.squad/decisions.md`.
+
+**Status:** ✅ Complete — Recommendation merged to team decisions.
