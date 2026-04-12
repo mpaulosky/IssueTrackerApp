@@ -6,6 +6,8 @@ confidence: "high"
 source: "team-decision"
 ---
 
+> ⚠️ **Squad CLI Only** — This skill documents the npm release runbook for Squad CLI (`@bradygaster/squad-sdk` and `@bradygaster/squad-cli`). It is NOT applicable to IssueTrackerApp (.NET/Blazor). For IssueTrackerApp releases, see `.squad/playbooks/release-issuetracker.md`.
+
 ## Context
 
 This is the **definitive release runbook** for Squad. Born from the v0.8.22 release disaster (4-part semver mangled by npm, draft release never triggered publish, wrong NPM_TOKEN type, 6+ hours of broken `latest` dist-tag).

@@ -17,12 +17,14 @@
 1. Derive the milestone name from the plan title or epic (e.g., "Sprint 1 — {feature/epic name}")
 2. Set a due date if the user specified one; otherwise leave blank
 3. Create via GitHub API (note: `gh` does not have a `milestone create` subcommand natively):
+
    ```bash
    gh api repos/{owner}/{repo}/milestones --method POST \
      --field title="{milestone-name}" \
      --field description="{plan summary}" \
      [--field due_on="{ISO8601}"]
    ```
+
 4. Confirm creation and record the milestone number
 
 #### Phase 2: Sprint Definition
@@ -35,24 +37,29 @@
 #### Phase 3: Issue Creation + Sprint Assignment
 
 1. For each todo in the plan, create a GitHub issue:
+
    ```bash
    gh issue create --title "{todo title}" \
      --body "{todo description}" \
      --label "squad" \
      --milestone "{milestone-name}"
    ```
+
 2. Assign sprint grouping via a label: `sprint-{N}` (create the label if it doesn't exist):
+
    ```bash
    gh label create "sprint-{N}" --color "{color}" \
      --description "Sprint {N}" 2>/dev/null || true
    gh issue edit {number} --add-label "sprint-{N}"
    ```
+
 3. Add appropriate `squad:{member}` routing labels based on the todo domain
 
 #### Phase 4: Board Summary
 
 Present a summary table:
-```
+
+```md
 📅 Milestone: {name} (#{number})
 ├── 🏃 Sprint 1 — {theme}: {N} issues
 │   ├── #{issue} {title} [squad:sam]
@@ -76,6 +83,7 @@ Present a summary table:
 - **Facilitator:** Aragorn
 - **Participants:** Aragorn (runs build-repair prompt)
 - **Purpose:** Ensure zero errors, zero warnings, all tests pass before pushing
+- **Playbook:** `.squad/playbooks/pre-push-process.md` (full 5-gate walkthrough)
 - **Critical rules (learned from PR #86 incident):**
   1. **Always use `--configuration Release`** — CI uses Release; Debug builds hide missing files. Never accept a Debug-only passing build.
   2. **Stage ALL untracked `.razor`/`.cs` files before committing** — run `git status --short` and treat any `??` source file as a blocker. Files present on disk but untracked are invisible to CI.
@@ -96,17 +104,18 @@ Present a summary table:
 - **When:** after ALL CI checks pass; do NOT trigger while checks are pending or failing
 - **Facilitator:** Aragorn
 - **Participants:** Aragorn (always) + domain specialists determined by files changed:
+- **Playbook:** `.squad/playbooks/pr-merge-process.md` (full merge lifecycle)
 
-| Files changed | Required reviewer |
-|---------------|-------------------|
-| Any file | **Aragorn** (lead — always required) |
-| `.github/workflows/`, `AppHost.csproj`, `Directory.Packages.props` | **Boromir** |
-| `Auth/`, `appsettings*.json` auth sections, `Program.cs` auth sections, `UserManagementService.cs`, `Auth0ClaimsTransformation.cs` | **Gandalf** |
-| `tests/Domain.Tests/`, `tests/Web.Tests.Bunit/`, `tests/Persistence.*/` | **Gimli** |
-| `tests/AppHost.Tests/` (Playwright / Aspire E2E) | **Pippin** |
-| `src/Domain/`, `src/Persistence.*/`, `src/Web/Endpoints/`, `src/Web/Features/` | **Sam** |
-| `src/Web/Components/`, `*.razor`, `*.razor.cs`, `*.razor.css`, `wwwroot/` | **Legolas** |
-| `docs/`, `README.md`, XML doc changes | **Frodo** |
+| Files changed                                                                                                                      | Required reviewer                    |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| Any file                                                                                                                           | **Aragorn** (lead — always required) |
+| `.github/workflows/`, `AppHost.csproj`, `Directory.Packages.props`                                                                 | **Boromir**                          |
+| `Auth/`, `appsettings*.json` auth sections, `Program.cs` auth sections, `UserManagementService.cs`, `Auth0ClaimsTransformation.cs` | **Gandalf**                          |
+| `tests/Domain.Tests/`, `tests/Web.Tests.Bunit/`, `tests/Persistence.*/`                                                            | **Gimli**                            |
+| `tests/AppHost.Tests/` (Playwright / Aspire E2E)                                                                                   | **Pippin**                           |
+| `src/Domain/`, `src/Persistence.*/`, `src/Web/Endpoints/`, `src/Web/Features/`                                                     | **Sam**                              |
+| `src/Web/Components/`, `*.razor`, `*.razor.cs`, `*.razor.css`, `wwwroot/`                                                          | **Legolas**                          |
+| `docs/`, `README.md`, XML doc changes                                                                                              | **Frodo**                            |
 
 - **Purpose:** Quality and security gate before merge
 
@@ -123,9 +132,11 @@ Ralph MUST verify ALL of the following before the review cycle begins. Any faili
 
 1. Determine required reviewers from the files-changed table above
 2. **Read GitHub Copilot's automated review comments first:**
+
    ```bash
    gh pr view {N} --json reviews -q '.reviews[] | select(.author.login == "copilot-pull-request-reviewer") | .body'
    ```
+
    Aragorn must address any Copilot-flagged bugs, security issues, or logic errors
    before posting his own verdict. Copilot style suggestions are discretionary.
 3. Spawn Aragorn + all required domain reviewers **in parallel**
@@ -175,7 +186,7 @@ The PR author (original agent who pushed the branch) is **locked out** of fixing
 
 #### Comment template (posted by Aragorn on PR when routing fixes)
 
-```
+```md
 🔄 **CHANGES_REQUESTED — Routing fix cycle**
 
 Reviewer: @{reviewer} requested changes.
@@ -197,19 +208,22 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
 - **Facilitator:** Aragorn (decides resolver and strategy)
 - **Purpose:** Unblock PRs with merge conflicts without violating review integrity
 
-#### Protocol
+#### Protocol 1
 
 1. **Ralph detects** conflict → posts comment on PR:
-   ```
+
+   ```md
    ⚠️ **Merge conflict detected** on `{branch}`. This PR cannot merge until conflicts are resolved.
    Pinging Aragorn to route resolution.
    ```
+
 2. **Aragorn determines** which files conflict (`gh pr view {N} --json files`) and routes to:
    - Backend files (`src/Domain/`, `src/Persistence.*/`) → **Sam**
    - Frontend files (`src/Web/Components/`, `*.razor`) → **Legolas**
    - CI/config files (`.github/`, `*.csproj`, `*.props`) → **Boromir**
    - Mixed or architectural conflicts → **Aragorn** resolves directly
 3. **Resolver** checks out the branch and merges:
+
    ```bash
    git checkout {branch}
    git fetch origin
@@ -219,6 +233,7 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
    git commit -m "chore: resolve merge conflicts with main\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
    git push
    ```
+
 4. **CI must re-pass** after the merge commit
 5. **Existing reviews are invalidated** — all reviewers must re-approve after a merge commit
 6. Resume PR Review Gate from the beginning
@@ -235,15 +250,15 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
 
 #### When to Run
 
-| Trigger | Who |
-|---------|-----|
-| After `gh pr merge` succeeds | Ralph (automatic) |
-| Manual request ("clean orphan branches") | Ralph (on demand) |
-| Before sprint planning | Aragorn (includes in pre-sprint checklist) |
+| Trigger                                  | Who                                        |
+| ---------------------------------------- | ------------------------------------------ |
+| After `gh pr merge` succeeds             | Ralph (automatic)                          |
+| Manual request ("clean orphan branches") | Ralph (on demand)                          |
+| Before sprint planning                   | Aragorn (includes in pre-sprint checklist) |
 
-#### Protocol
+#### Protocol 2
 
-**Step 1 — Sync and prune remote tracking refs**
+#### **Step 1 — Sync and prune remote tracking refs**
 
 ```bash
 git checkout main
@@ -253,7 +268,7 @@ git fetch --prune
 
 `--prune` removes local tracking refs (`origin/squad/*`) for branches already deleted on origin.
 
-**Step 2 — Delete merged remote branches (origin)**
+#### **Step 2 — Delete merged remote branches (origin)**
 
 Catches any `squad/*` branches not removed by `--delete-branch` at merge time:
 
@@ -264,7 +279,7 @@ git branch -r --merged origin/main \
   | xargs -r -I{} git push origin --delete {}
 ```
 
-**Step 3 — Delete merged local branches**
+#### **Step 3 — Delete merged local branches**
 
 ```bash
 git branch --merged main \
@@ -272,7 +287,7 @@ git branch --merged main \
   | xargs -r git branch -d
 ```
 
-**Step 4 — Delete local branches whose remote is gone**
+#### **Step 4 — Delete local branches whose remote is gone**
 
 Handles branches where the remote was already deleted but the local ref was not cleaned up:
 
@@ -286,7 +301,7 @@ git branch -vv \
 
 > ⚠️ Step 4 uses `-D` (force delete) because these branches are already gone from origin. Only applies to `squad/` branches to avoid accidentally removing other local work.
 
-**Step 5 — Report**
+#### **Step 5 — Report**
 
 Print surviving branches for visibility:
 
@@ -317,6 +332,7 @@ echo "✅ Orphan branch cleanup complete."
 - **Facilitator:** Agent or human working the task
 - **Participants:** Task owner, reviewers (for PR phase)
 - **Purpose:** Ensure consistent task execution with proper branch isolation and verification
+- **Playbooks:** `.squad/playbooks/pre-push-process.md` (Phase 3: push), `.squad/playbooks/pr-merge-process.md` (Phase 4: review/merge)
 - **Enforcement:** The pre-push hook (Gate 0) blocks direct pushes to `main` — you must use a `squad/{issue}-{slug}` feature branch
 
 #### Phases
@@ -384,11 +400,13 @@ echo "✅ Orphan branch cleanup complete."
    - If rejected: identify fixes → route to a DIFFERENT agent (not the PR author, lockout enforced) → push fixes → wait for CI → repeat from step 1
 
 4. **Merge (squash):**
+
    ```bash
    gh pr merge {N} --squash --delete-branch
    ```
 
 5. **Update local main:**
+
    ```bash
    git checkout main
    git pull origin main
@@ -416,7 +434,7 @@ echo "✅ Orphan branch cleanup complete."
 - **Participants:** Aragorn, Legolas, Sam, Gimli, Boromir, Frodo, Bilbo
 - **Purpose:** Review shipped deliverables, confirm all sprint issues closed and PRs merged, prepare for release
 
-#### Protocol
+#### Protocol 3
 
 1. Aragorn confirms all sprint issues are closed: `gh issue list --state open --label "sprint-{N}"`
 2. Aragorn summarizes what shipped: features, fixes, test counts added
@@ -432,7 +450,7 @@ echo "✅ Orphan branch cleanup complete."
 - **Participants:** Aragorn, Sam, Legolas, Gimli
 - **Purpose:** Ensure open issues are properly labeled, scoped, and ready before sprint planning
 
-#### Protocol
+#### Protocol 4
 
 1. List open issues: `gh issue list --label "squad" --state open --json number,title,labels`
 2. For each issue without `squad:{member}` sub-label: triage and assign appropriate sub-label
@@ -452,7 +470,7 @@ echo "✅ Orphan branch cleanup complete."
 
 #### Worktree Layout
 
-```
+```md
 ~/Repos/
 ├── IssueTrackerApp/            ← main worktree  (main branch, read-only reference)
 ├── IssueTrackerApp-scribe/     ← scribe/planning worktree  (squad/scribe-* branches)
@@ -478,14 +496,14 @@ git branch -d squad/{issue-number}-{slug}
 
 #### Rules
 
-| Rule | Detail |
-|------|--------|
-| **Main worktree** | Stays on `main`. Never used for active squad branch work. |
-| **Scribe worktree** | Only `.squad/` commits live here. No source code changes. |
-| **Sprint worktrees** | One per active squad branch. |
-| **No simultaneous builds** | `bin/` and `obj/` are shared; do not run `dotnet build` in two worktrees simultaneously. |
-| **Pre-push hook** | Runs in every worktree — all gates still enforced. |
-| **Branching guard** | `.squad/` files must never appear in sprint/feature worktree commits — the scribe worktree makes this physically impossible. |
+| Rule                       | Detail                                                                                                                       |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Main worktree**          | Stays on `main`. Never used for active squad branch work.                                                                    |
+| **Scribe worktree**        | Only `.squad/` commits live here. No source code changes.                                                                    |
+| **Sprint worktrees**       | One per active squad branch.                                                                                                 |
+| **No simultaneous builds** | `bin/` and `obj/` are shared; do not run `dotnet build` in two worktrees simultaneously.                                     |
+| **Pre-push hook**          | Runs in every worktree — all gates still enforced.                                                                           |
+| **Branching guard**        | `.squad/` files must never appear in sprint/feature worktree commits — the scribe worktree makes this physically impossible. |
 
 ---
 
@@ -507,7 +525,7 @@ git branch -d squad/{issue-number}-{slug}
 
 #### Flow
 
-```
+```md
 Milestone closed
       ↓
 [milestone-blog.yml] creates Ralph review issue (squad:ralph + pending-review)
@@ -528,46 +546,48 @@ Ralph labels the issue:
 
 #### Release Criteria (Ralph's checklist)
 
-| Criteria | Weight |
-|----------|--------|
-| Contains user-facing features or enhancements? | High |
-| Contains breaking changes or migration steps? | High (forces release) |
-| Sufficient scope for a version bump? (≥3 features, or ≥1 significant feature) | Medium |
-| All CI gates green on `main`? | Gate (must be green) |
-| More than a hotfix / documentation / process change only? | Low |
+| Criteria                                                                      | Weight                |
+| ----------------------------------------------------------------------------- | --------------------- |
+| Contains user-facing features or enhancements?                                | High                  |
+| Contains breaking changes or migration steps?                                 | High (forces release) |
+| Sufficient scope for a version bump? (≥3 features, or ≥1 significant feature) | Medium                |
+| All CI gates green on `main`?                                                 | Gate (must be green)  |
+| More than a hotfix / documentation / process change only?                     | Low                   |
 
 **Default rule:** If in doubt, use `blog-only`. Releases should mark meaningful user-facing milestones.
 
 #### Version Bump Convention
 
-| Change type | Bump |
-|-------------|------|
-| Breaking API/schema change | `major` |
-| New user-facing features | `minor` |
+| Change type                  | Bump    |
+| ---------------------------- | ------- |
+| Breaking API/schema change   | `major` |
+| New user-facing features     | `minor` |
 | Bug fixes, perf, polish only | `patch` |
 
 To override the default `minor` bump, add a line to the review issue body:
-```
+
+```md
 bump: patch
 ```
+
 before applying the `release-candidate` label.
 
 #### Workflows Involved
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `milestone-blog.yml` | `milestone: closed` | Creates Ralph review issue |
-| `milestone-release-decision.yml` | Issue labeled `release-candidate` or `blog-only` | Routes to release or blog path |
-| `squad-milestone-release.yml` | `workflow_dispatch` | Creates tag + GitHub Release |
-| `release-blog.yml` | `release: published` | Creates Bilbo release blog brief |
-| `blog-readme-sync.yml` | `docs/blog/index.md` pushed to `main` | Updates README Dev Blog section |
+| Workflow                         | Trigger                                          | Purpose                          |
+| -------------------------------- | ------------------------------------------------ | -------------------------------- |
+| `milestone-blog.yml`             | `milestone: closed`                              | Creates Ralph review issue       |
+| `milestone-release-decision.yml` | Issue labeled `release-candidate` or `blog-only` | Routes to release or blog path   |
+| `squad-milestone-release.yml`    | `workflow_dispatch`                              | Creates tag + GitHub Release     |
+| `release-blog.yml`               | `release: published`                             | Creates Bilbo release blog brief |
+| `blog-readme-sync.yml`           | `docs/blog/index.md` pushed to `main`            | Updates README Dev Blog section  |
 
-#### Rules
+#### Rules final
 
-| Rule | Detail |
-|------|--------|
-| **Every milestone gets a blog post** | No exceptions — `blog-only` is the minimum outcome |
-| **Ralph owns the decision** | No other agent applies `release-candidate` or `blog-only` labels |
-| **The Page always updates** | Bilbo must always update `docs/blog/index.md` — the sync workflow does the rest |
-| **Release = blog post** | A GitHub Release always triggers a blog post via `release-blog.yml` |
-| **Ralph closes the review issue** | The decision workflow closes it automatically after routing |
+| Rule                                 | Detail                                                                          |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| **Every milestone gets a blog post** | No exceptions — `blog-only` is the minimum outcome                              |
+| **Ralph owns the decision**          | No other agent applies `release-candidate` or `blog-only` labels                |
+| **The Page always updates**          | Bilbo must always update `docs/blog/index.md` — the sync workflow does the rest |
+| **Release = blog post**              | A GitHub Release always triggers a blog post via `release-blog.yml`             |
+| **Ralph closes the review issue**    | The decision workflow closes it automatically after routing                     |
