@@ -396,3 +396,99 @@ Matthew Paulosky: "AppHost.Tests MUST be run locally before every push — no ex
 ### Investigation output
 Full structured investigation (20 ideas, prioritised) written to:
 `.squad/decisions/inbox/aragorn-feature-ideas-2026-04-02.md`
+
+---
+
+## Learnings (2026-04-12 — Release-Process Abstraction)
+
+### Release-Process Skill Refactoring Complete
+**Decision:** Extracted monolithic, hardcoded release-process skill into generic two-layer architecture.
+
+**Layer 1 — Generic Skill (`release-process-base/SKILL.md`):**
+- Framework-agnostic patterns: versioning systems, merge strategies, branch models, CI/CD architecture
+- Decision trees: "When to squash vs. merge?", "Which version system?", "How do I handle conflicts?"
+- Anti-patterns: version bumps on release branch, manual publishing, mixed version systems
+- 13,674 lines; reusable across .NET, Node.js, Python, Java ecosystems
+- Replaces all hardcoded values with `{PLACEHOLDER}` parameters
+
+**Layer 2 — Project Playbooks (e.g., `.release-config.json`):**
+- Bind generic patterns to concrete project config
+- Parameters: devBranch, releaseBranch, versionSystem, workflows, packageId, etc.
+- Optional; can be inferred from repo state via `gh CLI`
+
+### Hardcoding Analysis
+**15+ hardcoded assumptions removed:**
+- Repository: `FritzAndFriends/BlazorWebFormsComponents` → `{OWNER}/{REPO}` (inferred)
+- Package ID: `Fritz.BlazorWebFormsComponents` → `{PACKAGE_ID}` (inferred from .csproj)
+- Registry: `ghcr.io/fritzandfriends/...` → `{CONTAINER_REGISTRY}` (from secrets)
+- Workflows: `.github/workflows/release.yml` → array of workflow names
+- Versioning: NBGV only → supports 3 patterns (static file, tool-computed, tag-only)
+- Merge strategy: merge commit → parameterized with decision criteria
+- Branches: dev + main → `{DEV_BRANCH}` and `{RELEASE_BRANCH}`
+
+### GitHub Metadata Inference (Safe)
+**Read-only detection via gh CLI:**
+- ✅ `gh repo view --field {name,owner,parent,defaultBranchRef}` — repo metadata
+- ✅ `gh workflow list --all` — workflow file names
+- ✅ `gh secret list --json name` — secret names only (never values)
+- ✅ File inspection: `version.json`, `package.json`, `.csproj` for version scheme + package name
+- ❌ Never use `gh secret get` (exposes values)
+- ❌ Never parse `.github/workflows/*.yml` content (brittle)
+
+### Architecture Patterns Documented
+- **Two-branch model (recommended):** dev (features) + main (releases); preserves history, auditable tags
+- **Single-branch model:** simpler for small projects; all history on main
+- **Merge strategies:** merge commits (preferred for release history), squash (clean but loses context), rebase (linear but rewrites)
+
+### Version System Abstraction
+**Three patterns, each with trade-offs:**
+1. Static file (`version.json`, `package.json`) — simple but requires manual bump
+2. Tool-computed (`NBGV`, Maven, Cargo) — auto-increment but tool dependency
+3. Tag-only — minimal deps but CI must parse tag
+
+**Recommendation:** Choose one; mixing causes conflicts.
+
+### Common Issues Resolved
+- Version mismatch (tag vs. file) — root cause + diagnostic steps provided
+- Merge conflicts during release PR — conflict resolution strategies
+- CI/CD doesn't trigger — workflow trigger configuration debugging
+- Package publishing fails — secret rotation + package ID verification
+
+### Reusability Impact
+**Before:** Skill locked to BlazorWebFormsComponents; manual editing for other projects
+**After:** Generic skill + `.release-config.json` binding → reusable on any project
+**Next Phase:** IssueTrackerApp playbook binding + validation
+
+### Key Files Created
+- `.squad/skills/release-process-base/SKILL.md` — generic skill, 13.6 KB
+- `.squad/decisions/inbox/aragorn-release-process-generic.md` — decision + refactor roadmap
+- *Pending:* IssueTrackerApp `.release-config.json` + project playbook
+
+### Session Notes
+- NBGV version conflicts in release CI well-understood (tool removal in release.yml mitigates)
+- Fork + upstream pattern is BlazorWebFormsComponents-specific; single-repo common (removed assumption)
+- Merge commits preserve release branch history for auditing; critical for long-lived branches
+- Version bumps must be separate, reviewable commits on dev (prevents tag-version skew)
+
+
+---
+
+### 2026-04-12 — Release-Process Skill Genericization Review (Team Sync)
+
+**Context:** Concurrent three-agent review of release-process skill portability across multiple projects. Aragorn led architecture design; Boromir validated GitHub discovery; Frodo designed portable template.
+
+**Aragorn's Contribution:** Architected two-layer skill refactoring
+- **Layer 1 (Generic):** release-process-base SKILL — framework-agnostic patterns (version bump mechanics, merge strategies, tagging semantics, CI/CD flow, troubleshooting)
+- **Layer 2 (Project-Specific):** Project playbook binding — concrete parameters (REPO_OWNER, RELEASE_BRANCH, VERSION_FILE, PACKAGE_ID, WORKFLOWS, ARTIFACTS, DOCS_TOOL, CONTAINER_REGISTRY)
+- **Inference Strategy:** Safe gh CLI discovery (repo owner, branches, workflows, secret names) plus filesystem detection (version.json, Dockerfile, mkdocs.yml) plus user prompts for release type and targets
+- **Guardrails:** No hardcoded repo/workflow names, URLs, registries; never expose secret values; read-only gh access only
+
+**Refactor Roadmap (P1-P4):**
+1. P1 (Unblock) — Create generic skill base
+2. P2 (Validate) — IssueTrackerApp playbook and .release-config.json
+3. P3 (Deprecate, with Boromir) — Legacy skill markup
+4. P4 (Automate, optional) — Inference scripting
+
+**Key Decisions:** Approved — aligns with VSA abstraction principles. Boromir to review Phase 3. Frodo to document public generic skill.
+
+**Merged to decisions.md:** 2026-04-12T19:37:30Z

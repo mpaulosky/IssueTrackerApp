@@ -177,3 +177,111 @@
 - /src/Domain/Features/Issues/Commands/RemoveLabelCommand.cs
 
 **Decision Document**: Created .squad/decisions/inbox/frodo-docs-audit.md
+
+---
+
+### Release Process Skill — Generic Reusability Analysis (April 2026)
+
+**Context**: Matthew Paulosky requested a review of `.squad/skills/release-process/SKILL.md` to understand how to rewrite it for reuse across future projects without hand-editing.
+
+**Actions Taken**:
+1. **Analyzed Current Skill (BlazorWebFormsComponents)**
+   - Identified 8 repository-specific terms: project name, owner/fork, NuGet package ID, branch names, tag format, version file/tool
+   - Documented 5 parallel CI capabilities: NuGet, Docker, Docs, Demos, Build+Test
+   - Mapped 6 critical assumptions with fallbacks: version file, CI auto-trigger, NuGet credentials, Docker credentials, docs tool, demo apps
+
+2. **Designed Generic Template Structure**
+   - Created YAML front matter with auto-detection fields for capabilities (version_tool, package_registry, container_registry, docs_tool)
+   - Mapped all repo-specific wording to `{PLACEHOLDER}` tokens for templating
+   - Designed 7-step portable operator workflow: Pre-Flight Check → Version Bump → Release PR → Merge → Tag & Release → Monitor CI/CD → Post-Release Sync
+   - Built assumption matrix + fallback hierarchy (required vs. optional capabilities)
+
+3. **Capability Discovery Framework**
+   - Documented auto-detection checklist: version file location, package registry type, secrets, CI workflows, docs builder, sample directories
+   - Defined 3-tier fallback strategy: required (no fallback), optional (skip if missing), manual fallback (prompt user)
+   - Created fallback table for each deployment capability
+
+4. **Template Structure Recommendations**
+   - Immediate: Create `.squad/templates/release-process-generic.md` with placeholder-driven workflow
+   - Near-term: Build discovery script `.squad/scripts/detect-release-capabilities.sh` to auto-fill placeholders
+   - Future: Agents read CONFIG.yaml and generic template; dynamically generate operator workflow per project
+
+**Decision Document**: Created `.squad/decisions/inbox/frodo-release-process-generic.md`
+
+**Key Insights**:
+- Current skill tightly couples release workflow to BlazorWebFormsComponents architecture (NBGV, GitHub Packages, MkDocs, demo sites)
+- Generic template must support any language/platform: Node.js, Python, Go, Rust, .NET — by auto-detecting version tool, package registry, docs builder
+- Graceful degradation key: if Docker registry missing, skip. If docs builder not found, skip. If NuGet credentials absent, skip—but always perform build & test + tag & release
+- Operator workflow should be a concise 7-step checklist with links to reference docs for each capability (not inline; keeps workflow readable)
+- Front matter with YAML auto-detection fields enables Squad agents to inspect repo structure and discover capabilities at runtime
+
+**Documentation Standards Applied**:
+- Decision document structured as YAML front matter + 7 sections: Executive Summary, Analysis, Recommended Structure, Key Insights, Implementation Roadmap, Conclusion
+- Included capability discovery checklist, assumption matrix with fallback hierarchy, and Phase 1–3 implementation roadmap
+- Referenced current BlazorWebFormsComponents skill to show how placeholders map to specific values
+- Provided alternative directory structures (.squad/templates/ vs. ~/.squad-agent-library/) for future adoption
+
+**Files Modified**:
+- `.squad/decisions/inbox/frodo-release-process-generic.md` (new)
+
+**Next Steps** (for Matthew or another agent):
+1. Extract and publish `.squad/templates/release-process-generic.md` using this design
+2. Build auto-detection script `.squad/scripts/detect-release-capabilities.sh`
+3. Test generic template on IssueTrackerApp (different stack: .NET Aspire, MongoDB, no NBGV, no Docker demos)
+
+---
+
+### 2026-04-12 — Release-Process Skill Genericization Review (Team Sync)
+
+**Context:** Concurrent three-agent review of release-process skill portability across multiple projects. Frodo designed portable template; Aragorn led architecture; Boromir validated discovery.
+
+**Frodo's Contribution:** Portable template design with graceful fallbacks
+
+**Template Design (7-Step Workflow):**
+1. **Pre-flight Check:** Verify merges, CI green, version tool present
+2. **Bump Version:** Update VERSION_FILE, commit, push to DEV_BRANCH
+3. **Create Release PR:** gh pr create with release notes
+4. **Merge Release PR:** Wait for CI, merge using configured strategy
+5. **Tag and Create GitHub Release:** Push tag, create GitHub Release
+6. **Monitor CI/CD Pipeline:** Track Build/Test (required), NuGet/Docker/Docs/Demo (optional — skip if capability missing)
+7. **Post-Release Sync:** Sync DEV_BRANCH and RELEASE_BRANCH locally and remotely
+
+**YAML Front Matter Auto-Detection:**
+- Project metadata (name, language)
+- Capabilities (version tool, registry, docs builder, container registry)
+- Branches (DEV_BRANCH, RELEASE_BRANCH, TAG_FORMAT)
+- Repository config (UPSTREAM_OWNER, FORK_OWNER, PACKAGE_ID)
+- Assumptions checklist
+
+**Capability Discovery (Auto-Detect via Filesystem/Secrets):**
+- Version tool: version.json, GitVersion.yml, setup.py, Cargo.toml
+- Package registry: NUGET_API_KEY, NPM_TOKEN, PYPI_TOKEN secrets
+- Docker registry: DOCKER_PASSWORD, GHCR_TOKEN secrets
+- Docs builder: mkdocs.yml, Sphinx conf.py, mdBook toml
+- Samples: samples/, examples/, demos/ directories
+- CI workflows: .github/workflows/ directory
+
+**Expected CI Jobs with Fallbacks:**
+- Build and Test (required, no fallback)
+- NuGet Publish (skip if no REGISTRY configured)
+- Docker Build (skip if no credentials present)
+- Docs Deploy (skip if no docs/ found)
+- Demo Deploy (skip if no samples/ found)
+
+**Placeholder-Driven Config:** Replace all hardcoded values (BlazorWebFormsComponents → generic PROJECT_NAME, Fritz.BlazorWebFormsComponents → PACKAGE_ID, dev/main branches → DEV_BRANCH/RELEASE_BRANCH, v{VERSION} → TAG_FORMAT)
+
+**Assumption Matrix for Release Lead:**
+- All PRs merged to DEV_BRANCH?
+- Local DEV_BRANCH synced to origin?
+- CI green on DEV_BRANCH?
+- VERSION_TOOL present and VERSION_FILE accessible?
+- Upstream repo writable (if using fork model)?
+
+**Future Implementation (Phase 1-3):**
+1. Extract template to .squad/templates/release-process-generic.md
+2. Build detection script (.squad/scripts/detect-release-capabilities.sh)
+3. Agent integration — dynamically generate operator workflow
+
+**Key Wins:** Single source of truth across 10+ projects, graceful degradation when features missing, clear assumptions, portable structure, auto-detection.
+
+**Merged to decisions.md:** 2026-04-12T19:37:30Z
