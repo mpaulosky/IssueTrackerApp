@@ -116,3 +116,63 @@
 
 **Decision Merged**: `.squad/decisions.md` (2026-04-12)
 **Related Decision**: Release-Process Skill: Portable Template Design (Frodo, 2026-04-12)
+
+---
+
+## Branch Strategy Documentation Audit (April 2026)
+
+### 2026-04-12 — Documentation Feasibility: dev/main Branch Model
+
+**Request:** Team evaluation of switching to dev (active) / main (releases-only) branch strategy.
+
+**Audit Scope:** 8 documentation files + 22 GitHub workflows
+
+**Key Findings:**
+
+1. **Current State: PARTIALLY ALIGNED**
+   - Workflows: squad-ci.yml already references dev; squad-test.yml is main-only (needs fix)
+   - Docs: CONTRIBUTING.md (root) assumes main is active target; New Work process.md references main for sprint integration
+
+2. **Documentation Status Summary:**
+   - CONTRIBUTING.md (root): **HIGH impact** — 3 sections assume main; no dev mention
+   - docs/New Work process.md: **HIGH impact** — Sprint/ceremony docs need dev references
+   - docs/TESTING.md: **LOW** — Coverage badges; consider future update
+   - docs/CONTRIBUTING.md: **LOW** — Stale template with "develop" refs; secondary doc
+   - README.md: **NONE** — Keep main-focused (release/production visibility)
+   - AGENTS.md, copilot-instructions.md: **NONE** — Branch-agnostic
+
+3. **Workflow Issues:**
+   - **squad-test.yml:** Push trigger only [main]; should be [main, dev] to run tests on dev pushes
+   - **Release workflows (blog-readme-sync, static, sync-readme):** Correctly main-only; no changes
+
+4. **Content Needing Updates:**
+   - Line 122 (CONTRIBUTING): Branch creation baseline (main → dev)
+   - Line 150–156 (Gate 0): Protection scope (main only → main AND dev)
+   - Line 431 (PR Process): Target branch (main → dev for features; main for releases)
+   - docs/New Work process.md Line 30: Worktree baseline (main → dev)
+   - docs/New Work process.md Line 115: Sprint target (main → dev)
+   - docs/New Work process.md: New release-flow section explaining dev → main process
+
+5. **Wording to Preserve:**
+   - CodeCov badge "reflects merge to main" ✓
+   - Release workflows (tags, GitHub Release) → main-only ✓
+   - Copyright/XML doc rules → branch-agnostic ✓
+
+**Verdict: MODERATE impact. FEASIBLE to implement.**
+- **Files to update:** 4 primary (CONTRIBUTING, New Work process, squad-test.yml, optional docs/CONTRIBUTING)
+- **Estimated effort:** 3–4 hours docs + 15 min workflow
+- **Risk:** Low — no breaking changes; clarifications only
+- **Recommendation:** PROCEED with dev/main model
+
+**Decision documented:** `.squad/decisions/inbox/frodo-dev-main-docs-audit.md`
+
+**Implementation Roadmap:**
+- Phase 1: Update CONTRIBUTING.md (branch baseline, Gate 0 scope, PR targeting)
+- Phase 2: Update New Work process.md (dev references, add release flow)
+- Phase 3: Update squad-test.yml workflow (add dev to push trigger)
+- Phase 4 (Optional): Clean up docs/CONTRIBUTING.md stale template content
+
+**Key Pattern Learned:**
+- Release workflows (main-only) can coexist with development workflows (dev-focused) in same repo
+- Workflows already partially aligned; docs are the main gap
+- Clear separation: feature/sprint → dev (squash), release → main (merge + tag)
