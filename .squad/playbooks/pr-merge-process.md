@@ -2,7 +2,7 @@
 
 **Owner:** Aragorn (Lead) + Ralph (Work Monitor)
 **Ref:** `.squad/ceremonies.md` (PR Review Gate, Standard Task Workflow)
-**Last Updated:** 2025-07-17
+**Last Updated:** 2026-04-13
 
 ---
 
@@ -155,16 +155,16 @@ Ralph triggers the Post-Merge Orphan Branch Cleanup ceremony:
 
 ```bash
 # Sync local
-git checkout main && git pull origin main && git fetch --prune
+git checkout dev && git pull origin dev && git fetch --prune
 
 # Remove merged remote squad/ branches
-git branch -r --merged origin/main \
+git branch -r --merged origin/dev \
   | grep 'origin/squad/' \
   | sed 's|origin/||' \
   | xargs -r -I{} git push origin --delete {}
 
 # Remove merged local squad/ branches
-git branch --merged main \
+git branch --merged dev \
   | grep -E '^\s+squad/' \
   | xargs -r git branch -d
 

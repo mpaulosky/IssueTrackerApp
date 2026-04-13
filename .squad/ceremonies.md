@@ -204,7 +204,7 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
 ### Merge Conflict Resolution Ceremony
 
 - **Trigger:** Ralph detects `mergeable: CONFLICTED` on an open PR
-- **When:** as soon as conflict is detected (typically after `main` advances)
+- **When:** as soon as conflict is detected (typically after `dev` advances)
 - **Facilitator:** Aragorn (decides resolver and strategy)
 - **Purpose:** Unblock PRs with merge conflicts without violating review integrity
 
@@ -227,10 +227,10 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
    ```bash
    git checkout {branch}
    git fetch origin
-   git merge origin/main
+   git merge origin/dev
    # resolve conflicts
    git add .
-   git commit -m "chore: resolve merge conflicts with main\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+   git commit -m "chore: resolve merge conflicts with dev\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
    git push
    ```
 
@@ -261,8 +261,8 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
 #### **Step 1 — Sync and prune remote tracking refs**
 
 ```bash
-git checkout main
-git pull origin main
+git checkout dev
+git pull origin dev
 git fetch --prune
 ```
 
@@ -273,7 +273,7 @@ git fetch --prune
 Catches any `squad/*` branches not removed by `--delete-branch` at merge time:
 
 ```bash
-git branch -r --merged origin/main \
+git branch -r --merged origin/dev \
   | grep 'origin/squad/' \
   | sed 's|origin/||' \
   | xargs -r -I{} git push origin --delete {}
@@ -282,7 +282,7 @@ git branch -r --merged origin/main \
 #### **Step 3 — Delete merged local branches**
 
 ```bash
-git branch --merged main \
+git branch --merged dev \
   | grep -E '^\s+squad/' \
   | xargs -r git branch -d
 ```
@@ -307,7 +307,7 @@ Print surviving branches for visibility:
 
 ```bash
 echo "--- Remaining local branches ---"
-git branch -vv | grep -v "^\* main"
+git branch -vv | grep -v "^\* dev"
 
 echo "--- Remaining remote squad/ branches ---"
 git branch -r | grep 'origin/squad/' || echo "(none)"
@@ -316,9 +316,9 @@ git branch -r | grep 'origin/squad/' || echo "(none)"
 #### Full one-liner (for convenience)
 
 ```bash
-git checkout main && git pull origin main && git fetch --prune && \
-git branch -r --merged origin/main | grep 'origin/squad/' | sed 's|origin/||' | xargs -r -I{} git push origin --delete {} && \
-git branch --merged main | grep -E '^\s+squad/' | xargs -r git branch -d && \
+git checkout dev && git pull origin dev && git fetch --prune && \
+git branch -r --merged origin/dev | grep 'origin/squad/' | sed 's|origin/||' | xargs -r -I{} git push origin --delete {} && \
+git branch --merged dev | grep -E '^\s+squad/' | xargs -r git branch -d && \
 git branch -vv | grep ': gone]' | grep 'squad/' | awk '{print $1}' | xargs -r git branch -D && \
 echo "✅ Orphan branch cleanup complete."
 ```

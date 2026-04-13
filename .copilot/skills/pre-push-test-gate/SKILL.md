@@ -20,7 +20,7 @@ The pre-push hook (`.github/hooks/pre-push`) enforces **5 gates** that mirror CI
 
 | Gate | Name | What It Does | Blocks If |
 |------|------|-------------|-----------|
-| **0** | Branch protection | Checks current branch | Push is to `main` |
+| **0** | Branch protection | Checks current branch | Push is to `main` or `dev` |
 | **1** | Untracked source files | Scans for untracked `.razor`/`.cs` files | Untracked source files found (prompts y/N) |
 | **2** | Release build | `dotnet build IssueTrackerApp.slnx --configuration Release` | Build fails (3 retries) |
 | **3** | Unit/Arch/bUnit tests | Runs 6 test projects in Release mode | Any test project fails (3 retries) |
