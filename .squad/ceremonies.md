@@ -227,10 +227,10 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
    ```bash
    git checkout {branch}
    git fetch origin
-   git merge origin/main
+   git merge origin/dev
    # resolve conflicts
    git add .
-   git commit -m "chore: resolve merge conflicts with main\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+   git commit -m "chore: resolve merge conflicts with dev\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
    git push
    ```
 
@@ -261,8 +261,8 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
 #### **Step 1 — Sync and prune remote tracking refs**
 
 ```bash
-git checkout main
-git pull origin main
+git checkout dev
+git pull origin dev
 git fetch --prune
 ```
 
@@ -273,7 +273,7 @@ git fetch --prune
 Catches any `squad/*` branches not removed by `--delete-branch` at merge time:
 
 ```bash
-git branch -r --merged origin/main \
+git branch -r --merged origin/dev \
   | grep 'origin/squad/' \
   | sed 's|origin/||' \
   | xargs -r -I{} git push origin --delete {}
@@ -282,7 +282,7 @@ git branch -r --merged origin/main \
 #### **Step 3 — Delete merged local branches**
 
 ```bash
-git branch --merged main \
+git branch --merged dev \
   | grep -E '^\s+squad/' \
   | xargs -r git branch -d
 ```

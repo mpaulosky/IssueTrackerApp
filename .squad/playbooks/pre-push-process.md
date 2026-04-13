@@ -2,7 +2,7 @@
 
 **Owner:** Boromir (DevOps) + Aragorn (Lead)
 **Ref:** `.github/hooks/pre-push`, `CONTRIBUTING.md`
-**Last Updated:** 2025-07-17
+**Last Updated:** 2026-04-13
 
 ---
 
@@ -60,7 +60,7 @@ When you execute `git push`, the hook runs automatically:
 
 | Gate  | What                   | Blocks Push If                                                           |
 | ----- | ---------------------- | ------------------------------------------------------------------------ |
-| **0** | Branch protection      | Current branch is `main`                                                 |
+| **0** | Branch protection      | Current branch is `main` or `dev`                                        |
 | **1** | Untracked source files | `.razor`/`.cs` files not staged (prompts y/N)                            |
 | **2** | Release build          | `dotnet build --configuration Release` fails (3 attempts)                |
 | **3** | Unit/Arch/bUnit tests  | Any of 6 test projects fail (3 attempts)                                 |
