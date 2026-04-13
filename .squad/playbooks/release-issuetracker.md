@@ -1,6 +1,6 @@
 # Release Process — IssueTrackerApp Project Playbook
 
-**Last Updated:** 2025-07-17  
+**Last Updated:** 2026-04-13  
 **Ref:** `GitVersion.yml`, `.github/workflows/squad-release.yml`, `.github/workflows/squad-promote.yml`  
 **Project:** IssueTrackerApp  
 **Owner:** Boromir (DevOps) + Aragorn (Release Approval)
@@ -27,29 +27,11 @@
 | ------------------ | --------------------------------- | ------------------------------------------------------- |
 | **Version System** | GitVersion                        | Configured in `GitVersion.yml`                          |
 | **Version File**   | `GitVersion.yml`                  | At repo root                                            |
-| **Tag Prefix**     | `v` / `V`                         | e.g., `v1.0.0` (both cases accepted per GitVersion.yml) |
+| **Tag Prefix**     | `v` (lowercase only)              | e.g., `v1.0.0` — GitVersion accepts `[vV]` but release workflow triggers only on `v*.*.*` |
 | **Package ID**     | IssueTrackerApp                   | From `.csproj`                                          |
 | **Merge Strategy** | squash (to dev), merge (dev→main) | Squash for feature work, merge commit for promotion     |
 
-**GitVersion.yml reference** (actual repo config):
-
-```yaml
-mode: ContinuousDeployment
-tag-prefix: '[vV]?'
-branches:
-  main:
-    regex: ^main$
-    tag: ''
-    increment: Minor
-  develop:
-    regex: ^dev$
-    tag: preview
-    increment: Minor
-  feature:
-    regex: ^(feature|squad)[/-]
-    tag: alpha.{BranchName}
-    increment: Inherit
-```
+**GitVersion.yml reference:** See [`GitVersion.yml`](../../GitVersion.yml) at repo root for the full, authoritative config. Key settings: `mode: ContinuousDelivery`, `tag-prefix: '[vV]'`, branches: `main` (Patch), `dev` (alpha, Minor), `feature/squad` (Inherit).
 
 ### Artifacts & Deployments
 

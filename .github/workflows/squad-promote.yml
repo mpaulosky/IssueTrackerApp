@@ -43,6 +43,7 @@ jobs:
         uses: gittools/actions/gitversion/execute@v4.5.0
         with:
           useConfigFile: true
+          configFilePath: GitVersion.yml
 
       - name: Show current state
         run: |
@@ -70,38 +71,38 @@ jobs:
         run: |
           VERSION="${{ steps.gitversion.outputs.semVer }}"
 
+          # Build PR body in a temp file to avoid shell-escaping issues
+          BODY_FILE="$(mktemp)"
+          cat > "$BODY_FILE" <<EOF
+          ## Release Promotion
+
+          Merging \`dev\` into \`main\` for release **v${VERSION}**.
+
+          ### Commits included
+          $(git log origin/main..origin/dev --oneline | head -50)
+
+          ---
+          _After merging, run **squad-milestone-release** to tag and publish the GitHub Release._
+          EOF
+
           # Check if a promote PR already exists
           EXISTING=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number' || true)
           if [ -n "$EXISTING" ]; then
             echo "ℹ️ Promote PR #$EXISTING already exists — updating description"
             gh pr edit "$EXISTING" \
               --title "chore: promote dev → main (v${VERSION})" \
-              --body "## Release Promotion
-
-          Merging \`dev\` into \`main\` for release **v${VERSION}**.
-
-          ### Commits included
-          $(git log origin/main..origin/dev --oneline | head -50)
-
-          ---
-          _After merging, run **squad-milestone-release** to tag and publish the GitHub Release._"
+              --body-file "$BODY_FILE"
             echo "✅ Updated existing PR #$EXISTING"
           else
             gh pr create \
               --base main \
               --head dev \
               --title "chore: promote dev → main (v${VERSION})" \
-              --body "## Release Promotion
-
-          Merging \`dev\` into \`main\` for release **v${VERSION}**.
-
-          ### Commits included
-          $(git log origin/main..origin/dev --oneline | head -50)
-
-          ---
-          _After merging, run **squad-milestone-release** to tag and publish the GitHub Release._"
+              --body-file "$BODY_FILE"
             echo "✅ Created promote PR dev → main"
           fi
+
+          rm -f "$BODY_FILE"
 
       - name: Dry run complete
         if: ${{ inputs.dry_run == 'true' }}
