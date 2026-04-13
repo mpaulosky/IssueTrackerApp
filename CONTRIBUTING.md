@@ -98,7 +98,7 @@ npm run css:watch  # rebuilds on file save
 
 ## Branch Naming
 
-All work **must** happen on a dedicated branch. Direct pushes to `main` are blocked at Gate 0.
+All work **must** happen on a dedicated branch. Direct pushes to `main` and `dev` are blocked at Gate 0.
 
 Use the squad branch convention:
 
@@ -114,12 +114,30 @@ squad/112-contributing-pre-push-docs
 squad/87-add-comment-pagination
 ```
 
-Create your branch from the latest `main`:
+Create your branch from the latest `dev`:
 
 ```bash
-git checkout main && git pull origin main
+git checkout dev && git pull origin dev
 git checkout -b squad/{issue-number}-{your-slug}
 ```
+
+---
+
+## Branching Model
+
+This repository uses a **two-branch** model:
+
+| Branch | Purpose | Merge method |
+| ------ | ------- | ------------ |
+| `dev` | Active development — all feature/sprint PRs target here | **Squash merge** |
+| `main` | Releases only — promoted from `dev` when ready to ship | **Merge commit** (preserves history) |
+
+### Release Flow
+
+1. All feature branches merge into `dev` via squash merge
+2. When ready to release, run the **Squad Promote** workflow to open a PR from `dev` → `main`
+3. After the promote PR is merged, run **Squad Milestone Release** to tag and create a GitHub Release
+4. The tag on `main` is the source of truth for release versions (managed by GitVersion)
 
 ---
 
@@ -133,7 +151,7 @@ The hook lives at `.git/hooks/pre-push` (installed from `.github/hooks/pre-push`
 ┌─────────────────────────────────────────────────────────────────────┐
 │  git push → pre-push hook                                           │
 │                                                                     │
-│  Gate 0  Branch protection     (hard block on main)                 │
+│  Gate 0  Branch protection     (hard block on main and dev)             │
 │  Gate 1  Untracked source files (warn + prompt)                     │
 │  Gate 2  Release build          (hard block on failure)             │
 │  Gate 3  Unit tests             (hard block on failure)             │
@@ -428,7 +446,7 @@ All `public` types and members require a `<summary>` XML doc comment:
    git push origin squad/{issue-number}-{slug}
    ```
 
-2. **Open a PR** targeting `main`. Reference the issue in the body:
+2. **Open a PR** targeting `dev`. Reference the issue in the body:
 
    ```
    Closes #{issue-number}
@@ -446,7 +464,7 @@ All `public` types and members require a `<summary>` XML doc comment:
    - **Aragorn** (Lead) always reviews.
    - Domain specialists are added depending on which files changed (Legolas for UI, Sam for backend, Gimli/Pippin for tests, Boromir for CI/CD, Gandalf for security).
 
-6. **Merge method:** Squash merge (`gh pr merge {N} --squash --delete-branch`) after all checks pass and approval is received.
+6. **Merge method:** Squash merge into `dev` (`gh pr merge {N} --squash --delete-branch`) after all checks pass and approval is received. Releases are promoted from `dev` to `main` via merge commit using the Squad Promote workflow.
 
 ---
 

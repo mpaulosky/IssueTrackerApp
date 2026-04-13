@@ -42,6 +42,7 @@
 - SignalR updates flow through `src/Web/Hubs/IssueHub` and notification-aware services such as `IssueService`.
 
 ## Developer workflow
+- **Branching model:** `dev` is the active development branch (feature PRs target `dev` via squash merge); `main` is releases only (promoted from `dev` via merge commit, then tagged). Direct pushes to both `dev` and `main` are blocked.
 - From repo root: `dotnet restore`, `dotnet build`, `dotnet test IssueTrackerApp.slnx`.
 - Run locally through Aspire: `dotnet run --project src/AppHost/AppHost.csproj`.
 - UI changes: `src/Web/Web.csproj` auto-runs `npm install` (if needed) and `npm run css:build`; use `npm run css:watch` in `src/Web` for Tailwind iteration.

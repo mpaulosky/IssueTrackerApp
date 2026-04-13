@@ -27,7 +27,7 @@
 ### Setup
 
 1. Assigned squad member picks up their issue
-2. Creates a **worktree** on a new branch based on `origin/main`:
+2. Creates a **worktree** on a new branch based on `origin/dev`:
 
    ```text
    Branch name: squad/{issue-number}-{kebab-case-slug}
@@ -84,13 +84,13 @@ Ralph checks all gates before spawning reviewers:
    `--request-changes`)
 3. If **CHANGES_REQUESTED**: PR author is locked out; a *different* squad member
    fixes and pushes to the same branch — then re-review begins
-4. **Unanimous approval + CI green** → Ralph squash-merges and deletes the branch:
+4. **Unanimous approval + CI green** → Ralph squash-merges into `dev` and deletes the branch:
 
    ```bash
    gh pr merge {N} --squash --delete-branch
    ```
 
-   **Why squash?** One commit per PR keeps `git log --oneline main` readable as a
+   **Why squash?** One commit per PR keeps `git log --oneline dev` readable as a
    changelog. GitHub auto-links the squash commit to the PR and issue, so full
    traceability is preserved without merge-commit topology noise.
 
@@ -112,7 +112,7 @@ Ralph checks all gates before spawning reviewers:
 
 - Ralph monitors: when all issues in a sprint are merged and closed, the sprint
   is complete
-- **The previous sprint's PR must be merged to `main` before the next sprint
+- **The previous sprint's PR must be merged to `dev` before the next sprint
   begins** — this eliminates merge conflicts and ensures each sprint builds on a
   stable, fully-integrated baseline
 - Begin next sprint (return to Phase 2)

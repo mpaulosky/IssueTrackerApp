@@ -16,14 +16,22 @@ branches:
     is-main-branch: true
     prevent-increment:
       of-merged-branch: true
-    source-branches: []
+    source-branches: [ dev ]
+
+  dev:
+    regex: ^dev$
+    mode: ContinuousDelivery
+    label: alpha
+    increment: Minor
+    is-main-branch: false
+    source-branches: [ main ]
 
   feature:
     regex: '^(squad|feature)/(?<BranchName>.+)'
     mode: ContinuousDelivery
     label: '{BranchName}'
     increment: Inherit
-    source-branches: [ main, insider ]
+    source-branches: [ dev, main, insider ]
 
   insider:
     regex: ^insider$
@@ -37,4 +45,4 @@ branches:
     mode: ContinuousDelivery
     label: PR{Number}
     increment: Inherit
-    source-branches: [ main, feature, insider ]
+    source-branches: [ dev, main, feature, insider ]

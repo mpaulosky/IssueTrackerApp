@@ -1,90 +1,85 @@
 ---
 name: pre-push-test-gate
 confidence: high
+source: .github/hooks/pre-push
 description: >
-  Enforces build cleanliness and test passage before any git push.
-  Delegates to the build-repair prompt (.github/prompts/build-repair.prompt.md)
-  as the authoritative gate. Established after the Shared project test batch
-  (04714a4) shipped two broken tests directly to main.
+  Knowledge skill documenting the 5-gate pre-push hook that enforces build
+  cleanliness and full test passage before any git push. The hook is installed
+  at .git/hooks/pre-push and mirrors CI gates locally.
 ---
 
 ## Pre-Push Test Gate
 
-### Why This Exists
+### Overview
 
-On 2026-02-25, two unit tests were pushed directly to `main` without local verification.
-Both tests had wrong expectations and failed in CI. This skill enforces the gate that
-prevents that from recurring.
+The pre-push hook (`.github/hooks/pre-push`) enforces **5 gates** that mirror CI. It runs automatically on every `git push` and blocks the push if any gate fails.
 
-### The Gate
+> 📋 **For the step-by-step execution playbook, see:** `.squad/playbooks/pre-push-process.md`
 
-Before any `git push`, an agent MUST run the **Build Repair Skill**:
+### The 5 Gates
 
-> **`.github/prompts/build-repair.prompt.md`**
+| Gate | Name | What It Does | Blocks If |
+|------|------|-------------|-----------|
+| **0** | Branch protection | Checks current branch | Push is to `main` or `dev` |
+| **1** | Untracked source files | Scans for untracked `.razor`/`.cs` files | Untracked source files found (prompts y/N) |
+| **2** | Release build | `dotnet build IssueTrackerApp.slnx --configuration Release` | Build fails (3 retries) |
+| **3** | Unit/Arch/bUnit tests | Runs 6 test projects in Release mode | Any test project fails (3 retries) |
+| **4** | Integration tests | Runs 4 integration test projects (Docker required) | Any test project fails (3 retries) |
 
-That prompt already defines the full gate:
-1. Restore dependencies (`dotnet restore`)
-2. Build the solution (`dotnet build --no-restore`) — zero errors, zero warnings
-3. Fix any build errors before continuing
-4. Run unit tests — all must pass
-5. Fix test failures before continuing
+### Gate 3 — Unit Test Projects (6 total)
 
-Only push when the build-repair prompt reports **"Build succeeded"** with **zero warnings**
-and **all tests pass**.
+```
+tests/Architecture.Tests/Architecture.Tests.csproj
+tests/Domain.Tests/Domain.Tests.csproj
+tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj
+tests/Persistence.MongoDb.Tests/Persistence.MongoDb.Tests.csproj
+tests/Web.Tests/Web.Tests.csproj
+tests/Persistence.AzureStorage.Tests/Persistence.AzureStorage.Tests.csproj
+```
 
-### Agent Checklist
+### Gate 4 — Integration Test Projects (4 total, Docker required)
 
-Before any `git push`, an agent MUST:
+```
+tests/Persistence.MongoDb.Tests.Integration/Persistence.MongoDb.Tests.Integration.csproj
+tests/Web.Tests.Integration/Web.Tests.Integration.csproj
+tests/Persistence.AzureStorage.Tests.Integration/Persistence.AzureStorage.Tests.Integration.csproj
+tests/AppHost.Tests/AppHost.Tests.csproj
+```
 
-- [ ] Open `.github/prompts/build-repair.prompt.md` and execute it fully
-- [ ] Confirm final output: `Build succeeded. 0 Warning(s). 0 Error(s).`
-- [ ] Confirm final test output: `Passed! Failed: 0`
-- [ ] Only then execute `git push`
+These use Testcontainers (mongo:7.0, Azurite) and Aspire DCP. Docker daemon MUST be running.
 
-Do NOT push if either check reports failures. Fix first.
+### Retry Behavior
 
-### Hook (Local Enforcement)
+Gates 2, 3, and 4 allow **3 attempts**. Between attempts the hook pauses and prompts:
+> "Fix the errors and press Enter to retry, or Ctrl+C to abort"
 
-The `.git/hooks/pre-push` hook runs unit tests as a local tripwire.
-Install once per clone — **Shell (Linux/macOS/Git Bash)**:
+### Hook Installation
+
+The hook source is committed at `.github/hooks/pre-push`. Install once per clone:
 
 ```bash
-cat > .git/hooks/pre-push << 'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "🔎 pre-push: running build-repair gate (Domain.Tests + Web.Tests)…"
-if dotnet test tests/Domain.Tests tests/Web.Tests --configuration Release --verbosity quiet 2>&1; then
-  echo "✅ Gate passed — push allowed."
-else
-  echo "❌ Gate FAILED. Run .github/prompts/build-repair.prompt.md and fix before pushing."
-  exit 1
-fi
-EOF
+cp .github/hooks/pre-push .git/hooks/pre-push
 chmod +x .git/hooks/pre-push
 ```
 
-**PowerShell (Windows):**
-```powershell
-@'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "🔎 pre-push: running build-repair gate (Domain.Tests + Web.Tests)…"
-if dotnet test tests/Domain.Tests tests/Web.Tests --configuration Release --verbosity quiet 2>&1; then
-  echo "✅ Gate passed — push allowed."
-else
-  echo "❌ Gate FAILED. Run .github/prompts/build-repair.prompt.md and fix before pushing."
-  exit 1
-fi
-'@ | Set-Content -NoNewline .git/hooks/pre-push
-```
+> ⚠️ Do NOT create inline hook scripts. Always copy from `.github/hooks/pre-push` to get the full 5-gate version.
 
-> The hook is not committed — install on every fresh clone. The build-repair prompt
-> is the authoritative process; the hook is a fast local tripwire.
-
-### Failure Taxonomy (known patterns)
+### Failure Taxonomy (Known Patterns)
 
 | Symptom | Root Cause | Fix |
 |---------|-----------|-----|
-| `DateTime` equality failure in `*.Empty` tests | `Empty` property calls `DateTime.UtcNow` each time — two calls produce different values | Assert individual fields, not whole-record equality |
-| Unexpected trailing `_` in slug tests | `GenerateSlug` appends `_` when string ends with punctuation AND has internal punctuation | Verify actual output against implementation before asserting |
-| Record equality fails on nested DTO | Nested DTO `Empty` also uses `UtcNow` — same root cause | Flatten assertions to field-level |
+| Warning treated as error (Gate 2) | `TreatWarningsAsErrors=true` in Directory.Build.props | Fix the warning — do not suppress |
+| Architecture test failure (Gate 3) | Naming convention violation | Commands → `Command`, queries → `Query`, handlers → `Handler` (must be `sealed`), validators → `Validator` |
+| bUnit test failure (Gate 3) | API change in bUnit 2.x | Use `Render<T>()` not `RenderComponent<T>()` |
+| `DateTime` equality failure (Gate 3) | `Empty` property calls `DateTime.UtcNow` each time | Assert individual fields, not whole-record equality |
+| Docker not running (Gate 4) | Testcontainers can't start | `sudo systemctl start docker` or start Docker Desktop |
+| Container timeout (Gate 4) | Slow image pull or low resources | Pre-pull `mongo:7.0`; increase Docker memory |
+| Untracked `.razor`/`.cs` (Gate 1) | New files not staged | `git add <files>` before pushing |
+
+### Related Documents
+
+- **Hook source:** `.github/hooks/pre-push`
+- **Execution playbook:** `.squad/playbooks/pre-push-process.md`
+- **Build repair prompt:** `.github/prompts/build-repair.prompt.md`
+- **Contributing guide:** `CONTRIBUTING.md` (Pre-Push Gates section)
+- **Ceremonies:** `.squad/ceremonies.md` (Build Repair Check)

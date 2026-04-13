@@ -6,6 +6,8 @@ confidence: "high"
 source: "extracted from Drucker and Trejo charters — earned knowledge from v0.8.22 release incident"
 ---
 
+> ⚠️ **Squad CLI Only** — This skill documents npm/CI patterns from the Squad CLI project (v0.8.22 incident). It is NOT applicable to IssueTrackerApp (.NET/Blazor). For IssueTrackerApp CI gates, see `.github/hooks/pre-push` and `.squad/playbooks/pre-push-process.md`.
+
 ## Context
 
 CI workflows must be defensive. These patterns were learned from the v0.8.22 release disaster where invalid semver, wrong token types, missing retry logic, and draft releases caused a multi-hour outage. Both Drucker (CI/CD) and Trejo (Release Manager) carried this knowledge in their charters — now centralized here.
