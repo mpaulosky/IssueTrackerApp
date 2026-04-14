@@ -387,6 +387,7 @@ MigrationBackup/
 
 # IDE / local
 .vscode/
+*.csproj.lscache
 
 # Test output
 coverage/
