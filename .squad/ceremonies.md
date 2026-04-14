@@ -204,7 +204,7 @@ Fix agent: please push corrections to `{branch}` and comment when ready for re-r
 ### Merge Conflict Resolution Ceremony
 
 - **Trigger:** Ralph detects `mergeable: CONFLICTED` on an open PR
-- **When:** as soon as conflict is detected (typically after `main` advances)
+- **When:** as soon as conflict is detected (typically after `dev` advances)
 - **Facilitator:** Aragorn (decides resolver and strategy)
 - **Purpose:** Unblock PRs with merge conflicts without violating review integrity
 
@@ -307,7 +307,7 @@ Print surviving branches for visibility:
 
 ```bash
 echo "--- Remaining local branches ---"
-git branch -vv | grep -v "^\* main"
+git branch -vv | grep -v "^\* dev"
 
 echo "--- Remaining remote squad/ branches ---"
 git branch -r | grep 'origin/squad/' || echo "(none)"
@@ -316,9 +316,9 @@ git branch -r | grep 'origin/squad/' || echo "(none)"
 #### Full one-liner (for convenience)
 
 ```bash
-git checkout main && git pull origin main && git fetch --prune && \
-git branch -r --merged origin/main | grep 'origin/squad/' | sed 's|origin/||' | xargs -r -I{} git push origin --delete {} && \
-git branch --merged main | grep -E '^\s+squad/' | xargs -r git branch -d && \
+git checkout dev && git pull origin dev && git fetch --prune && \
+git branch -r --merged origin/dev | grep 'origin/squad/' | sed 's|origin/||' | xargs -r -I{} git push origin --delete {} && \
+git branch --merged dev | grep -E '^\s+squad/' | xargs -r git branch -d && \
 git branch -vv | grep ': gone]' | grep 'squad/' | awk '{print $1}' | xargs -r git branch -D && \
 echo "✅ Orphan branch cleanup complete."
 ```
