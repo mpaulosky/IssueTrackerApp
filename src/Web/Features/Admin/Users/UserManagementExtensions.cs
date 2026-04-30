@@ -7,7 +7,11 @@
 // Project Name :  Web
 // =============================================
 
+using Auth0.ManagementApi;
+
 using Domain.Features.Admin.Abstractions;
+
+using Microsoft.Extensions.Options;
 
 namespace Web.Features.Admin.Users;
 
@@ -32,6 +36,21 @@ public static class UserManagementExtensions
 		// Bind and validate options from the Auth0Management config section.
 		services.Configure<Auth0ManagementOptions>(
 			configuration.GetSection(Auth0ManagementOptions.SectionName));
+
+		// Register the Auth0 management client as a singleton; the SDK's
+		// ClientCredentialsTokenProvider handles M2M token acquisition and caching internally.
+		services.AddSingleton<IManagementApiClient>(sp =>
+		{
+			var opts = sp.GetRequiredService<IOptions<Auth0ManagementOptions>>().Value;
+			return new ManagementClient(new ManagementClientOptions
+			{
+				Domain = opts.Domain,
+				TokenProvider = new ClientCredentialsTokenProvider(
+					opts.Domain,
+					opts.ClientId,
+					opts.ClientSecret)
+			});
+		});
 
 		// Register the service as scoped — a new instance per HTTP request.
 		services.AddScoped<IUserManagementService, UserManagementService>();
