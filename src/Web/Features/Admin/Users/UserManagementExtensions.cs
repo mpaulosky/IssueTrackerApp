@@ -42,13 +42,16 @@ public static class UserManagementExtensions
 		services.AddSingleton<IManagementApiClient>(sp =>
 		{
 			var opts = sp.GetRequiredService<IOptions<Auth0ManagementOptions>>().Value;
+			var audience = string.IsNullOrWhiteSpace(opts.Audience) ? null : opts.Audience;
+
 			return new ManagementClient(new ManagementClientOptions
 			{
 				Domain = opts.Domain,
 				TokenProvider = new ClientCredentialsTokenProvider(
 					opts.Domain,
 					opts.ClientId,
-					opts.ClientSecret)
+					opts.ClientSecret,
+					audience: audience)
 			});
 		});
 

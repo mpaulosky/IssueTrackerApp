@@ -7,7 +7,11 @@
 // Project Name :  Web.Tests
 // =======================================================
 
+using System.Runtime.CompilerServices;
+
 using Auth0.ManagementApi;
+using Auth0.ManagementApi.Core;
+using Auth0.ManagementApi.Users;
 
 using Domain.Abstractions;
 
@@ -93,6 +97,7 @@ public sealed class UserManagementServiceTests
 		// Assert
 		result.Success.Should().BeTrue();
 		result.Value.Should().BeTrue();
+		managementClient.ReceivedCalls().Should().BeEmpty();
 	}
 
 	[Fact]
@@ -107,6 +112,7 @@ public sealed class UserManagementServiceTests
 
 		// Assert
 		result.Success.Should().BeTrue();
+		managementClient.ReceivedCalls().Should().BeEmpty();
 	}
 
 	// ──────────────────────────────────────────────────────────────────────────
@@ -141,6 +147,72 @@ public sealed class UserManagementServiceTests
 		// Assert
 		result.Success.Should().BeTrue();
 		result.Value.Should().BeTrue();
+		managementClient.ReceivedCalls().Should().BeEmpty();
+	}
+
+	[Fact]
+	public async Task ListUsersAsync_UserWithoutUserId_SkipsRoleLookupAndReturnsUser()
+	{
+		// Arrange
+		var managementClient = Substitute.For<IManagementApiClient>();
+		var usersClient = Substitute.For<IUsersClient>();
+		var rolesClient = Substitute.For<Auth0.ManagementApi.Users.IRolesClient>();
+
+		managementClient.Users.Returns(usersClient);
+		usersClient.Roles.Returns(rolesClient);
+		usersClient.ListAsync(
+				Arg.Any<ListUsersRequestParameters>(),
+				Arg.Any<RequestOptions?>(),
+				Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult<Pager<UserResponseSchema>>(
+				new TestPager<UserResponseSchema>(
+				[
+					new UserResponseSchema
+					{
+						UserId = " ",
+						Email = "missing-id@test.com",
+						Name = "Missing Id"
+					}
+				])));
+
+		var sut = CreateSut(managementApiClient: managementClient);
+
+		// Act
+		var result = await sut.ListUsersAsync(1, 10, CancellationToken.None);
+
+		// Assert
+		result.Success.Should().BeTrue();
+		result.Value.Should().ContainSingle();
+		result.Value![0].UserId.Should().BeEmpty();
+		result.Value[0].Email.Should().Be("missing-id@test.com");
+		result.Value[0].Roles.Should().BeEmpty();
+		rolesClient.ReceivedCalls().Should().BeEmpty();
+	}
+
+	private sealed class TestPager<TItem>(IReadOnlyList<TItem> items) : Pager<TItem>
+	{
+		public Page<TItem> CurrentPage { get; } = new(items);
+		public bool HasNextPage => false;
+
+		public Task<Page<TItem>> GetNextPageAsync(CancellationToken cancellationToken = default)
+			=> Task.FromResult(Page<TItem>.Empty);
+
+		public async IAsyncEnumerable<Page<TItem>> AsPagesAsync(
+			[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			yield return CurrentPage;
+			await Task.CompletedTask;
+		}
+
+		public async IAsyncEnumerator<TItem> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+		{
+			foreach (var item in items)
+			{
+				yield return item;
+			}
+
+			await Task.CompletedTask;
+		}
 	}
 
 	// ──────────────────────────────────────────────────────────────────────────

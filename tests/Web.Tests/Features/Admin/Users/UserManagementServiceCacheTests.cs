@@ -105,6 +105,7 @@ public sealed class UserManagementServiceCacheTests
 		result.Success.Should().BeTrue();
 		result.Value.Should().HaveCount(2);
 		result.Value![0].UserId.Should().Be("auth0|u1");
+		managementClient.ReceivedCalls().Should().BeEmpty();
 	}
 
 	[Fact]
@@ -149,6 +150,7 @@ public sealed class UserManagementServiceCacheTests
 		result.Success.Should().BeTrue();
 		result.Value!.UserId.Should().Be(userId);
 		result.Value.Roles.Should().BeEquivalentTo(["Admin", "User"]);
+		managementClient.ReceivedCalls().Should().BeEmpty();
 	}
 
 	[Fact]
@@ -190,6 +192,7 @@ public sealed class UserManagementServiceCacheTests
 		result.Success.Should().BeTrue();
 		result.Value.Should().HaveCount(2);
 		result.Value![0].RoleName.Should().Be("Admin");
+		managementClient.ReceivedCalls().Should().BeEmpty();
 	}
 
 	[Fact]
@@ -409,4 +412,3 @@ public sealed class UserManagementServiceCacheTests
 		result.Success.Should().BeTrue();
 	}
 }
-

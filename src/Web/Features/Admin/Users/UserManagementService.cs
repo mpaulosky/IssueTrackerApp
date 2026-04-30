@@ -106,8 +106,16 @@ public sealed class UserManagementService : IUserManagementService
 			// parallel to avoid sequential N+1 latency.
 			var summaries = await Task.WhenAll(users.Select(async u =>
 			{
+				if (string.IsNullOrWhiteSpace(u.UserId))
+				{
+					_logger.LogWarning(
+						"Skipping Auth0 role lookup for listed user with missing UserId. Email={Email}",
+						u.Email ?? string.Empty);
+					return MapUser(u) with { UserId = string.Empty };
+				}
+
 				var rolesPager = await _managementClient.Users.Roles
-					.ListAsync(u.UserId!, new ListUserRolesRequestParameters { PerPage = 100 }, null, ct)
+					.ListAsync(u.UserId, new ListUserRolesRequestParameters { PerPage = 100 }, null, ct)
 					.ConfigureAwait(false);
 
 				return MapUser(u) with
