@@ -71,7 +71,7 @@ No team exists yet. Propose one — but **DO NOT create any files until the user
 
 **Seeding:** Each agent's `history.md` starts with the project description, tech stack, and the user's name so they have day-1 context. Agent folder names are the cast name in lowercase (e.g., `.squad/agents/ripley/`). The Scribe's charter includes maintaining `decisions.md` and cross-agent context sharing.
 
-**Team.md structure:** `team.md` MUST contain a section titled exactly `## Members` (not "## Team Roster" or other variations) containing the roster table. This header is hard-coded in GitHub workflows (`squad-heartbeat.yml`, `squad-issue-assign.yml`, `squad-triage.yml`, `sync-squad-labels.yml`) for label automation. If the header is missing or titled differently, label routing breaks.
+**Team.md structure:** `team.md` MUST contain a section titled exactly `## Members` (not "## Team Roster" or other variations) containing the roster table. This header is hard-coded in GitHub workflows (`squad-issue-assign.yml`, `squad-triage.yml`, `sync-squad-labels.yml`) for label automation. If the header is missing or titled differently, label routing breaks.
 
 **Merge driver for append-only files:** Create or update `.gitattributes` at the repo root to enable conflict-free merging of `.squad/` state across branches:
 ```
@@ -667,7 +667,7 @@ When worktree mode is enabled, the coordinator creates dedicated worktrees for i
 **Cleanup:**
 - After a PR is merged, the worktree should be removed
 - `git worktree remove {path}` + `git branch -d {branch}`
-- Ralph heartbeat can trigger cleanup checks for merged branches
+- Ralph's local watchdog can trigger cleanup checks for merged branches
 
 ### Orchestration Logging
 
@@ -1185,7 +1185,6 @@ This runs as a standalone local process (not inside Copilot) that:
 |-------|------|-----|
 | **In-session** | You're at the keyboard | "Ralph, go" — active loop while work exists |
 | **Local watchdog** | You're away but machine is on | `npx @bradygaster/squad-cli watch --interval 10` |
-| **Cloud heartbeat** | Fully unattended | `squad-heartbeat.yml` — event-based only (cron disabled) |
 
 ### Ralph State
 
