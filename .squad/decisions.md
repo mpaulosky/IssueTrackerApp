@@ -2126,3 +2126,98 @@ Frodo's fixes exist in local commits but were **not pushed** to PR remote. Indic
 - Agent Histories: Aragorn & Sam (2026-05-01 entries)
 
 **Status:** ✅ Decision logged, agents notified, board queued for Sam assignment.
+
+---
+
+## Decision: Squad-Preview Workflow Must Install Playwright Browsers
+
+**Author:** Boromir (DevOps)  
+**Date:** 2026-05-01  
+**Status:** Applied
+
+### Context
+
+The `Squad Preview Validation` workflow (`.github/workflows/squad-preview.yml`) runs
+`dotnet test IssueTrackerApp.slnx` on every push to `dev`. The solution includes
+`tests/AppHost.Tests`, which launches Chromium through Microsoft Playwright.
+
+The most recent failed preview run was Actions run `25228006800` on commit `9dbf2c8`.
+Its `validate` job failed in the `Run unit tests` step with:
+
+```text
+Microsoft.Playwright.PlaywrightException: Executable doesn't exist at
+/home/runner/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell
+```
+
+### Decision
+
+Install Playwright Chromium in `squad-preview.yml` after the Release build and before
+running the solution test step.
+
+### Rationale
+
+- The failure was infrastructure/workflow setup, not application code.
+- `squad-test.yml` already contains the correct pattern for AppHost Playwright coverage.
+- Reusing the existing install command is the smallest behavior-safe fix.
+
+### Implementation
+
+Added this step to `.github/workflows/squad-preview.yml`:
+
+```yaml
+- name: Install Playwright browsers
+  run: pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps
+```
+
+### Validation
+
+Local validation succeeded with the closest workflow-equivalent commands:
+
+```bash
+dotnet restore IssueTrackerApp.slnx
+dotnet build IssueTrackerApp.slnx --configuration Release --no-restore -p:TreatWarningsAsErrors=true
+pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium
+dotnet test IssueTrackerApp.slnx --configuration Release --no-build --verbosity minimal
+```
+
+**Status:** ✅ Applied. Squad-preview validation now successfully runs AppHost tests.
+
+---
+
+## Decision: PR #272 Not Merge-Safe Until Auth Bootstrap Uses Retry Path
+
+**Author:** Keaton (Lead)  
+**Date:** 2026-05-01  
+**Status:** Proposed
+
+### Context
+
+PR #272 adds a narrow `GotoAsync` retry helper for transient Playwright
+`net::ERR_NETWORK_CHANGED` failures and updates `ThemeToggleTests` to use it.
+However, authenticated and admin AppHost tests still bootstrap through
+`/test/login?role=...` via a direct `page.GotoAsync(...)` call in
+`BasePlaywrightTests`.
+
+### Decision
+
+Do not treat the PR as merge-safe until the flaky auth bootstrap path is wired to
+the same retry helper, or the PR scope is explicitly reduced to anonymous theme
+navigation only.
+
+### Rationale
+
+- `InteractWithAuthenticatedPageAsync` and `InteractWithAdminPageAsync` both flow
+  through `InteractWithRolePageAsync`, so one unprotected login navigation affects
+  multiple AppHost E2E suites.
+- The PR narrative says the transient navigation issue appears during
+  `/test/login?role=...`, but the changed code leaves that path untouched.
+- A partial stabilization change risks leaving preview validation flaky while
+  making the failure mode harder to diagnose.
+
+### Requirement
+
+Before merge, either:
+1. Apply the retry helper to `InteractWithRolePageAsync`, or
+2. Explicitly scope PR #272 to theme navigation only, deferring auth bootstrap stabilization
+
+**Status:** 🔄 Review in progress. Awaiting author response or scope clarification.

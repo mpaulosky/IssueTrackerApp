@@ -89,7 +89,8 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 
 		// Authenticate by navigating to the test login endpoint.
 		// The web app (in Testing mode) sets a cookie-auth session with the requested role claims.
-		await page.GotoAsync($"/test/login?role={role}");
+		// Use the retry wrapper — transient net::ERR_NETWORK_CHANGED can hit this first navigation.
+		await GotoAsync(page, $"/test/login?role={role}");
 
 		try
 		{
@@ -105,6 +106,27 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 		AspireManager.App?.GetEndpoint(serviceName, "https")
 			?? throw new InvalidOperationException($"Service '{serviceName}' not found in the application endpoints.");
 
+	protected static async Task GotoAsync(
+		IPage page,
+		string url,
+		PageGotoOptions? options = null)
+	{
+		const int maxAttempts = 2;
+
+		for (var attempt = 1; attempt <= maxAttempts; attempt++)
+		{
+			try
+			{
+				await page.GotoAsync(url, options);
+				return;
+			}
+			catch (PlaywrightException ex) when (attempt < maxAttempts && IsTransientNavigationFailure(ex))
+			{
+				await Task.Delay(TimeSpan.FromSeconds(1));
+			}
+		}
+	}
+
 	private async Task<IPage> CreatePageAsync(Uri uri, ViewportSize? size = null)
 	{
 		var context = await PlaywrightManager.Browser.NewContextAsync(new BrowserNewContextOptions
@@ -118,6 +140,9 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 		_contexts.Add(context);
 		return await context.NewPageAsync();
 	}
+
+	private static bool IsTransientNavigationFailure(PlaywrightException exception) =>
+		exception.Message.Contains("net::ERR_NETWORK_CHANGED", StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Polls <c>/alive</c> on the given endpoint until it returns 2xx or the timeout elapses.
@@ -168,6 +193,5 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 			await context.DisposeAsync();
 	}
 }
-
 
 

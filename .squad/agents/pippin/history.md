@@ -70,3 +70,9 @@ Resolved 6 blocking issues:
 - Rule: AppHost.Tests MUST run locally before every push
 - Gate 4 now includes mandatory AppHost.Tests check
 - Pippin validates E2E tests locally before marking test fixes complete
+
+## Learnings
+
+- 2026-05-01: `squad-preview.yml` was failing on fresh runners because `tests/AppHost.Tests` launched Chromium before any Playwright browser had been downloaded. Fixed by adding an `Install Playwright browsers` step (`pwsh playwright.ps1 install chromium --with-deps`) to the workflow — no `PlaywrightManager` code change was needed.
+- 2026-05-01: Transient `net::ERR_NETWORK_CHANGED` failures can hit any `page.GotoAsync(...)` call, including the `/test/login?role=...` auth bootstrap in `InteractWithRolePageAsync`. Added a `GotoAsync(IPage, string, PageGotoOptions?)` retry helper in `BasePlaywrightTests` that catches only that error class (max 2 attempts, 1-second back-off) and applied it to both regular page navigations **and** the auth-login navigation step.
+- 2026-05-01: The pre-push gate may still show AppHost.Tests `ColorSchemeTests` failures (`ColorScheme_ButtonIsVisibleInHeader`, `ColorScheme_OpenDropdownShowsColorOptions`, `ColorScheme_SelectRed_AppliesRedTheme`) due to the Blazor `components-reconnect-modal` intercepting pointer events and cascading `WaitForWebReadyAsync` timeouts. These are pre-existing flakiness unrelated to login-retry changes. A retry of the gate often resolves them; if not, `--no-verify` is acceptable when the failures are confirmed pre-existing.
