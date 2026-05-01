@@ -2,6 +2,8 @@
 
 This reference provides the complete code for Auth0 infrastructure classes and components.
 
+Replace `YourApp` with your web project's root namespace in the snippets below.
+
 ## Auth Infrastructure Files
 
 ### Auth/Auth0Options.cs

@@ -2,6 +2,8 @@
 
 This reference documents the current Auth0 Management API pattern used by the app. It targets **Auth0.ManagementApi v8** and relies on the SDK's `ClientCredentialsTokenProvider` instead of hand-rolled token fetching.
 
+Replace `YourApp` with your web project's root namespace in the web-layer snippets below.
+
 ## Overview
 
 The admin user management feature enables administrators to:
@@ -15,7 +17,7 @@ The admin user management feature enables administrators to:
 ## Prerequisites
 
 1. **Auth0 Management API M2M Application** created in the Auth0 Dashboard
-2. **Scopes granted**: `read:users`, `update:users`, `read:roles`, `update:roles`, `read:users_app_metadata`, `update:users_app_metadata`
+2. **Scopes granted**: `read:users`, `update:users`, `read:roles`, `read:users_app_metadata`, `update:users_app_metadata`
 3. **Client ID, Client Secret, Domain, and Audience** from the M2M application
 4. **Auth0.ManagementApi v8.x** referenced by the project
 
@@ -91,7 +93,7 @@ public string Description { get; init; } = string.Empty;
 ### Features/Admin/Users/Auth0ManagementOptions.cs
 
 ```csharp
-namespace Web.Features.Admin.Users;
+namespace YourApp.Features.Admin.Users;
 
 public sealed record Auth0ManagementOptions
 {
@@ -113,7 +115,7 @@ using Auth0.ManagementApi;
 using Domain.Features.Admin.Abstractions;
 using Microsoft.Extensions.Options;
 
-namespace Web.Features.Admin.Users;
+namespace YourApp.Features.Admin.Users;
 
 public static class UserManagementExtensions
 {
@@ -167,7 +169,7 @@ using Domain.Features.Admin.Models;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Web.Features.Admin.Users;
+namespace YourApp.Features.Admin.Users;
 
 public sealed class UserManagementService : IUserManagementService
 {
@@ -381,7 +383,7 @@ dotnet user-secrets set "Auth0Management:Audience" "https://your-tenant.auth0.co
 ## Registration in Program.cs
 
 ```csharp
-using Web.Features.Admin.Users;
+using YourApp.Features.Admin.Users;
 
 builder.Services.AddUserManagement(builder.Configuration);
 ```

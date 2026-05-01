@@ -2,14 +2,16 @@
 
 Complete `Program.cs` configuration for Auth0 authentication with the same secure patterns used in the current app.
 
+Replace `YourApp` with your web project's root namespace in the web-layer namespaces below.
+
 ## Required Using Statements
 
 ```csharp
 using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Web.Auth;
-using Web.Features.Admin.Users;
+using YourApp.Auth;
+using YourApp.Features.Admin.Users;
 ```
 
 ## Authentication and Authorization Setup
@@ -169,9 +171,9 @@ using System.Security.Claims;
 using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Web.Auth;
-using Web.Components;
-using Web.Features.Admin.Users;
+using YourApp.Auth;
+using YourApp.Components;
+using YourApp.Features.Admin.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 

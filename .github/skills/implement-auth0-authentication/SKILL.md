@@ -1,5 +1,5 @@
 ---
-name: implemet-auth0-authentication
+name: implement-auth0-authentication
 description: 'Add Auth0 authentication and authorization to a Blazor Server or Blazor Web App with interactive server components. Includes role-based authorization, claims transformation, user profile page, and admin user management via Auth0 Management API. Prompts for Auth0 tenant credentials, client secrets, callback URLs, role claim namespace, and Management API M2M application. Use for implementing OAuth 2.0 OIDC login, role management, user administration, and secure Blazor authentication with Auth0.'
 argument-hint: '[optional: path to Blazor project directory]'
 ---
@@ -31,7 +31,7 @@ Before starting, ensure you have:
 3. **Auth0 Management API M2M Application** (for admin user management features):
    - Application Type: Machine to Machine
    - Authorized for Auth0 Management API
-   - Scopes granted: `read:users`, `update:users`, `read:roles`, `update:roles`, `read:users_app_metadata`, `update:users_app_metadata`
+   - Scopes granted: `read:users`, `update:users`, `read:roles`, `read:users_app_metadata`, `update:users_app_metadata`
    - Client ID, Client Secret, Domain, and Audience available
 4. **Role Configuration in Auth0**:
    - Roles created (for example `Admin`, `User`)

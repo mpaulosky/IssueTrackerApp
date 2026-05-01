@@ -114,9 +114,8 @@ If yes, prompt for:
 **Important**: Ensure the M2M application is authorized for the Auth0 Management API with the following scopes:
 
 - `read:users` — List and read user details
-- `update:users` — Update user metadata
+- `update:users` — Update user metadata and assign/remove roles
 - `read:roles` — List available roles
-- `update:roles` — Assign/remove roles from users
 - `read:users_app_metadata` — Read user app metadata
 - `update:users_app_metadata` — Update user app metadata
 
