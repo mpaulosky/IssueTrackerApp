@@ -8,6 +8,7 @@
 // =======================================================
 
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Hosting;
 
 using Web.Services;
 
@@ -20,17 +21,21 @@ public sealed class SignalRClientService : IAsyncDisposable
 {
 	private readonly ILogger<SignalRClientService> _logger;
 	private readonly ToastService _toastService;
+	private readonly IHostEnvironment _hostEnvironment;
 	private readonly NavigationManager _navigationManager;
 	private HubConnection? _hubConnection;
 	private bool _isStarted;
+	private bool _startupSkipped;
 
 	public SignalRClientService(
 		ILogger<SignalRClientService> logger,
 		ToastService toastService,
+		IHostEnvironment hostEnvironment,
 		NavigationManager navigationManager)
 	{
 		_logger = logger;
 		_toastService = toastService;
+		_hostEnvironment = hostEnvironment;
 		_navigationManager = navigationManager;
 	}
 
@@ -86,6 +91,17 @@ public sealed class SignalRClientService : IAsyncDisposable
 	{
 		if (_isStarted)
 		{
+			return;
+		}
+
+		if (_hostEnvironment.IsEnvironment("IntegrationTesting"))
+		{
+			if (!_startupSkipped)
+			{
+				_startupSkipped = true;
+				_logger.LogInformation("Skipping SignalR client startup in IntegrationTesting");
+			}
+
 			return;
 		}
 
