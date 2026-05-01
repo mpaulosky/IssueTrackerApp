@@ -70,3 +70,8 @@ Resolved 6 blocking issues:
 - Rule: AppHost.Tests MUST run locally before every push
 - Gate 4 now includes mandatory AppHost.Tests check
 - Pippin validates E2E tests locally before marking test fixes complete
+
+## Learnings
+
+- 2026-05-01: `squad-preview.yml` was failing on fresh runners because `tests/AppHost.Tests` launched Chromium before any Playwright browser had been downloaded. `PlaywrightManager` now installs Chromium from the generated `playwright.ps1` script when `LaunchAsync` reports `Executable doesn't exist`.
+- 2026-05-01: Once browser installation was automatic, the next exposed AppHost E2E failure was a transient `net::ERR_NETWORK_CHANGED` during `/test/login?role=...`. Retrying that auth-navigation step in `BasePlaywrightTests` stabilized the full workflow-equivalent solution run.

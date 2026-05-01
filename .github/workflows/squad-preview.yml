@@ -25,5 +25,8 @@ jobs:
       - name: Build
         run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore -p:TreatWarningsAsErrors=true
 
+      - name: Install Playwright browsers
+        run: pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps
+
       - name: Run unit tests
         run: dotnet test IssueTrackerApp.slnx --configuration Release --no-build --verbosity normal

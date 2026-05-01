@@ -236,3 +236,30 @@
 **Output:** Technical feasibility document filed to `.squad/orchestration-log/2026-04-12T20-17-00Z-boromir-workflows.md` and `.squad/decisions.md`.
 
 **Status:** ✅ Complete — Recommendation merged to team decisions.
+
+---
+
+### 2026-05-01 — squad-preview Root Cause: Missing Playwright Browser Install
+
+**By:** Boromir (DevOps)
+
+**Workflow:** `.github/workflows/squad-preview.yml`
+
+**Failure investigated:** GitHub Actions run `25228006800` on `dev` (`9dbf2c8`).
+
+**Root cause:** The preview workflow built and tested the full solution, which includes
+`tests/AppHost.Tests`, but it never installed the Playwright Chromium browser first.
+The failed job log showed `Microsoft.Playwright.PlaywrightException: Executable doesn't exist`
+for `chrome-headless-shell`, causing 38 AppHost tests to fail immediately.
+
+**Fix applied:** Added the same Playwright browser install step already used by
+`.github/workflows/squad-test.yml`:
+- `pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps`
+
+**Validation:** Local preview-equivalent commands succeeded after the workflow update:
+- `dotnet restore IssueTrackerApp.slnx`
+- `dotnet build IssueTrackerApp.slnx --configuration Release --no-restore -p:TreatWarningsAsErrors=true`
+- `pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium`
+- `dotnet test IssueTrackerApp.slnx --configuration Release --no-build --verbosity minimal`
+
+**Key path:** `.github/workflows/squad-preview.yml`
