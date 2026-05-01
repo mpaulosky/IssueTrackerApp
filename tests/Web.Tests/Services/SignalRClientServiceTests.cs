@@ -9,6 +9,7 @@
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Web.Services;
 
@@ -31,6 +32,7 @@ public sealed class SignalRClientServiceTests : IAsyncDisposable
 		_sut = new SignalRClientService(
 			NullLogger<SignalRClientService>.Instance,
 			_toastService,
+			CreateHostEnvironment(),
 			_navigationManager);
 	}
 
@@ -193,6 +195,26 @@ public sealed class SignalRClientServiceTests : IAsyncDisposable
 	}
 
 	[Fact]
+	public async Task StartAsync_WhenIntegrationTesting_SkipsConnectionAttempt()
+	{
+		// Arrange
+		var service = new SignalRClientService(
+			NullLogger<SignalRClientService>.Instance,
+			_toastService,
+			CreateHostEnvironment("IntegrationTesting"),
+			_navigationManager);
+
+		// Act
+		await service.StartAsync();
+
+		// Assert
+		service.ConnectionState.Should().Be(HubConnectionState.Disconnected);
+		_toastService.Toasts.Should().BeEmpty();
+
+		await service.DisposeAsync();
+	}
+
+	[Fact]
 	public async Task StartAsync_WhenCalledTwice_ReturnsEarlyOnSecondCall()
 	{
 		// Arrange
@@ -283,6 +305,7 @@ public sealed class SignalRClientServiceTests : IAsyncDisposable
 		var service = new SignalRClientService(
 			NullLogger<SignalRClientService>.Instance,
 			_toastService,
+			CreateHostEnvironment(),
 			_navigationManager);
 
 		// Act
@@ -299,6 +322,7 @@ public sealed class SignalRClientServiceTests : IAsyncDisposable
 		var service = new SignalRClientService(
 			NullLogger<SignalRClientService>.Instance,
 			_toastService,
+			CreateHostEnvironment(),
 			_navigationManager);
 		await service.StartAsync();
 
@@ -311,6 +335,13 @@ public sealed class SignalRClientServiceTests : IAsyncDisposable
 
 		// Assert
 		await act.Should().NotThrowAsync();
+	}
+
+	private static IHostEnvironment CreateHostEnvironment(string environmentName = "Production")
+	{
+		var hostEnvironment = Substitute.For<IHostEnvironment>();
+		hostEnvironment.EnvironmentName.Returns(environmentName);
+		return hostEnvironment;
 	}
 
 	#endregion
