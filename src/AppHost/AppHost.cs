@@ -15,13 +15,20 @@ if (builder.Environment.EnvironmentName == "Development")
 var auth0MgmtClientId = builder.AddParameter("auth0MgmtClientId", secret: true);
 var auth0MgmtClientSecret = builder.AddParameter("auth0MgmtClientSecret", secret: true);
 
+var isTesting = string.Equals(builder.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase)
+	|| string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase);
+
 // Add Web project with service discovery and health checks
-builder.AddProject<Projects.Web>("web")
+var web = builder.AddProject<Projects.Web>("web")
 	.WithReference(mongodb)
 	.WithReference(redis)
 	.WaitFor(redis)
-	.WithHttpHealthCheck("/health")
 	.WithEnvironment("Auth0Management__ClientId", auth0MgmtClientId)
 	.WithEnvironment("Auth0Management__ClientSecret", auth0MgmtClientSecret);
+
+if (!isTesting)
+{
+	web.WithHttpHealthCheck("/health");
+}
 
 builder.Build().Run();
