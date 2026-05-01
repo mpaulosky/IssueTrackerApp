@@ -29,4 +29,16 @@ jobs:
         run: pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps
 
       - name: Run unit tests
-        run: dotnet test IssueTrackerApp.slnx --configuration Release --no-build --verbosity normal
+        run: |
+          # Run all tests EXCEPT AppHost.Tests (which needs separate Aspire orchestrator isolation)
+          dotnet test tests/Architecture.Tests/Architecture.Tests.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Domain.Tests/Domain.Tests.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Persistence.MongoDb.Tests/Persistence.MongoDb.Tests.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Web.Tests/Web.Tests.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Persistence.AzureStorage.Tests/Persistence.AzureStorage.Tests.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Persistence.MongoDb.Tests.Integration/Persistence.MongoDb.Tests.Integration.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Web.Tests.Integration/Web.Tests.Integration.csproj --configuration Release --no-build --verbosity normal
+          dotnet test tests/Persistence.AzureStorage.Tests.Integration/Persistence.AzureStorage.Tests.Integration.csproj --configuration Release --no-build --verbosity normal
+          # AppHost.Tests run separately to avoid Aspire orchestrator cleanup issues with monolithic solution-level test
+          dotnet test tests/AppHost.Tests/AppHost.Tests.csproj --configuration Release --no-build --verbosity normal
