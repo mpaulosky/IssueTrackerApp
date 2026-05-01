@@ -86,7 +86,7 @@ jobs:
           EOF
 
           # Check if a promote PR already exists
-          EXISTING=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number' || true)
+          EXISTING=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number // empty' || true)
           if [ -n "$EXISTING" ]; then
             echo "ℹ️ Promote PR #$EXISTING already exists — updating description"
             gh pr edit "$EXISTING" \

@@ -2081,3 +2081,48 @@ Phase 2 — Documentation & Polish (P1, ~1.5 hours):
 **Approval Required:** Matthew Paulosky (repository owner)
 
 **Source:** .squad/decisions/inbox/aragorn-dev-main-branching.md (merged 2026-04-12)
+
+---
+
+## PR #265 Revision Cycle 2: Blocker Verification & Agent Lockout Decision
+
+**Date:** 2026-05-01  
+**Context:** Frodo reported completion of three-part Auth0 skill revision (typo rename, scope docs, namespace guidance). Aragorn lead-review found all blockers **unresolved** on PR remote.
+
+### Issue
+
+- **Expected State:** PR #265 with all three blockers fixed, build & tests passing
+- **Actual State:** All three blockers still present; Frodo's reported local commits not pushed
+- **Impact:** Revision cycle fails; PR blocked indefinitely
+
+### Root Cause
+
+Frodo's fixes exist in local commits but were **not pushed** to PR remote. Indicates either:
+1. Local branch tracking failure
+2. Incomplete handoff / push process
+3. Branch reset after commits
+
+### Decision
+
+**Reject PR #265 Revision Cycle 2.** Agent reassignment to Sam with explicit blockers list.
+
+**Agent Lockout Rationale:** Gandalf and Frodo locked out this cycle to prevent overlapping fix attempts. Sam owns next iteration with full authority to investigate branch state, re-apply fixes if needed, and push clean revision.
+
+**Blocker Specification for Sam:**
+1. Typo: Rename folder/metadata `implemet-...` → `implement-...`
+2. Auth0 Scopes: Document `update:users` required for role assignment (not `update:roles`)
+3. Namespace: Standardize `YourApp.*` placeholder with customization guidance
+
+### Team Impact
+
+- **Coordination:** Three-agent sequence (Frodo failed → Sam owns) reduces risk of duplicate fixes
+- **Quality Gate:** Aragorn lead-review remains mandatory pre-merge
+- **Timeline:** One additional revision cycle expected before merge
+
+### Recorded In
+
+- Orchestration Log: `.squad/orchestration-log/2026-05-01T04:43:52Z-aragorn-pr265-rereview.md`
+- Session Log: `.squad/log/2026-05-01T04:43:52Z-pr265-second-rejection-sam-handoff.md`
+- Agent Histories: Aragorn & Sam (2026-05-01 entries)
+
+**Status:** ✅ Decision logged, agents notified, board queued for Sam assignment.
