@@ -20,6 +20,10 @@ using Microsoft.Extensions.Options;
 
 using MongoDB.Driver;
 
+using Domain.Abstractions;
+using Domain.Features.Admin.Abstractions;
+using Domain.Features.Admin.Models;
+
 using Persistence.MongoDb;
 using Persistence.MongoDb.Configurations;
 
@@ -115,7 +119,13 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 				// Auth0 settings (not used since we mock auth, but required for startup)
 				["Auth0:Domain"] = "test.auth0.com",
 				["Auth0:ClientId"] = "test-client-id",
-				["Auth0:ClientSecret"] = "test-client-secret"
+				["Auth0:ClientSecret"] = "test-client-secret",
+				// Auth0 Management settings are required because the v8 client validates
+				// these options at service-construction time before any outbound call occurs.
+				["Auth0Management:Domain"] = "test.auth0.com",
+				["Auth0Management:ClientId"] = "test-client-id",
+				["Auth0Management:ClientSecret"] = "test-client-secret",
+				["Auth0Management:Audience"] = "https://test.auth0.com/api/v2/"
 			};
 
 			configBuilder.AddInMemoryCollection(testConfig);
@@ -153,6 +163,23 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 					ConnectionString = connectionString,
 					DatabaseName = databaseName
 				}));
+
+			services.RemoveAll<IUserManagementService>();
+			services.AddScoped<IUserManagementService>(_ =>
+			{
+				var substitute = Substitute.For<IUserManagementService>();
+				substitute.ListUsersAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+					.Returns(Task.FromResult(Result.Ok<IReadOnlyList<AdminUserSummary>>([])));
+				substitute.GetUserByIdAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+					.Returns(Task.FromResult(Result.Ok(AdminUserSummary.Empty)));
+				substitute.ListRolesAsync(Arg.Any<CancellationToken>())
+					.Returns(Task.FromResult(Result.Ok<IReadOnlyList<RoleAssignment>>([])));
+				substitute.AssignRolesAsync(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+					.Returns(Task.FromResult(Result.Ok(true)));
+				substitute.RemoveRolesAsync(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+					.Returns(Task.FromResult(Result.Ok(true)));
+				return substitute;
+			});
 		});
 	}
 
