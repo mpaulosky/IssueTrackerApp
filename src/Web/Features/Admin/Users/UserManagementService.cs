@@ -8,13 +8,10 @@
 // =============================================
 
 using System.Buffers.Binary;
-using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 using Auth0.ManagementApi;
-using Auth0.ManagementApi.Models;
-using Auth0.ManagementApi.Paging;
+using Auth0.ManagementApi.Users;
 
 using Domain.Abstractions;
 using Domain.Features.Admin.Abstractions;
@@ -22,27 +19,24 @@ using Domain.Features.Admin.Models;
 
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 
 namespace Web.Features.Admin.Users;
 
 /// <summary>
-///   Implements <see cref="IUserManagementService" /> using the Auth0 Management API v2.
+///   Implements <see cref="IUserManagementService" /> using the Auth0 Management API v8.
 /// </summary>
 /// <remarks>
-///   An M2M access token is obtained via the OAuth 2.0 client credentials flow and cached in
-///   <see cref="IMemoryCache" /> with a 24 h TTL minus a 5-minute safety margin.  Role IDs are
-///   resolved dynamically by name and cached for 30 minutes so they are never hardcoded.
+///   Credentials are managed by the injected <see cref="IManagementApiClient" />, which uses
+///   <c>ClientCredentialsTokenProvider</c> to handle M2M token acquisition and caching internally.
+///   Role IDs are resolved dynamically by name and cached for 30 minutes so they are never hardcoded.
 ///   <para>
 ///     <b>Rate limits:</b> Auth0 Management API returns HTTP 429 on burst.  Add a Polly retry
-///     policy (per ADR #130) in a follow-up task once the HttpClientManagementConnection
-///     integration is confirmed against the tenant's SDK version.
+///     policy (per ADR #130) in a follow-up task.
 ///   </para>
 /// </remarks>
 public sealed class UserManagementService : IUserManagementService
 {
-	// ── IMemoryCache keys (token + role-ID map — DO NOT CHANGE) ──────────────
-	private const string TokenCacheKey = "Auth0Management:Token";
+	// ── IMemoryCache key (role-ID map) ────────────────────────────────────────
 	private const string RolesCacheKey = "Auth0Management:Roles";
 
 	// ── IDistributedCache keys (result data — Sprint 2) ──────────────────────
@@ -58,8 +52,7 @@ public sealed class UserManagementService : IUserManagementService
 
 	private readonly IMemoryCache _cache;
 	private readonly IDistributedCache _distributedCache;
-	private readonly IHttpClientFactory _httpClientFactory;
-	private readonly Auth0ManagementOptions _options;
+	private readonly IManagementApiClient _managementClient;
 	private readonly ILogger<UserManagementService> _logger;
 
 	/// <summary>
@@ -68,14 +61,12 @@ public sealed class UserManagementService : IUserManagementService
 	public UserManagementService(
 		IMemoryCache cache,
 		IDistributedCache distributedCache,
-		IHttpClientFactory httpClientFactory,
-		IOptions<Auth0ManagementOptions> options,
+		IManagementApiClient managementClient,
 		ILogger<UserManagementService> logger)
 	{
 		_cache = cache;
 		_distributedCache = distributedCache;
-		_httpClientFactory = httpClientFactory;
-		_options = options.Value;
+		_managementClient = managementClient;
 		_logger = logger;
 	}
 
@@ -101,25 +92,35 @@ public sealed class UserManagementService : IUserManagementService
 				return Result.Ok<IReadOnlyList<AdminUserSummary>>(cached);
 			}
 
-			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
+
 
 			// Auth0 uses 0-based page numbering; callers pass 1-based pages.
 			var auth0Page = Math.Max(0, page - 1);
-			var users = await client.Users
-				.GetAllAsync(new GetUsersRequest(), new PaginationInfo(auth0Page, perPage, false), ct)
+			var pager = await _managementClient.Users
+				.ListAsync(new ListUsersRequestParameters { Page = auth0Page, PerPage = perPage }, null, ct)
 				.ConfigureAwait(false);
+
+			var users = pager.CurrentPage.Items;
 
 			// Auth0's list endpoint does not include role assignments; fetch them per user in
 			// parallel to avoid sequential N+1 latency.
 			var summaries = await Task.WhenAll(users.Select(async u =>
 			{
-				var roles = await client.Users
-					.GetRolesAsync(u.UserId, new PaginationInfo(0, 100, false), ct)
+				if (string.IsNullOrWhiteSpace(u.UserId))
+				{
+					_logger.LogWarning(
+						"Skipping Auth0 role lookup for listed user with missing UserId. Email={Email}",
+						u.Email ?? string.Empty);
+					return MapUser(u) with { UserId = string.Empty };
+				}
+
+				var rolesPager = await _managementClient.Users.Roles
+					.ListAsync(u.UserId, new ListUserRolesRequestParameters { PerPage = 100 }, null, ct)
 					.ConfigureAwait(false);
 
 				return MapUser(u) with
 				{
-					Roles = roles.Select(r => r.Name ?? string.Empty).ToList()
+					Roles = rolesPager.CurrentPage.Items.Select(r => r.Name ?? string.Empty).ToList()
 				};
 			})).ConfigureAwait(false);
 
@@ -167,20 +168,19 @@ public sealed class UserManagementService : IUserManagementService
 				return Result.Ok(cached);
 			}
 
-			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
 
-			var user = await client.Users
-				.GetAsync(userId, cancellationToken: ct)
+			var user = await _managementClient.Users
+				.GetAsync(userId, new GetUserRequestParameters(), null, ct)
 				.ConfigureAwait(false);
 
 			// Fetch the roles assigned to this user (requires a separate API call).
-			var rolesList = await client.Users
-				.GetRolesAsync(userId, new PaginationInfo(0, 100, false), ct)
+			var rolesPager = await _managementClient.Users.Roles
+				.ListAsync(userId, new ListUserRolesRequestParameters { PerPage = 100 }, null, ct)
 				.ConfigureAwait(false);
 
 			var summary = MapUser(user) with
 			{
-				Roles = rolesList.Select(r => r.Name ?? string.Empty).ToList()
+				Roles = rolesPager.CurrentPage.Items.Select(r => r.Name ?? string.Empty).ToList()
 			};
 
 			await SetInDistributedCacheAsync(cacheKey, summary, UserByIdTtl, ct).ConfigureAwait(false);
@@ -216,8 +216,7 @@ public sealed class UserManagementService : IUserManagementService
 
 		try
 		{
-			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
-			var roleMap = await GetRoleMapAsync(client, ct).ConfigureAwait(false);
+			var roleMap = await GetRoleMapAsync(ct).ConfigureAwait(false);
 
 			var unknown = roleNamesList.Where(r => !roleMap.ContainsKey(r)).ToList();
 			if (unknown.Count > 0)
@@ -229,8 +228,8 @@ public sealed class UserManagementService : IUserManagementService
 
 			var roleIds = roleNamesList.Select(r => roleMap[r]).ToArray();
 
-			await client.Users
-				.AssignRolesAsync(userId, new AssignRolesRequest { Roles = roleIds }, ct)
+			await _managementClient.Users.Roles
+				.AssignAsync(userId, new AssignUserRolesRequestContent { Roles = roleIds }, null, ct)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
@@ -286,8 +285,7 @@ public sealed class UserManagementService : IUserManagementService
 
 		try
 		{
-			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
-			var roleMap = await GetRoleMapAsync(client, ct).ConfigureAwait(false);
+			var roleMap = await GetRoleMapAsync(ct).ConfigureAwait(false);
 
 			var unknown = roleNamesList.Where(r => !roleMap.ContainsKey(r)).ToList();
 			if (unknown.Count > 0)
@@ -299,8 +297,8 @@ public sealed class UserManagementService : IUserManagementService
 
 			var roleIds = roleNamesList.Select(r => roleMap[r]).ToArray();
 
-			await client.Users
-				.RemoveRolesAsync(userId, new AssignRolesRequest { Roles = roleIds }, ct)
+			await _managementClient.Users.Roles
+				.DeleteAsync(userId, new DeleteUserRolesRequestContent { Roles = roleIds }, null, ct)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
@@ -350,13 +348,12 @@ public sealed class UserManagementService : IUserManagementService
 				return Result.Ok<IReadOnlyList<RoleAssignment>>(cached);
 			}
 
-			using var client = await GetManagementClientAsync(ct).ConfigureAwait(false);
 
-			var roles = await client.Roles
-				.GetAllAsync(new GetRolesRequest(), new PaginationInfo(0, 100, false), ct)
+			var pager = await _managementClient.Roles
+				.ListAsync(new ListRolesRequestParameters { PerPage = 100 }, null, ct)
 				.ConfigureAwait(false);
 
-			var result = roles
+			var result = pager.CurrentPage.Items
 				.Select(r => new RoleAssignment
 				{
 					RoleId = r.Id ?? string.Empty,
@@ -480,83 +477,21 @@ public sealed class UserManagementService : IUserManagementService
 	}
 
 	/// <summary>
-	///   Creates a <see cref="ManagementApiClient" /> using a cached M2M access token.
-	/// </summary>
-	private async Task<ManagementApiClient> GetManagementClientAsync(CancellationToken ct)
-	{
-		var token = await GetOrFetchTokenAsync(ct).ConfigureAwait(false);
-		return new ManagementApiClient(token, new Uri($"https://{_options.Domain}/api/v2/"));
-	}
-
-	/// <summary>
-	///   Returns a cached M2M access token, fetching a fresh one from Auth0 when expired.
-	///   Uses <see cref="IMemoryCache.GetOrCreateAsync{TItem}" /> to avoid concurrent cold-start
-	///   races where multiple in-flight requests each fetch a new token simultaneously.
-	/// </summary>
-	private async Task<string> GetOrFetchTokenAsync(CancellationToken ct)
-	{
-		var token = await _cache.GetOrCreateAsync(TokenCacheKey, async entry =>
-		{
-			_logger.LogDebug(
-				"Fetching fresh Auth0 Management API token for domain '{Domain}'.",
-				_options.Domain);
-
-			using var httpClient = _httpClientFactory.CreateClient();
-
-			using var requestBody = new FormUrlEncodedContent(
-			[
-				new KeyValuePair<string, string>("grant_type", "client_credentials"),
-				new KeyValuePair<string, string>("client_id", _options.ClientId),
-				new KeyValuePair<string, string>("client_secret", _options.ClientSecret),
-				new KeyValuePair<string, string>("audience", _options.Audience)
-			]);
-
-			using var response = await httpClient
-				.PostAsync($"https://{_options.Domain}/oauth/token", requestBody, ct)
-				.ConfigureAwait(false);
-
-			response.EnsureSuccessStatusCode();
-
-			var tokenResponse = await response.Content
-				.ReadFromJsonAsync<TokenResponse>(cancellationToken: ct)
-				.ConfigureAwait(false)
-				?? throw new InvalidOperationException(
-					"Auth0 token endpoint returned an empty response.");
-
-			// Cache with a 5-minute safety margin so we always have time to act on the token.
-			var ttl = tokenResponse.ExpiresIn > 300
-				? tokenResponse.ExpiresIn - 300
-				: tokenResponse.ExpiresIn;
-
-			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(ttl);
-
-			_logger.LogDebug("Auth0 Management API token cached. TTL={Ttl}s.", ttl);
-
-			return tokenResponse.AccessToken;
-		}).ConfigureAwait(false);
-
-		return token ?? throw new InvalidOperationException(
-			"Auth0 token cache returned null — token fetch may have failed.");
-	}
-
-	/// <summary>
-	///   Returns a name → ID map of all tenant roles, backed by a 30-minute cache.
+	///   Returns a name → ID map of all tenant roles, backed by a 30-minute in-memory cache.
 	///   Uses <see cref="IMemoryCache.GetOrCreateAsync{TItem}" /> to avoid race conditions
 	///   on concurrent cold starts.
 	/// </summary>
-	private async Task<Dictionary<string, string>> GetRoleMapAsync(
-		ManagementApiClient client,
-		CancellationToken ct)
+	private async Task<Dictionary<string, string>> GetRoleMapAsync(CancellationToken ct)
 	{
 		var map = await _cache.GetOrCreateAsync(RolesCacheKey, async entry =>
 		{
-			var roles = await client.Roles
-				.GetAllAsync(new GetRolesRequest(), new PaginationInfo(0, 100, false), ct)
+			var pager = await _managementClient.Roles
+				.ListAsync(new ListRolesRequestParameters { PerPage = 100 }, null, ct)
 				.ConfigureAwait(false);
 
 			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
 
-			return roles
+			return pager.CurrentPage.Items
 				.Where(r => r.Name is not null && r.Id is not null)
 				.ToDictionary(r => r.Name!, r => r.Id!, StringComparer.OrdinalIgnoreCase);
 		}).ConfigureAwait(false);
@@ -564,23 +499,38 @@ public sealed class UserManagementService : IUserManagementService
 		return map ?? [];
 	}
 
-	/// <summary>Maps an Auth0 <see cref="User" /> to <see cref="AdminUserSummary" />.</summary>
-	private static AdminUserSummary MapUser(User user) => new()
+	/// <summary>Maps an Auth0 <see cref="UserResponseSchema" /> (list result) to <see cref="AdminUserSummary" />.</summary>
+	private static AdminUserSummary MapUser(UserResponseSchema user) => new()
 	{
 		UserId = user.UserId ?? string.Empty,
 		Email = user.Email ?? string.Empty,
-		Name = user.FullName ?? user.Email ?? string.Empty,
+		Name = user.Name ?? user.Email ?? string.Empty,
 		Picture = user.Picture ?? string.Empty,
 		Roles = [],
-		LastLogin = user.LastLogin is { } lastLogin
-			? new DateTimeOffset(DateTime.SpecifyKind(lastLogin, DateTimeKind.Utc))
-			: null,
+		LastLogin = ParseLastLogin(user.LastLogin),
 		IsBlocked = user.Blocked ?? false
 	};
 
-	/// <summary>Thin DTO for deserializing the Auth0 token endpoint response.</summary>
-	private sealed record TokenResponse(
-		[property: JsonPropertyName("access_token")] string AccessToken,
-		[property: JsonPropertyName("token_type")] string TokenType,
-		[property: JsonPropertyName("expires_in")] int ExpiresIn);
+	/// <summary>Maps an Auth0 <see cref="GetUserResponseContent" /> (single-user result) to <see cref="AdminUserSummary" />.</summary>
+	private static AdminUserSummary MapUser(GetUserResponseContent user) => new()
+	{
+		UserId = user.UserId ?? string.Empty,
+		Email = user.Email ?? string.Empty,
+		Name = user.Name ?? user.Email ?? string.Empty,
+		Picture = user.Picture ?? string.Empty,
+		Roles = [],
+		LastLogin = ParseLastLogin(user.LastLogin),
+		IsBlocked = user.Blocked ?? false
+	};
+
+	/// <summary>
+	///   Safely converts a <see cref="UserDateSchema" /> last-login field to a nullable
+	///   <see cref="DateTimeOffset" />, returning <see langword="null" /> if the value is absent
+	///   or unparseable.
+	/// </summary>
+	private static DateTimeOffset? ParseLastLogin(UserDateSchema? lastLogin)
+	{
+		if (lastLogin is null) return null;
+		return lastLogin.TryGetString(out var s) && DateTimeOffset.TryParse(s, out var dto) ? dto : null;
+	}
 }

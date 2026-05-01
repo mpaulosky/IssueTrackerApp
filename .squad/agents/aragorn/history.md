@@ -454,3 +454,34 @@ Full structured investigation (20 ideas, prioritised) written to:
 **Output:** Detailed technical analysis, risk matrix, implementation roadmap filed to `.squad/orchestration-log/2026-04-12T20-17-00Z-aragorn-full-review.md` and `.squad/decisions.md`.
 
 **Status:** ✅ Complete — Recommendation merged to team decisions.
+
+---
+
+### 2026-05-01 — PR #265 Second Lead Review & Rejection (Re-Assessment)
+
+**Context:** Frodo reported completion of PR #265 Auth0 skill revision (fixing typo `implemet-...` → `implement-...`, Auth0 scope guidance, namespace clarification). Aragorn conducted second lead-review pass to validate fixes.
+
+**Aragorn's Role:** Lead reviewer, PR quality gate authority.
+
+**Findings:**
+All three blockers from first review **REMAIN UNRESOLVED** on current PR revision:
+1. Skill name typo (`implemet-auth0-authentication`) still present — Frodo's rename not pushed
+2. Auth0 scope guidance still conflates `update:roles` with role assignment (`update:users` required)
+3. Namespace examples still use `Web.*` without customization guidance for project reuse
+
+**Root Cause:** Frodo's reported fixes exist in local commits but were not pushed to PR remote. Indicates incomplete handoff or branch tracking failure.
+
+**Decision:**
+- **Rejection Status:** PR #265 blocked for revision cycle 2
+- **Agent Lockout:** Gandalf and Frodo locked out this cycle (prevent overlapping fixes)
+- **Handoff:** Sam assigned to next iteration with full ownership
+- **Blocker Summary:** Typo, scope docs, namespace docs — 3 blockers, all unresolved
+
+**Actions Taken:**
+- Created orchestration log: `.squad/orchestration-log/2026-05-01T04:43:52Z-aragorn-pr265-rereview.md`
+- Created session log: `.squad/log/2026-05-01T04:43:52Z-pr265-second-rejection-sam-handoff.md`
+- Notified Sam for next PR revision
+
+**Output:** Re-review rejection rationale, blocker list, Sam handoff notes.
+
+**Status:** ✅ Complete — Rejection logged, board notified, Sam awaiting assignment confirmation.
