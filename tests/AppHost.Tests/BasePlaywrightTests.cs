@@ -89,7 +89,8 @@ public abstract class BasePlaywrightTests : IAsyncDisposable
 
 		// Authenticate by navigating to the test login endpoint.
 		// The web app (in Testing mode) sets a cookie-auth session with the requested role claims.
-		await page.GotoAsync($"/test/login?role={role}");
+		// Use the retry wrapper — transient net::ERR_NETWORK_CHANGED can hit this first navigation.
+		await GotoAsync(page, $"/test/login?role={role}");
 
 		try
 		{

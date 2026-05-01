@@ -73,5 +73,5 @@ Resolved 6 blocking issues:
 
 ## Learnings
 
-- 2026-05-01: `squad-preview.yml` was failing on fresh runners because `tests/AppHost.Tests` launched Chromium before any Playwright browser had been downloaded. `PlaywrightManager` now installs Chromium from the generated `playwright.ps1` script when `LaunchAsync` reports `Executable doesn't exist`.
-- 2026-05-01: Once browser installation was automatic, the next exposed AppHost E2E failure was a transient `net::ERR_NETWORK_CHANGED` during `/test/login?role=...`. Retrying that auth-navigation step in `BasePlaywrightTests` stabilized the full workflow-equivalent solution run.
+- 2026-05-01: `squad-preview.yml` was failing on fresh runners because `tests/AppHost.Tests` launched Chromium before any Playwright browser had been downloaded. Fixed by adding an `Install Playwright browsers` step (`pwsh playwright.ps1 install chromium --with-deps`) to the workflow — no `PlaywrightManager` code change was needed.
+- 2026-05-01: Transient `net::ERR_NETWORK_CHANGED` failures can hit any `page.GotoAsync(...)` call, including the `/test/login?role=...` auth bootstrap in `InteractWithRolePageAsync`. Added a `GotoAsync(IPage, string, PageGotoOptions?)` retry helper in `BasePlaywrightTests` that catches only that error class (max 2 attempts, 1-second back-off) and applied it to both regular page navigations **and** the auth-login navigation step.
