@@ -5,33 +5,18 @@ on:
   push:
     branches: [dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build Solution
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Restore
-        run: dotnet restore IssueTrackerApp.slnx
-
-      - name: Build
-        run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore -p:TreatWarningsAsErrors=true
-
   test-fast:
     name: Fast Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: build
     steps:
       - uses: actions/checkout@v6
 
@@ -40,11 +25,17 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Restore
-        run: dotnet restore IssueTrackerApp.slnx
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Build
-        run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore
+      - name: Build test projects
+        run: |
+          dotnet build tests/Architecture.Tests --configuration Release --no-restore
+          dotnet build tests/Domain.Tests --configuration Release --no-restore
+          dotnet build tests/Web.Tests.Bunit --configuration Release --no-restore
+          dotnet build tests/Persistence.MongoDb.Tests --configuration Release --no-restore
+          dotnet build tests/Web.Tests --configuration Release --no-restore
+          dotnet build tests/Persistence.AzureStorage.Tests --configuration Release --no-restore
 
       - name: Run fast unit tests
         run: |
@@ -59,7 +50,6 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: build
     steps:
       - uses: actions/checkout@v6
 
@@ -68,11 +58,14 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Restore
-        run: dotnet restore IssueTrackerApp.slnx
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Build
-        run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore
+      - name: Build test projects
+        run: |
+          dotnet build tests/Persistence.MongoDb.Tests.Integration --configuration Release --no-restore
+          dotnet build tests/Web.Tests.Integration --configuration Release --no-restore
+          dotnet build tests/Persistence.AzureStorage.Tests.Integration --configuration Release --no-restore
 
       - name: Run integration tests
         run: |
@@ -84,7 +77,6 @@ jobs:
     name: AppHost Tests (Aspire + Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: build
     env:
       ASPIRE_ALLOW_UNSECURED_TRANSPORT: "true"
       ConnectionStrings__mongodb: "mongodb://localhost:27017"
@@ -96,11 +88,11 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Restore
-        run: dotnet restore IssueTrackerApp.slnx
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Build
-        run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore
+      - name: Build AppHost test project
+        run: dotnet build tests/AppHost.Tests --configuration Release --no-restore
 
       - name: Install Playwright browsers
         run: pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps

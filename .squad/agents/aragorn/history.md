@@ -485,17 +485,3 @@ All three blockers from first review **REMAIN UNRESOLVED** on current PR revisio
 **Output:** Re-review rejection rationale, blocker list, Sam handoff notes.
 
 **Status:** ✅ Complete — Rejection logged, board notified, Sam awaiting assignment confirmation.
-
----
-
-### 2026-05-04 — PR Triage: #274 
-
-**Session:** Ralph Go Round One  
-**Outcome:**
-- PR #274 (fix: isolate AppHost preview validation job) triaged.
-- Conflict identified: `.github/workflows/squad-preview.yml` merge conflict.
-- Conflict belongs to Boromir (DevOps domain).
-- Routing action: Add `squad:boromir` label and route to Boromir for resolution.
-- Options documented: Rebase (Option A), Merge local fix & close (Option B), or two-phase merge (Option C).
-- PR remains blocked pending conflict resolution.
-
