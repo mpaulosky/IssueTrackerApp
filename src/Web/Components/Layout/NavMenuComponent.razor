@@ -29,6 +29,19 @@
 		</nav>
 
 		<div class="flex items-center gap-2">
+			<button class="md:hidden p-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors"
+					aria-label="Toggle menu"
+					aria-expanded="@_mobileMenuOpen"
+					@onclick="() => { _mobileMenuOpen = !_mobileMenuOpen; }">
+				@if (_mobileMenuOpen)
+				{
+					<span aria-hidden="true">✕</span>
+				}
+				else
+				{
+					<span aria-hidden="true">☰</span>
+				}
+			</button>
 			<LoginDisplay />
 			<ThemeBrightnessToggleComponent />
 			<ThemeColorDropdownComponent />
@@ -40,6 +53,28 @@
 		</div>
 
 	</div>
+
+	@if (_mobileMenuOpen)
+	{
+		<nav aria-label="Mobile navigation" class="md:hidden border-t border-primary-800 py-2">
+			<AuthorizeView>
+				<Authorized>
+					<a href="/dashboard" @onclick="() => _mobileMenuOpen = false"
+					   class="block px-4 py-2 hover:bg-primary-100 hover:text-primary-700 transition-colors">Dashboard</a>
+					<a href="/issues" @onclick="() => _mobileMenuOpen = false"
+					   class="block px-4 py-2 hover:bg-primary-100 hover:text-primary-700 transition-colors">Issues</a>
+					<a href="/issues/create" @onclick="() => _mobileMenuOpen = false"
+					   class="block px-4 py-2 hover:bg-primary-100 hover:text-primary-700 transition-colors">Create</a>
+				</Authorized>
+			</AuthorizeView>
+			<AuthorizeView Policy="@AuthorizationPolicies.AdminPolicy">
+				<Authorized>
+					<a href="/admin" @onclick="() => _mobileMenuOpen = false"
+					   class="block px-4 py-2 hover:bg-primary-100 hover:text-primary-700 transition-colors">Admin Portal</a>
+				</Authorized>
+			</AuthorizeView>
+		</nav>
+	}
 </header>
 
 @code {
