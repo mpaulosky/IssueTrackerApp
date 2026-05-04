@@ -83,11 +83,11 @@ public static class ServiceCollectionExtensions
 	/// Adds GridFS file storage services to the service collection.
 	/// </summary>
 	/// <remarks>
-	/// Note: Depends on AddMongoDbPersistence having been called first to register IMongoDatabase.
+	/// <para>Note: Depends on AddMongoDbPersistence having been called first to register IMongoDatabase.</para>
+	/// <para>Lifetime: GridFsStorageService is registered as Scoped. IGridFSBucket (constructed from IMongoDatabase)
+	/// is thread-safe and stateless — the MongoDB.Driver GridFS API is safe to use with Scoped lifetime.</para>
 	/// </remarks>
-	public static IServiceCollection AddGridFsStorage(
-		this IServiceCollection services,
-		IConfiguration configuration)
+	public static IServiceCollection AddGridFsStorage(this IServiceCollection services)
 	{
 		services.AddScoped<IFileStorageService, GridFsStorageService>();
 		return services;

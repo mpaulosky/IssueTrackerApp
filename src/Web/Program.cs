@@ -126,17 +126,19 @@ if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvi
 }
 
 // Configure File Storage: GridFS (default) > Azure Blob > Local
-var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
+// Priority order: GridFS when MongoDB is available, then Azure Blob if configured, finally Local fallback
 var mongoConnectionString = builder.Configuration["MongoDB:ConnectionString"]
 	?? builder.Configuration.GetConnectionString("mongodb");
-if (!string.IsNullOrEmpty(mongoConnectionString) && string.IsNullOrEmpty(blobConnectionString))
+var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
+
+if (!string.IsNullOrEmpty(mongoConnectionString))
 {
 	// GridFS storage — primary for MongoDB-connected environments
-	builder.Services.AddGridFsStorage(builder.Configuration);
+	builder.Services.AddGridFsStorage();
 }
 else if (!string.IsNullOrEmpty(blobConnectionString))
 {
-	// Azure Blob Storage — legacy / explicit opt-in
+	// Azure Blob Storage — secondary option when MongoDB not available
 	builder.Services.AddAzureBlobStorage(builder.Configuration);
 }
 else
