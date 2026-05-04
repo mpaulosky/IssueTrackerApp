@@ -1,7 +1,32 @@
 # GridFS Storage Design — M1 Design Approval
 
 ## Status
+**Revision 2** — Post rubber-duck critique (5 CRITICAL, 5 CONCERNS resolved)  
 Draft — awaiting Matthew's approval
+
+### Rubber-Duck Review Summary
+
+**Review Date:** 2025-05-04  
+**Verdict:** BLOCKED → **REVISED** (all critical issues addressed)
+
+**Critical Issues Resolved:**
+1. ✅ **Metadata schema**: `attachmentId` removed from originals (entity doesn't exist at upload), kept for thumbnails
+2. ✅ **DI registration**: `IGridFSBucket` as Singleton (NOT new MongoClient per request)
+3. ✅ **Code bug**: `UploadAsync` ObjectId generation fixed
+4. ✅ **Transaction boundaries**: Compensating transaction pattern with cleanup
+5. ✅ **Error handling**: `TryExtractFileIdFromUrl` for malformed URLs
+
+**Concerns Addressed:**
+6. ✅ **Authorization**: Reverse-lookup via `BlobUrl` (metadata approach not viable)
+7. ✅ **Architecture**: Fix pre-existing `IssueTrackerDbContext` concrete injection
+8. ✅ **DeleteAsync**: Explicit `fileType = "thumbnail"` filter
+9. ✅ **GenerateThumbnailAsync**: Full ImageSharp implementation
+10. ✅ **M2/M4 scope**: M2 handles GridFS only; Azure dual-read is M4
+
+**Improvements:**
+- GridFS indexes on `metadata.attachmentId` and `metadata.fileType`
+- `Results.Stream()` with explicit `fileLength`
+- Comprehensive testing for transaction rollback
 
 ## Summary
 This design proposes a MongoDB GridFS-backed implementation of `IFileStorageService` that will replace the existing Azure Blob Storage and LocalFileStorage implementations. GridFS will store both original files and thumbnails in a single `attachments` bucket with metadata tags for differentiation. The service will return app-owned routes (e.g., `/api/attachments/{id}` and `/api/attachments/{id}/thumbnail`) instead of external URLs, providing a clean abstraction that eliminates external storage dependencies while maintaining the existing `IFileStorageService` contract.
