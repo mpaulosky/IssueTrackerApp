@@ -19,6 +19,7 @@ public sealed class AzuriteFixture : IAsyncLifetime
 	public AzuriteFixture()
 	{
 		_container = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
+			.WithCommand("azurite", "--blobHost", "0.0.0.0", "--queueHost", "0.0.0.0", "--tableHost", "0.0.0.0", "--skipApiVersionCheck")
 			.Build();
 	}
 
