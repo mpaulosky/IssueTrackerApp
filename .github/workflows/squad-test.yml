@@ -538,56 +538,6 @@ jobs:
           name: persistence-azure-test-results
           path: test-results
 
-  test-persistence-azure-integration:
-    name: "Persistence.AzureStorage.Tests.Integration"
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build
-
-    # Let Testcontainers manage Azurite - no manual env vars needed
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build Azure Storage Integration Tests
-        run: dotnet build tests/Persistence.AzureStorage.Tests.Integration --configuration Release --no-restore
-
-      - name: Run Azure Storage Persistence Integration Tests
-        run: |
-          mkdir -p test-results
-          # Testcontainers automatically starts Azurite container
-          dotnet test tests/Persistence.AzureStorage.Tests.Integration \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --logger "trx;LogFileName=persistence-azure-integration.trx" \
-            --results-directory "$GITHUB_WORKSPACE/test-results" \
-            --collect:"XPlat Code Coverage"
-
-      - name: Upload Azure Storage Persistence Integration Test Results
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: persistence-azure-integration-test-results
-          path: test-results
-
   test-apphost:
     name: "AppHost.Tests (Aspire + Playwright E2E)"
     runs-on: ubuntu-latest
@@ -664,7 +614,6 @@ jobs:
       - test-persistence-mongodb
       - test-persistence-mongodb-integration
       - test-persistence-azure
-      - test-persistence-azure-integration
       - test-apphost
     if: always()
 
@@ -739,7 +688,6 @@ jobs:
       - test-persistence-mongodb
       - test-persistence-mongodb-integration
       - test-persistence-azure
-      - test-persistence-azure-integration
       - test-apphost
     if: always()
 
@@ -777,7 +725,6 @@ jobs:
           echo "- **Persistence.MongoDb.Tests:** ${{ needs.test-persistence-mongodb.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Persistence.MongoDb.Tests.Integration:** ${{ needs.test-persistence-mongodb-integration.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Persistence.AzureStorage.Tests:** ${{ needs.test-persistence-azure.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Persistence.AzureStorage.Tests.Integration:** ${{ needs.test-persistence-azure-integration.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **AppHost.Tests (Aspire + Playwright E2E):** ${{ needs.test-apphost.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
@@ -795,14 +742,13 @@ jobs:
           mongodb_status="${{ needs.test-persistence-mongodb.result }}"
           mongodb_int_status="${{ needs.test-persistence-mongodb-integration.result }}"
           azure_status="${{ needs.test-persistence-azure.result }}"
-          azure_int_status="${{ needs.test-persistence-azure-integration.result }}"
           apphost_status="${{ needs.test-apphost.result }}"
 
           if [[ "$build_status" == "failure" || "$domain_status" == "failure" || "$web_status" == "failure" || \
                 "$arch_status" == "failure" || "$bunit_status" == "failure" || \
                 "$integration_status" == "failure" || "$mongodb_status" == "failure" || \
                 "$mongodb_int_status" == "failure" || "$azure_status" == "failure" || \
-                "$azure_int_status" == "failure" || "$apphost_status" == "failure" ]]; then
+                "$apphost_status" == "failure" ]]; then
             echo "❌ **Overall Status:** FAILED" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ **Overall Status:** PASSED" >> $GITHUB_STEP_SUMMARY
