@@ -263,3 +263,13 @@ for `chrome-headless-shell`, causing 38 AppHost tests to fail immediately.
 - `dotnet test IssueTrackerApp.slnx --configuration Release --no-build --verbosity minimal`
 
 **Key path:** `.github/workflows/squad-preview.yml`
+
+---
+
+### 2026-05-04 — PR Review: #275 & #276 
+
+**Session:** Ralph Go Round One  
+**Outcome:**
+- PR #275 — Ready for Aragorn review. All criteria met.
+- PR #276 — Blocked by dependency-driven failure in Persistence.AzureStorage.Tests.Integration. Root cause likely tied to NuGet bumps rather than SDK bump. Awaiting triage.
+
