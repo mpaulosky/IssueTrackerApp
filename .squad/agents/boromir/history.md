@@ -30,6 +30,19 @@
 - **File changed**: `tests/AppHost.Tests/Infrastructure/AspireManager.cs`
 - **Commit**: `ff74721` — Fixed AppHost.Tests CI failures
 
+### Workflow Optimization: Eliminate Redundant Builds (2026-05-04)
+- **Issue**: PR #274's `squad-preview.yml` had 4 full solution builds: 1 shared `build` job + 3 test jobs each rebuilding everything
+- **Problem pattern**: Separate build job with `needs: build` dependencies = sequential execution + redundant work
+- **Efficient pattern** (from `squad-test.yml`): Each test job restores once → builds only specific test projects → runs tests with `--no-build`
+- **Benefits**: 
+  - Eliminates 3 redundant full-solution builds
+  - Jobs run in parallel (no `needs:` dependencies)
+  - Each job only compiles what it tests (faster)
+- **Concurrency cancellation**: Added `concurrency: { group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true }` to allow newer pushes to cancel in-progress 45-minute AppHost runs
+- **Squad hygiene**: Reverted unrelated `.squad/` file pollution (PR #276 Azurite work) using `git checkout dev -- .squad/`
+- **Key files**: `.github/workflows/squad-preview.yml`, `.github/workflows/squad-test.yml` (reference)
+- **Commit**: `11d6ba8` — PR #274 review blockers fixed
+
 ---
 
 ## Notes
