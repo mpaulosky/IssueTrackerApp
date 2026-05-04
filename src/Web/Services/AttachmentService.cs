@@ -205,8 +205,25 @@ public class AttachmentService : IAttachmentService
 	{
 		try
 		{
+			var attachment = await _dbContext.Attachments
+				.FirstOrDefaultAsync(
+					a => a.Id == MongoDB.Bson.ObjectId.Parse(attachmentId),
+					cancellationToken);
+
+			if (attachment == null)
+			{
+				return Result.Fail<Stream>("Attachment not found", ResultErrorCode.NotFound);
+			}
+
+			if (string.IsNullOrEmpty(attachment.ThumbnailUrl))
+			{
+				return Result.Fail<Stream>(
+					"No thumbnail available for this attachment",
+					ResultErrorCode.NotFound);
+			}
+
 			var stream = await _fileStorageService.DownloadAsync(
-				$"/api/attachments/{attachmentId}/thumbnail",
+				attachment.ThumbnailUrl,
 				cancellationToken);
 
 			return Result.Ok(stream);

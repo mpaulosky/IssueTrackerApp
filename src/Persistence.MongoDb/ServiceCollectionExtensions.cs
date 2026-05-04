@@ -1,6 +1,10 @@
 using Domain.Abstractions;
 using Domain.Features.Admin.Abstractions;
 
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+using MongoDB.Driver;
+
 using Persistence.MongoDb.Configurations;
 using Persistence.MongoDb.Repositories;
 using Persistence.MongoDb.Services;
@@ -89,6 +93,11 @@ public static class ServiceCollectionExtensions
 	/// </remarks>
 	public static IServiceCollection AddGridFsStorage(this IServiceCollection services)
 	{
+		// Aspire's AddMongoDBClient("mongodb") registers IMongoDatabase as a keyed singleton.
+		// Bridge to non-keyed so GridFsStorageService can resolve it via constructor injection.
+		services.TryAddSingleton<IMongoDatabase>(
+			sp => sp.GetRequiredKeyedService<IMongoDatabase>("mongodb"));
+
 		services.AddScoped<IFileStorageService, GridFsStorageService>();
 		return services;
 	}
