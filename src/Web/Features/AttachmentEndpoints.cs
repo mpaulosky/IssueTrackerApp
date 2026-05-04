@@ -48,6 +48,11 @@ public static class AttachmentEndpoints
 			.WithName("DownloadAttachment")
 			.RequireAuthorization();
 
+		// GET /api/attachments/{id}/thumbnail - Download thumbnail
+		group.MapGet("/attachments/{id}/thumbnail", DownloadThumbnailAsync)
+			.WithName("DownloadThumbnail")
+			.RequireAuthorization();
+
 		// DELETE /api/attachments/{id} - Delete attachment
 		group.MapDelete("/attachments/{id}", DeleteAttachmentAsync)
 			.WithName("DeleteAttachment")
@@ -146,6 +151,29 @@ public static class AttachmentEndpoints
 		return Results.Created($"/api/attachments/{result.Value!.Id}", result.Value);
 	}
 
+	private static async Task<IResult> DownloadThumbnailAsync(
+		string id,
+		[FromServices] IFileStorageService fileStorageService,
+		CancellationToken cancellationToken)
+	{
+		try
+		{
+			var stream = await fileStorageService.DownloadAsync(
+				$"/api/attachments/{id}/thumbnail",
+				cancellationToken);
+
+			return Results.File(stream, "image/jpeg", enableRangeProcessing: false, fileDownloadName: null);
+		}
+		catch (FileNotFoundException)
+		{
+			return Results.NotFound(new { error = "Thumbnail not found" });
+		}
+		catch (NotSupportedException ex)
+		{
+			return Results.BadRequest(new { error = ex.Message });
+		}
+	}
+
 	private static async Task<IResult> DownloadAttachmentAsync(
 		string id,
 		[FromServices] IAttachmentService attachmentService,
@@ -170,6 +198,10 @@ public static class AttachmentEndpoints
 		catch (FileNotFoundException)
 		{
 			return Results.NotFound(new { error = "Attachment file not found" });
+		}
+		catch (NotSupportedException ex)
+		{
+			return Results.BadRequest(new { error = ex.Message });
 		}
 	}
 

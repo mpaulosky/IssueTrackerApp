@@ -1,3 +1,4 @@
+using Domain.Abstractions;
 using Domain.Features.Admin.Abstractions;
 
 using Persistence.MongoDb.Configurations;
@@ -75,6 +76,20 @@ public static class ServiceCollectionExtensions
 		// Register audit log repository
 		services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
+		return services;
+	}
+
+	/// <summary>
+	/// Adds GridFS file storage services to the service collection.
+	/// </summary>
+	/// <remarks>
+	/// Note: Depends on AddMongoDbPersistence having been called first to register IMongoDatabase.
+	/// </remarks>
+	public static IServiceCollection AddGridFsStorage(
+		this IServiceCollection services,
+		IConfiguration configuration)
+	{
+		services.AddScoped<IFileStorageService, GridFsStorageService>();
 		return services;
 	}
 
