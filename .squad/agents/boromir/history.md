@@ -48,6 +48,20 @@
 - **PR:** build(deps): Bump the all-actions group with 5 updates
 - **Status:** All 19 CI checks GREEN (CodeQL, full test suite, coverage, Squad CI)
 - **Action:** Approved and squash-merged with `--auto` flag
+
+### PR #274 Conflict Resolution (2026-05-04)
+- **Task:** Resolved merge conflict between PR #274's 4-job architecture and dev's reversion to monolithic test execution
+- **Context:** PR #274 introduced isolated jobs (build, test-fast, test-integration, test-apphost) to fix AppHost.Tests timeout. Dev branch (916a607) had reverted to monolithic structure in #273.
+- **Conflict:** `.github/workflows/squad-preview.yml` — HEAD had 4 jobs, dev had 1 job with all tests
+- **Resolution:** Kept PR #274's 4-job architecture (correct design per PR analysis):
+  - `build`: shared build job
+  - `test-fast`: unit tests (parallel with integration)
+  - `test-integration`: integration tests (parallel with fast)
+  - `test-apphost`: isolated AppHost.Tests with Aspire env vars (`ASPIRE_ALLOW_UNSECURED_TRANSPORT`, `ConnectionStrings__mongodb`)
+- **Also merged:** dev's `global.json` update (dotnet-sdk 10.0.202 → 10.0.203)
+- **Pre-push gate:** All tests passed (2026 tests: Architecture, Domain, Web.Bunit, MongoDb, Web, AzureStorage, integrations, AppHost)
+- **PR status:** Updated to SHA 32f9389, `mergeable_state` changed from "dirty" to "blocked" (awaiting checks/review)
+- **Key insight:** The 4-job isolation is the correct solution; monolithic execution in one job causes Aspire orchestrator conflicts
 - **Impact:** GitHub Actions workflows updated to latest versions for improved build reliability
 
 ### Opened PR for squad/scribe-log-updates (2026-03-29)
@@ -273,3 +287,37 @@ for `chrome-headless-shell`, causing 38 AppHost tests to fail immediately.
 - PR #275 — Ready for Aragorn review. All criteria met.
 - PR #276 — Blocked by dependency-driven failure in Persistence.AzureStorage.Tests.Integration. Root cause likely tied to NuGet bumps rather than SDK bump. Awaiting triage.
 
+
+---
+
+### 2026-05-04 — Fixed PR #276: Azure.Storage.Blobs 12.27.0 API Version Incompatibility
+
+**Issue:** Persistence.AzureStorage.Tests.Integration failed with `Azure.RequestFailedException: The API version 2026-02-06 is not supported by Azurite. Please upgrade Azurite to latest version`
+
+**Root Cause:** 
+- Dependabot bumped Azure.Storage.Blobs from 12.20.0 to 12.27.0
+- Azure.Storage.Blobs 12.27.0 uses Azure Storage API version 2026-02-06
+- Testcontainers.Azurite 4.11.0 bundles Azurite 3.35.0, which doesn't support API version 2026-02-06 yet (tracked in Azure/Azurite#2623)
+- Azurite maintainers plan to add support in a future release
+
+**Fix Applied:**
+- Added `--skipApiVersionCheck` flag to Azurite container startup command in `AzuriteFixture.cs`
+- Modified `AzuriteBuilder` to use `.WithCommand("azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck")`
+- This bypasses the API version check, allowing tests to run with the newer SDK until Azurite adds native support
+
+**Validation:**
+- Ran `dotnet test tests/Persistence.AzureStorage.Tests.Integration/` — all 25 tests passed
+- Pushed fix to PR #276 branch: `dependabot/nuget/dev/all-actions-a64ed1ab05`
+- Commit SHA: `77928c7`
+
+**Key Insight:**
+- When Azure SDK bumps introduce new API versions, Azurite emulator may lag behind
+- The `--skipApiVersionCheck` flag is the recommended workaround until Azurite catches up
+- This pattern should be documented for future Azure Storage SDK upgrades
+
+**References:**
+- Azure/Azurite#2623 (Support service version 2026-02-06)
+- Azure/Azurite#2627 (Discussion: Azure Storage SDK .NET 9 API Version V2026_02_06 Not Supported)
+
+**File Changed:** `tests/Persistence.AzureStorage.Tests.Integration/AzuriteFixture.cs`
+**Commit:** `77928c7` — fix: Add --skipApiVersionCheck flag to Azurite for Azure.Storage.Blobs 12.27.0 compatibility
