@@ -31,7 +31,7 @@
 		<div class="flex items-center gap-2">
 			<button class="md:hidden p-2 rounded hover:bg-primary-100 hover:text-primary-700 transition-colors"
 					aria-label="Toggle menu"
-					aria-expanded="@_mobileMenuOpen"
+					aria-expanded="@(_mobileMenuOpen ? "true" : "false")"
 					@onclick="() => { _mobileMenuOpen = !_mobileMenuOpen; }">
 				@if (_mobileMenuOpen)
 				{
