@@ -19,13 +19,17 @@ public sealed class AttachmentServiceTests
 {
 	private readonly IMediator _mediator;
 	private readonly ILogger<AttachmentService> _logger;
+	private readonly IFileStorageService _fileStorageService;
+	private readonly Persistence.MongoDb.IIssueTrackerDbContext _dbContext;
 	private readonly AttachmentService _sut;
 
 	public AttachmentServiceTests()
 	{
 		_mediator = Substitute.For<IMediator>();
 		_logger = Substitute.For<ILogger<AttachmentService>>();
-		_sut = new AttachmentService(_mediator, _logger);
+		_fileStorageService = Substitute.For<IFileStorageService>();
+		_dbContext = Substitute.For<Persistence.MongoDb.IIssueTrackerDbContext>();
+		_sut = new AttachmentService(_mediator, _logger, _fileStorageService, _dbContext);
 	}
 
 	#region Constructor Tests
@@ -34,7 +38,7 @@ public sealed class AttachmentServiceTests
 	public void Constructor_WithNullMediator_ThrowsArgumentNullException()
 	{
 		// Act
-		var act = () => new AttachmentService(null!, _logger);
+		var act = () => new AttachmentService(null!, _logger, _fileStorageService, _dbContext);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>()
@@ -45,11 +49,33 @@ public sealed class AttachmentServiceTests
 	public void Constructor_WithNullLogger_ThrowsArgumentNullException()
 	{
 		// Act
-		var act = () => new AttachmentService(_mediator, null!);
+		var act = () => new AttachmentService(_mediator, null!, _fileStorageService, _dbContext);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>()
 			.WithParameterName("logger");
+	}
+
+	[Fact]
+	public void Constructor_WithNullFileStorageService_ThrowsArgumentNullException()
+	{
+		// Act
+		var act = () => new AttachmentService(_mediator, _logger, null!, _dbContext);
+
+		// Assert
+		act.Should().Throw<ArgumentNullException>()
+			.WithParameterName("fileStorageService");
+	}
+
+	[Fact]
+	public void Constructor_WithNullDbContext_ThrowsArgumentNullException()
+	{
+		// Act
+		var act = () => new AttachmentService(_mediator, _logger, _fileStorageService, null!);
+
+		// Assert
+		act.Should().Throw<ArgumentNullException>()
+			.WithParameterName("dbContext");
 	}
 
 	#endregion
