@@ -15,6 +15,7 @@
     <Project Path="tests/Persistence.AzureStorage.Tests.Integration/Persistence.AzureStorage.Tests.Integration.csproj" />
     <Project Path="tests/Persistence.MongoDb.Tests/Persistence.MongoDb.Tests.csproj" />
     <Project Path="tests/Persistence.MongoDb.Tests.Integration/Persistence.MongoDb.Tests.Integration.csproj" />
+    <Project Path="tests/Persistence.MongoDb.Tests.GridFs.Integration/Persistence.MongoDb.Tests.GridFs.Integration.csproj" />
     <Project Path="tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj" />
     <Project Path="tests/Web.Tests.Integration/Web.Tests.Integration.csproj" />
     <Project Path="tests/Web.Tests/Web.Tests.csproj" />
