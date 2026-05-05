@@ -125,16 +125,25 @@ if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvi
 	builder.Services.AddHostedService<EmailQueueBackgroundService>();
 }
 
-// Configure File Storage (Azure Blob or Local)
+// Configure File Storage: GridFS (default) > Azure Blob > Local
+// Priority order: GridFS when MongoDB is available, then Azure Blob if configured, finally Local fallback
+var mongoConnectionString = builder.Configuration["MongoDB:ConnectionString"]
+	?? builder.Configuration.GetConnectionString("mongodb");
 var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
-if (!string.IsNullOrEmpty(blobConnectionString))
+
+if (!string.IsNullOrEmpty(mongoConnectionString))
 {
-	// Use Azure Blob Storage if the connection string is configured
+	// GridFS storage — primary for MongoDB-connected environments
+	builder.Services.AddGridFsStorage();
+}
+else if (!string.IsNullOrEmpty(blobConnectionString))
+{
+	// Azure Blob Storage — secondary option when MongoDB not available
 	builder.Services.AddAzureBlobStorage(builder.Configuration);
 }
 else
 {
-	// Fallback to local file storage for development
+	// Local file storage — development fallback
 	builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 }
 

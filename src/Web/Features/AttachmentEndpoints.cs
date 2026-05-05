@@ -13,9 +13,6 @@ using Domain.Abstractions;
 using Domain.DTOs;
 using Domain.Models;
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 using Web.Services;
 
 namespace Web.Features;
@@ -47,6 +44,14 @@ public static class AttachmentEndpoints
 		group.MapGet("/attachments/{id}", DownloadAttachmentAsync)
 			.WithName("DownloadAttachment")
 			.RequireAuthorization();
+
+		// GET /api/attachments/{id}/thumbnail - Download thumbnail
+		group.MapGet("/attachments/{id}/thumbnail", DownloadThumbnailAsync)
+			.WithName("DownloadThumbnail")
+			.RequireAuthorization()
+			.Produces<byte[]>(StatusCodes.Status200OK, "image/jpeg")
+			.Produces(StatusCodes.Status404NotFound)
+			.Produces(StatusCodes.Status400BadRequest);
 
 		// DELETE /api/attachments/{id} - Delete attachment
 		group.MapDelete("/attachments/{id}", DeleteAttachmentAsync)
@@ -146,31 +151,39 @@ public static class AttachmentEndpoints
 		return Results.Created($"/api/attachments/{result.Value!.Id}", result.Value);
 	}
 
-	private static async Task<IResult> DownloadAttachmentAsync(
+	private static async Task<IResult> DownloadThumbnailAsync(
 		string id,
-		[FromServices] IAttachmentService attachmentService,
-		[FromServices] IFileStorageService fileStorageService,
-		[FromServices] Persistence.MongoDb.IssueTrackerDbContext dbContext,
+		IAttachmentService attachmentService,
 		CancellationToken cancellationToken)
 	{
-		// Get attachment metadata from database
-		var attachment = await dbContext.Attachments
-			.FirstOrDefaultAsync(a => a.Id == MongoDB.Bson.ObjectId.Parse(id), cancellationToken);
+		var result = await attachmentService.DownloadThumbnailAsync(id, cancellationToken);
 
-		if (attachment == null)
+		if (result.Failure)
 		{
-			return Results.NotFound(new { error = "Attachment not found" });
+			return result.ErrorCode == ResultErrorCode.NotFound
+				? Results.NotFound(new { error = result.Error })
+				: Results.BadRequest(new { error = result.Error });
 		}
 
-		try
+		return Results.File(result.Value!, "image/jpeg", enableRangeProcessing: false, fileDownloadName: null);
+	}
+
+	private static async Task<IResult> DownloadAttachmentAsync(
+		string id,
+		IAttachmentService attachmentService,
+		CancellationToken cancellationToken)
+	{
+		var result = await attachmentService.DownloadAttachmentAsync(id, cancellationToken);
+
+		if (result.Failure)
 		{
-			var stream = await fileStorageService.DownloadAsync(attachment.BlobUrl, cancellationToken);
-			return Results.File(stream, attachment.ContentType, attachment.FileName);
+			return result.ErrorCode == ResultErrorCode.NotFound
+				? Results.NotFound(new { error = result.Error })
+				: Results.BadRequest(new { error = result.Error });
 		}
-		catch (FileNotFoundException)
-		{
-			return Results.NotFound(new { error = "Attachment file not found" });
-		}
+
+		var (stream, contentType, fileName) = result.Value;
+		return Results.File(stream, contentType, fileName);
 	}
 
 	private static async Task<IResult> DeleteAttachmentAsync(
