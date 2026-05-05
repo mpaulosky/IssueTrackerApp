@@ -780,6 +780,7 @@ jobs:
                 "$arch_status" == "failure" || "$bunit_status" == "failure" || \
                 "$integration_status" == "failure" || "$mongodb_status" == "failure" || \
                 "$mongodb_int_status" == "failure" || "$gridfs_status" == "failure" || \
+                "$mongodb_int_status" == "failure" || \
                 "$apphost_status" == "failure" ]]; then
             echo "❌ **Overall Status:** FAILED" >> $GITHUB_STEP_SUMMARY
           else
