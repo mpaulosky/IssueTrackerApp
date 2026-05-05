@@ -18,7 +18,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-using Persistence.AzureStorage;
 using Persistence.MongoDb;
 
 using Web.Auth;
@@ -125,21 +124,14 @@ if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvi
 	builder.Services.AddHostedService<EmailQueueBackgroundService>();
 }
 
-// Configure File Storage: GridFS (default) > Azure Blob > Local
-// Priority order: GridFS when MongoDB is available, then Azure Blob if configured, finally Local fallback
+// Configure File Storage: GridFS (primary) or Local (fallback)
 var mongoConnectionString = builder.Configuration["MongoDB:ConnectionString"]
 	?? builder.Configuration.GetConnectionString("mongodb");
-var blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"];
 
 if (!string.IsNullOrEmpty(mongoConnectionString))
 {
 	// GridFS storage — primary for MongoDB-connected environments
 	builder.Services.AddGridFsStorage();
-}
-else if (!string.IsNullOrEmpty(blobConnectionString))
-{
-	// Azure Blob Storage — secondary option when MongoDB not available
-	builder.Services.AddAzureBlobStorage(builder.Configuration);
 }
 else
 {
