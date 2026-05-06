@@ -485,3 +485,44 @@ All three blockers from first review **REMAIN UNRESOLVED** on current PR revisio
 **Output:** Re-review rejection rationale, blocker list, Sam handoff notes.
 
 **Status:** ✅ Complete — Rejection logged, board notified, Sam awaiting assignment confirmation.
+
+---
+
+### 2026-05-05 — M4: Fix 14 CI Integration Test Failures — AttachmentEndpointTests 500 (Issue #282 / PR #288)
+
+**Trigger:** 14 `Web.Tests.Integration` `AttachmentEndpointTests` returning HTTP 500 in CI on branch `squad/282-remove-azure-storage` while all 246 tests pass locally.
+
+**Root Cause:**
+- `AddGridFsStorage()` in `src/Persistence.MongoDb/ServiceCollectionExtensions.cs` registered `IMongoDatabase` via `services.TryAddSingleton<IMongoDatabase>(sp => sp.GetRequiredKeyedService<IMongoDatabase>("mongodb"))`.
+- `Aspire.MongoDB.Driver 13.2.4` `AddMongoDBClient("mongodb")` registers ONLY `IMongoClient` — never `IMongoDatabase` (keyed or otherwise). The README confirms this; there is no `DatabaseName` field in the Aspire configuration schema.
+- In CI, `MONGODB_CONNECTION_STRING` is set, so `AddGridFsStorage()` is called. At first DI resolution of `AttachmentService`, the factory threw `System.InvalidOperationException: No keyed service for type 'MongoDB.Driver.IMongoDatabase' using key type 'System.String' has been registered.`
+- This caused ALL attachment endpoints (even GET) to return HTTP 500 because `AttachmentService` itself could not be instantiated.
+
+**Why it passed locally:**
+- Locally `TryAddSingleton` is a no-op because `MongoConnectionString` may not set `MongoDB:ConnectionString` in a way that triggers `AddGridFsStorage()`, so `LocalFileStorageService` is used instead.
+
+**Fix:**
+- `ServiceCollectionExtensions.AddGridFsStorage()` now builds `IMongoDatabase` from `IMongoClient` + `IOptions<MongoDbSettings>`:
+  ```csharp
+  services.TryAddSingleton<IMongoDatabase>(sp =>
+  {
+      var client = sp.GetRequiredService<IMongoClient>();
+      var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+      return client.GetDatabase(settings.DatabaseName);
+  });
+  ```
+- `IMongoClient` is always registered by `AddMongoDBClient`; `IOptions<MongoDbSettings>` is always registered by `AddMongoDbPersistence` (and overridden in test factory to `"issuetracker-test-db"`).
+- This also ensures GridFS uses the SAME database as the EF Core context.
+
+**Verification:**
+- Build: 0 errors, 0 warnings
+- All 2,328 tests pass (246/246 integration tests, including all 14 previously failing `AttachmentEndpointTests`)
+
+**Side fix:**
+- Updated local `.git/hooks/pre-push` to skip test projects that don't exist in the current branch (the hook referenced `Persistence.AzureStorage.Tests` which was removed in M4 and blocked the push with a TTY prompt).
+
+**Decision written:** `.squad/decisions/inbox/copilot-gridfs-imongodbclient.md`
+
+**Files changed:** `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`
+
+**Status:** ✅ Complete — Fix committed (64cf033) and pushed to `origin/squad/282-remove-azure-storage`.
