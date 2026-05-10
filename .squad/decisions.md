@@ -11,7 +11,9 @@ This file records team decisions that affect architecture, scope, and process.
 The previous implementation only supported pattern #1, requiring explicit namespace configuration. Many Auth0 setups use pattern #2 without custom namespaces, making role mapping impossible without configuration.
 
 ### Solution
+
 Implement a **two-pass role transformation** with fallback logic:
+
 - **Pass 1:** If namespace is configured, read roles from that namespace
 - **Pass 2:** If no roles found (or namespace is empty), fall back to standard `"roles"` claim
 - Both sources use the same role parsing logic via extracted `MapRoleClaims()` helper
@@ -19,12 +21,14 @@ Implement a **two-pass role transformation** with fallback logic:
 ### Implementation Details
 
 **Code Changes:**
+
 - Refactored `TransformAsync()` to use two-pass logic
 - Extracted role mapping into `MapRoleClaims()` helper method
 - Updated constructor logging from `LogWarning` → `LogInformation`
 - Handles all role formats: JSON arrays, CSV, single values
 
 **Design Principles:**
+
 1. **Backward Compatible:** Existing namespace-based setups work unchanged
 2. **Fail-Safe:** Fallback only activates when primary source yields no roles
 3. **Additive-Only:** No role claims removed or overwritten; duplicates prevented
@@ -33,33 +37,40 @@ Implement a **two-pass role transformation** with fallback logic:
 ### Impact
 
 **For Users:**
+
 - Admin users can now access protected pages without namespace configuration
 - `RequireRole()` and `AuthorizeView` policies now work with standard Auth0 setup
 - Smoother onboarding: standard Auth0 role support is automatic
 
 **For Configuration:**
+
 - `Auth0:RoleClaimNamespace` remains optional (not required)
 - Namespace still takes precedence if configured
 - Default behavior now "just works" for most Auth0 tenants
 
 **For Security:**
+
 - No additional vectors introduced
 - Role transformation remains limited to authenticated JWT claims
 - Duplicate-prevention logic prevents injection attacks
 
 ### Testing Recommendations
+
 1. Test with `Auth0:RoleClaimNamespace` configured (namespace path)
 2. Test without namespace configured (standard claims path)
 3. Verify both single and multiple role assignments work
 4. Check logs for role transformation messages
 
 ### Files Modified
+
 - `src/Web/Auth/Auth0ClaimsTransformation.cs`
 
 ### Related Documentation
+
 - Previous: `.squad/agents/gandalf/history.md` → "Auth0 Role Claim Mapping Fix (2026-03-19)"
-- Auth0 Standard Claims: https://auth0.com/docs/get-started/tokens
-- OIDC Spec: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+- Auth0 Standard Claims: <https://auth0.com/docs/get-started/tokens>
+- OIDC Spec: <https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims>
+
 # Decision: Playwright Theme DOM Assertions & Auth0 State Pattern
 
 **Author:** Gimli (Tester)
@@ -70,12 +81,14 @@ Implement a **two-pass role transformation** with fallback logic:
 ## Confirmed: Theme DOM Selectors
 
 ### Dark Mode Detection
+
 - **Attribute:** `document.documentElement.classList.contains('dark')`
 - **Selector usage:** `await page.EvaluateAsync<bool>("document.documentElement.classList.contains('dark')")`
 - **When true:** dark mode is active; when false light/system mode is active
 - **Toggled by:** clicking `button[aria-label="Toggle theme"]` then choosing "Light", "Dark", or "System"
 
 ### Color Scheme Detection
+
 - **Attribute:** `document.documentElement.getAttribute('data-theme')`
 - **Selector usage:** `await page.EvaluateAsync<string>("document.documentElement.getAttribute('data-theme')")`
 - **Values:** `'blue'` | `'red'` | `'green'` | `'yellow'`
@@ -93,12 +106,14 @@ The `AuthStateManager` static class performs a single Auth0 login and caches the
 All subsequent authenticated tests reuse the stored state by loading it into a fresh browser context.
 
 **Key design decisions:**
+
 1. `SemaphoreSlim(1,1)` guards the one-time login to prevent race conditions in parallel xUnit test runs.
 2. The login page uses a temporary browser context with `IgnoreHTTPSErrors = true` to handle dev HTTPS certs.
 3. Storage state is persisted to `Path.GetTempPath() + "issuetracker-playwright-auth.json"` (Playwright convention).
 4. If `PLAYWRIGHT_TEST_EMAIL` / `PLAYWRIGHT_TEST_PASSWORD` env vars are absent, `GetStorageStatePathAsync` returns `null` and `InteractWithAuthenticatedPageAsync` skips the test gracefully (no exception).
 
 ### Login Flow
+
 ```
 navigate → /account/login?returnUrl=/
 wait for Auth0 Universal Login (NetworkIdle)
@@ -110,6 +125,7 @@ save page.Context.StorageStateAsync(path: ...)
 ```
 
 ### Authenticated Context Options
+
 ```csharp
 new BrowserNewContextOptions
 {
@@ -119,6 +135,7 @@ new BrowserNewContextOptions
     BaseURL = uri.ToString()
 }
 ```
+
 # Decision: Skipped Test Audit Results
 
 **Author:** Gimli (Tester)
@@ -131,7 +148,7 @@ Audited all 8 skipped tests across the test suite. All skip reasons remain valid
 
 ## Findings
 
-### Two blocking gaps prevent unskipping:
+### Two blocking gaps prevent unskipping
 
 1. **MediatR ValidationBehavior pipeline not wired** (3 tests in `IssueEndpointTests.cs`)
    - FluentValidation validators exist but no `IPipelineBehavior<,>` implementation enforces them.
@@ -144,38 +161,47 @@ Audited all 8 skipped tests across the test suite. All skip reasons remain valid
 ## Recommendation
 
 Track these as backlog items so they don't stay skipped indefinitely.
+
 # Full-Width Navigation Bar Pattern
 
 **Decision:** NavMenuComponent and other full-width layout bars (header, footer) use a two-level structure:
+
 - Outer element (`<header>`, `<footer>`) carries background color, borders, and `w-full`
 - Inner `<div>` carries `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` for content constraint
 
 **Rationale:**
+
 - Previous single-level approach had background on `<nav>` element, conflicting with global CSS rule that applied `container mx-auto` to all nav elements
 - Global `nav {}` CSS rule was removed because it conflicted with breadcrumb navs, pagination navs, and admin layout navs
 - Two-level pattern ensures full-width background while constraining inner content to max-width container
 - Pattern is now consistent between NavMenuComponent and FooterComponent
 
 **Implementation:**
+
 - `src/Web/Components/Layout/NavMenuComponent.razor` restructured to match FooterComponent pattern
 - `src/Web/Styles/input.css` global `nav` rule emptied to remove conflicting styles
 - All nav elements in app use explicit utility classes instead of relying on global rule
 
 **Impact:**
+
 - NavMenuComponent now renders as true full-width bar with properly centered content
 - No more conflicts between global nav styling and specialized nav uses (breadcrumbs, pagination)
 - More predictable CSS behavior with explicit classes on each component
 
 **Testing:**
+
 - All 12 bUnit tests for NavMenuComponent pass
 - Visual verification shows full-width background with centered content
 
 **Author:** Legolas (Frontend Developer)
 **Date:** 2025-01-24
+
 ### 2026-03-29: Use /alive (not /health) for Aspire test startup polling
+
 **By:** Pippin (via Ralph work queue)
 **What:** WaitForWebHealthyAsync and WaitForWebReadyAsync now poll /alive instead of /health. /health includes Redis/MongoDB checks that are irrelevant in Testing mode (which uses in-memory fakes). /alive returns 200 as soon as the ASP.NET Core process is up.
 **Why:** PR #86 had 2 flaky CI failures due to Redis connection timeouts blocking test startup for 120s.
+
 # PR #86 AppHost.Tests CI Flakiness Investigation
 
 **Date:** 2026-03-28  
@@ -185,12 +211,14 @@ Track these as backlog items so they don't stay skipped indefinitely.
 ## Context
 
 PR #86 had 2 failing tests in CI:
+
 - `web_https_/health_200_check` — Connection refused (localhost:7043)
 - `redis_check` — Redis timeout and connection errors
 
 ## Investigation Results
 
 The fix was **already implemented** by Boromir in commit `ff74721`. The solution:
+
 - Added `WaitForWebHealthyAsync()` in `AspireManager.StartAppAsync()`
 - Polls `/health` endpoint with 120s timeout (accounts for 30-60s Redis cold-start in CI)
 - Uses certificate-ignoring HttpClient for self-signed HTTPS in CI
@@ -198,6 +226,7 @@ The fix was **already implemented** by Boromir in commit `ff74721`. The solution
 ## Validation
 
 Local test run (with Docker) confirms fix:
+
 - ✅ No Redis connection errors
 - ✅ No web health check failures
 - ✅ 38/40 tests passing
@@ -208,6 +237,7 @@ Local test run (with Docker) confirms fix:
 **Decision:** Poll the web `/health` endpoint directly instead of using Aspire's `WaitForResourceHealthyAsync()`.
 
 **Rationale:**
+
 1. Web health check transitively validates Redis (via `.WaitFor(redis)` in AppHost.cs)
 2. Direct HTTP polling with cert validation disabled works around CI self-signed cert issues
 3. Single wait point is simpler than chaining multiple resource waits
@@ -215,9 +245,11 @@ Local test run (with Docker) confirms fix:
 ## Recommendation
 
 This pattern should be documented in squad decisions as the standard approach for Aspire test fixtures:
+
 - Always add explicit health polling after `App.StartAsync()` in test fixtures
 - Use direct HTTP polling with cert validation disabled for HTTPS services in CI
 - Leverage dependency chains (`.WaitFor()`) to minimize redundant health checks
+
 # Decision: Update Theme E2E Tests for New ThemeManager localStorage Key
 
 **Author:** Pippin (Tester)  
@@ -236,7 +268,7 @@ PR #86 introduced a **dual theme system conflict**:
    - JavaScript module: `window.themeManager` (lowercase)
    - localStorage key: `theme-color-brightness`
    - Used by: `ThemeProvider` component (still active in `MainLayout.razor`)
-   
+
 2. **NEW system** (`theme-manager.js` + new components):
    - JavaScript module: `window.ThemeManager` (uppercase)
    - localStorage key: `tailwind-color-theme`
@@ -263,11 +295,13 @@ Updated all theme E2E tests to use the **correct localStorage key** (`tailwind-c
 ## Production Issue (Requires Aragorn's Attention)
 
 The dual theme system is a **production bug**:
+
 - User changes theme via new components → writes to `tailwind-color-theme`
 - Page reloads → `ThemeProvider` reads from `theme-color-brightness` (old value)
 - User's theme preference doesn't persist correctly
 
 **Recommended Fix (Aragorn's domain):**
+
 1. **Option A:** Update new components to call `themeManager.*` (lowercase) and use `theme-color-brightness`
 2. **Option B:** Remove `ThemeProvider`, update `MainLayout` to initialize `ThemeManager.*`, ensure `data-theme-ready` is still set
 
@@ -294,11 +328,13 @@ PR #86 introduced two new Blazor components for theme selection (`ThemeColorDrop
 
 **Decision:**
 Consolidate to a single theme system:
+
 1. **Single localStorage key:** `tailwind-color-theme` (the key E2E tests now expect)
 2. **Single JS API:** `window.themeManager` from `theme.js` (lowercase)
 3. **Single source of truth:** `ThemeProvider.razor.cs` orchestrates theme state; all other components delegate to `themeManager` JS API
 
 **Changes:**
+
 - Updated `theme.js` to use `STORAGE_KEY: 'tailwind-color-theme'` instead of `'theme-color-brightness'`
 - Updated `ThemeColorDropdownComponent` and `ThemeBrightnessToggleComponent` to call `themeManager.*` methods
 - Removed `<script src="js/theme-manager.js">` from `App.razor`
@@ -314,7 +350,6 @@ Consolidate to a single theme system:
 
 ---
 
-
 ---
 
 # Dependabot PR #87 Merge Decision
@@ -324,27 +359,33 @@ Consolidate to a single theme system:
 **Status:** COMPLETED
 
 ## Summary
+
 Merged Dependabot PR #87 "build(deps): Bump the all-actions group with 5 updates" to main branch.
 
 ## Context
+
 - PR contained 5 GitHub Actions dependency updates (all-actions group)
 - All 19 CI checks passed (CodeQL, full test suite, coverage, Squad CI)
 - No review blocking or merge conflicts
 - Dependabot auto-merge process leveraged with squash-merge strategy
 
 ## Decision
+
 Approve and merge using `gh pr merge 87 --squash --auto`.
 
 ## Rationale
+
 - **Safety:** All CI green; comprehensive test coverage confirms no regressions
 - **Best Practice:** Squash-merge reduces main branch history clutter for dependency bumps
 - **Automation:** Auto-merge flag prevents accidental merge races in CI pipeline
 - **Reliability:** Updated Actions improve build pipeline stability and security
 
 ## Outcome
+
 ✅ Successfully merged PR #87 to main (commit SHA will be auto-generated)
 
 ## Impact
+
 - GitHub Actions workflows updated to latest compatible versions
 - Improved CI/CD stability and security
 - No application code changes required
@@ -376,14 +417,17 @@ Approve and merge using `gh pr merge 87 --squash --auto`.
 **Decision:** Auth0:RoleClaimNamespace must be set to `"https://issuetracker.com/roles"` in configuration.
 
 **Implementation:**
+
 - Updated `src/Web/appsettings.Development.json` with Auth0 section
 - Set `Auth0.RoleClaimNamespace = "https://issuetracker.com/roles"`
 
 **Environment Variables:**
+
 - Production/staging: `Auth0__RoleClaimNamespace=https://issuetracker.com/roles`
 - Local dev (alternative): `dotnet user-secrets set "Auth0:RoleClaimNamespace" "https://issuetracker.com/roles"`
 
 **Rationale:** Empty namespace causes Auth0ClaimsTransformation to skip role claim mapping:
+
 - Pass 1 checks if namespace is configured — skipped when empty
 - Pass 2 fallback looks for bare "roles" claim — Auth0 uses namespaced form
 - Result: ClaimTypes.Role never added → Profile shows "No roles assigned" → Admin links hidden
@@ -413,6 +457,7 @@ Approve and merge using `gh pr merge 87 --squash --auto`.
 **Decision:** GetAllRoleClaims() now accepts optional `roleClaimNamespace` parameter and includes Auth0 namespace claim type in role lookup. IConfiguration injected into Profile.razor.
 
 **Implementation:**
+
 - Profile.razor injects IConfiguration
 - GetAllRoleClaims reads `Auth0:RoleClaimNamespace` from config
 - Claims lookup includes both standard `ClaimTypes.Role` and namespaced form
@@ -432,18 +477,21 @@ Approve and merge using `gh pr merge 87 --squash --auto`.
 **Decision:** `Auth0ClaimsTransformation.MapRoleClaims()` now validates role values and skips empty/whitespace strings before adding `ClaimTypes.Role` claims.
 
 **Implementation:** Added guard clause in the single-value role path:
+
 ```csharp
 if (string.IsNullOrWhiteSpace(roleValue))
     continue;
 ```
 
-**Rationale:** 
+**Rationale:**
+
 - Unit test exposure: empty role values were being added as claims
 - Consistency: comma-separated value path already uses `StringSplitOptions.RemoveEmptyEntries`
 - Security: empty role claims could cause unintended authorization behavior
 - Data integrity: empty strings add noise to claims principal
 
 **Impact:**
+
 - Empty/whitespace role values from Auth0 are now silently ignored
 - No breaking changes — empty role claims have no semantic meaning
 - Test coverage: All 16 Auth0ClaimsTransformation tests passing after fix
@@ -460,6 +508,7 @@ if (string.IsNullOrWhiteSpace(roleValue))
 **Decision:** A formal PR review process is now in effect. No PR may merge without passing pre-review gates (CI green, mergeable, template filled), unanimous reviewer approval per domain, and pre-merge gates (APPROVED, CI still green, no CHANGES_REQUESTED).
 
 **Review Matrix:**
+
 - **Aragorn:** All PRs (lead, always required)
 - **Boromir:** `.github/workflows/`, `AppHost.csproj`, `Directory.Packages.props`
 - **Gandalf:** Auth sections, `Auth/`, `appsettings*.json` auth
@@ -470,12 +519,14 @@ if (string.IsNullOrWhiteSpace(roleValue))
 - **Frodo:** `docs/`, `README.md`, XML doc changes
 
 **Artifacts:**
+
 - `.github/pull_request_template.md` — PR checklist with domain checkboxes
 - `.squad/ceremonies.md` — PR Review Gate, CHANGES_REQUESTED Ceremony, Merge Conflict Resolution
 - `.squad/routing.md` — New PR state signals (CHANGES_REQUESTED, CONFLICTED, CI FAILURE, ready-for-review)
 - `.squad/agents/ralph/charter.md` — Pre-review/pre-merge gate tables
 
 **CHANGES_REQUESTED Handling:**
+
 1. Ralph detects → pings Aragorn
 2. Aragorn routes fix to different agent (author locked out)
 3. Fix agent pushes; CI re-passes
@@ -483,6 +534,7 @@ if (string.IsNullOrWhiteSpace(roleValue))
 5. Cycle continues until unanimous
 
 **Merge Conflict Resolution:**
+
 1. Ralph detects CONFLICTED → pings Aragorn
 2. Aragorn routes by domain (Sam=backend, Legolas=frontend, Boromir=CI, Aragorn=mixed)
 3. Resolver merges origin/main, resolves, pushes
@@ -500,21 +552,25 @@ if (string.IsNullOrWhiteSpace(roleValue))
 **Decision:** Branch protection on `main` now enforces 1 required review, build check, and stale review dismissal. Squash-only merges + auto-delete branches. CI workflow fixed to run real .NET builds.
 
 **Branch Protection (`main`):**
+
 - Required checks: `build (ubuntu-latest)` from squad-ci.yml
 - Required reviews: 1 (CODEOWNERS auto-request)
 - Stale reviews dismissed on new pushes
 - Force push disabled, deletions disabled
 
 **Merge Strategy:**
+
 - Squash merge only (linear history)
 - Rebase + merge commit disabled
 - Auto-delete branches on merge
 
 **CODEOWNERS:**
+
 - @mpaulosky (lead + DevOps) across all critical files
 - Role-based routing: AGENTS.md/CODEOWNERS/.github/ → Boromir; src/Domain/ → Sam; src/Web/Components/ → Legolas; tests/ → Gimli/Pippin; Auth/ → Gandalf; docs/ → Frodo
 
 **CI Workflow (squad-ci.yml):**
+
 - Fixed from stub to real `dotnet restore && dotnet build --configuration Release`
 - Runs on PRs to [dev, preview, main, insider] + pushes to [dev, insider]
 - Single job: `build (ubuntu-latest)` with .NET from global.json
@@ -538,6 +594,7 @@ if (string.IsNullOrWhiteSpace(roleValue))
 **Process violation:** @copilot implemented work directly after plan approval without routing to Aragorn for Plan Ceremony. Team should enforce: plan approval → Aragorn Plan Ceremony → issue creation → then work begins.
 
 **Details:**
+
 - Milestone #3: "NavMenu Cleanup — Sprint 1"
 - Issue #104: refactor(nav) — Legolas assigned — ✅ Closed
 - Issue #105: test(nav) — Gimli assigned — ✅ Closed
@@ -568,11 +625,13 @@ if (string.IsNullOrWhiteSpace(roleValue))
 **Context:** Completed Plan Ceremony for Sprint 1 (work completed in PR #106) and Sprint 2 (follow-up items). Established test gate enforcement and dev workflow hardening as formal milestone.
 
 **Milestone Details:**
+
 - **Name:** Test Gate Enforcement & Dev Workflow Hardening
-- **URL:** https://github.com/mpaulosky/IssueTrackerApp/milestone/4
+- **URL:** <https://github.com/mpaulosky/IssueTrackerApp/milestone/4>
 - **Description:** Enforce full test suite pre-push, README sync automation, Playwright E2E in gate
 
 **Sprint 1 — COMPLETED (PR #106)**
+
 1. #107 — fix: Playwright Layout_NavMenu_ContainsExpectedLinks test (`squad:pippin`, `squad:gimli`)
 2. #108 — feat: README → docs/README.md sync GitHub Action (`squad:frodo`, `squad:boromir`)
 3. #109 — fix: Harden pre-push Gate 4 — remove Docker skip bypass (`squad:boromir`)
@@ -588,6 +647,7 @@ if (string.IsNullOrWhiteSpace(roleValue))
 This directive is now explicitly documented in milestone description, issue #110 body, and PR #106 comments.
 
 **Learnings:**
+
 - `gh milestone` CLI lacks `create` subcommand; use `gh api` instead
 - Multiple labels require separate `--label` flags in `gh issue create`
 - Milestone reference in issue creation uses title, not number
@@ -604,22 +664,25 @@ This directive is now explicitly documented in milestone description, issue #110
 
 **Root Cause:** GitHub's token isolation prevents workflows triggered by `GITHUB_TOKEN`-created events from spawning additional workflows. This is by design to prevent infinite loops and unauthorized workflow chains.
 
-**Workaround Applied:** 
+**Workaround Applied:**
 Ran `gh release create v0.2.0 --generate-notes --title "Release v0.2.0" --verify-tag` directly from CLI after tag push. Release v0.2.0 successfully created with auto-generated notes.
 
 **Permanent Fix Options:**
+
 1. **Consolidate into single workflow** — Add `gh release create` as final step in `squad-milestone-release.yml` (simplest, one workflow does everything)
 2. **Use PAT secret** — Replace `GITHUB_TOKEN` with `PAT` for tag push step (allows downstream trigger, more complex, requires secret management)
 
 **Recommendation:** Option 1 — Consolidate release creation into `squad-milestone-release.yml`.
 
-**Rationale:** 
+**Rationale:**
+
 - Eliminates dependency on `squad-release.yml` for the release cut path
 - Still allows `squad-release.yml` to run if a tag is pushed manually via another method
 - Simpler maintenance and fewer moving parts
 - Reduces CI complexity during release process
 
 **Implementation:** Add to `squad-milestone-release.yml` after tag push:
+
 ```yaml
 - name: Create GitHub Release
   run: gh release create ${{ env.NEW_VERSION }} --generate-notes --title "Release ${{ env.NEW_VERSION }}" --verify-tag
@@ -638,6 +701,7 @@ Ran `gh release create v0.2.0 --generate-notes --title "Release v0.2.0" --verify
 **Decision:** Every GitHub Release must have a corresponding blog post in `docs/blog/`. Ralph triggers Bilbo after a release is published. Posts must be written before or alongside the next commit process.
 
 **Process:**
+
 1. Release is published via GitHub (manual or workflow)
 2. Ralph (orchestration) detects release and spawns Bilbo
 3. Bilbo writes post in `docs/blog/{DATE}-release-{VERSION}.md` with:
@@ -661,9 +725,10 @@ Ran `gh release create v0.2.0 --generate-notes --title "Release v0.2.0" --verify
 
 **Decision:** After each Bilbo blog cycle, Legolas regenerates `docs/index.html` from the root `README.md`. Work is local-only; no GitHub Actions needed.
 
-**Why:** GH Pages (`main:/docs`, legacy build) needs `index.html` to display the project landing page at https://mpaulosky.github.io/IssueTrackerApp/ with full badge rendering and GitHub-flavored markdown support. Plain HTML — no Jekyll, no `_config.yml`.
+**Why:** GH Pages (`main:/docs`, legacy build) needs `index.html` to display the project landing page at <https://mpaulosky.github.io/IssueTrackerApp/> with full badge rendering and GitHub-flavored markdown support. Plain HTML — no Jekyll, no `_config.yml`.
 
 **Workflow Chain:**
+
 1. Release published → Ralph detects
 2. Bilbo writes release blog post in `docs/blog/`
 3. Legolas regenerates `docs/index.html` from updated root README
@@ -672,7 +737,6 @@ Ran `gh release create v0.2.0 --generate-notes --title "Release v0.2.0" --verify
 **Implementation:** Legolas has standing responsibility to regenerate landing page whenever README changes or after each blog cycle. Added to Legolas charter as formal role.
 
 **Related:** `.squad/agents/legolas/charter.md`, `docs/index.html`
-
 
 ---
 
@@ -770,10 +834,12 @@ Reviewed three PRs from Sprint 5 Admin User Management epic. Two approved, one r
 #### ❌ BLOCKING ISSUE 1: Architecture.Tests Failure
 
 **Test failures:**
+
 - `Architecture.Tests.CodeStructureTests.Repositories_ShouldImplementIRepository` — FAILED
 - `Architecture.Tests.AdvancedArchitectureTests.AllRepositories_ShouldImplementIRepository` — FAILED
 
 **Error message:**
+
 ```
 Expected result.IsSuccessful to be True because All repositories should implement IRepository<T>.
 Failing types: Persistence.MongoDb.Repositories.AuditLogRepository, but found False.
@@ -782,6 +848,7 @@ Failing types: Persistence.MongoDb.Repositories.AuditLogRepository, but found Fa
 **Root cause:** `AuditLogRepository` is named like a repository but does NOT implement `IRepository<T>` interface.
 
 **Fix required:** Choose one:
+
 - **(Option A)** Make `AuditLogRepository` implement `IRepository<RoleChangeAuditEntry>` and inherit from `Repository<RoleChangeAuditEntry>` (if it's truly a repository pattern implementation)
 - **(Option B)** Rename to `AuditLogService` or `AuditLogWriter` (if it's NOT a repository pattern implementation, but rather a specialized write-only service)
 
@@ -795,7 +862,7 @@ Failing types: Persistence.MongoDb.Repositories.AuditLogRepository, but found Fa
 
 **Fix required:** Rebase PR #158 on latest `main` after PR #146 merges. The ADR file should disappear from the diff.
 
-#### ✅ Non-blocking observations:
+#### ✅ Non-blocking observations
 
 - **File headers:** All new files carry required copyright block ✅
 - **VSA compliance:** New code properly structured under `src/Web/Features/Admin/Users/` and `src/Domain/Features/Admin/` ✅
@@ -806,6 +873,7 @@ Failing types: Persistence.MongoDb.Repositories.AuditLogRepository, but found Fa
 ### Recommendation
 
 **FIX REQUIRED** before merge:
+
 1. Fix `AuditLogRepository` architecture violation (rename to `AuditLogWriter` or make it implement `IRepository<T>`)
 2. Rebase on `main` after PR #146 merges to eliminate duplicate `.squad/` file in diff
 3. Re-run full CI to confirm Architecture.Tests pass
@@ -856,6 +924,7 @@ This PR implements Auth0 Management API integration with strong security fundame
 ## Security Findings
 
 ### ✅ PASS — Secrets Hygiene
+
 **Status:** SECURE
 
 - `appsettings.json` contains **only empty placeholders** for `Auth0Management:{ ClientId, ClientSecret, Domain, Audience }`
@@ -865,6 +934,7 @@ This PR implements Auth0 Management API integration with strong security fundame
 - **Recommendation:** Document in README that production values must be stored in Azure Key Vault (same as OIDC credentials)
 
 **Evidence:**
+
 ```json
 "Auth0Management": {
   "ClientId": "",
@@ -873,14 +943,17 @@ This PR implements Auth0 Management API integration with strong security fundame
   "Audience": ""
 }
 ```
+
 ✅ All values are empty strings — SECURE
 
 ---
 
 ### ✅ PASS — Token Security
+
 **Status:** SECURE
 
 **Token Storage:**
+
 - M2M access tokens cached in `IMemoryCache` with key `"Auth0Management:Token"`
 - Cache scope is application-wide (singleton cache) — **CORRECT** for M2M tokens (not user-specific)
 - TTL set to `ExpiresIn - 300 seconds` (5-minute safety margin) — industry best practice
@@ -889,17 +962,20 @@ This PR implements Auth0 Management API integration with strong security fundame
   - `_logger.LogDebug("Auth0 Management API token cached. TTL={Ttl}s.", ttl);` — logs TTL only, NOT token ✅
 
 **Token Acquisition:**
+
 - Uses OAuth 2.0 **client credentials flow** (correct for M2M)
 - `POST https://{domain}/oauth/token` with `grant_type=client_credentials`
 - Audience scoped to `https://{domain}/api/v2/` (Auth0 Management API)
 - `EnsureSuccessStatusCode()` used — will throw on HTTP 4xx/5xx (correct fail-fast behavior)
 
 **Token Usage:**
+
 - Fresh `ManagementApiClient` created per operation using `GetManagementClientAsync()`
 - Client disposed after use (`using var client`) — prevents token leaks via long-lived clients
 - No async-over-sync detected (proper `await` usage throughout)
 
 **[INFO] Minor Improvement Opportunity:**
+
 - Role ID cache (`"Auth0Management:Roles"`) stores role name→ID map for 30 min
 - **Question:** If a role is deleted in Auth0 mid-cache, assignment/removal will fail with `ResultErrorCode.Validation` ("Unknown role")
 - **Impact:** LOW — fail-safe behavior (rejects invalid role names), no security risk
@@ -908,14 +984,17 @@ This PR implements Auth0 Management API integration with strong security fundame
 ---
 
 ### ✅ PASS — Client Credentials Scope
+
 **Status:** SECURE
 
 **M2M Client Separation:**
+
 - Code expects separate `Auth0Management:{ ClientId, ClientSecret }` distinct from OIDC `Auth0:{ ClientId, ClientSecret }`
 - Follows **least-privilege principle** — management API credentials isolated from user-facing OIDC flow
 - If M2M credentials are compromised, attacker cannot impersonate users (no ID token issuance from M2M client)
 
 **Audience Scoping:**
+
 - Audience set to `https://{domain}/api/v2/` (Management API only)
 - Tokens cannot be used for other Auth0 APIs or tenant resources
 - **Auth0 Dashboard Configuration Required** (per ADR #130):
@@ -926,20 +1005,24 @@ This PR implements Auth0 Management API integration with strong security fundame
 ---
 
 ### 🟡 INFO — Rate Limit TODO
+
 **Status:** ACCEPTABLE TECHNICAL DEBT
 
 **Finding:**
+
 - Code comments note: `"Rate limits: Auth0 Management API returns HTTP 429 on burst. Add a Polly retry policy (per ADR #130) in a follow-up task"`
 - No HTTP 429 retry/backoff implemented in PR #158
 - Current behavior on rate limit: **immediate failure** via `EnsureSuccessStatusCode()` throwing `HttpRequestException`
 
 **Risk Assessment:**
+
 - **Severity:** LOW
 - **Attack Surface:** None — missing retry does not create a security vulnerability
 - **Operational Risk:** MEDIUM — burst API usage in admin UI could trigger 429 errors, degrading UX
 - **DoS Risk:** None — lack of retry does not enable DoS; Auth0 enforces rate limits server-side
 
 **Recommendation:**
+
 - ✅ **ACCEPTABLE TO MERGE** — this is a reliability gap, not a security vulnerability
 - Track HTTP 429 retry implementation in a follow-up issue (reference ADR #130 Polly example)
 - Consider priority: MEDIUM (impacts admin UX, especially bulk operations)
@@ -947,9 +1030,11 @@ This PR implements Auth0 Management API integration with strong security fundame
 ---
 
 ### ✅ PASS — Input Validation
+
 **Status:** SECURE
 
 **`GetUserByIdAsync(string userId)`:**
+
 ```csharp
 if (string.IsNullOrWhiteSpace(userId))
 {
@@ -958,9 +1043,11 @@ if (string.IsNullOrWhiteSpace(userId))
         ResultErrorCode.Validation);
 }
 ```
+
 ✅ Validates before passing to Auth0 API
 
 **`AssignRolesAsync(string userId, IEnumerable<string> roleNames)`:**
+
 ```csharp
 if (string.IsNullOrWhiteSpace(userId))
 {
@@ -981,18 +1068,22 @@ if (unknown.Count > 0)
         ResultErrorCode.Validation);
 }
 ```
+
 ✅ Validates userId, null-safe roleNames, rejects unknown role names
 
 **`RemoveRolesAsync(string userId, IEnumerable<string> roleNames)`:**
+
 - Same validation pattern as `AssignRolesAsync`
 
 **Injection Risk:**
+
 - Auth0 SDK uses **strongly-typed models** (`AssignRolesRequest { Roles = roleIds }`)
 - No raw string concatenation or SQL-like injection surface
 - Role IDs are resolved via dictionary lookup (`roleMap[r]`), not string interpolation
 - Auth0 user IDs (e.g., `auth0|abc123`) are opaque identifiers — no special chars needing sanitization
 
 **[INFO] Note:**
+
 - `ListUsersAsync` accepts `int page, int perPage` with no upper-bound validation
 - Auth0 API enforces `perPage` max of 100 server-side
 - Code converts 1-based page → 0-based via `Math.Max(0, page - 1)`
@@ -1001,9 +1092,11 @@ if (unknown.Count > 0)
 ---
 
 ### ✅ PASS — Error Surfacing
+
 **Status:** SECURE
 
 **Pattern:**
+
 ```csharp
 catch (Exception ex) when (ex is not OperationCanceledException)
 {
@@ -1016,11 +1109,13 @@ catch (Exception ex) when (ex is not OperationCanceledException)
 ```
 
 **Analysis:**
+
 - Logs **full exception** server-side (includes stack trace) — ✅ CORRECT for diagnostics
 - Returns **`ex.Message` only** to caller via `Result.Fail` — ✅ CORRECT, does NOT leak stack traces to client
 - `ResultErrorCode.ExternalService` is generic — does NOT distinguish Auth0 `404 Not Found` vs `403 Forbidden` vs `500 Internal Error`
 
 **[INFO] Tradeoff:**
+
 - **Benefit:** Prevents leaking Auth0 API internals (e.g., "Role ID rol_abc123 does not exist")
 - **Cost:** Caller cannot distinguish "user not found" (404) from "rate limited" (429) from "Auth0 outage" (503)
 - **Recommendation:** Acceptable for v1; if admin UI needs granular error handling, introduce sub-codes (e.g., `ExternalService_NotFound`, `ExternalService_RateLimited`)
@@ -1028,20 +1123,24 @@ catch (Exception ex) when (ex is not OperationCanceledException)
 ---
 
 ### ✅ PASS — Dependency Security
+
 **Status:** SECURE
 
 **Package:**
+
 - `Auth0.ManagementApi` version **7.46.0** added to `Directory.Packages.props`
 - Latest stable version as of 2026-04-01
 
 **CVE Check:**
+
 - ✅ **No known CVEs** for `Auth0.ManagementApi 7.46.0` in 2024–2025 (verified via CVE.org, NVD, OpenCVE)
 - No security bulletins from Auth0/Okta referencing this package version
 - Recent Auth0 CVEs affect `nextjs-auth0`, `node-jws`, PHP wrappers — NOT .NET SDK
 
 **Recommendation:**
-- Monitor Auth0 Security Bulletins: https://auth0.com/docs/secure/security-guidance/security-bulletins
-- Subscribe to Okta security advisories: https://trust.okta.com/security-advisories/
+
+- Monitor Auth0 Security Bulletins: <https://auth0.com/docs/secure/security-guidance/security-bulletins>
+- Subscribe to Okta security advisories: <https://trust.okta.com/security-advisories/>
 - Dependabot or Renovate bot should flag future updates automatically
 
 ---
@@ -1063,16 +1162,16 @@ PR #158 implements Auth0 Management API integration with **strong security postu
 
 ## Checklist Status
 
-| Security Check | Status |
-|---|---|
-| Secrets hygiene | ✅ PASS |
-| Token caching security | ✅ PASS |
-| Client credentials flow | ✅ PASS |
-| Rate limit TODO | 🟡 ACCEPTABLE (non-blocking) |
-| Role ID caching | ✅ PASS (fail-safe on stale cache) |
-| Input validation | ✅ PASS |
-| Error surfacing | ✅ PASS |
-| Dependency CVE check | ✅ PASS (no known vulnerabilities) |
+| Security Check          | Status                            |
+| ----------------------- | --------------------------------- |
+| Secrets hygiene         | ✅ PASS                            |
+| Token caching security  | ✅ PASS                            |
+| Client credentials flow | ✅ PASS                            |
+| Rate limit TODO         | 🟡 ACCEPTABLE (non-blocking)       |
+| Role ID caching         | ✅ PASS (fail-safe on stale cache) |
+| Input validation        | ✅ PASS                            |
+| Error surfacing         | ✅ PASS                            |
+| Dependency CVE check    | ✅ PASS (no known vulnerabilities) |
 
 ---
 
@@ -1092,10 +1191,12 @@ PR #158 implements Auth0 Management API integration with **strong security postu
 ## Labels & Tags Design
 
 ### 2026-04-01: Issue Labels & Tags — Domain Design
+
 **By:** Aragorn (via Squad)  
 **Issue:** #147 (Spike)
 
 ### Label Storage
+
 - **Field:** `public List<string> Labels { get; set; } = new();` on `Issue` model
 - **Constraints:**
   - Lowercase and trimmed on insert/update
@@ -1104,22 +1205,26 @@ PR #158 implements Auth0 Management API integration with **strong security postu
 - **Rationale:** Embedding labels as simple strings on the Issue document avoids a separate collection and keeps queries simple via MongoDB `$in` operator. Labels are low-cardinality, short strings—no normalization or lookup table needed.
 
 ### Label Source (Autocomplete)
-- **Endpoint:** `GET /api/labels/suggestions?q={prefix}` 
+
+- **Endpoint:** `GET /api/labels/suggestions?q={prefix}`
 - **Returns:** Top-N (e.g., 10) distinct labels from all existing issues, filtered by prefix
 - **Implementation:** MongoDB `distinct()` query on `Issue.Labels` field, case-insensitive prefix match
 - **Rationale:** Deriving labels dynamically from existing issue labels avoids maintaining a separate collection; users see only labels actually in use.
 
 ### Query Strategy
+
 - **Filter by label:** MongoDB `$in` operator on `Issue.Labels` field
 - **URL parameter:** `?label={labelValue}` on Issues list page and API
 - **Rationale:** Simple, efficient, and leverages native MongoDB array filtering.
 
 ### IssueDto Updates
+
 - Add `IReadOnlyList<string> Labels` property to `IssueDto` record
 - Update `IssueDto(Issue issue)` constructor to map `Labels` from issue model
 - Update `IssueDto.Empty` static property to include empty `[]` for Labels
 
 ### CQRS Commands
+
 Two new commands in `src/Domain/Features/Issues/Commands/`:
 
 1. **`AddLabelCommand(ObjectId IssueId, string Label)`**
@@ -1135,12 +1240,15 @@ Two new commands in `src/Domain/Features/Issues/Commands/`:
    - Returns `Result<Unit>` (no error if label not found—idempotent)
 
 ### Validators
+
 Create `LabelValidator` or inline validation in command handlers:
+
 - Label must not be empty after trimming
 - Label must be ≤ 50 characters
 - Label is automatically lowercased (no validation needed, done in handler)
 
 ### Why This Design
+
 1. **No separate collection:** Labels embedded on Issue keep the domain model simple and avoid join complexity
 2. **MongoDB native:** `$in` queries are efficient and well-supported
 3. **Dynamic sourcing:** Avoids maintaining a separate labels master table; labels emerge organically from issue data
@@ -1148,6 +1256,7 @@ Create `LabelValidator` or inline validation in command handlers:
 5. **Unblocks downstream work:** Clear storage and query strategy enables comment labeling, bulk-label operations, and label-based analytics
 
 ### Blocked Issues Unblocked
+
 - #148, #149, #150, #151, #152, #153, #154, #155, #156 can now proceed with implementation details
 
 ---
@@ -1155,12 +1264,14 @@ Create `LabelValidator` or inline validation in command handlers:
 ## PR Review Decisions
 
 ### 2026-04-01: PR #158 Approved After Architecture Fixes
+
 **Date:** 2026-04-01  
 **Author:** Aragorn (Lead Developer)  
 **Status:** Approved  
 **Related:** PR #158 (`squad/131-user-management-service`), Issues #131, #132, #134
 
 #### Context
+
 PR #158 was initially rejected for two blocking issues:
 
 1. **Architecture Violation:** `AuditLogRepository` did not implement `IRepository<T>` but was named like a repository, causing Architecture.Tests to fail.
@@ -1171,6 +1282,7 @@ Sam applied fixes and requested re-review.
 #### Verification Completed
 
 ##### Fix 1: AuditLogRepository → AuditLogWriterService ✅
+
 - Class renamed: `AuditLogRepository` → `AuditLogWriterService`
 - Interface renamed: `IAuditLogRepository` → `IAuditLogWriterService`
 - Namespace changed: `Persistence.MongoDb.Repositories` → `Persistence.MongoDb.Services`
@@ -1180,10 +1292,12 @@ Sam applied fixes and requested re-review.
 - **No class named `*Repository` exists in the PR that doesn't implement `IRepository<T>`**
 
 ##### Fix 2: Branch Rebase ✅
+
 - Branch rebased onto `main` after PR #146 merged
 - No duplicate `.squad/` files in current diff
 
 #### Additional Quality Checks ✅
+
 1. **Domain Layer Purity:** `RoleChangeAuditEntry` uses plain `string Id` — NO MongoDB types (`ObjectId`, `[BsonId]`) in Domain layer. ObjectId mapping handled correctly in `Persistence.MongoDb.Configurations.RoleChangeAuditEntryConfiguration`.
 2. **Thread-Safe Caching:** Token and role caching uses `GetOrCreateAsync` — prevents concurrent cold-start races.
 3. **DI Extension Self-Contained:** `AddUserManagement()` calls `AddMemoryCache()` — idempotent and safe.
@@ -1191,17 +1305,21 @@ Sam applied fixes and requested re-review.
 5. **Naming Conventions:** All interfaces, services, options, extensions follow team conventions.
 
 #### CI Verification ✅
+
 - Architecture.Tests: **PASSED** (19/19 checks green)
 - All tests: **1,805 tests passed, 0 failed**
 - Build: **0 warnings, 0 errors** (Release configuration with `TreatWarningsAsErrors=true`)
 
 #### Pattern Established
+
 **Repository vs. Service Naming:**
+
 - Classes in `Repositories/` namespace **MUST** implement `IRepository<T>` and provide full CRUD operations
 - Append-only or specialized persistence operations (audit logs, event sourcing, write-only buffers) should be named as `*Service` or `*Writer` and placed in `Services/` namespace
 - This PR sets the precedent: `AuditLogWriterService` is the correct pattern for audit log persistence
 
 #### Consequences
+
 - ✅ PR #158 is approved and ready to merge
 - ✅ Pattern documented for future audit logs and specialized persistence operations
 - ✅ Architecture tests continue to enforce the `IRepository<T>` contract for all `*Repository` classes
@@ -1212,72 +1330,85 @@ Sam applied fixes and requested re-review.
 ## Admin User Management v0.5.0
 
 #### Decision 1: Auth0 Management API via M2M client credentials
+
 **What:** The app will integrate with Auth0 Management API v2 using a dedicated Machine-to-Machine (M2M) application with the `client_credentials` grant. The M2M app is separate from the user-facing Auth0 application.
 
 **Why:** The user-facing Auth0 app uses the Authorization Code flow (user identity). Management API operations (listing users, assigning roles) require a server-to-server token with scoped Management API permissions — a different trust model that must not share credentials with the user-facing app.
 
 **Consequences:**
+
 - New secrets required: `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET` (Boromir — CI, Gandalf — Auth0 setup)
 - M2M tokens must be cached (short-lived, typically 24h) to avoid rate limits
 - Spike #130 will confirm exact scopes: `read:users`, `read:roles`, `update:users`
 
 #### Decision 2: SDK choice deferred to spike — Auth0.ManagementApi vs raw HttpClient
+
 **What:** The decision between using the `Auth0.ManagementApi` NuGet package and a raw typed `HttpClient` is deferred to the completion of spike #130.
 
 **Why:** The Auth0 .NET Management SDK may not be fully compatible with .NET 10 / AOT compilation, and its abstraction may conflict with the project's existing HttpClient resilience policies. The spike will benchmark both and produce a recommendation.
 
 **Consequences:**
+
 - `UserManagementService` (#131) depends on spike #130
 - If raw HttpClient is chosen: `IHttpClientFactory` + Polly retry policy will be used
 - If Auth0 SDK is chosen: version pinned in `Directory.Packages.props`
 
 #### Decision 3: Vertical Slice — all admin user management code under `src/Web/Features/Admin/Users/`
+
 **What:** Following the project's Vertical Slice Architecture, all admin user management code (commands, queries, handlers, service interface) lives under `src/Web/Features/Admin/Users/`. The `IUserManagementService` interface is defined in `src/Domain/` for testability.
 
 **Why:** Consistent with the existing vertical slice layout for Issues and Suggestions. Keeps the admin feature self-contained and deletable/replaceable as a unit.
 
 **Consequences:**
+
 - Blazor components go in `src/Web/Components/Admin/Users/`
 - No new projects — this feature fits within the existing `src/Web` project
 
 #### Decision 4: Audit log is append-only in MongoDB, never updates or deletes
+
 **What:** `RoleChangeAuditEntry` documents are written once and never modified. No soft-delete, no status updates.
 
 **Why:** Audit logs are a compliance artifact. Mutability would undermine their evidentiary value. Append-only semantics also eliminate concurrency concerns on writes.
 
 **Consequences:**
+
 - Index on `(TargetUserId, Timestamp)` for admin query performance
 - No archive/purge policy in v0.5.0 — deferred to v0.6.0 if needed
 - Audit writes are fire-and-forget (non-blocking) but failures are logged via `ILogger`
 
 #### Decision 5: AdminPolicy enforced at Blazor page level, not middleware
+
 **What:** The `AdminPolicy` authorization attribute is applied at the Blazor component level (`@attribute [Authorize(Policy = "AdminPolicy")]`), not as a route-level middleware constraint.
 
 **Why:** Blazor Server route authorization is best expressed at the component level to ensure the authorization pipeline runs correctly in the Blazor hub context. Middleware-level auth for Blazor Server circuits has known edge cases around circuit reconnection.
 
 **Consequences:**
+
 - Every admin page component must carry the `[Authorize]` attribute explicitly
 - Navigation guard in `NavMenu.razor` via `<AuthorizeView>` provides UX protection (not security — the policy is the security)
 - Integration tests (#143) will verify the policy holds via `WebApplicationFactory`
 
 #### Sprint Structure
-| Sprint | Theme | Issues | Count |
-|--------|-------|--------|-------|
-| 5A | Foundation | #130, #131, #132, #133, #134, #135 | 6 |
-| 5B | UI | #136, #137, #138, #139, #140 | 5 |
-| 5C | Quality | #141, #142, #143, #144, #145 | 5 |
+
+| Sprint | Theme      | Issues                             | Count |
+| ------ | ---------- | ---------------------------------- | ----- |
+| 5A     | Foundation | #130, #131, #132, #133, #134, #135 | 6     |
+| 5B     | UI         | #136, #137, #138, #139, #140       | 5     |
+| 5C     | Quality    | #141, #142, #143, #144, #145       | 5     |
 
 **Total:** 16 issues · Milestone #7
 
 ---
 
 ### 2026-04-01: Release Blog Post Trigger
+
 **By:** Bilbo  
 **What:** Release blog posts for v0.3.0 and v0.4.0 were not written when the releases were published. These were critical mandatory posts (per charter) that should have been published immediately. On 2026-04-01, Bilbo wrote catch-up posts for both releases.
 
 **Why:** Keeping blog in sync with releases ensures developers always have up-to-date, accurate release notes in narrative form. Missing posts creates a documentation gap.
 
 **Action:** Going forward, whenever Ralph (DevOps) publishes a GitHub Release:
+
 1. Release blog post task should be **synchronously triggered** (not async)
 2. Bilbo should write the post within the same day as release publication
 3. Consider adding a GitHub Actions workflow that comments on the release with a link to the blog post once published
@@ -1287,12 +1418,14 @@ Sam applied fixes and requested re-review.
 ---
 
 ### 2026-04-01: Auth0 Management API Secrets Configuration Pattern
+
 **Date:** 2026-04-01  
 **Author:** Boromir (DevOps)  
 **Status:** Implemented  
 **Related:** Issue #145, PR #162
 
 #### Configuration Section
+
 All Auth0 Management API credentials are stored in the `Auth0Management` section:
 
 ```json
@@ -1309,6 +1442,7 @@ All Auth0 Management API credentials are stored in the `Auth0Management` section
 This is separate from the `Auth0` section (used for authentication).
 
 #### .NET Aspire AppHost Integration
+
 In `src/AppHost/AppHost.cs`:
 
 ```csharp
@@ -1323,6 +1457,7 @@ builder.AddProject<Projects.Web>("web")
 Aspire prompts for these values at startup when missing.
 
 #### GitHub Actions CI/CD
+
 In `.github/workflows/squad-test.yml` and `.github/workflows/codeql-analysis.yml`:
 
 ```yaml
@@ -1336,6 +1471,7 @@ env:
 **Note:** Domain and Audience reference the existing `AUTH0_DOMAIN` secret to avoid duplication.
 
 #### Development Placeholders
+
 `src/Web/appsettings.Development.json` includes placeholder entries:
 
 ```json
@@ -1352,6 +1488,7 @@ env:
 This signals the schema but provides no real values. Developers must configure via Aspire parameters or User Secrets.
 
 #### Empty Secrets Handling
+
 `UserManagementService.GetOrFetchTokenAsync()` sends credentials directly to Auth0's `/oauth/token` endpoint. If `ClientId` or `ClientSecret` are empty strings:
 
 - Auth0 returns HTTP 401/403
@@ -1365,16 +1502,19 @@ This signals the schema but provides no real values. Developers must configure v
 #### Consequences
 
 ##### Positive
+
 - CI/CD pipelines can now exercise Admin User Management code paths (when secrets are configured)
 - Local dev works without hardcoding credentials (Aspire prompts at startup)
 - Production deployments can inject secrets via Azure Key Vault, AWS Secrets Manager, etc.
 - Separation of Auth0 authentication (`Auth0` section) and management (`Auth0Management` section) is clear
 
 ##### Negative
+
 - Repository admin must manually add `AUTH0_MANAGEMENT_CLIENT_ID` and `AUTH0_MANAGEMENT_CLIENT_SECRET` to GitHub secrets (documented in PR #162)
 - Empty placeholders in `appsettings.Development.json` may confuse new developers; recommend adding a comment in the file (Sam's domain)
 
 #### Related Files
+
 - `src/AppHost/AppHost.cs`
 - `src/Web/appsettings.Development.json`
 - `src/Web/Features/Admin/Users/UserManagementService.cs`
@@ -1384,16 +1524,20 @@ This signals the schema but provides no real values. Developers must configure v
 ---
 
 ### 2026-04-01: Admin User Management Documentation Structure (Frodo)
+
 **Date:** April 1, 2026  
 **Author:** Frodo (Tech Writer)  
 **Relates to:** Issue #144  
 **PR:** #161
 
 #### Decision
+
 Created a dedicated `docs/features/admin-user-management.md` file for the v0.5.0 Admin User Management feature, following a consistent documentation structure and archival pattern for feature-specific guides.
 
 #### Context
+
 The Admin User Management feature requires comprehensive developer and operational documentation to enable:
+
 1. Local development setup with Auth0 M2M credentials
 2. Understanding of the architecture (MediatR CQRS pattern, Auth0 Management API integration, audit logging)
 3. Operational security best practices for role management
@@ -1402,13 +1546,16 @@ The Admin User Management feature requires comprehensive developer and operation
 #### Rationale
 
 ##### Why a separate feature documentation file?
+
 1. **Scalability**: As the project grows, feature-specific docs in `docs/features/` keep the root-level `docs/` directory clean and focused on cross-cutting concerns (ARCHITECTURE.md, SECURITY.md, CONTRIBUTING.md)
 2. **Findability**: Developers looking for "User Management" documentation naturally check `docs/features/admin-user-management.md` before root docs
 3. **Maintainability**: Each feature doc is owned by the feature team (in this case, Frodo), making it easier to keep documentation in sync with code
 4. **Modularity**: Supports a future pattern where feature teams can include onboarding, architecture, and troubleshooting all in one place
 
 ##### Documentation structure adopted
+
 Each feature guide includes:
+
 - **Overview**: What the feature does and who can use it
 - **Prerequisites**: External setup required (e.g., Auth0 M2M app creation)
 - **Setup**: Local development configuration steps
@@ -1423,26 +1570,31 @@ This structure is consistent with existing docs/FEATURES.md style but organized 
 #### Impact
 
 ##### For Developers
+
 - Clear setup path: Prerequisites → Local Development Setup → Features → Architecture
 - Understanding of CQRS pattern (Queries, Commands, Handlers, Validators) in context of a real feature
 - Secrets management best practices for Auth0 M2M credentials
 
 ##### For Operations/Admins
+
 - Operational security notes on role change auditing
 - Troubleshooting section for the most common issues
 - Best practices for principle of least privilege
 
 ##### For Documentation Standards
+
 - Establishes pattern for future feature docs in `docs/features/`
 - Frodo (Tech Writer) owns all files in `docs/` and can maintain feature docs independently
 - Root-level docs/ remains focused on cross-cutting architecture concerns
 
 #### Alternatives Considered
+
 1. **Add to docs/FEATURES.md**: Would clutter the existing feature index; less discoverable for someone searching for Admin User Management docs
 2. **Create docs/admin-user-management.md at root**: Keeps feature docs at root level but doesn't scale as project grows (10+ features = 10+ root files)
 3. **Only update README.md**: Would lack technical depth needed for developers and operators
 
 #### Decisions Made During Implementation
+
 1. **No YAML front matter for feature docs**: The new admin-user-management.md is internal developer documentation, not a blog post, so no YAML metadata required
 2. **Auth0 M2M setup as primary prerequisite**: Emphasized that Auth0 dashboard M2M app creation is required before any local development can proceed
 3. **dotnet user-secrets for local configuration**: Used rather than appsettings.json to emphasize security best practices (secrets not in source control)
@@ -1453,11 +1605,13 @@ This structure is consistent with existing docs/FEATURES.md style but organized 
 ## Auth0 Management API (Gandalf — ADR #130)
 
 #### Context
+
 IssueTrackerApp currently uses Auth0 for end-user authentication via the OIDC Authorization Code flow with PKCE (`src/Web/Auth/`). Role assignment (Admin / User) is managed manually in the Auth0 dashboard. As the platform scales and automated user-role provisioning becomes necessary (e.g., assigning roles programmatically upon user registration, syncing roles from an admin UI), direct calls to the **Auth0 Management API v2** are required.
 
 The existing `Auth0Options` binds `Domain`, `ClientId`, `ClientSecret`, and `RoleClaimNamespace` from configuration. The existing credential-based setup is an OIDC client app — it is **not** a Machine-to-Machine (M2M) app and does not hold Management API scopes. A separate M2M configuration is required.
 
 This spike evaluates:
+
 1. Which Management API v2 endpoints are needed
 2. How to obtain and cache M2M access tokens (client credentials flow)
 3. Auth0 rate limits and pagination strategy
@@ -1466,9 +1620,11 @@ This spike evaluates:
 6. Secrets management strategy
 
 #### Decision
+
 **Use the official `Auth0.ManagementApi` NuGet package (`ManagementApiClient`) with a dedicated M2M application, caching the Management API token in `IMemoryCache` with a TTL-based refresh strategy, and storing M2M credentials in .NET User Secrets (development) and Azure Key Vault (production).**
 
 Rationale:
+
 - The official SDK is actively maintained by Auth0/Okta, handles token acquisition internally, provides strongly-typed request/response objects, and reduces boilerplate.
 - A dedicated M2M app in Auth0 cleanly separates management-plane credentials from user-facing OIDC credentials, limiting blast radius on credential rotation.
 - The app already uses `IMemoryCache` for analytics TTLs; reusing the same pattern for token caching is idiomatic and avoids new infrastructure.
@@ -1476,18 +1632,21 @@ Rationale:
 #### Consequences
 
 ##### Positive
+
 - Programmatic role assignment enables automated onboarding and admin UI workflows without manual Auth0 dashboard intervention.
 - Strongly-typed SDK reduces surface area for serialization bugs.
 - Token caching avoids unnecessary M2M token requests and respects rate limits.
 - Separation of M2M and OIDC credentials follows least-privilege principle.
 
 ##### Negative / Trade-offs
+
 - Adds a new NuGet dependency (`Auth0.ManagementApi`).
 - Requires Auth0 dashboard configuration (new M2M app, API permission grants) — this is a manual step that cannot be automated by code alone.
 - M2M tokens are sensitive; any misconfiguration of Key Vault access policies would cause Management API calls to fail at runtime.
 - Rate limits on the free Auth0 tier (2 req/sec burst, ~1,000 req/month on some plan tiers) mean bulk operations must be throttled.
 
 #### Implementation Summary
+
 - **Auth0 Dashboard Setup:** Create M2M app with scopes `read:users`, `read:roles`, `read:role_members`, `update:users`, `create:role_members`, `delete:role_members`
 - **NuGet:** Add `Auth0.ManagementApi` to `Directory.Packages.props`
 - **Secrets:** `Auth0Management:ClientId`, `Auth0Management:ClientSecret`, `Auth0Management:Domain`, `Auth0Management:Audience`
@@ -1500,12 +1659,14 @@ Rationale:
 ## Process & Workflow
 
 ### 2026-04-01T17:57Z: Branching strategy — rebase before merge
+
 **By:** mpaulosky (via Ralph session)  
 **What:** All squad PR branches must be rebased onto current `main` before Aragorn performs the merge ceremony. A PR that passes CI on a stale base is not considered mergeable — the rebase must happen first, then CI must be green on the updated tip.
 
 **Why:** PR #160 demonstrated the failure mode: branch cut before `99a446d` landed, conflicts discovered at review time rather than at author time. Rebasing before merge ensures CI tests the actual merged state, not a diverged snapshot.
 
 **How to enforce:** Aragorn's review gate checklist now includes: (1) check `gh pr view --json mergeStateStatus` — if `BEHIND`, rebase the branch first; (2) re-trigger CI after rebase; (3) only merge once CI is green on the rebased tip.
+
 ### Frontend Components & Styling
 
 #### RoleBadge `.badge` Utility Pattern (2026-03-29)
@@ -1514,12 +1675,14 @@ Rationale:
 **Issue:** #138
 
 When implementing `RoleBadge.razor`, two options were available for pill styling:
+
 1. Inline Tailwind classes on every `<span>` (e.g. `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium`)
 2. Use the project-defined `.badge` utility class from `src/Web/Styles/input.css`
 
 **Decision:** Use the `.badge` CSS utility class for all badge/pill renders in the admin area.
 
 **Rationale:**
+
 - The `.badge` class already exists in `src/Web/Styles/input.css` and compiles to the exact same Tailwind utility set.
 - Using the shared class ensures consistent pill sizing/shape project-wide.
 - Reduces duplication — if pill dimensions change, one place to update.
@@ -1554,39 +1717,46 @@ When implementing `RoleBadge.razor`, two options were available for pill styling
 IssueTrackerApp currently uses Auth0 for end-user authentication via OIDC Authorization Code flow with PKCE. Role assignment (Admin / User) is managed manually in the Auth0 dashboard. As the platform scales, automated user-role provisioning becomes necessary. This ADR evaluates Auth0 Management API v2 integration strategy.
 
 **Decision:** Use the official `Auth0.ManagementApi` NuGet package (`ManagementApiClient`) with:
+
 - A dedicated Machine-to-Machine (M2M) application in Auth0
 - Token caching in `IMemoryCache` with TTL-based refresh strategy
 - M2M credentials in .NET User Secrets (dev) and Azure Key Vault (production)
 
 **Rationale:**
+
 - Official SDK is actively maintained, handles token acquisition, provides strongly-typed objects, reduces boilerplate.
 - Dedicated M2M app cleanly separates management-plane credentials from user-facing OIDC credentials, limiting blast radius on credential rotation.
 - App already uses `IMemoryCache` for analytics; reusing pattern is idiomatic.
 
 **Positive Consequences:**
+
 - Programmatic role assignment enables automated onboarding and admin UI workflows.
 - Strongly-typed SDK reduces serialization bugs.
 - Token caching avoids unnecessary M2M token requests and respects rate limits.
 - Separation of M2M and OIDC credentials follows least-privilege principle.
 
 **Negative / Trade-offs:**
+
 - Adds new NuGet dependency (`Auth0.ManagementApi`).
 - Requires Auth0 dashboard configuration (new M2M app, API permission grants) — manual steps.
 - M2M tokens are sensitive; misconfigured Key Vault access policies would cause Management API calls to fail at runtime.
 - Rate limits on free Auth0 tier (2 req/sec burst) mean bulk operations must be throttled.
 
 **Required Auth0 Dashboard Setup:**
+
 1. Create Machine-to-Machine Application in Auth0 dashboard
 2. Grant API permissions: `read:users`, `read:roles`, `read:role_members`, `update:users`, `create:role_members`, `delete:role_members`
 3. Note M2M app `Client ID` and `Client Secret`
 
 **Required Secrets** (distinct from existing `Auth0:ClientId`/`Auth0:ClientSecret`):
+
 - `Auth0Management:ClientId` — Client ID of M2M application
 - `Auth0Management:ClientSecret` — Client Secret of M2M application
 - `Auth0Management:Domain` — Same as `Auth0:Domain`
 - `Auth0Management:Audience` — `https://{your-tenant}.auth0.com/api/v2/`
 
 **Development (User Secrets):**
+
 ```bash
 dotnet user-secrets set "Auth0Management:ClientId"     "YOUR_M2M_CLIENT_ID"
 dotnet user-secrets set "Auth0Management:ClientSecret" "YOUR_M2M_CLIENT_SECRET"
@@ -1604,6 +1774,7 @@ Auth0 Management API tokens have default TTL of 86,400 seconds (24 hours). Imple
 Auth0 enforces rate limits per tenant tier (free: ~2 req/sec). Rate-limit responses return HTTP 429 with `Retry-After` header. Implement Polly retry policy with exponential backoff and respect `Retry-After` header. For list endpoints, process pages sequentially with small delay (100ms between pages).
 
 **API Endpoints (relative to `https://{domain}/api/v2/`):**
+
 - List users: `GET /users?per_page=100&page={n}&include_totals=true` (requires `read:users`)
 - Get user: `GET /users/{user_id}` (requires `read:users`)
 - List roles: `GET /roles?per_page=100&page={n}&include_totals=true` (requires `read:roles`)
@@ -1616,12 +1787,14 @@ Auth0 enforces rate limits per tenant tier (free: ~2 req/sec). Rate-limit respon
 Auth0 roles have internal ID (e.g., `rol_XXXXXXXXXXXXXX`) differing from display name. Resolve role IDs by name at startup and cache to avoid hardcoding tenant-specific IDs.
 
 **References:**
+
 - [Auth0 Management API v2 Reference](https://auth0.com/docs/api/management/v2)
 - [Auth0 Client Credentials Flow](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow)
 - [Auth0.ManagementApi NuGet Package](https://www.nuget.org/packages/Auth0.ManagementApi)
 - [Auth0 Rate Limit Policy](https://auth0.com/docs/troubleshoot/customer-support/operational-policies/rate-limit-policy)
 
 **Follow-Up Recommendations (Non-Blocking):**
+
 1. **[LOW]** Implement Polly retry policy for HTTP 429 — track in new issue
 2. **[INFO]** Document in `src/Web/Auth/README.md` that `Auth0Management` secrets must be in Key Vault for production
 3. **[INFO]** Monitor Auth0/Okta security bulletins for future SDK updates
@@ -1631,20 +1804,24 @@ Auth0 roles have internal ID (e.g., `rol_XXXXXXXXXXXXXX`) differing from display
 **Scribe Note:** Merged from decision inbox files 2026-04-01T21:01:59Z
 
 ### 2026-04-02: Process documentation review — ceremonies + routing + skills
+
 **By:** Aragorn (Lead)
 Enhanced ceremonies.md with Sprint Review and Issue Grooming ceremonies. Updated routing.md with Admin and Labels domain signals. Audited and updated 2 skills; added 2 new skills (auth0-management-api, labels-feature-patterns). Reflects Sprints 5 and 6 new domains not previously in process docs.
 
 ### 2026-04-02: Skills Audit — 13 skills reviewed
+
 **By:** Aragorn (Lead)
 13 skills audited: 9 accurate, 2 partially stale (solution file renamed IssueManager.sln → IssueTrackerApp.slnx), 2 not applicable (Minecraft-domain skills). Action items: update build-repair and pre-push-test-gate solution references; remove building-protection and post-build-validation; add confidence headers to 3 skills.
 
 ### 2026-04-02: Post-Sprint 6 Documentation Accuracy Audit
+
 **By:** Frodo (Tech Writer)
 Audited README.md, CONTRIBUTING.md, docs/index.html, docs/blog/index.md, and XML docs after Sprints 5 and 6. All documentation found accurate and up-to-date — v0.5.0 (Admin User Management) and v0.6.0 (Labels Feature) correctly documented across all audit points. No changes required.
 
 ### 2026-04-02: Security Review — Sprint 5/6 Admin Additions
+
 **By:** Gandalf (Security Officer)
-Auth0 Management API integration reviewed: secrets hygiene PASS, error handling PASS, token caching PASS, input validation PASS, page authorization PASS. One MEDIUM finding: no audit log for role assign/revoke in UserManagementService (track as follow-up issue). One LOW finding: no Polly retry for HTTP 429 (per ADR #130, non-blocking). Auth0ClaimsTransformation reviewed and accepted.
+Auth0 Management API integration reviewed: secrets hygiene PASS, error handling PASS, token caching PASS, input validation PASS, page authorization PASS. One MEDIUM finding: no audit log for role assign/revoke in UserManagementService (track as follow-up issue). One LOW finding: no Polly retry for HTTP 429 (per ADR #130, non-blocking). Auth0ClaimsTransformation reviewed and accepted
 ---
 
 ### Styling & Components
@@ -1658,6 +1835,7 @@ Auth0 Management API integration reviewed: secrets hygiene PASS, error handling 
 **Decision:** The `.btn` base class now includes shared properties (`text-white`, `border-2 border-transparent`) previously duplicated across variant classes. All button variant classes MUST pair with `.btn`.
 
 **Changes:**
+
 1. `.btn` base class now includes `border-2 border-transparent` and `text-white`
 2. `.btn-primary`, `.btn-secondary`, `.btn-warning`, `.btn-danger` — no longer declare duplicate properties
 3. `.btn-warning` color fixed: amber (`bg-amber-500 / hover:bg-amber-700`) instead of red (was semantic mismatch with danger)
@@ -1666,6 +1844,7 @@ Auth0 Management API integration reviewed: secrets hygiene PASS, error handling 
 6. All 22 Razor files updated to enforce `btn` + `btn-{variant}` pairing
 
 **Usage Rule (ENFORCED):**
+
 ```html
 <!-- Correct -->
 <button class="btn btn-primary">Save</button>
@@ -1676,23 +1855,25 @@ Auth0 Management API integration reviewed: secrets hygiene PASS, error handling 
 ```
 
 Also applies in C# string interpolation and ternary expressions:
+
 ```csharp
 $"btn btn-danger {extraClasses}"
 _active ? "btn btn-primary" : "btn btn-secondary"
 ```
 
 **Rationale:**
+
 - Eliminates CSS duplication across 4+ variant classes
 - Enforces consistent button appearance
 - Fixes semantic mismatch (warning was red, identical to danger)
 - Resolves undefined `.btn-danger` runtime issue
 
 **Verification:**
+
 - Full test suite: 1,595 tests, 1,557 passed (38 pre-existing infrastructure failures unrelated to CSS changes)
 - No regressions introduced
 
 **Scribe Note:** Merged from decision inbox file `legolas-btn-consolidation.md`
-
 
 ---
 
@@ -1705,6 +1886,7 @@ _active ? "btn btn-primary" : "btn btn-secondary"
 **Why:** Single-worktree workflow caused recurring `.squad/` files bleeding into `feature/*` branches, context-switching overhead, and inability to run parallel sprint branches without interference.
 
 **Layout:**
+
 ```
 ~/Repos/
 ├── IssueTrackerApp/            ← main worktree  (stays on main)
@@ -1715,6 +1897,7 @@ _active ? "btn btn-primary" : "btn btn-secondary"
 **Trigger phrases:** "use worktrees", "use a worktree", "isolate in a worktree", "set up a sprint worktree", or automatically when ≥2 squad branches are active.
 
 **Rules:**
+
 - Main worktree stays on `main` — never used for active squad branch work
 - Scribe worktree: only `.squad/` commits — no source code changes
 - Sprint worktrees: one per active squad branch
@@ -1722,6 +1905,7 @@ _active ? "btn btn-primary" : "btn btn-secondary"
 - Pre-push hook enforced in every worktree
 
 **Setup:**
+
 ```bash
 git worktree add ../IssueTrackerApp-scribe squad/scribe-log-updates
 git worktree add ../IssueTrackerApp-sprint -b squad/{issue-number}-{slug}
@@ -1741,6 +1925,7 @@ git worktree remove ../IssueTrackerApp-sprint  # after merge
 **Problem:** Current `release-process/SKILL.md` is hardcoded for BlazorWebFormsComponents (repository names, workflows, NBGV versioning, package names, registries). Cannot reuse on IssueTrackerApp or other projects without manual editing.
 
 **Decision:** Refactor into two-layer architecture:
+
 - **Layer 1 (Generic):** `.squad/skills/release-process-base/SKILL.md` — Framework-agnostic patterns, decision trees, role boundaries (100% reusable, zero project-specific values)
 - **Layer 2 (Project-Specific):** `.squad/playbooks/{project-name}/release.md` — Concrete parameters (branch names, secrets, workflows, package ID, registries), inferred from repo state or `.release-config.json`
 
@@ -1856,6 +2041,7 @@ Replaced the content of `.squad/skills/release-process/SKILL.md` with a concise 
 ---
 
 **Related Files:**
+
 - `.squad/skills/release-process-base/SKILL.md` — generic patterns (already exists)
 - `.squad/playbooks/release-issuetracker.md` — IssueTrackerApp playbook (already exists)
 
@@ -1872,18 +2058,21 @@ Replaced the content of `.squad/skills/release-process/SKILL.md` with a concise 
 ### Proposal
 
 Implement a two-branch release model:
+
 - **dev**: Active development branch — all feature/squad branches merge via **squash merge**
 - **main**: Release-only branch — dev merges into main via **merge commit**, then tag + GitHub Release
 
 ### Current State
 
 Repository already operates a **multi-branch model**:
+
 - main — protected, squash-only merge
 - preview — staging, manually promoted from dev
 - insider — canary, auto-promoted on push
 - squad/* — feature branches (current integration point: PR to main)
 
 **Key infrastructure already in place:**
+
 - squad-promote.yml workflow (dev → preview → main promotions)
 - .squad/ path stripping on preview merge (forbidden paths never reach main)
 - Tag-based release flow (squad-release.yml triggers on v*.*.*)
@@ -1894,30 +2083,33 @@ Repository already operates a **multi-branch model**:
 **No Workflow Rewrites Needed** — Existing infrastructure supports this model.
 
 **Pre-Push Hook Gate 0: One-Line Change**
+
 - Current: blocks main only
 - Required: block both dev and main
 
 **.squad/ Path Guard Already Correct** — Already strips on dev → preview merge.
 
 **Documentation Updates Required** (CONTRIBUTING.md):
+
 1. Line 101 — Branch naming section
 2. Line 120 — Create branch section (from dev, not main)
 3. Line 431 — PR process section (target dev)
 4. New section — Add release flow documentation
 
 **GitHub Branch Protection Configuration** (admin task):
+
 - Protect dev branch with same rules as main
 - Require status checks, squash-only merges, auto-delete head branches
 
 ### Risk Assessment
 
-| Risk | Severity | Mitigation |
-|------|----------|-----------|
-| Gate 0 pre-push hook not updated | Medium | One-line change |
-| dev branch not protected | Medium | Admin configures |
-| Dependabot bypasses dev | Low | Verify config |
-| Release tagged from dev | Low | Enforce discipline |
-| Documentation out of date | Low | Update CONTRIBUTING.md |
+| Risk                             | Severity | Mitigation             |
+| -------------------------------- | -------- | ---------------------- |
+| Gate 0 pre-push hook not updated | Medium   | One-line change        |
+| dev branch not protected         | Medium   | Admin configures       |
+| Dependabot bypasses dev          | Low      | Verify config          |
+| Release tagged from dev          | Low      | Enforce discipline     |
+| Documentation out of date        | Low      | Update CONTRIBUTING.md |
 
 ### Verdict
 
@@ -1979,15 +2171,15 @@ Reviewed 8 documentation files and 22 GitHub workflows to assess dev/main branch
 
 ### Impact Classification
 
-| Metric | Assessment |
-|--------|-----------|
-| Severity | MODERATE |
-| Files to update | 4 primary; 1 optional |
-| Workflow updates | 1 (squad-test.yml) |
-| Breaking changes | None |
+| Metric           | Assessment                           |
+| ---------------- | ------------------------------------ |
+| Severity         | MODERATE                             |
+| Files to update  | 4 primary; 1 optional                |
+| Workflow updates | 1 (squad-test.yml)                   |
+| Breaking changes | None                                 |
 | Estimated effort | 3–4 hours (docs) + 15 min (workflow) |
-| Risk | Low |
-| Recommendation | **PROCEED** with dev/main model |
+| Risk             | Low                                  |
+| Recommendation   | **PROCEED** with dev/main model      |
 
 ### Implementation Roadmap
 
@@ -2000,7 +2192,6 @@ Reviewed 8 documentation files and 22 GitHub workflows to assess dev/main branch
 Dev/main branch model is documentation-feasible. Overhead is moderate and manageable.
 
 **Source:** .squad/decisions/inbox/frodo-dev-main-docs-audit.md (merged 2026-04-12)
-
 
 ---
 
@@ -2017,16 +2208,17 @@ Recommend adopting the two-branch model (dev + main), deferring the preview tier
 
 ### Model
 
-| Branch | Purpose | Merge Strategy | Protection |
-|--------|---------|----------------|------------|
-| dev | Integration — all squad/* branches land here | Squash merge | PR-only, CI required |
-| main | Releases — tagged, published, production-ready | Merge commit (from dev) | PR-only, CI required |
+| Branch | Purpose                                        | Merge Strategy          | Protection           |
+| ------ | ---------------------------------------------- | ----------------------- | -------------------- |
+| dev    | Integration — all squad/* branches land here   | Squash merge            | PR-only, CI required |
+| main   | Releases — tagged, published, production-ready | Merge commit (from dev) | PR-only, CI required |
 
 Flow: squad/{issue}-{slug} → PR → dev (squash) → release PR → main (merge commit) → git tag v*.*.* → GitHub Release
 
 ### Evidence Summary
 
 Already Built (no changes needed):
+
 - squad-ci.yml — Multi-branch (PR: dev, preview, main, insider; Push: dev, insider)
 - squad-release.yml — Tag-based (v*.*.* branch-agnostic)
 - squad-promote.yml — Promotion pipeline (dev→preview→main with .squad/ stripping)
@@ -2035,6 +2227,7 @@ Already Built (no changes needed):
 - Release-only workflows — Main-only (blog-readme-sync, static, sync-readme)
 
 Requires Changes:
+
 - Create dev branch (1 min)
 - GitVersion.yml: Add dev config, add dev to feature source-branches (10 min)
 - .github/hooks/pre-push: Gate 0 blocks dev AND main (2 min)
@@ -2064,6 +2257,7 @@ Total estimated effort: ~2 hours (implementation + testing)
 Proceed with implementation in two phases:
 
 Phase 1 — Infrastructure (P0, ~30 min):
+
 - Create dev branch
 - Update GitVersion.yml
 - Update pre-push hook Gate 0
@@ -2071,6 +2265,7 @@ Phase 1 — Infrastructure (P0, ~30 min):
 - Configure GitHub branch protection for dev
 
 Phase 2 — Documentation & Polish (P1, ~1.5 hours):
+
 - Update CONTRIBUTING.md
 - Update docs/New Work process.md
 - Fix squad-promote.yml
@@ -2098,6 +2293,7 @@ Phase 2 — Documentation & Polish (P1, ~1.5 hours):
 ### Root Cause
 
 Frodo's fixes exist in local commits but were **not pushed** to PR remote. Indicates either:
+
 1. Local branch tracking failure
 2. Incomplete handoff / push process
 3. Branch reset after commits
@@ -2109,6 +2305,7 @@ Frodo's fixes exist in local commits but were **not pushed** to PR remote. Indic
 **Agent Lockout Rationale:** Gandalf and Frodo locked out this cycle to prevent overlapping fix attempts. Sam owns next iteration with full authority to investigate branch state, re-apply fixes if needed, and push clean revision.
 
 **Blocker Specification for Sam:**
+
 1. Typo: Rename folder/metadata `implemet-...` → `implement-...`
 2. Auth0 Scopes: Document `update:users` required for role assignment (not `update:roles`)
 3. Namespace: Standardize `YourApp.*` placeholder with customization guidance
@@ -2217,6 +2414,7 @@ navigation only.
 ### Requirement
 
 Before merge, either:
+
 1. Apply the retry helper to `InteractWithRolePageAsync`, or
 2. Explicitly scope PR #272 to theme navigation only, deferring auth bootstrap stabilization
 
