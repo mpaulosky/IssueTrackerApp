@@ -4,16 +4,16 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Aspire -->
-    <PackageVersion Include="Aspire.MongoDB.Driver" Version="13.3.3" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.3.3" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.3.3" />
+    <PackageVersion Include="Aspire.MongoDB.Driver" Version="13.4.2" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.4.2" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.2" />
     <!-- MongoDB -->
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.8" />
-    <PackageVersion Include="MongoDB.Bson" Version="3.8.1" />
-    <PackageVersion Include="MongoDB.Driver" Version="3.8.1" />
-    <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="10.0.1" />
+    <PackageVersion Include="MongoDB.Bson" Version="3.9.0" />
+    <PackageVersion Include="MongoDB.Driver" Version="3.9.0" />
+    <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="10.0.2" />
     <!-- Azure Key Vault -->
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
@@ -26,7 +26,7 @@
     <PackageVersion Include="FluentValidation.TestHelper" Version="11.11.0" />
     <!-- Authentication -->
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.7.0" />
-    <PackageVersion Include="Auth0.ManagementApi" Version="8.3.0" />
+    <PackageVersion Include="Auth0.ManagementApi" Version="8.4.0" />
     <!-- Email -->
     <PackageVersion Include="SendGrid" Version="9.29.3" />
     <!-- Microsoft Extensions -->
@@ -39,16 +39,16 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
     <!-- Testing -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="FluentAssertions" Version="8.10.0" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="bUnit" Version="2.7.2" />
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
-    <PackageVersion Include="coverlet.collector" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Playwright" Version="1.59.0" />
-    <PackageVersion Include="Testcontainers.MongoDb" Version="4.11.0" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.60.0" />
+    <PackageVersion Include="Testcontainers.MongoDb" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.Azurite" Version="4.11.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
     <!-- Aspire ServiceDefaults Dependencies -->

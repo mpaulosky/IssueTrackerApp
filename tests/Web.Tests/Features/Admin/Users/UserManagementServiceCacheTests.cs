@@ -20,6 +20,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
 using Web.Features.Admin.Users;
+using Web.Services;
 
 namespace Web.Tests.Features.Admin.Users;
 
@@ -34,6 +35,13 @@ namespace Web.Tests.Features.Admin.Users;
 /// </summary>
 public sealed class UserManagementServiceCacheTests
 {
+	private static DistributedCacheHelper CreateCacheHelper(IDistributedCache distributedCache)
+	{
+		return new DistributedCacheHelper(
+			distributedCache,
+			Substitute.For<ILogger<DistributedCacheHelper>>());
+	}
+
 	// ──────────────────────────────────────────────────────────────────────────
 	// Infrastructure
 	// ──────────────────────────────────────────────────────────────────────────
@@ -49,9 +57,11 @@ public sealed class UserManagementServiceCacheTests
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var client           = managementApiClient ?? Substitute.For<IManagementApiClient>();
 		var logger           = Substitute.For<ILogger<UserManagementService>>();
+		var cacheHelper      = CreateCacheHelper(distributedCache);
 
 		var sut = new UserManagementService(
 			memoryCache,
+			cacheHelper,
 			distributedCache,
 			client,
 			logger);
@@ -228,6 +238,7 @@ public sealed class UserManagementServiceCacheTests
 
 		var sut = new UserManagementService(
 			memoryCache,
+			CreateCacheHelper(distributedCache),
 			distributedCache,
 			managementClient,
 			logger);
@@ -290,6 +301,7 @@ public sealed class UserManagementServiceCacheTests
 
 		var sut = new UserManagementService(
 			memoryCache,
+			CreateCacheHelper(distributedCache),
 			distributedCache,
 			Substitute.For<IManagementApiClient>(),
 			Substitute.For<ILogger<UserManagementService>>());
@@ -352,7 +364,9 @@ public sealed class UserManagementServiceCacheTests
 			.Returns(Task.FromResult<byte[]?>(null));
 
 		var sut = new UserManagementService(
-			memoryCache, distributedCache,
+			memoryCache,
+			CreateCacheHelper(distributedCache),
+			distributedCache,
 			Substitute.For<IManagementApiClient>(),
 			Substitute.For<ILogger<UserManagementService>>());
 
@@ -382,7 +396,9 @@ public sealed class UserManagementServiceCacheTests
 
 		// Empty roles list short-circuits before eviction — no throw expected.
 		var sut = new UserManagementService(
-			memoryCache, distributedCache,
+			memoryCache,
+			CreateCacheHelper(distributedCache),
+			distributedCache,
 			Substitute.For<IManagementApiClient>(),
 			Substitute.For<ILogger<UserManagementService>>());
 
@@ -403,6 +419,7 @@ public sealed class UserManagementServiceCacheTests
 
 		var sut = new UserManagementService(
 			new MemoryCache(new MemoryCacheOptions()),
+			CreateCacheHelper(distributedCache),
 			distributedCache,
 			Substitute.For<IManagementApiClient>(),
 			Substitute.For<ILogger<UserManagementService>>());

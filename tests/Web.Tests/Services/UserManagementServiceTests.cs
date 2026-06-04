@@ -19,6 +19,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
 using Web.Features.Admin.Users;
+using Web.Services;
 
 namespace Web.Tests.Services;
 
@@ -44,9 +45,16 @@ public sealed class UserManagementServiceTests
 		IManagementApiClient? managementApiClient = null,
 		ILogger<UserManagementService>? logger = null)
 	{
+		var memoryCache = cache ?? new MemoryCache(new MemoryCacheOptions());
+		var resolvedDistributedCache = distributedCache ?? Substitute.For<IDistributedCache>();
+		var cacheHelper = new DistributedCacheHelper(
+			resolvedDistributedCache,
+			Substitute.For<ILogger<DistributedCacheHelper>>());
+
 		return new UserManagementService(
-			cache ?? new MemoryCache(new MemoryCacheOptions()),
-			distributedCache ?? Substitute.For<IDistributedCache>(),
+			memoryCache,
+			cacheHelper,
+			resolvedDistributedCache,
 			managementApiClient ?? Substitute.For<IManagementApiClient>(),
 			logger ?? Substitute.For<ILogger<UserManagementService>>());
 	}

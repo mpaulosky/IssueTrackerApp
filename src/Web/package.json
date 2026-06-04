@@ -14,9 +14,9 @@
   "author": "mpaulosky",
   "license": "MIT",
   "devDependencies": {
-    "@tailwindcss/cli": "^4.2.1",
-    "autoprefixer": "^10.4.27",
-    "postcss": "^8.5.13",
-    "tailwindcss": "^4.2.1"
+    "@tailwindcss/cli": "^4.3.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0"
   }
 }
