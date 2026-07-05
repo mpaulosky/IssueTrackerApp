@@ -1,6 +1,7 @@
 # Web Service Unit Tests - Status Report
 
 ## Overview
+
 This document explains the status of unit tests for Web layer services.
 
 ## Services Identified
@@ -12,6 +13,7 @@ Three service classes exist in `src/Web/Services/`:
 3. **AttachmentService** - File attachment operations facade
 
 All three services are facade/adapter patterns that:
+
 - Wrap MediatR calls for command/query dispatch
 - Handle real-time notifications (SignalR) on successful operations
 - Follow CQRS patterns established in the Domain layer
@@ -54,9 +56,11 @@ Tests were created in `tests/Web.Tests/Services/`:
 ## Dependencies Updated
 
 Added to `tests/Web.Tests/Web.Tests.csproj`:
+
 - NSubstitute package reference
 
 Added to `tests/Web.Tests/GlobalUsings.cs`:
+
 - Domain abstractions and DTOs
 - MediatR types
 - Logging types
@@ -65,6 +69,7 @@ Added to `tests/Web.Tests/GlobalUsings.cs`:
 ## Build Status
 
 **Note**: The Web project currently has pre-existing build errors unrelated to these tests:
+
 - `WithOpenApi` extension method errors in Endpoints
 - `FirstOrDefaultAsync` extension method errors
 
@@ -73,10 +78,12 @@ These errors prevent the Web.Tests project from building. Once the Web project b
 ## Test Verification
 
 The tests follow established patterns from Domain.Tests and use the same:
+
 - Testing frameworks (xUnit, FluentAssertions, NSubstitute)
 - Code organization (regions for test groups)
 - Helper methods for creating test DTOs
 - Async/await patterns
 
 ## Date Created
+
 Created as part of Sprint 5, Task 9 (s5-9-web-services)

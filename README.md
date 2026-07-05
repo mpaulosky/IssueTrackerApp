@@ -86,7 +86,7 @@ IssueTrackerApp is a full-stack web application for managing issues and tracking
 
 ## Project Structure
 
-```
+```text
 IssueTrackerApp/
 ├── src/
 │   ├── AppHost/                  # .NET Aspire orchestration

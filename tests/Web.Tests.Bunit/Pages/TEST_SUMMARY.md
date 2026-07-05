@@ -1,9 +1,11 @@
 # bUnit Page Component Tests Summary
 
 ## File Created
+
 **Path:** `tests/Web.Tests.Bunit/Pages/GeneralPageTests.cs`
 
 ## Overview
+
 Comprehensive bUnit test suite for all four page components in the IssueTrackerApp. Tests cover authentication states, content rendering, error handling, and accessibility for both authenticated and anonymous users.
 
 ---
@@ -11,9 +13,11 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 ## Test Classes & Coverage
 
 ### 1. **DashboardPageTests** (8 tests)
+
 **Component:** `Dashboard.razor` - User-specific dashboard page
 
-#### Test Cases:
+#### Test Cases
+
 - ✅ `Dashboard_RequiresAuthentication()` - Verifies dashboard access restrictions
 - ✅ `Dashboard_WhenAuthenticated_InitializesWithUserContext()` - Tests user context initialization
 - ✅ `Dashboard_DisplaysStatistics()` - Validates stat cards (Total, Open, Resolved, ThisWeek)
@@ -22,7 +26,8 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 - ✅ `Dashboard_HandlesDashboardServiceError()` - Tests error handling
 - ✅ `Dashboard_DisplaysEmptyStateWhenNoRecentIssues()` - Tests empty state UI
 
-#### Test Approach:
+#### Test Approach
+
 - Sets up authenticated user with custom userId and userName
 - Mocks `DashboardService.GetUserDashboardAsync()`
 - Creates test `UserDashboardDto` with configurable statistics
@@ -32,15 +37,18 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 ---
 
 ### 2. **HomePageTests** (4 tests)
+
 **Component:** `Home.razor` - Public landing page
 
-#### Test Cases:
+#### Test Cases
+
 - ✅ `Home_RendersForAnonymousUser()` - Tests rendering without authentication
 - ✅ `Home_RendersForAuthenticatedUser()` - Tests rendering with authentication
 - ✅ `Home_DisplaysWelcomeMessage()` - Validates welcome content
 - ✅ `Home_IsPublicAndDoesNotRequireAuthentication()` - Confirms public accessibility
 
-#### Test Approach:
+#### Test Approach
+
 - Tests both `SetupAnonymousUser()` and `SetupAuthenticatedUser()` paths
 - Validates "Hello, world!" and "Welcome" messages
 - Ensures component renders identically for both user types
@@ -49,9 +57,11 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 ---
 
 ### 3. **ErrorPageTests** (6 tests)
+
 **Component:** `Error.razor` - Error boundary display page
 
-#### Test Cases:
+#### Test Cases
+
 - ✅ `Error_RendersErrorPage()` - Tests basic error page rendering
 - ✅ `Error_DisplaysErrorHeading()` - Validates "Error" heading presence
 - ✅ `Error_RendersWithoutRequiringServices()` - Tests with minimal setup
@@ -59,7 +69,8 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 - ✅ `Error_WorksForAuthenticatedAndAnonymousUsers()` - Tests both user types
 - ✅ `Error_RendersErrorLayout()` - Validates page structure and node count
 
-#### Test Approach:
+#### Test Approach
+
 - Tests error page accessibility for both authenticated and anonymous users
 - Validates HTML structure with `FindAll()` to check for headings
 - Verifies `cut.Nodes.Count > 0` for proper markup rendering
@@ -68,9 +79,11 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 ---
 
 ### 4. **NotFoundPageTests** (8 tests)
+
 **Component:** `NotFound.razor` - 404 Not Found page
 
-#### Test Cases:
+#### Test Cases
+
 - ✅ `NotFound_Renders404Page()` - Tests basic 404 page rendering
 - ✅ `NotFound_DisplaysNotFoundMessage()` - Validates "Not Found" text
 - ✅ `NotFound_DisplaysHelpfulText()` - Tests error message ("does not exist")
@@ -80,7 +93,8 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 - ✅ `NotFound_ContainsProperHeading()` - Validates heading elements (h1-h4)
 - ✅ `NotFound_HasCorrectPageStructure()` - Validates DOM structure
 
-#### Test Approach:
+#### Test Approach
+
 - Tests accessibility for both user types
 - Validates specific text content in markup
 - Uses `FindAll()` to verify heading elements exist
@@ -91,6 +105,7 @@ Comprehensive bUnit test suite for all four page components in the IssueTrackerA
 ## Testing Techniques Used
 
 ### Authentication Setup
+
 ```csharp
 // Anonymous user (public pages)
 SetupAnonymousUser();
@@ -100,6 +115,7 @@ SetupAuthenticatedUser(userId: "user123", userName: "John Doe");
 ```
 
 ### Service Mocking
+
 ```csharp
 DashboardService.GetUserDashboardAsync(userId)
     .Returns(Result.Ok(dashboard));
@@ -109,6 +125,7 @@ DashboardService.Received(1).GetUserDashboardAsync(userId);
 ```
 
 ### Component Rendering
+
 ```csharp
 // Render component
 var cut = Render<Dashboard>();
@@ -123,6 +140,7 @@ cut.Nodes.Count.Should().BeGreaterThan(0);
 ```
 
 ### Assertion Patterns
+
 ```csharp
 // Content assertions
 markup.Should().Contain("text");
@@ -139,6 +157,7 @@ cut.Markup.Should().NotBeNull();
 ---
 
 ## Test Statistics
+
 | Component | Test Count | Coverage |
 |-----------|-----------|----------|
 | Dashboard | 8 | Auth, Stats, Data, Errors, Empty State |
@@ -150,6 +169,7 @@ cut.Markup.Should().NotBeNull();
 ---
 
 ## Dependencies
+
 - **xUnit** - Test framework
 - **bUnit** - Blazor component testing library
 - **FluentAssertions** - Fluent assertion syntax
@@ -159,6 +179,7 @@ cut.Markup.Should().NotBeNull();
 ---
 
 ## Test Execution
+
 ```bash
 # Run all page component tests
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --filter "Name~GeneralPageTests"
@@ -186,6 +207,7 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --filter "FullyQualifie
 ---
 
 ## Next Steps
+
 1. Run tests: `dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --filter "*GeneralPageTests*"`
 2. Fix any failing tests by adjusting assertions to match actual component output
 3. Consider adding integration tests for cross-page navigation scenarios

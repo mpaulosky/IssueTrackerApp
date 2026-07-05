@@ -35,6 +35,7 @@ dotnet user-secrets set "Auth0:ClientSecret" "your-client-secret"
 ### Production Configuration
 
 In production environments, use:
+
 - Azure Key Vault
 - Environment variables
 - Secure configuration providers
@@ -46,6 +47,7 @@ In production environments, use:
 ### Roles
 
 The application defines two roles:
+
 - **Admin**: Full access to all features including admin dashboard
 - **User**: Standard access to user features
 
@@ -54,6 +56,7 @@ These roles must be configured in your Auth0 tenant and assigned to users.
 ### Policies
 
 Two authorization policies are defined:
+
 - **AdminPolicy**: Requires the Admin role
 - **UserPolicy**: Requires the User role
 

@@ -102,13 +102,13 @@ All work **must** happen on a dedicated branch. Direct pushes to `main` and `dev
 
 Use the squad branch convention:
 
-```
+```text
 squad/{issue-number}-{kebab-case-slug}
 ```
 
 Examples:
 
-```
+```text
 squad/42-fix-login-validation
 squad/112-contributing-pre-push-docs
 squad/87-add-comment-pagination
@@ -147,7 +147,7 @@ When you run `git push`, a Bash hook fires and runs four sequential gates before
 
 The hook lives at `.git/hooks/pre-push` (installed from `.github/hooks/pre-push` via `scripts/install-hooks.sh`).
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │  git push → pre-push hook                                           │
 │                                                                     │
@@ -342,6 +342,7 @@ dotnet tool run reportgenerator \
 Then open `coverage-report/index.html` in your browser.
 
 > If `dotnet tool run reportgenerator` fails, install it globally first:
+>
 > ```bash
 > dotnet tool install -g dotnet-reportgenerator-globaltool
 > ```
@@ -366,13 +367,13 @@ Test projects themselves, generated code, and `obj/` directories are excluded au
 
 The `Coverage Analysis` CI job reads `Summary.json` produced by ReportGenerator and compares `linecoverage` against `80`. If the value is below 80, the job exits with an error and the PR cannot be merged:
 
-```
+```text
 ::error::Code coverage is below 80% threshold: 74.3% (required: 80%)
 ```
 
 When coverage passes the gate you will see:
 
-```
+```text
 ::notice::Coverage gate passed: 83.1% >= 80%
 ```
 
@@ -448,13 +449,13 @@ All `public` types and members require a `<summary>` XML doc comment:
 
 2. **Open a PR** targeting `dev`. Reference the issue in the body:
 
-   ```
+   ```text
    Closes #{issue-number}
    ```
 
 3. **If you worked as a squad member**, note it in the PR description:
 
-   ```
+   ```text
    Working as Frodo (Tech Writer)
    ```
 
@@ -501,9 +502,11 @@ AppHost.Tests boots the full Aspire stack. If the app does not become healthy wi
 Playwright E2E tests run against a live Aspire application and can exhibit timing-related failures when the full suite runs in parallel. A test that fails on one run may pass on the next. If you see a single test failure in AppHost.Tests:
 
 1. Re-run the test project in isolation to confirm it passes:
+
    ```bash
    dotnet test tests/AppHost.Tests/AppHost.Tests.csproj --configuration Release --no-build
    ```
+
 2. If the same test fails consistently in isolation (not just in the full suite), investigate the failure — it likely points to a real regression.
 3. If the test only fails in the full suite run, it is a known flakiness issue. Re-run AppHost.Tests once more. If it passes, proceed with your push.
 4. If you cannot get AppHost.Tests to pass after three full-suite runs, open a draft PR, tag it `squad:pippin`, and ask for help — do not push a broken suite.

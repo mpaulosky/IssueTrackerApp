@@ -80,11 +80,11 @@ Ralph checks all gates before spawning reviewers:
    discretionary
 2. **Ralph spawns parallel domain reviewers** — Aragorn always reviews; relevant
    specialists (Legolas, Gimli, etc.) review their domain
-2. Reviewers post verdicts via GitHub PR review (`--approve` or
+3. Reviewers post verdicts via GitHub PR review (`--approve` or
    `--request-changes`)
-3. If **CHANGES_REQUESTED**: PR author is locked out; a *different* squad member
+4. If **CHANGES_REQUESTED**: PR author is locked out; a *different* squad member
    fixes and pushes to the same branch — then re-review begins
-4. **Unanimous approval + CI green** → Ralph squash-merges into `dev` and deletes the branch:
+5. **Unanimous approval + CI green** → Ralph squash-merges into `dev` and deletes the branch:
 
    ```bash
    gh pr merge {N} --squash --delete-branch
@@ -103,7 +103,7 @@ Ralph checks all gates before spawning reviewers:
    docs: rewrite New Work process to reflect squad ceremonies (Closes #215)
    ```
 
-5. Ralph runs **Post-Merge Orphan Branch Cleanup** ceremony automatically —
+6. Ralph runs **Post-Merge Orphan Branch Cleanup** ceremony automatically —
    removes stale local and remote `squad/*` refs and the sprint worktree
 
 ---
@@ -138,7 +138,7 @@ blog-only
   └─ squad:bilbo brief issue created directly
 ```
 
-5. **Bilbo** picks up the brief, writes the blog post, and adds a row to
+1. **Bilbo** picks up the brief, writes the blog post, and adds a row to
    `docs/blog/index.md`
-6. `blog-readme-sync.yml` detects the index change and auto-updates the
+2. `blog-readme-sync.yml` detects the index change and auto-updates the
    **README Dev Blog section** — no manual README edit needed

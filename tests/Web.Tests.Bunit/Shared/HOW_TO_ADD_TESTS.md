@@ -1,6 +1,7 @@
 # How to Add More Tests for Shared Components
 
 ## Overview
+
 This guide shows how to add additional tests to the SharedComponentTests.cs file following the established patterns.
 
 ---
@@ -8,9 +9,11 @@ This guide shows how to add additional tests to the SharedComponentTests.cs file
 ## Adding Tests to an Existing Component
 
 ### Step 1: Locate the Test Class
+
 Find the appropriate test class in SharedComponentTests.cs, e.g., `PaginationTests`.
 
 ### Step 2: Add New Test Method
+
 Follow the naming convention: `ComponentName_Scenario_ExpectedResult`
 
 ```csharp
@@ -35,6 +38,7 @@ public void Pagination_WithLargePageCount_ShowsEllipsis()
 ### Step 3: Common Test Patterns
 
 #### Testing Async Actions
+
 ```csharp
 [Fact]
 public async Task Component_AsyncAction_InvokesCallback()
@@ -53,6 +57,7 @@ public async Task Component_AsyncAction_InvokesCallback()
 ```
 
 #### Testing with Multiple Clicks
+
 ```csharp
 [Fact]
 public async Task Component_MultipleClicks_UpdatesCounter()
@@ -74,6 +79,7 @@ public async Task Component_MultipleClicks_UpdatesCounter()
 ```
 
 #### Testing Element Collections
+
 ```csharp
 [Fact]
 public void Component_WithMultipleItems_RendersAll()
@@ -89,6 +95,7 @@ public void Component_WithMultipleItems_RendersAll()
 ```
 
 #### Testing Component Parameter Updates
+
 ```csharp
 [Fact]
 public async Task Component_ParameterUpdate_ReRendersCorrectly()
@@ -111,6 +118,7 @@ public async Task Component_ParameterUpdate_ReRendersCorrectly()
 ## Adding Tests for a New Component
 
 ### Step 1: Create Test Class
+
 Add a new test class at the end of SharedComponentTests.cs:
 
 ```csharp
@@ -132,6 +140,7 @@ public class NewComponentTests : BunitTestBase
 ```
 
 ### Step 2: Add Core Tests
+
 Start with basic rendering tests, then add parameter and callback tests:
 
 ```csharp
@@ -171,6 +180,7 @@ public async Task NewComponent_ClickButton_InvokesCallback()
 ```
 
 ### Step 3: Add Edge Case Tests
+
 Test null values, empty collections, boundary conditions:
 
 ```csharp
@@ -198,6 +208,7 @@ public void NewComponent_WithEmptyList_ShowsMessage()
 ## Using Test Data Helpers
 
 ### From BunitTestBase
+
 ```csharp
 // Create test data
 var issue = CreateTestIssue(title: "Custom Title");
@@ -214,6 +225,7 @@ var cut = Render<Component>(p => p
 ```
 
 ### Create Custom Helpers if Needed
+
 ```csharp
 private static List<StatusDto> CreateTestStatuses()
 {
@@ -236,6 +248,7 @@ var cut = Render<FilterPanel>(p => p
 ## Advanced Testing Scenarios
 
 ### Testing JavaScript Interop
+
 ```csharp
 [Fact]
 public async Task Component_WithJSInterop_CallsJS()
@@ -255,6 +268,7 @@ public async Task Component_WithJSInterop_CallsJS()
 ```
 
 ### Testing with Service Calls
+
 ```csharp
 [Fact]
 public async Task Component_LoadsData_DisplaysResults()
@@ -275,6 +289,7 @@ public async Task Component_LoadsData_DisplaysResults()
 ```
 
 ### Testing Authorization
+
 ```csharp
 [Fact]
 public void Component_WithoutAuth_HidesContent()
@@ -302,6 +317,7 @@ public void Component_WithAdminAuth_ShowsAdminOptions()
 ## Best Practices for New Tests
 
 ### ✅ Do
+
 - Use descriptive test names
 - Follow AAA pattern
 - Test one thing per test
@@ -311,6 +327,7 @@ public void Component_WithAdminAuth_ShowsAdminOptions()
 - Use FluentAssertions
 
 ### ❌ Don't
+
 - Test multiple scenarios in one test
 - Create test dependencies
 - Use magic numbers/strings
@@ -376,11 +393,13 @@ public class [ComponentName]Tests : BunitTestBase
 ## Debugging Tests
 
 ### Print Markup
+
 ```csharp
 System.Diagnostics.Debug.WriteLine(cut.Markup);
 ```
 
 ### Print Element Info
+
 ```csharp
 var element = cut.Find("selector");
 System.Diagnostics.Debug.WriteLine($"Class: {element.GetAttribute("class")}");
@@ -388,11 +407,13 @@ System.Diagnostics.Debug.WriteLine($"Content: {element.TextContent}");
 ```
 
 ### Breakpoints
+
 - Set breakpoints in test method
 - Use Debug mode to inspect state
 - Check variable values
 
 ### Inspect Rendered HTML
+
 ```csharp
 // Save markup to file for inspection
 File.WriteAllText("output.html", cut.Markup);

@@ -1,6 +1,7 @@
 # Issue Component Tests - Complete Test Case List
 
 ## Test Statistics
+
 - **Total Test Classes**: 9
 - **Total Test Methods**: 75
 - **File Size**: 28.83 KB (966 lines)
@@ -9,6 +10,7 @@
 ## Test Cases by Component
 
 ### 1. AttachmentCardTests (6 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | AttachmentCard_WithImageAttachment_DisplaysImage | Verify image attachment displays thumbnail |
@@ -19,6 +21,7 @@
 | 6 | AttachmentCard_DisplaysFileInfo | Verify metadata (size, date, uploader) displays |
 
 ### 2. AttachmentListTests (6 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | AttachmentList_WithEmptyList_ShowsEmptyState | Verify empty state UI with no attachments |
@@ -29,6 +32,7 @@
 | 6 | AttachmentList_NonOwnerCannotDeleteAttachment | Verify non-owner cannot delete attachment |
 
 ### 3. CommentsSectionTests (6 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | CommentsSection_InitiallyLoading_ShowsLoadingSpinner | Verify loading spinner during async load |
@@ -39,6 +43,7 @@
 | 6 | CommentsSection_CommentDisplaysTitle | Verify comment title displays |
 
 ### 4. BulkActionToolbarTests (5 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | BulkActionToolbar_WithoutSelection_IsHidden | Verify toolbar hidden when no items selected |
@@ -48,6 +53,7 @@
 | 5 | BulkActionToolbar_DeleteButtonVisible_OnlyForAdmin | Verify delete button only visible to admins |
 
 ### 5. BulkConfirmationModalTests (7 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | BulkConfirmationModal_WhenNotVisible_IsHidden | Verify modal hidden when not visible |
@@ -59,6 +65,7 @@
 | 7 | BulkConfirmationModal_AffectedCountDisplay_ShowsCorrectPluralization | Verify singular/plural text |
 
 ### 6. BulkProgressIndicatorTests (7 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | BulkProgressIndicator_WhenNotVisible_IsHidden | Verify progress indicator hidden when not visible |
@@ -70,6 +77,7 @@
 | 7 | BulkProgressIndicator_Complete_ShowsCloseButton | Verify close button shows on completion |
 
 ### 7. IssueMultiSelectTests (6 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | IssueMultiSelect_SingleIssue_RendersCheckbox | Verify checkbox renders for single issue |
@@ -79,6 +87,7 @@
 | 5 | IssueMultiSelect_SelectAll_WithMultipleIssues | Verify select-all works with multiple issues |
 
 ### 8. UndoToastTests (7 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | UndoToast_WhenNotVisible_IsHidden | Verify toast hidden when not visible |
@@ -90,6 +99,7 @@
 | 7 | UndoToast_CustomCountdown_DisplaysCorrectTime | Verify custom countdown value displays |
 
 ### 9. IssueComponentIntegrationTests (2 tests)
+
 | # | Test Name | Purpose |
 |---|-----------|---------|
 | 1 | CommentsSection_WithComments_DisplaysMultiple | Integration: comments display correctly |
@@ -98,12 +108,14 @@
 ## Test Scenarios Covered
 
 ### Rendering Tests (All Components)
+
 - ✅ Initial component rendering
 - ✅ Parameter binding
 - ✅ CSS class application
 - ✅ Conditional rendering
 
 ### State Tests
+
 - ✅ Loading states
 - ✅ Empty states
 - ✅ Error states
@@ -111,23 +123,27 @@
 - ✅ Processing states
 
 ### Visibility Tests
+
 - ✅ Show/hide logic
 - ✅ Conditional button display
 - ✅ Permission-based visibility
 - ✅ State-dependent visibility
 
 ### Data Display Tests
+
 - ✅ Text content rendering
 - ✅ Metadata display
 - ✅ Lists and arrays
 - ✅ Singular/plural handling
 
 ### Permission Tests
+
 - ✅ Admin-only features
 - ✅ Owner-only actions
 - ✅ User authorization levels
 
 ### UI/UX Tests
+
 - ✅ Icon rendering
 - ✅ Loading animations
 - ✅ Error messages
@@ -136,6 +152,7 @@
 - ✅ Progress bars
 
 ### Event/Callback Tests
+
 - ✅ Delete callbacks
 - ✅ Status change events
 - ✅ Category change events
@@ -159,6 +176,7 @@
 ## Dependencies and Setup
 
 ### Required NuGet Packages
+
 - xunit - Test framework
 - FluentAssertions - Assertion library
 - NSubstitute - Mock framework
@@ -166,11 +184,13 @@
 - Bunit.TestDoubles - bUnit helpers
 
 ### Test Infrastructure
+
 - BunitTestBase - Provides mocked services
 - GlobalUsings.cs - Shared using statements
 - Test data factories - CreateTestX() methods
 
 ### Mocked Services
+
 - ICommentService
 - IAttachmentService
 - IIssueService
@@ -211,6 +231,7 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj \
 ## Future Test Expansion
 
 ### Additional Coverage Areas
+
 - [ ] Accessibility (a11y) tests
 - [ ] Visual regression tests  
 - [ ] Keyboard navigation tests
@@ -221,6 +242,7 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj \
 - [ ] Browser compatibility tests
 
 ### Enhanced Scenarios
+
 - [ ] Multiple concurrent operations
 - [ ] Network error simulations
 - [ ] Timeout scenarios

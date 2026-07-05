@@ -72,6 +72,7 @@ Replace the placeholder values with the actual credentials from your Auth0 M2M a
 When the application starts, it will bind these secrets to the `Auth0Management` configuration section. If any required secret is missing, the application may fail during startup or when attempting to access the User Management page.
 
 To verify the configuration is correct:
+
 1. Run the application: `dotnet run --project src/AppHost`
 2. Log in with an Admin user
 3. Navigate to `/admin/users` — you should see the list of users from your Auth0 tenant
@@ -83,6 +84,7 @@ To verify the configuration is correct:
 The main Admin User Management page (`/admin/users`) displays all users from your Auth0 tenant in a paginated table.
 
 **Fields displayed:**
+
 - User ID (Auth0 identifier, e.g., `auth0|abc123`)
 - Email address
 - Display name
@@ -90,6 +92,7 @@ The main Admin User Management page (`/admin/users`) displays all users from you
 - Assigned roles (comma-separated list)
 
 **Pagination:**
+
 - Navigate between pages of users (default: 10 users per page)
 - Maximum page size: 100 users per page
 
@@ -98,12 +101,14 @@ The main Admin User Management page (`/admin/users`) displays all users from you
 From the user detail page or inline actions, administrators can assign one or more Auth0 roles to a user.
 
 **Steps:**
+
 1. Click on a user in the list or select "Assign Role" from the user row
 2. Select one or more roles from the "Available Roles" dropdown
 3. Click **Assign**
 4. The assignment is logged to the audit log with the timestamp and acting administrator
 
 **Result:**
+
 - The role is immediately applied in Auth0
 - The user's session is refreshed on their next login to reflect the new role
 - A `RoleChangeAuditEntry` is created in the audit log
@@ -113,12 +118,14 @@ From the user detail page or inline actions, administrators can assign one or mo
 Administrators can revoke assigned roles from users.
 
 **Steps:**
+
 1. Click on a user in the list
 2. Click **Remove** next to the role to be revoked
 3. Confirm the action
 4. The revocation is logged to the audit log
 
 **Result:**
+
 - The role is immediately removed in Auth0
 - The user's session is updated on their next login
 - A `RoleChangeAuditEntry` is created in the audit log
@@ -308,6 +315,7 @@ Auth0 Management API enforces rate limits (HTTP 429). Implement a Polly retry po
 **Cause:** Missing M2M configuration secrets.
 
 **Resolution:** Verify all four secrets are set:
+
 ```bash
 dotnet user-secrets list --project src/Web
 ```
@@ -317,6 +325,7 @@ dotnet user-secrets list --project src/Web
 **Cause:** Incorrect M2M credentials or M2M application lacks required scopes.
 
 **Resolution:**
+
 1. Verify M2M credentials in User Secrets match Auth0 Dashboard
 2. Verify the M2M application has the required scopes (read:users, update:users, read:roles, create:role_members, delete:role_members)
 3. Check Auth0 logs for API errors
