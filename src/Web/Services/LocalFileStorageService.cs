@@ -10,8 +10,7 @@
 using Domain.Abstractions;
 using Domain.Models;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace Web.Services;
 
@@ -124,24 +123,44 @@ public class LocalFileStorageService : IFileStorageService
 		try
 		{
 			// Download original image
-			var originalStream = await DownloadAsync(blobUrl, cancellationToken);
+			await using var originalStream = await DownloadAsync(blobUrl, cancellationToken);
+			using var originalBitmap = SKBitmap.Decode(originalStream);
 
-			// Generate thumbnail using ImageSharp
-			using var image = await Image.LoadAsync(originalStream, cancellationToken);
-			await originalStream.DisposeAsync();
-
-			// Resize
-			image.Mutate(x => x.Resize(new ResizeOptions
+			if (originalBitmap is null || originalBitmap.Width <= 0 || originalBitmap.Height <= 0)
 			{
-				Size = new Size(FileValidationConstants.THUMBNAIL_WIDTH, FileValidationConstants.THUMBNAIL_HEIGHT),
-				Mode = ResizeMode.Max
-			}));
+				return null;
+			}
+
+			var scale = Math.Min(
+				(float)FileValidationConstants.THUMBNAIL_WIDTH / originalBitmap.Width,
+				(float)FileValidationConstants.THUMBNAIL_HEIGHT / originalBitmap.Height);
+
+			var resizedWidth = Math.Max(1, (int)Math.Round(originalBitmap.Width * scale));
+			var resizedHeight = Math.Max(1, (int)Math.Round(originalBitmap.Height * scale));
+
+			using var resizedBitmap = originalBitmap.Resize(
+				new SKImageInfo(resizedWidth, resizedHeight),
+				new SKSamplingOptions(SKFilterMode.Linear));
+
+			if (resizedBitmap is null)
+			{
+				return null;
+			}
 
 			// Save thumbnail
 			var uniqueFileName = $"{Guid.NewGuid()}_thumbnail.jpg";
 			var thumbnailPath = Path.Combine(_environment.WebRootPath, THUMBNAILS_FOLDER, uniqueFileName);
 
-			await image.SaveAsJpegAsync(thumbnailPath, cancellationToken);
+			using var image = SKImage.FromBitmap(resizedBitmap);
+			using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
+
+			if (data is null)
+			{
+				return null;
+			}
+
+			await using var thumbnailFile = new FileStream(thumbnailPath, FileMode.Create, FileAccess.Write);
+			data.SaveTo(thumbnailFile);
 
 			_logger.LogInformation("Generated thumbnail for {BlobUrl}", blobUrl);
 

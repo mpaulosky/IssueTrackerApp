@@ -7,17 +7,11 @@
 // Project Name :  Persistence.MongoDb
 // =======================================================
 
-using Domain.Abstractions;
-using Domain.Models;
-
 using Microsoft.Extensions.Logging;
 
-using MongoDB.Bson;
-using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace Persistence.MongoDb.Services;
 
@@ -110,17 +104,40 @@ public sealed class GridFsStorageService : IFileStorageService
 				originalFileId,
 				cancellationToken: cancellationToken);
 
-			// Generate thumbnail using ImageSharp
-			using var image = await Image.LoadAsync(originalStream, cancellationToken);
-			using var thumbnailStream = new MemoryStream();
+			// Generate thumbnail using SkiaSharp
+			using var image = SKBitmap.Decode(originalStream);
 
-			image.Mutate(x => x.Resize(new ResizeOptions
+			if (image is null || image.Width <= 0 || image.Height <= 0)
 			{
-				Size = new Size(FileValidationConstants.THUMBNAIL_WIDTH, FileValidationConstants.THUMBNAIL_HEIGHT),
-				Mode = ResizeMode.Max
-			}));
+				return null;
+			}
 
-			await image.SaveAsJpegAsync(thumbnailStream, cancellationToken);
+			var scale = Math.Min(
+				(float)FileValidationConstants.THUMBNAIL_WIDTH / image.Width,
+				(float)FileValidationConstants.THUMBNAIL_HEIGHT / image.Height);
+
+			var resizedWidth = Math.Max(1, (int)Math.Round(image.Width * scale));
+			var resizedHeight = Math.Max(1, (int)Math.Round(image.Height * scale));
+
+			using var resizedImage = image.Resize(
+				new SKImageInfo(resizedWidth, resizedHeight),
+				new SKSamplingOptions(SKFilterMode.Linear));
+
+			if (resizedImage is null)
+			{
+				return null;
+			}
+
+			using var thumbnailStream = new MemoryStream();
+			using var thumbnailImage = SKImage.FromBitmap(resizedImage);
+			using var encodedData = thumbnailImage.Encode(SKEncodedImageFormat.Jpeg, 85);
+
+			if (encodedData is null)
+			{
+				return null;
+			}
+
+			encodedData.SaveTo(thumbnailStream);
 			thumbnailStream.Position = 0;
 
 			// Upload thumbnail to GridFS

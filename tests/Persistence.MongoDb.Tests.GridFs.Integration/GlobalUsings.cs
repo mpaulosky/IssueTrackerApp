@@ -17,7 +17,6 @@ global using FluentAssertions;
 global using Microsoft.Extensions.Logging.Abstractions;
 global using MongoDB.Driver;
 global using Persistence.MongoDb.Services;
-global using SixLabors.ImageSharp;
-global using SixLabors.ImageSharp.PixelFormats;
+global using SkiaSharp;
 global using Testcontainers.MongoDb;
 global using Xunit;

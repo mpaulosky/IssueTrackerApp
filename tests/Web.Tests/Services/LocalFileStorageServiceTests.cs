@@ -9,9 +9,7 @@
 
 using Microsoft.AspNetCore.Hosting;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 
 using Web.Services;
 
@@ -63,18 +61,23 @@ public sealed class LocalFileStorageServiceTests : IDisposable
 	private LocalFileStorageService CreateSut() => new(_environment, _logger);
 
 	/// <summary>
-	///   Creates a valid JPEG image stream using ImageSharp so
+	///   Creates a valid JPEG image stream using SkiaSharp so
 	///   GenerateThumbnailAsync has real image data to process.
 	/// </summary>
-	private static async Task<MemoryStream> CreateJpegStreamAsync(
+	private static Task<MemoryStream> CreateJpegStreamAsync(
 		int width = 10,
 		int height = 10)
 	{
-		using var image = new Image<Rgb24>(width, height);
+		using var bitmap = new SKBitmap(width, height);
+		using var canvas = new SKCanvas(bitmap);
+		canvas.Clear(SKColors.Blue);
+
+		using var image = SKImage.FromBitmap(bitmap);
+		using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
 		var ms = new MemoryStream();
-		await image.SaveAsync(ms, new JpegEncoder());
+		data?.SaveTo(ms);
 		ms.Position = 0;
-		return ms;
+		return Task.FromResult(ms);
 	}
 
 	/// <summary>Derives a physical file path from a service-returned URL.</summary>
@@ -414,17 +417,18 @@ public sealed class LocalFileStorageServiceTests : IDisposable
 		// Act
 		var thumbUrl = await sut.GenerateThumbnailAsync(imageUrl);
 
-		// Assert — ImageSharp ResizeMode.Max keeps aspect ratio within 200×200
+		// Assert — resize keeps aspect ratio within 200x200
 		thumbUrl.Should().NotBeNull();
-		using var thumb = Image.Load(PhysicalPath(thumbUrl!));
-		thumb.Width.Should().BeLessThanOrEqualTo(200);
+		using var thumb = SKBitmap.Decode(PhysicalPath(thumbUrl!));
+		thumb.Should().NotBeNull();
+		thumb!.Width.Should().BeLessThanOrEqualTo(200);
 		thumb.Height.Should().BeLessThanOrEqualTo(200);
 	}
 
 	[Fact]
 	public async Task GenerateThumbnailAsync_Should_ReturnNull_When_SourceFileIsNotAnImage()
 	{
-		// Arrange — upload plaintext so ImageSharp.LoadAsync throws
+		// Arrange — upload plaintext so thumbnail decode fails
 		var sut = CreateSut();
 		using var notAnImage = new MemoryStream("this is not an image"u8.ToArray());
 		var url = await sut.UploadAsync(notAnImage, "note.txt", "text/plain");

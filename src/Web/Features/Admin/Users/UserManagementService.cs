@@ -489,13 +489,28 @@ public sealed class UserManagementService : IUserManagementService
 	};
 
 	/// <summary>
-	///   Safely converts a <see cref="UserDateSchema" /> last-login field to a nullable
+	///   Safely converts a last-login field to a nullable
 	///   <see cref="DateTimeOffset" />, returning <see langword="null" /> if the value is absent
 	///   or unparseable.
 	/// </summary>
-	private static DateTimeOffset? ParseLastLogin(UserDateSchema? lastLogin)
+	private static DateTimeOffset? ParseLastLogin(object? lastLogin)
 	{
-		if (lastLogin is null) return null;
-		return lastLogin.TryGetString(out var s) && DateTimeOffset.TryParse(s, out var dto) ? dto : null;
+		if (lastLogin is null)
+		{
+			return null;
+		}
+
+		if (lastLogin is DateTimeOffset dto)
+		{
+			return dto;
+		}
+
+		if (lastLogin is DateTime dateTime)
+		{
+			return new DateTimeOffset(dateTime);
+		}
+
+		var raw = lastLogin as string ?? lastLogin.ToString();
+		return DateTimeOffset.TryParse(raw, out var parsed) ? parsed : null;
 	}
 }

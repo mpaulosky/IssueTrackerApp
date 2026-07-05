@@ -17,6 +17,10 @@
 		<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
 		<PackageReference Include="AspNetCore.HealthChecks.MongoDb" />
 		<PackageReference Include="AspNetCore.HealthChecks.Redis" />
+		<!-- Override vulnerable transitive dependencies -->
+		<PackageReference Include="SharpCompress" />
+		<PackageReference Include="Snappier" />
+		<PackageReference Include="ZstdSharp.Port" />
 	</ItemGroup>
 
 </Project>
