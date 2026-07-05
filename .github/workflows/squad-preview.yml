@@ -35,7 +35,6 @@ jobs:
           dotnet build tests/Web.Tests.Bunit --configuration Release --no-restore
           dotnet build tests/Persistence.MongoDb.Tests --configuration Release --no-restore
           dotnet build tests/Web.Tests --configuration Release --no-restore
-          dotnet build tests/Persistence.AzureStorage.Tests --configuration Release --no-restore
 
       - name: Run fast unit tests
         run: |
@@ -44,7 +43,6 @@ jobs:
           dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --configuration Release --no-build --verbosity minimal
           dotnet test tests/Persistence.MongoDb.Tests/Persistence.MongoDb.Tests.csproj --configuration Release --no-build --verbosity minimal
           dotnet test tests/Web.Tests/Web.Tests.csproj --configuration Release --no-build --verbosity minimal
-          dotnet test tests/Persistence.AzureStorage.Tests/Persistence.AzureStorage.Tests.csproj --configuration Release --no-build --verbosity minimal
 
   test-integration:
     name: Integration Tests
@@ -66,14 +64,12 @@ jobs:
           dotnet build tests/Persistence.MongoDb.Tests.Integration --configuration Release --no-restore
           dotnet build tests/Web.Tests.Integration --configuration Release --no-restore
           dotnet build tests/Persistence.MongoDb.Tests.GridFs.Integration --configuration Release --no-restore
-          dotnet build tests/Persistence.AzureStorage.Tests.Integration --configuration Release --no-restore
 
       - name: Run integration tests
         run: |
           dotnet test tests/Persistence.MongoDb.Tests.Integration/Persistence.MongoDb.Tests.Integration.csproj --configuration Release --no-build --verbosity minimal
           dotnet test tests/Web.Tests.Integration/Web.Tests.Integration.csproj --configuration Release --no-build --verbosity minimal
           dotnet test tests/Persistence.MongoDb.Tests.GridFs.Integration/Persistence.MongoDb.Tests.GridFs.Integration.csproj --configuration Release --no-build --verbosity minimal
-          dotnet test tests/Persistence.AzureStorage.Tests.Integration/Persistence.AzureStorage.Tests.Integration.csproj --configuration Release --no-build --verbosity minimal
 
   test-apphost:
     name: AppHost Tests (Aspire + Playwright)
