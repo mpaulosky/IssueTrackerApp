@@ -17,6 +17,7 @@ namespace AppHost.Tests.Infrastructure;
 /// </summary>
 public class AspireManager : IAsyncLifetime
 {
+	private const int DefaultStartupTimeoutSeconds = 300;
 
 	internal PlaywrightManager PlaywrightManager { get; } = new();
 
@@ -57,8 +58,19 @@ public class AspireManager : IAsyncLifetime
 
 		// Wait for the web process to be alive before tests run.
 		// Uses /alive (not /health) to avoid blocking on Redis/MongoDB in CI.
-		// CI cold-start can take up to 2 min; local dev is typically ~10 s.
-		await WaitForWebHealthyAsync(TimeSpan.FromSeconds(120));
+		// Cold-start can exceed 2 minutes in constrained CI/dev environments.
+		await WaitForWebHealthyAsync(GetStartupTimeout());
+	}
+
+	private static TimeSpan GetStartupTimeout()
+	{
+		var raw = Environment.GetEnvironmentVariable("APPHOST_TEST_STARTUP_TIMEOUT_SECONDS");
+		if (int.TryParse(raw, out var seconds) && seconds > 0)
+		{
+			return TimeSpan.FromSeconds(seconds);
+		}
+
+		return TimeSpan.FromSeconds(DefaultStartupTimeoutSeconds);
 	}
 
 	/// <summary>
@@ -89,6 +101,8 @@ public class AspireManager : IAsyncLifetime
 		using var client = new HttpClient(handler) { BaseAddress = endpoint };
 		using var cts = new CancellationTokenSource(timeout);
 
+		string? lastError = null;
+
 		try
 		{
 			while (!cts.Token.IsCancellationRequested)
@@ -98,10 +112,13 @@ public class AspireManager : IAsyncLifetime
 					var response = await client.GetAsync("/alive", cts.Token);
 					if (response.IsSuccessStatusCode)
 						return;
+
+					lastError = $"Received {(int)response.StatusCode} ({response.StatusCode}) from /alive";
 				}
 				catch (Exception) when (!cts.Token.IsCancellationRequested)
 				{
 					// Connection refused / SSL error during startup — keep polling
+					lastError = "Connection or TLS handshake failed while polling /alive";
 				}
 
 				await Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
@@ -112,9 +129,11 @@ public class AspireManager : IAsyncLifetime
 			// timeout fired — fall through to TimeoutException below
 		}
 
-		throw new TimeoutException($"Web app at {endpoint} was not ready after {timeout.TotalSeconds}s");
-	}
-	/// Adds an <see cref="EnvironmentCallbackAnnotation"/> to the named web resource so
+		throw new TimeoutException($"Web app at {endpoint} was not ready after {timeout.TotalSeconds}s. Last probe: {lastError ?? "no response"}");
+		}
+
+		/// <summary>
+		/// Adds an <see cref="EnvironmentCallbackAnnotation"/> to the named web resource so
 	/// that <paramref name="key"/> is set to <paramref name="value"/> when Aspire DCP
 	/// launches the child process.  This takes effect AFTER DCP injects its own
 	/// environment variables, ensuring our value wins over DCP defaults.

@@ -16,6 +16,8 @@
 		<PackageReference Include="NSubstitute" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+		<!-- Override vulnerable transitive dependencies -->
+		<PackageReference Include="Microsoft.OpenApi" />
 		<PackageReference Include="Testcontainers.MongoDb" />
 		<PackageReference Include="coverlet.collector">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

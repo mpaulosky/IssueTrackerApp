@@ -7,8 +7,6 @@
 // Project Name :  Persistence.MongoDb.Tests.GridFs.Integration
 // =======================================================
 
-using SixLabors.ImageSharp.Processing;
-
 namespace Persistence.MongoDb.Tests.GridFs.Integration;
 
 /// <summary>
@@ -71,9 +69,10 @@ public sealed class GridFsStorageThumbnailTests
 		// Assert
 		thumbnailUrl.Should().NotBeNull();
 		var downloadStream = await service.DownloadAsync(thumbnailUrl!);
-		using var thumbnailImage = await Image.LoadAsync(downloadStream);
+		using var thumbnailImage = SKBitmap.Decode(downloadStream);
+		thumbnailImage.Should().NotBeNull();
 
-		thumbnailImage.Width.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_WIDTH);
+		thumbnailImage!.Width.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_WIDTH);
 		thumbnailImage.Height.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_HEIGHT);
 	}
 
@@ -91,9 +90,10 @@ public sealed class GridFsStorageThumbnailTests
 		// Assert
 		thumbnailUrl.Should().NotBeNull();
 		var downloadStream = await service.DownloadAsync(thumbnailUrl!);
-		using var thumbnailImage = await Image.LoadAsync(downloadStream);
+		using var thumbnailImage = SKBitmap.Decode(downloadStream);
+		thumbnailImage.Should().NotBeNull();
 
-		thumbnailImage.Width.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_WIDTH);
+		thumbnailImage!.Width.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_WIDTH);
 		thumbnailImage.Height.Should().BeLessThanOrEqualTo(FileValidationConstants.THUMBNAIL_HEIGHT);
 
 		var expectedRatio = 400.0 / 800.0;
@@ -141,11 +141,15 @@ public sealed class GridFsStorageThumbnailTests
 
 	private static async Task<MemoryStream> CreateTestImageAsync(int width, int height)
 	{
-		using var image = new Image<Rgba32>(width, height);
-		image.Mutate(x => x.BackgroundColor(Color.Blue));
+		using var bitmap = new SKBitmap(width, height);
+		using var canvas = new SKCanvas(bitmap);
+		canvas.Clear(SKColors.Blue);
+		using var image = SKImage.FromBitmap(bitmap);
+		using var encoded = image.Encode(SKEncodedImageFormat.Jpeg, 85);
 
 		var stream = new MemoryStream();
-		await image.SaveAsJpegAsync(stream);
+		encoded?.SaveTo(stream);
+		await stream.FlushAsync();
 		stream.Position = 0;
 		return stream;
 	}
