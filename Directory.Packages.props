@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Aspire -->
-<<<<<<< HEAD
     <PackageVersion Include="Aspire.MongoDB.Driver" Version="13.4.6" />
     <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.4.6" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.6" />
@@ -12,15 +11,6 @@
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.9" />
-=======
-    <PackageVersion Include="Aspire.MongoDB.Driver" Version="13.4.2" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.4.2" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.2" />
-    <!-- MongoDB -->
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.8" />
->>>>>>> ccca375 (Fix workflow lint parsing issues (#294))
     <PackageVersion Include="MongoDB.Bson" Version="3.9.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.9.0" />
     <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="10.0.2" />
@@ -36,13 +26,8 @@
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.TestHelper" Version="11.11.0" />
     <!-- Authentication -->
-<<<<<<< HEAD
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.8.0" />
     <PackageVersion Include="Auth0.ManagementApi" Version="8.6.0" />
-=======
-    <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.7.0" />
-    <PackageVersion Include="Auth0.ManagementApi" Version="8.4.0" />
->>>>>>> ccca375 (Fix workflow lint parsing issues (#294))
     <!-- Email -->
     <PackageVersion Include="SendGrid" Version="9.29.3" />
     <!-- Microsoft Extensions -->
@@ -55,11 +40,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
     <!-- Testing -->
-<<<<<<< HEAD
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
-=======
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
->>>>>>> ccca375 (Fix workflow lint parsing issues (#294))
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="FluentAssertions" Version="8.10.0" />
@@ -67,13 +48,8 @@
     <PackageVersion Include="bUnit" Version="2.7.2" />
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
-<<<<<<< HEAD
     <PackageVersion Include="Microsoft.Playwright" Version="1.61.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.13.0" />
-=======
-    <PackageVersion Include="Microsoft.Playwright" Version="1.60.0" />
-    <PackageVersion Include="Testcontainers.MongoDb" Version="4.12.0" />
->>>>>>> ccca375 (Fix workflow lint parsing issues (#294))
     <PackageVersion Include="Testcontainers.Azurite" Version="4.11.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
     <!-- Aspire ServiceDefaults Dependencies -->

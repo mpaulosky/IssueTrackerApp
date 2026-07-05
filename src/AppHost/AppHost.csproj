@@ -6,11 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-<<<<<<< HEAD
     <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.6" />
-=======
-    <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.2" />
->>>>>>> ccca375 (Fix workflow lint parsing issues (#294))
   </ItemGroup>
 
   <PropertyGroup>
