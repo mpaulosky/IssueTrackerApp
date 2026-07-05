@@ -114,7 +114,6 @@ fi
 INTEGRATION_PROJECTS=(
   "tests/Persistence.MongoDb.Tests.Integration/Persistence.MongoDb.Tests.Integration.csproj"
   "tests/Web.Tests.Integration/Web.Tests.Integration.csproj"
-  "tests/Persistence.AzureStorage.Tests.Integration/Persistence.AzureStorage.Tests.Integration.csproj"
   "tests/AppHost.Tests/AppHost.Tests.csproj"
 )
 

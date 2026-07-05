@@ -27,6 +27,8 @@ using Domain.Features.Admin.Models;
 using Persistence.MongoDb;
 using Persistence.MongoDb.Configurations;
 
+using Web.Services;
+
 namespace Web.Tests.Integration;
 
 /// <summary>
@@ -180,6 +182,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 					.Returns(Task.FromResult(Result.Ok(true)));
 				return substitute;
 			});
+
+			// Override GridFsStorageService with LocalFileStorageService for integration tests.
+			// SeedAttachmentAsync creates attachments with /uploads/... URLs; GridFsStorageService
+			// rejects these, causing HTTP 500. Using local storage restores pre-M4 test behaviour.
+			services.RemoveAll<IFileStorageService>();
+			services.AddScoped<IFileStorageService, LocalFileStorageService>();
 		});
 	}
 

@@ -485,3 +485,88 @@ All three blockers from first review **REMAIN UNRESOLVED** on current PR revisio
 **Output:** Re-review rejection rationale, blocker list, Sam handoff notes.
 
 **Status:** ✅ Complete — Rejection logged, board notified, Sam awaiting assignment confirmation.
+
+---
+
+### 2026-05-05 — M4: Fix 14 CI Integration Test Failures — AttachmentEndpointTests 500 (Issue #282 / PR #288)
+
+**Trigger:** 14 `Web.Tests.Integration` `AttachmentEndpointTests` returning HTTP 500 in CI on branch `squad/282-remove-azure-storage` while all 246 tests pass locally.
+
+**Root Cause:**
+- `AddGridFsStorage()` in `src/Persistence.MongoDb/ServiceCollectionExtensions.cs` registered `IMongoDatabase` via `services.TryAddSingleton<IMongoDatabase>(sp => sp.GetRequiredKeyedService<IMongoDatabase>("mongodb"))`.
+- `Aspire.MongoDB.Driver 13.2.4` `AddMongoDBClient("mongodb")` registers ONLY `IMongoClient` — never `IMongoDatabase` (keyed or otherwise). The README confirms this; there is no `DatabaseName` field in the Aspire configuration schema.
+- In CI, `MONGODB_CONNECTION_STRING` is set, so `AddGridFsStorage()` is called. At first DI resolution of `AttachmentService`, the factory threw `System.InvalidOperationException: No keyed service for type 'MongoDB.Driver.IMongoDatabase' using key type 'System.String' has been registered.`
+- This caused ALL attachment endpoints (even GET) to return HTTP 500 because `AttachmentService` itself could not be instantiated.
+
+**Why it passed locally:**
+- Locally `TryAddSingleton` is a no-op because `MongoConnectionString` may not set `MongoDB:ConnectionString` in a way that triggers `AddGridFsStorage()`, so `LocalFileStorageService` is used instead.
+
+**Fix:**
+- `ServiceCollectionExtensions.AddGridFsStorage()` now builds `IMongoDatabase` from `IMongoClient` + `IOptions<MongoDbSettings>`:
+  ```csharp
+  services.TryAddSingleton<IMongoDatabase>(sp =>
+  {
+      var client = sp.GetRequiredService<IMongoClient>();
+      var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+      return client.GetDatabase(settings.DatabaseName);
+  });
+  ```
+- `IMongoClient` is always registered by `AddMongoDBClient`; `IOptions<MongoDbSettings>` is always registered by `AddMongoDbPersistence` (and overridden in test factory to `"issuetracker-test-db"`).
+- This also ensures GridFS uses the SAME database as the EF Core context.
+
+**Verification:**
+- Build: 0 errors, 0 warnings
+- All 2,328 tests pass (246/246 integration tests, including all 14 previously failing `AttachmentEndpointTests`)
+
+**Side fix:**
+- Updated local `.git/hooks/pre-push` to skip test projects that don't exist in the current branch (the hook referenced `Persistence.AzureStorage.Tests` which was removed in M4 and blocked the push with a TTY prompt).
+
+**Decision written:** `.squad/decisions/inbox/copilot-gridfs-imongodbclient.md`
+
+**Files changed:** `src/Persistence.MongoDb/ServiceCollectionExtensions.cs`
+
+**Status:** ✅ Complete — Fix committed (64cf033) and pushed to `origin/squad/282-remove-azure-storage`.
+
+---
+
+### 2026-07-05 — Fix PR #304 AzureStorage Restore Mistake & squad-preview.yml
+
+**Trigger:** PR #304 re-added `Persistence.AzureStorage` and its test projects to `dev`, but those were **intentionally removed** in M2/M4 (May 2026) as part of the GridFS storage migration.
+
+**Root Cause:**
+- M2 (PR #285): Migrated storage from Azure Blob to GridFS, deleted AzureStorage source + tests
+- M3 (PR #287): Added GridFS integration tests (replacing Azurite coverage) — but **MISSED updating `squad-preview.yml`**
+- M4 (PR #288): Final AzureStorage cleanup — confirmed removal
+- The REAL bug: `squad-preview.yml` was never updated in M3 to remove AzureStorage references and add GridFS integration test references
+- PR #304 patched the symptom (CI failing) by re-adding deleted code — **wrong fix**
+
+**Actions Taken:**
+1. Created branch `fix/revert-azure-storage-restore` from `dev`
+2. Removed re-added directories:
+   - `src/Persistence.AzureStorage/`
+   - `tests/Persistence.AzureStorage.Tests/`
+   - `tests/Persistence.AzureStorage.Tests.Integration/`
+3. Reverted `IssueTrackerApp.slnx` to remove 3 AzureStorage project references
+4. Reverted `Directory.Packages.props` to remove `Azure.Storage.Blobs` package
+5. Fixed `squad-preview.yml`:
+   - **test-fast job**: removed AzureStorage unit test build and run lines (no replacement needed — GridFS unit tests are in `Persistence.MongoDb.Tests`)
+   - **test-integration job**: replaced AzureStorage integration test references with `Persistence.MongoDb.Tests.GridFs.Integration`
+6. Verified build: 0 errors, 0 warnings
+7. Verified tests: All unit tests pass (Architecture: 58, Domain: 419, Web: 502, Persistence.MongoDb: 77)
+8. Committed and pushed (22280ad)
+9. Created PR #305 targeting `dev`
+10. Wrote decision record: `.squad/decisions/inbox/aragorn-gridfs-preview-ci-fix.md`
+
+**Key Learning:**
+- When a migration involves deleting code (M2/M4), ALL references must be updated in the SAME PR or in a tracked follow-up (M3 missed this)
+- CI workflow files are often overlooked during migrations because they're not in the main codebase
+- A failing CI job that references deleted test projects should be fixed by updating the workflow, NOT by restoring deleted code
+- Always grep for references before considering a deletion "complete": `grep -r "AzureStorage" .github/workflows/`
+
+**Files Changed:**
+- `.github/workflows/squad-preview.yml` (proper fix)
+- `IssueTrackerApp.slnx` (revert PR #304)
+- `Directory.Packages.props` (revert PR #304)
+- 23 deleted files (re-deleted from PR #304)
+
+**Status:** ✅ Complete — PR #305 created, awaiting review and merge to `dev`.

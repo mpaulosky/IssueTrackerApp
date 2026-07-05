@@ -1,4 +1,10 @@
+using Domain.Abstractions;
 using Domain.Features.Admin.Abstractions;
+
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+
+using MongoDB.Driver;
 
 using Persistence.MongoDb.Configurations;
 using Persistence.MongoDb.Repositories;
@@ -75,6 +81,31 @@ public static class ServiceCollectionExtensions
 		// Register audit log repository
 		services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
+		return services;
+	}
+
+	/// <summary>
+	/// Adds GridFS file storage services to the service collection.
+	/// </summary>
+	/// <remarks>
+	/// <para>Note: Depends on AddMongoDbPersistence and AddMongoDBClient having been called first.</para>
+	/// <para>Lifetime: GridFsStorageService is registered as Scoped. IGridFSBucket (constructed from IMongoDatabase)
+	/// is thread-safe and stateless — the MongoDB.Driver GridFS API is safe to use with Scoped lifetime.</para>
+	/// </remarks>
+	public static IServiceCollection AddGridFsStorage(this IServiceCollection services)
+	{
+		// Build IMongoDatabase from the registered IMongoClient and MongoDbSettings so that
+		// GridFsStorageService always uses the same database as the EF Core context.
+		// Aspire.MongoDB.Driver's AddMongoDBClient only registers IMongoClient — not IMongoDatabase —
+		// so we cannot rely on a keyed "mongodb" IMongoDatabase being present.
+		services.TryAddSingleton<IMongoDatabase>(sp =>
+		{
+			var client = sp.GetRequiredService<IMongoClient>();
+			var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+			return client.GetDatabase(settings.DatabaseName);
+		});
+
+		services.AddScoped<IFileStorageService, GridFsStorageService>();
 		return services;
 	}
 

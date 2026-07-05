@@ -71,6 +71,7 @@ It gracefully skips when credentials (`PLAYWRIGHT_TEST_EMAIL`, `PLAYWRIGHT_TEST_
 ## Test Coverage
 
 ### Aspire Integration Tests (3 tests)
+
 - **AppHostIntegrationTests.cs**: Health check (`/health`) endpoint responds
 - **EnvVarTests.cs**: MongoDB and Redis connection strings are properly injected
 - **IntegrationTests.cs**: HTTP health endpoint + home page load
@@ -78,15 +79,18 @@ It gracefully skips when credentials (`PLAYWRIGHT_TEST_EMAIL`, `PLAYWRIGHT_TEST_
 ### Playwright E2E Tests (29 tests across 8 files)
 
 #### Layout & Navigation (10 tests)
+
 - **LayoutAnonymousTests.cs** — 6 tests: brand visible, login link present, nav hidden, footer, theme selector, color scheme selector
 - **LayoutAuthenticatedTests.cs** — 4 tests: nav links visible, footer, login link hidden from authenticated users
 
 #### Pages (9 tests)
+
 - **HomePageTests.cs** — 4 tests: guest heading, authenticated welcome-back message
 - **DashboardPageTests.cs** — 3 tests: no redirect loop, heading, stat cards render
 - **NotFoundPageTests.cs** — 2 tests: heading and helpful message
 
 #### Issues & Features (6 tests)
+
 - **IssueIndexPageTests.cs** — 2 tests: authenticated users see no redirect, page title
 - **ThemeToggleTests.cs** — 4 tests: toggle visible, dropdown renders, dark class applied to body
 - **ColorSchemeTests.cs** — 4 tests: color swatches visible, selection works, CSS class applied

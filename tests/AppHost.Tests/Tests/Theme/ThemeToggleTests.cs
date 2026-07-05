@@ -31,7 +31,7 @@ public class ThemeToggleTests : BasePlaywrightTests
 		await InteractWithPageAsync("web", async page =>
 		{
 			// Act
-			await page.GotoAsync("/");
+			await GotoAsync(page, "/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
 			var toggleBtn = page.Locator("button[aria-label=\"Toggle brightness\"]");
@@ -51,7 +51,7 @@ public class ThemeToggleTests : BasePlaywrightTests
 		await InteractWithPageAsync("web", async page =>
 		{
 			// Act — clicking "Choose color theme" opens a swatch dropdown
-			await page.GotoAsync("/");
+			await GotoAsync(page, "/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
 			var colorBtn = page.Locator("button[aria-label=\"Choose color theme\"]");
@@ -81,7 +81,7 @@ public class ThemeToggleTests : BasePlaywrightTests
 		// 'tailwind-color-theme', NOT 'theme-color-brightness' (old ThemeProvider system).
 		await InteractWithPageAsync("web", async page =>
 		{
-			await page.GotoAsync("/");
+			await GotoAsync(page, "/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 			await page.EvaluateAsync("localStorage.setItem('tailwind-color-theme', 'theme-blue-light')");
 			await page.ReloadAsync();
@@ -122,12 +122,12 @@ public class ThemeToggleTests : BasePlaywrightTests
 		await InteractWithPageAsync("web", async page =>
 		{
 			// Seed localStorage in first navigation then navigate again so theme-manager.js picks it up
-			await page.GotoAsync("/");
+			await GotoAsync(page, "/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 			await page.EvaluateAsync("localStorage.setItem('tailwind-color-theme', 'theme-blue-dark')");
 
 			// Fresh navigation so theme-manager.js initialize() reads the stored dark value
-			await page.GotoAsync("/");
+			await GotoAsync(page, "/");
 			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
 			// Wait for ThemeProvider to initialize (sets data-theme-ready)
@@ -159,4 +159,3 @@ public class ThemeToggleTests : BasePlaywrightTests
 		});
 	}
 }
-

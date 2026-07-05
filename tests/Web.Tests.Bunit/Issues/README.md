@@ -7,6 +7,7 @@ This directory contains comprehensive bUnit tests for 8 Issue-related Blazor com
 ## Files Included
 
 ### Main Test File
+
 - **IssueComponentTests.cs** (966 lines, 28.83 KB)
   - Complete implementation of all 75 test cases
   - 9 test classes (1 per component + integration tests)
@@ -14,6 +15,7 @@ This directory contains comprehensive bUnit tests for 8 Issue-related Blazor com
   - Follows Arrange-Act-Assert pattern throughout
 
 ### Documentation
+
 - **TEST_SUMMARY.md** - Executive summary of test coverage
 - **TESTING_GUIDE.md** - Quick reference guide for common patterns
 - **TEST_CASE_LIST.md** - Detailed catalog of all 75 test cases
@@ -63,13 +65,16 @@ dotnet build --no-restore 2>&1 | Select-String "IssueComponentTests"
 ## Test Infrastructure
 
 ### Base Class
+
 All tests inherit from `BunitTestBase` which provides:
+
 - Mocked services (ICommentService, IAttachmentService, etc.)
 - Test data factories (CreateTestIssue(), CreateTestComment(), etc.)
 - Authentication setup helpers
 - Bunit test context initialization
 
 ### Key Testing Libraries
+
 - **xUnit** - Test framework with [Fact] attributes
 - **bUnit** - Blazor component testing framework
 - **FluentAssertions** - Readable assertion syntax
@@ -78,7 +83,9 @@ All tests inherit from `BunitTestBase` which provides:
 ## Test Patterns Used
 
 ### 1. Conditional Rendering
+
 Tests verify components show/hide elements based on state:
+
 ```csharp
 // With permission
 var cut = Render<AttachmentCard>(parameters => parameters
@@ -94,7 +101,9 @@ cut2.FindAll("button").Should().NotContain(b => b.TextContent.Contains("Delete")
 ```
 
 ### 2. State Management
+
 Tests verify component state changes (loading, empty, error):
+
 ```csharp
 var cut = Render<CommentsSection>(parameters => parameters
     .Add(p => p.IssueId, issueId)
@@ -105,7 +114,9 @@ cut.Markup.Should().Contain("animate-spin");
 ```
 
 ### 3. Data Display
+
 Tests verify correct rendering of data:
+
 ```csharp
 var attachment = new AttachmentDto(...);
 var cut = Render<AttachmentCard>(parameters => parameters
@@ -116,7 +127,9 @@ cut.Markup.Should().Contain(attachment.FileName);
 ```
 
 ### 4. Permission-Based Features
+
 Tests verify admin/owner authorization:
+
 ```csharp
 // Admin can delete
 var cut = Render<AttachmentList>(parameters => parameters
@@ -127,7 +140,9 @@ card.Instance.CanDelete.Should().BeTrue();
 ```
 
 ### 5. Empty/Error States
+
 Tests verify UI handles no data and errors:
+
 ```csharp
 var cut = Render<AttachmentList>(parameters => parameters
     .Add(p => p.Attachments, new List<AttachmentDto>())
@@ -149,21 +164,27 @@ cut.Markup.Should().Contain("No attachments yet");
 ## Convention Notes
 
 ### Naming
+
 Tests use the pattern: `{ComponentName}_{Scenario}_{ExpectedBehavior}`
 
 Examples:
+
 - `AttachmentCard_WithImageAttachment_DisplaysImage()`
 - `CommentsSection_WithNoComments_ShowsEmptyState()`
 - `BulkActionToolbar_DeleteButtonVisible_OnlyForAdmin()`
 
 ### Structure
+
 All tests follow Arrange-Act-Assert:
+
 1. **Arrange** - Set up test data and mocks
 2. **Act** - Render component or trigger action
 3. **Assert** - Verify expected result
 
 ### Assertions
+
 Uses FluentAssertions for readable assertions:
+
 ```csharp
 cut.Markup.Should().Contain("text");
 buttons.Should().HaveCount(3);
@@ -181,16 +202,19 @@ element.Should().NotBeNull();
 ## Common Issues & Solutions
 
 ### Tests Not Found
+
 - Ensure namespace is `Web.Tests.Bunit.Issues`
 - Check test class names match filter patterns
 - Verify [Fact] attributes are present
 
 ### Compilation Errors
+
 - Check GlobalUsings.cs has all required namespaces
 - Verify DTOs are imported
 - Ensure component types are accessible
 
 ### Element Not Found
+
 - Use `cut.Markup` to inspect rendered HTML
 - Verify element is conditionally rendered
 - Check CSS selector syntax
@@ -199,6 +223,7 @@ element.Should().NotBeNull();
 ## Contributing
 
 When adding new component tests:
+
 1. Follow the naming convention: `{Component}_{Scenario}_{Expected}()`
 2. Inherit from `BunitTestBase`
 3. Use `Render<T>()` for component initialization
@@ -217,6 +242,7 @@ When adding new component tests:
 ## Support
 
 For questions about:
+
 - **Test framework** - See TESTING_GUIDE.md
 - **Individual tests** - See TEST_CASE_LIST.md for details
 - **General structure** - See TEST_SUMMARY.md

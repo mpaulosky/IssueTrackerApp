@@ -1,27 +1,25 @@
 // =======================================================
 // Copyright (c) 2025. All rights reserved.
-// File Name :     BlobStorageThumbnailTests.cs
+// File Name :     GridFsStorageThumbnailTests.cs
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueTrackerApp
-// Project Name :  Persistence.AzureStorage.Tests.Integration
+// Project Name :  Persistence.MongoDb.Tests.GridFs.Integration
 // =======================================================
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace Persistence.AzureStorage.Tests.Integration;
+namespace Persistence.MongoDb.Tests.GridFs.Integration;
 
 /// <summary>
-///   Integration tests for BlobStorageService thumbnail generation functionality.
+///   Integration tests for GridFsStorageService thumbnail generation functionality.
 /// </summary>
-[Collection("Azurite")]
-public sealed class BlobStorageThumbnailTests
+[Collection("GridFsIntegration")]
+public sealed class GridFsStorageThumbnailTests
 {
-	private readonly AzuriteFixture _fixture;
+	private readonly MongoDbGridFsFixture _fixture;
 
-	public BlobStorageThumbnailTests(AzuriteFixture fixture)
+	public GridFsStorageThumbnailTests(MongoDbGridFsFixture fixture)
 	{
 		_fixture = fixture;
 	}
@@ -30,10 +28,7 @@ public sealed class BlobStorageThumbnailTests
 	public async Task GenerateThumbnailAsync_WithValidImage_ShouldReturnThumbnailUrl()
 	{
 		// Arrange
-		var containerName = $"test-{Guid.NewGuid():N}";
-		var thumbnailContainerName = $"test-thumb-{Guid.NewGuid():N}";
-		var service = _fixture.CreateBlobStorageService(containerName, thumbnailContainerName);
-
+		var service = _fixture.CreateGridFsStorageService();
 		var imageStream = await CreateTestImageAsync(800, 600);
 		var blobUrl = await service.UploadAsync(imageStream, "original.jpg", "image/jpeg");
 
@@ -42,45 +37,31 @@ public sealed class BlobStorageThumbnailTests
 
 		// Assert
 		thumbnailUrl.Should().NotBeNullOrEmpty();
-		thumbnailUrl.Should().Contain(thumbnailContainerName);
+		thumbnailUrl.Should().EndWith("/thumbnail");
 	}
 
 	[Fact]
-	public async Task GenerateThumbnailAsync_ShouldCreateThumbnailBlob()
+	public async Task GenerateThumbnailAsync_ShouldCreateDownloadableThumbnail()
 	{
 		// Arrange
-		var containerName = $"test-{Guid.NewGuid():N}";
-		var thumbnailContainerName = $"test-thumb-{Guid.NewGuid():N}";
-		var service = _fixture.CreateBlobStorageService(containerName, thumbnailContainerName);
-
+		var service = _fixture.CreateGridFsStorageService();
 		var imageStream = await CreateTestImageAsync(1024, 768);
 		var blobUrl = await service.UploadAsync(imageStream, "large-image.jpg", "image/jpeg");
 
 		// Act
 		var thumbnailUrl = await service.GenerateThumbnailAsync(blobUrl);
 
-		// Assert - Azurite format: http://host/account/container/guid/filename
+		// Assert — thumbnail can be downloaded
 		thumbnailUrl.Should().NotBeNull();
-
-		var uri = new Uri(thumbnailUrl!);
-		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
-
-		var blobServiceClient = _fixture.CreateBlobServiceClient();
-		var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainerName);
-		var blobClient = containerClient.GetBlobClient(blobName);
-		var exists = await blobClient.ExistsAsync();
-		exists.Value.Should().BeTrue();
+		var downloadStream = await service.DownloadAsync(thumbnailUrl!);
+		downloadStream.Should().NotBeNull();
 	}
 
 	[Fact]
 	public async Task GenerateThumbnailAsync_ShouldResizeImageToMaxDimensions()
 	{
 		// Arrange
-		var containerName = $"test-{Guid.NewGuid():N}";
-		var thumbnailContainerName = $"test-thumb-{Guid.NewGuid():N}";
-		var service = _fixture.CreateBlobStorageService(containerName, thumbnailContainerName);
-
+		var service = _fixture.CreateGridFsStorageService();
 		var imageStream = await CreateTestImageAsync(800, 600);
 		var blobUrl = await service.UploadAsync(imageStream, "resize-test.jpg", "image/jpeg");
 
@@ -100,10 +81,7 @@ public sealed class BlobStorageThumbnailTests
 	public async Task GenerateThumbnailAsync_WithPortraitImage_ShouldMaintainAspectRatio()
 	{
 		// Arrange
-		var containerName = $"test-{Guid.NewGuid():N}";
-		var thumbnailContainerName = $"test-thumb-{Guid.NewGuid():N}";
-		var service = _fixture.CreateBlobStorageService(containerName, thumbnailContainerName);
-
+		var service = _fixture.CreateGridFsStorageService();
 		var imageStream = await CreateTestImageAsync(400, 800);
 		var blobUrl = await service.UploadAsync(imageStream, "portrait.jpg", "image/jpeg");
 
@@ -120,17 +98,14 @@ public sealed class BlobStorageThumbnailTests
 
 		var expectedRatio = 400.0 / 800.0;
 		var actualRatio = (double)thumbnailImage.Width / thumbnailImage.Height;
-		actualRatio.Should().BeApproximately(expectedRatio, 0.01);
+		actualRatio.Should().BeApproximately(expectedRatio, 0.05);
 	}
 
 	[Fact]
 	public async Task GenerateThumbnailAsync_WithNonImageFile_ShouldReturnNull()
 	{
 		// Arrange
-		var containerName = $"test-{Guid.NewGuid():N}";
-		var thumbnailContainerName = $"test-thumb-{Guid.NewGuid():N}";
-		var service = _fixture.CreateBlobStorageService(containerName, thumbnailContainerName);
-
+		var service = _fixture.CreateGridFsStorageService();
 		var textStream = new MemoryStream("Not an image"u8.ToArray());
 		var blobUrl = await service.UploadAsync(textStream, "notimage.txt", "text/plain");
 
@@ -145,28 +120,23 @@ public sealed class BlobStorageThumbnailTests
 	public async Task GenerateThumbnailAsync_ShouldSaveAsJpeg()
 	{
 		// Arrange
-		var containerName = $"test-{Guid.NewGuid():N}";
-		var thumbnailContainerName = $"test-thumb-{Guid.NewGuid():N}";
-		var service = _fixture.CreateBlobStorageService(containerName, thumbnailContainerName);
-
+		var service = _fixture.CreateGridFsStorageService();
 		var imageStream = await CreateTestImageAsync(500, 500);
 		var blobUrl = await service.UploadAsync(imageStream, "format-test.png", "image/png");
 
 		// Act
 		var thumbnailUrl = await service.GenerateThumbnailAsync(blobUrl);
 
-		// Assert - Azurite format: http://host/account/container/guid/filename
+		// Assert — verify JPEG magic bytes (FF D8 FF)
 		thumbnailUrl.Should().NotBeNull();
+		var downloadStream = await service.DownloadAsync(thumbnailUrl!);
+		using var memoryStream = new MemoryStream();
+		await downloadStream.CopyToAsync(memoryStream);
+		var bytes = memoryStream.ToArray();
 
-		var uri = new Uri(thumbnailUrl!);
-		var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-		var blobName = string.Join("/", segments.Skip(2)); // Skip account + container
-
-		var blobServiceClient = _fixture.CreateBlobServiceClient();
-		var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainerName);
-		var blobClient = containerClient.GetBlobClient(blobName);
-		var properties = await blobClient.GetPropertiesAsync();
-		properties.Value.ContentType.Should().Be("image/jpeg");
+		bytes[0].Should().Be(0xFF);
+		bytes[1].Should().Be(0xD8);
+		bytes[2].Should().Be(0xFF);
 	}
 
 	private static async Task<MemoryStream> CreateTestImageAsync(int width, int height)

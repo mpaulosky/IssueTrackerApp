@@ -54,7 +54,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -64,7 +64,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -78,7 +78,7 @@ jobs:
         run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore
 
       - name: Cache build artifacts
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             **/bin/Release/
@@ -95,7 +95,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -103,7 +103,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -137,7 +137,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -145,7 +145,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -179,7 +179,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -187,7 +187,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -239,7 +239,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -247,7 +247,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -326,7 +326,7 @@ jobs:
           done
 
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -334,7 +334,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -388,7 +388,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -396,7 +396,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -457,7 +457,7 @@ jobs:
           done
 
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -465,7 +465,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -496,59 +496,42 @@ jobs:
           name: persistence-mongodb-integration-test-results
           path: test-results
 
-  test-persistence-azure:
-    name: "Persistence.AzureStorage.Tests"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Run Azure Storage Persistence Tests
-        run: |
-          dotnet test tests/Persistence.AzureStorage.Tests \
-            --configuration Release \
-            --collect:"XPlat Code Coverage" \
-            --logger "trx;LogFileName=persistence-azure.trx" \
-            --results-directory test-results \
-            --verbosity minimal
-
-      - name: Upload Azure Storage Persistence Test Results
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: persistence-azure-test-results
-          path: test-results
-
-  test-persistence-azure-integration:
-    name: "Persistence.AzureStorage.Tests.Integration"
+  test-gridfs-integration:
+    name: "Persistence.MongoDb.Tests.GridFs.Integration"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
 
-    # Let Testcontainers manage Azurite - no manual env vars needed
+    env:
+      MONGODB_CONNECTION_STRING: "mongodb://localhost:27017/?directConnection=true"
 
     steps:
+      - name: Start MongoDB Replica Set
+        run: |
+          docker run -d --name mongodb -p 27017:27017 mongo:7.0 mongod --replSet rs0
+          # Wait for MongoDB to be ready
+          for i in {1..30}; do
+            if docker exec mongodb mongosh --quiet --eval "db.runCommand({ ping: 1 })" 2>/dev/null; then
+              echo "MongoDB is accepting connections"
+              break
+            fi
+            echo "Waiting for MongoDB... attempt $i"
+            sleep 2
+          done
+          # Initialize single-node replica set
+          docker exec mongodb mongosh --quiet --eval "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
+          # Wait for replica set to elect primary
+          for i in {1..30}; do
+            if docker exec mongodb mongosh --quiet --eval "rs.isMaster().ismaster" 2>/dev/null | grep -q true; then
+              echo "Replica set primary is ready"
+              break
+            fi
+            echo "Waiting for primary... attempt $i"
+            sleep 2
+          done
+
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -556,7 +539,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -566,26 +549,25 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build Azure Storage Integration Tests
-        run: dotnet build tests/Persistence.AzureStorage.Tests.Integration --configuration Release --no-restore
+      - name: Build GridFS Integration Tests
+        run: dotnet build tests/Persistence.MongoDb.Tests.GridFs.Integration --configuration Release --no-restore
 
-      - name: Run Azure Storage Persistence Integration Tests
+      - name: Run GridFS Integration Tests
         run: |
           mkdir -p test-results
-          # Testcontainers automatically starts Azurite container
-          dotnet test tests/Persistence.AzureStorage.Tests.Integration \
+          dotnet test tests/Persistence.MongoDb.Tests.GridFs.Integration \
             --configuration Release \
             --no-build \
             --verbosity normal \
-            --logger "trx;LogFileName=persistence-azure-integration.trx" \
+            --logger "trx;LogFileName=gridfs-integration.trx" \
             --results-directory "$GITHUB_WORKSPACE/test-results" \
             --collect:"XPlat Code Coverage"
 
-      - name: Upload Azure Storage Persistence Integration Test Results
+      - name: Upload GridFS Integration Test Results
         uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: persistence-azure-integration-test-results
+          name: gridfs-integration-test-results
           path: test-results
 
   test-apphost:
@@ -602,7 +584,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -610,7 +592,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
@@ -663,14 +645,13 @@ jobs:
       - test-integration
       - test-persistence-mongodb
       - test-persistence-mongodb-integration
-      - test-persistence-azure
-      - test-persistence-azure-integration
+      - test-gridfs-integration
       - test-apphost
     if: always()
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -718,7 +699,7 @@ jobs:
           path: coverage-output
 
       - name: Publish to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         if: always()
         with:
           fail_ci_if_error: false
@@ -738,14 +719,13 @@ jobs:
       - test-integration
       - test-persistence-mongodb
       - test-persistence-mongodb-integration
-      - test-persistence-azure
-      - test-persistence-azure-integration
+      - test-gridfs-integration
       - test-apphost
     if: always()
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download all test results
         uses: actions/download-artifact@v8
@@ -753,7 +733,7 @@ jobs:
           path: all-test-results
 
       - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action@v2.23.0
+        uses: EnricoMi/publish-unit-test-result-action@v2.24.0
         if: always()
         with:
           files: |
@@ -776,8 +756,7 @@ jobs:
           echo "- **Web.Tests.Integration:** ${{ needs.test-integration.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Persistence.MongoDb.Tests:** ${{ needs.test-persistence-mongodb.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Persistence.MongoDb.Tests.Integration:** ${{ needs.test-persistence-mongodb-integration.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Persistence.AzureStorage.Tests:** ${{ needs.test-persistence-azure.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Persistence.AzureStorage.Tests.Integration:** ${{ needs.test-persistence-azure-integration.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Persistence.MongoDb.Tests.GridFs.Integration:** ${{ needs.test-gridfs-integration.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **AppHost.Tests (Aspire + Playwright E2E):** ${{ needs.test-apphost.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
@@ -794,15 +773,14 @@ jobs:
           integration_status="${{ needs.test-integration.result }}"
           mongodb_status="${{ needs.test-persistence-mongodb.result }}"
           mongodb_int_status="${{ needs.test-persistence-mongodb-integration.result }}"
-          azure_status="${{ needs.test-persistence-azure.result }}"
-          azure_int_status="${{ needs.test-persistence-azure-integration.result }}"
+          gridfs_status="${{ needs.test-gridfs-integration.result }}"
           apphost_status="${{ needs.test-apphost.result }}"
 
           if [[ "$build_status" == "failure" || "$domain_status" == "failure" || "$web_status" == "failure" || \
                 "$arch_status" == "failure" || "$bunit_status" == "failure" || \
                 "$integration_status" == "failure" || "$mongodb_status" == "failure" || \
-                "$mongodb_int_status" == "failure" || "$azure_status" == "failure" || \
-                "$azure_int_status" == "failure" || "$apphost_status" == "failure" ]]; then
+                "$mongodb_int_status" == "failure" || "$gridfs_status" == "failure" || \
+                "$apphost_status" == "failure" ]]; then
             echo "❌ **Overall Status:** FAILED" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ **Overall Status:** PASSED" >> $GITHUB_STEP_SUMMARY

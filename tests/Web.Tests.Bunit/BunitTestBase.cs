@@ -15,6 +15,7 @@ using Domain.Features.Admin.Users.Queries;
 using MediatR;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using Web.Auth;
@@ -84,11 +85,15 @@ public abstract class BunitTestBase : BunitContext
 		// Register concrete services required by page components
 		var toastService = new ToastService();
 		var fakeNav = new FakeNavigationManager();
+		var hostEnvironment = Substitute.For<IHostEnvironment>();
+		hostEnvironment.EnvironmentName.Returns("IntegrationTesting");
 		Services.AddSingleton(toastService);
+		Services.AddSingleton(hostEnvironment);
 		Services.AddSingleton(new BulkSelectionState());
 		Services.AddSingleton(new SignalRClientService(
 			NullLogger<SignalRClientService>.Instance,
 			toastService,
+			hostEnvironment,
 			fakeNav));
 
 		// Set up sensible default returns for common services so that

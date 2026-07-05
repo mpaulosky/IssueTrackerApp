@@ -13,7 +13,8 @@
 ## 🎯 Test Breakdown by Component
 
 ### ThemeProvider Component (4 tests)
-```
+
+```text
 ✓ Renders successfully with child content
 ✓ Initializes theme on first render
 ✓ Cascades value to child components
@@ -21,6 +22,7 @@
 ```
 
 **Coverage:**
+
 - Component lifecycle
 - State initialization
 - Cascading parameter functionality
@@ -29,7 +31,8 @@
 ---
 
 ### ThemeToggle Component (9 tests)
-```
+
+```text
 ✓ Renders button with correct attributes
 ✓ Shows sun icon in light mode
 ✓ Shows moon icon in dark mode
@@ -43,6 +46,7 @@
 ```
 
 **Coverage:**
+
 - UI rendering and icons
 - Dropdown functionality
 - Theme mode selection
@@ -52,7 +56,8 @@
 ---
 
 ### ColorSchemeSelector Component (9 tests)
-```
+
+```text
 ✓ Renders button with correct attributes
 ✓ Dropdown opens on button click
 ✓ Dropdown contains all four color schemes
@@ -65,6 +70,7 @@
 ```
 
 **Coverage:**
+
 - UI rendering with swatches
 - Dropdown functionality
 - Color scheme selection
@@ -74,7 +80,8 @@
 ---
 
 ### Integration Tests (8 tests)
-```
+
+```text
 ✓ Both components render together
 ✓ Theme state is shared between components
 ✓ OnThemeChanged event is triggered
@@ -85,6 +92,7 @@
 ```
 
 **Coverage:**
+
 - Component interaction
 - State sharing via cascading
 - Event triggering
@@ -96,30 +104,35 @@
 ## 🔍 Testing Areas Covered
 
 ### ✅ Component Lifecycle
+
 - Component rendering
 - Initialization
 - Parameter updates
 - Disposal and cleanup
 
 ### ✅ User Interactions
+
 - Button clicks
 - Dropdown toggle
 - Menu item selection
 - State updates
 
 ### ✅ State Management
+
 - Theme mode changes (light/dark/system)
 - Color scheme changes
 - State persistence
 - Event propagation
 
 ### ✅ JavaScript Interop
+
 - localStorage operations
 - System preference detection
 - Error handling
 - Exception scenarios
 
 ### ✅ UI Rendering
+
 - Icon rendering based on state
 - Menu rendering
 - Color swatches
@@ -127,6 +140,7 @@
 - Accessibility attributes
 
 ### ✅ Cascading Parameters
+
 - Provider cascading
 - Child component access
 - State sharing
@@ -136,6 +150,7 @@
 ## 📋 Test Details
 
 ### Theme Mode Coverage
+
 | Mode | Toggle Test | Integration Test | Status |
 |------|------------|------------------|--------|
 | Light | ✅ | ✅ | Complete |
@@ -143,6 +158,7 @@
 | System | ✅ | ✅ | Complete |
 
 ### Color Scheme Coverage
+
 | Scheme | Selector Test | Visual Test | Status |
 |--------|--------------|-------------|--------|
 | Blue | ✅ | ✅ | Complete |
@@ -155,30 +171,35 @@
 ## 🧪 Test Patterns Used
 
 ### 1. Component Rendering
+
 ```csharp
 var component = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 
 ### 2. User Interaction
+
 ```csharp
 var button = component.Find("button");
 await button.ClickAsync(new());
 ```
 
 ### 3. State Verification
+
 ```csharp
 component.Instance.ThemeMode.Should().Be("dark");
 component.Instance.IsDarkMode.Should().BeTrue();
 ```
 
 ### 4. UI Verification
+
 ```csharp
 var menuItems = component.FindAll("button[role='menuitem']");
 menuItems.Should().HaveCount(3);
 ```
 
 ### 5. JavaScript Interop
+
 ```csharp
 JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
 JSInterop.SetupVoid("themeManager.setThemeMode");
@@ -188,7 +209,7 @@ JSInterop.SetupVoid("themeManager.setThemeMode");
 
 ## 📁 File Structure
 
-```
+```text
 tests/Web.Tests.Bunit/Theme/
 ├── ThemeComponentTests.cs (Main test file)
 │   ├── ThemeProviderTests
@@ -206,28 +227,33 @@ tests/Web.Tests.Bunit/Theme/
 ## 🎓 Key Features
 
 ### ✅ Comprehensive Mocking
+
 - JavaScript interop mocking for all themeManager methods
 - Service dependencies mocked via BunitTestBase
 - Exception scenarios covered
 
 ### ✅ Accessibility Testing
+
 - ARIA attributes verified (aria-label, role)
 - Semantic HTML structure validated
 - Dropdown menu accessibility
 
 ### ✅ State Management Testing
+
 - Component state changes
 - Event triggering and handling
 - Event cleanup on disposal
 - State persistence across components
 
 ### ✅ UI/UX Testing
+
 - Icon rendering and changes
 - Dropdown behavior
 - Selection highlighting
 - Labels and tooltips
 
 ### ✅ Error Handling
+
 - JavaScript exception scenarios
 - Prerendering error handling
 - Graceful degradation
@@ -237,21 +263,25 @@ tests/Web.Tests.Bunit/Theme/
 ## 🚀 Running the Tests
 
 ### All Tests
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj -v detailed
 ```
 
 ### Specific Test Class
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --filter "ThemeToggleTests"
 ```
 
 ### Specific Test Method
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --filter "ThemeToggle_DropdownOpens_OnButtonClick"
 ```
 
 ### With Code Coverage
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 ```
@@ -286,14 +316,17 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 ## 🔄 Test Dependencies
 
 ### Base Class
+
 - `BunitTestBase` - Provides component rendering and service mocks
 
 ### Global Usings
+
 - Xunit, FluentAssertions, NSubstitute
 - Bunit, Bunit.TestDoubles
 - Microsoft.Extensions.DependencyInjection
 
 ### Component Dependencies
+
 - ThemeProvider (cascading component)
 - ThemeToggle (dependent on ThemeProvider)
 - ColorSchemeSelector (dependent on ThemeProvider)
@@ -305,6 +338,7 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 **Format**: `[Component]_[Scenario]_[Expected Result]`
 
 **Examples**:
+
 - `ThemeToggle_DropdownOpens_OnButtonClick`
 - `ColorSchemeSelector_HighlightsCurrentScheme`
 - `Theme_StateIsShared_BetweenComponents`

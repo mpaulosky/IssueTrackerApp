@@ -1,7 +1,8 @@
 # bUnit Component Testing Quick Reference
 
 ## Project Structure
-```
+
+```text
 tests/
   Web.Tests.Bunit/
     BunitTestBase.cs           # Base class with mocked services and factories
@@ -14,6 +15,7 @@ tests/
 ## Common Test Patterns
 
 ### 1. Rendering a Component
+
 ```csharp
 var cut = Render<AttachmentCard>(parameters => parameters
     .Add(p => p.Attachment, attachment)
@@ -22,6 +24,7 @@ var cut = Render<AttachmentCard>(parameters => parameters
 ```
 
 ### 2. Finding Elements
+
 ```csharp
 // Find single element
 var checkbox = cut.Find("input[type='checkbox']");
@@ -37,12 +40,14 @@ var card = cut.FindComponent<AttachmentCard>();
 ```
 
 ### 3. Querying Element Properties
+
 ```csharp
 cut.Find("img").GetAttribute("src").Should().Be("url");
 cut.Find("img").GetAttribute("alt").Should().Be("text");
 ```
 
 ### 4. Assertions with FluentAssertions
+
 ```csharp
 cut.Markup.Should().Contain("Expected text");
 cut.Markup.Should().NotContain("Unexpected text");
@@ -52,6 +57,7 @@ checkedAttr.Should().BeNullOrEmpty();
 ```
 
 ### 5. Creating Test Data
+
 ```csharp
 // Use BunitTestBase factories
 var user = CreateTestUser(id: "user-1", name: "John Doe");
@@ -62,6 +68,7 @@ var status = CreateTestStatus(name: "Open");
 ```
 
 ### 6. Mocking Service Returns
+
 ```csharp
 CommentService.GetCommentsAsync(issueId)
     .Returns(Task.FromResult(Result.SuccessOf<IEnumerable<CommentDto>>(comments)));
@@ -71,6 +78,7 @@ CommentService.GetCommentsAsync(issueId)
 ```
 
 ### 7. Testing Loading States
+
 ```csharp
 var cut = Render<CommentsSection>(parameters => parameters
     .Add(p => p.IssueId, issueId)
@@ -81,6 +89,7 @@ cut.Markup.Should().Contain("animate-spin");
 ```
 
 ### 8. Testing Visibility Toggle
+
 ```csharp
 // When not visible
 var cut1 = Render<BulkProgressIndicator>(parameters => parameters
@@ -96,6 +105,7 @@ cut2.Markup.Should().Contain("Processing");
 ```
 
 ### 9. Testing Conditional Rendering
+
 ```csharp
 // Test with condition true
 var cut = Render<AttachmentCard>(parameters => parameters
@@ -115,6 +125,7 @@ deleteButton2.Should().BeNull();
 ```
 
 ### 10. Testing Parameter Changes
+
 ```csharp
 var cut = Render<IssueMultiSelect>(parameters => parameters
     .Add(p => p.ShowSelectAll, true)
@@ -126,7 +137,8 @@ checkbox.GetAttribute("id").Should().Be("select-all-checkbox");
 ```
 
 ## Test Naming Convention
-```
+
+```text
 {ComponentName}_{Scenario}_{ExpectedBehavior}()
 
 Examples:
@@ -138,6 +150,7 @@ Examples:
 ```
 
 ## Arrange-Act-Assert Pattern
+
 ```csharp
 [Fact]
 public void ComponentName_Scenario_ExpectedBehavior()
@@ -158,24 +171,28 @@ public void ComponentName_Scenario_ExpectedBehavior()
 ## Running Tests
 
 ### Run all Issue component tests
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj \
     --filter "FullyQualifiedName~Issues"
 ```
 
 ### Run specific test class
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj \
     --filter "AttachmentCardTests"
 ```
 
 ### Run single test
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj \
     --filter "AttachmentCard_WithImageAttachment_DisplaysImage"
 ```
 
 ### Run with verbose output
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj \
     --verbosity normal
@@ -242,18 +259,21 @@ itemCount.Should().Be(5);
 ## Troubleshooting
 
 ### Element Not Found
+
 - Use `cut.Markup` to inspect actual HTML
 - Check CSS selectors are correct
 - Verify element is conditionally rendered (check conditions)
 - Use `FindAll()` instead of `Find()` if element might not exist
 
 ### Test Fails Unexpectedly
+
 - Check mock setup is correct
 - Verify parameters passed to Render
 - Check for asynchronous operations (some need await)
 - Ensure test data is valid
 
 ### Build Errors
+
 - Check GlobalUsings.cs has necessary namespaces
 - Ensure all DTOs and components are imported
 - Verify namespaces match actual locations

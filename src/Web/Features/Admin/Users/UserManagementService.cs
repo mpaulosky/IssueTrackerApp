@@ -8,7 +8,6 @@
 // =============================================
 
 using System.Buffers.Binary;
-using System.Text.Json;
 
 using Auth0.ManagementApi;
 using Auth0.ManagementApi.Users;
@@ -19,6 +18,8 @@ using Domain.Features.Admin.Models;
 
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+
+using Web.Services;
 
 namespace Web.Features.Admin.Users;
 
@@ -51,6 +52,7 @@ public sealed class UserManagementService : IUserManagementService
 	private static readonly TimeSpan RolesListTtl  = TimeSpan.FromMinutes(30);
 
 	private readonly IMemoryCache _cache;
+	private readonly DistributedCacheHelper _cacheHelper;
 	private readonly IDistributedCache _distributedCache;
 	private readonly IManagementApiClient _managementClient;
 	private readonly ILogger<UserManagementService> _logger;
@@ -60,11 +62,13 @@ public sealed class UserManagementService : IUserManagementService
 	/// </summary>
 	public UserManagementService(
 		IMemoryCache cache,
+		DistributedCacheHelper cacheHelper,
 		IDistributedCache distributedCache,
 		IManagementApiClient managementClient,
 		ILogger<UserManagementService> logger)
 	{
 		_cache = cache;
+		_cacheHelper = cacheHelper;
 		_distributedCache = distributedCache;
 		_managementClient = managementClient;
 		_logger = logger;
@@ -81,7 +85,7 @@ public sealed class UserManagementService : IUserManagementService
 			var version = await GetUserListVersionAsync(ct).ConfigureAwait(false);
 			var cacheKey = $"{UserListCacheKeyPrefix}{version}_{page}_{perPage}";
 
-			var cached = await GetFromDistributedCacheAsync<List<AdminUserSummary>>(cacheKey, ct)
+			var cached = await _cacheHelper.GetAsync<List<AdminUserSummary>>(cacheKey, ct)
 				.ConfigureAwait(false);
 
 			if (cached is not null)
@@ -125,7 +129,7 @@ public sealed class UserManagementService : IUserManagementService
 			})).ConfigureAwait(false);
 
 			var result = summaries.ToList();
-			await SetInDistributedCacheAsync(cacheKey, result, UserListTtl, ct).ConfigureAwait(false);
+			await _cacheHelper.SetAsync(cacheKey, result, UserListTtl, ct).ConfigureAwait(false);
 
 			return Result.Ok<IReadOnlyList<AdminUserSummary>>(result);
 		}
@@ -159,7 +163,7 @@ public sealed class UserManagementService : IUserManagementService
 		{
 			var cacheKey = $"{UserByIdCacheKeyPrefix}{userId}";
 
-			var cached = await GetFromDistributedCacheAsync<AdminUserSummary>(cacheKey, ct)
+			var cached = await _cacheHelper.GetAsync<AdminUserSummary>(cacheKey, ct)
 				.ConfigureAwait(false);
 
 			if (cached is not null)
@@ -183,7 +187,7 @@ public sealed class UserManagementService : IUserManagementService
 				Roles = rolesPager.CurrentPage.Items.Select(r => r.Name ?? string.Empty).ToList()
 			};
 
-			await SetInDistributedCacheAsync(cacheKey, summary, UserByIdTtl, ct).ConfigureAwait(false);
+			await _cacheHelper.SetAsync(cacheKey, summary, UserByIdTtl, ct).ConfigureAwait(false);
 
 			return Result.Ok(summary);
 		}
@@ -339,7 +343,7 @@ public sealed class UserManagementService : IUserManagementService
 	{
 		try
 		{
-			var cached = await GetFromDistributedCacheAsync<List<RoleAssignment>>(RolesListCacheKey, ct)
+			var cached = await _cacheHelper.GetAsync<List<RoleAssignment>>(RolesListCacheKey, ct)
 				.ConfigureAwait(false);
 
 			if (cached is not null)
@@ -362,7 +366,7 @@ public sealed class UserManagementService : IUserManagementService
 				})
 				.ToList();
 
-			await SetInDistributedCacheAsync(RolesListCacheKey, result, RolesListTtl, ct)
+			await _cacheHelper.SetAsync(RolesListCacheKey, result, RolesListTtl, ct)
 				.ConfigureAwait(false);
 
 			return Result.Ok<IReadOnlyList<RoleAssignment>>(result);
@@ -380,45 +384,6 @@ public sealed class UserManagementService : IUserManagementService
 	// ──────────────────────────────────────────────────────────────────────────
 	// Private helpers
 	// ──────────────────────────────────────────────────────────────────────────
-
-	/// <summary>
-	///   Attempts to deserialize a value from <see cref="IDistributedCache" />.
-	///   Returns <see langword="null" /> on miss or deserialization failure.
-	/// </summary>
-	private async Task<T?> GetFromDistributedCacheAsync<T>(string key, CancellationToken ct)
-	{
-		try
-		{
-			var bytes = await _distributedCache.GetAsync(key, ct).ConfigureAwait(false);
-			return bytes is null ? default : JsonSerializer.Deserialize<T>(bytes);
-		}
-		catch (Exception ex) when (ex is not OperationCanceledException)
-		{
-			_logger.LogWarning(ex, "Distributed cache read failed for key '{Key}'. Treating as miss.", key);
-			return default;
-		}
-	}
-
-	/// <summary>
-	///   Serializes and stores a value in <see cref="IDistributedCache" /> with the given TTL.
-	///   Errors are logged as warnings so a cache write failure never breaks the caller.
-	/// </summary>
-	private async Task SetInDistributedCacheAsync<T>(string key, T value, TimeSpan ttl, CancellationToken ct)
-	{
-		try
-		{
-			var bytes = JsonSerializer.SerializeToUtf8Bytes(value);
-			await _distributedCache.SetAsync(
-				key,
-				bytes,
-				new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl },
-				ct).ConfigureAwait(false);
-		}
-		catch (Exception ex) when (ex is not OperationCanceledException)
-		{
-			_logger.LogWarning(ex, "Distributed cache write failed for key '{Key}'. Continuing without cache.", key);
-		}
-	}
 
 	/// <summary>
 	///   Returns the current user-list cache version counter.
@@ -524,13 +489,9 @@ public sealed class UserManagementService : IUserManagementService
 	};
 
 	/// <summary>
-	///   Safely converts a <see cref="UserDateSchema" /> last-login field to a nullable
-	///   <see cref="DateTimeOffset" />, returning <see langword="null" /> if the value is absent
-	///   or unparseable.
+	///   Converts a nullable last-login <see cref="DateTime" /> to a nullable
+	///   <see cref="DateTimeOffset" />, returning <see langword="null" /> if the value is absent.
 	/// </summary>
-	private static DateTimeOffset? ParseLastLogin(UserDateSchema? lastLogin)
-	{
-		if (lastLogin is null) return null;
-		return lastLogin.TryGetString(out var s) && DateTimeOffset.TryParse(s, out var dto) ? dto : null;
-	}
+	private static DateTimeOffset? ParseLastLogin(DateTime? lastLogin) =>
+		lastLogin is null ? null : new DateTimeOffset(DateTime.SpecifyKind(lastLogin.Value, DateTimeKind.Utc));
 }

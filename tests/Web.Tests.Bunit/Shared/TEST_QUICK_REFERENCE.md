@@ -10,6 +10,7 @@
 # Shared Component Tests - Quick Reference Guide
 
 ## Test File Location
+
 `tests/Web.Tests.Bunit/Shared/SharedComponentTests.cs`
 
 ## Components & Test Counts
@@ -52,12 +53,14 @@ public void ComponentName_Scenario_ExpectedResult()
 ## Testing Patterns
 
 ### 1. Parameter Binding
+
 ```csharp
 .Add(p => p.CurrentPage, 1)
 .Add(p => p.TotalPages, 5)
 ```
 
 ### 2. Event Callbacks
+
 ```csharp
 .Add(p => p.OnPageChange, EventCallback.Factory.Create<int>(this, page => 
 {
@@ -68,6 +71,7 @@ public void ComponentName_Scenario_ExpectedResult()
 ```
 
 ### 3. Clicking Elements
+
 ```csharp
 await cut.Find("button").Click();
 // or
@@ -75,6 +79,7 @@ await cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Next"))?
 ```
 
 ### 4. Checking Rendered Output
+
 ```csharp
 cut.Markup.Should().Contain("text");
 cut.Markup.Should().NotContain("hidden text");
@@ -82,11 +87,13 @@ cut.Find("nav").Should().NotBeNull();
 ```
 
 ### 5. Checking CSS Classes
+
 ```csharp
 cut.Find("span").GetAttribute("class").Should().Contain("bg-blue-100");
 ```
 
 ### 6. Checking Attributes
+
 ```csharp
 cut.Find("input").GetAttribute("id").Should().Be("test-search");
 cut.Find("input").GetAttribute("placeholder").Should().Be("Search...");
@@ -125,24 +132,28 @@ protected IJSRuntime JsRuntime { get; }
 ## Commonly Used Assertions
 
 ### Text Content
+
 ```csharp
 cut.Markup.Should().Contain("text");
 cut.Find("selector").TextContent.Should().Be("expected");
 ```
 
 ### Visibility
+
 ```csharp
 cut.Markup.Should().NotContain("<nav");
 cut.FindAll("button").Should().BeEmpty();
 ```
 
 ### Element Existence
+
 ```csharp
 cut.Find("nav").Should().NotBeNull();
 cut.FindComponent<SearchInput>().Should().NotBeNull();
 ```
 
 ### Attributes
+
 ```csharp
 cut.Find("input").GetAttribute("class").Should().Contain("primary");
 cut.Find("button").GetAttribute("disabled").Should().Be("disabled");
@@ -170,50 +181,60 @@ dotnet test --verbosity=detailed
 ## Component-Specific Notes
 
 ### Pagination
+
 - Tests navigation button visibility based on page position
 - Verifies page change callbacks
 - Checks primary color styling on current page
 
 ### FilterPanel
+
 - Tests SearchInput component integration
 - Verifies filter counts with multiple active filters
 - Tests expandable filter options
 
 ### Status/CategoryBadge
+
 - Tests color mapping for different values
 - Verifies "Unknown" for null values
 - Tests additional CSS classes
 
 ### SearchInput
+
 - Tests debounce behavior implicitly through callback
 - Verifies clear button conditional rendering
 - Tests accessibility attributes
 
 ### SummaryCard
+
 - Tests trend visualization (up/down arrows)
 - Verifies icon rendering with custom backgrounds
 - Tests subtitle conditional rendering
 
 ### ToastContainer
+
 - Requires ToastService injection
 - Tests different toast types and styles
 - Verifies toast dismissal buttons
 
 ### SignalRConnection
+
 - Tests connection state visualization
 - Requires SignalRClientService
 
 ### FileUpload
+
 - Tests file type acceptance
 - Verifies accessibility labels
 - Tests InputFile component usage
 
 ### DeleteConfirmationModal
+
 - Tests modal visibility toggling
 - Verifies loading spinner during deletion
 - Tests button disabling during operation
 
 ### DateRangePicker
+
 - Tests preset button selection
 - Verifies date range callback
 - Tests manual date input
@@ -221,27 +242,32 @@ dotnet test --verbosity=detailed
 ## Tips & Tricks
 
 1. **Use FirstOrDefault with Contains** when finding specific buttons:
+
    ```csharp
    var nextButton = cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Next"));
    ```
 
 2. **Check TextContent for rendered text**:
+
    ```csharp
    cut.Find("span").TextContent.Should().Contain("Open");
    ```
 
 3. **Use Find for single element, FindAll for multiple**:
+
    ```csharp
    cut.Find("nav");           // Throws if not found
    cut.FindAll("button");     // Returns list
    ```
 
 4. **Don't forget Task.CompletedTask in callbacks**:
+
    ```csharp
    EventCallback.Factory.Create<int>(this, _ => Task.CompletedTask)
    ```
 
 5. **Use @Key in Razor components for duplicate elements**:
+
    ```csharp
    @key="toast.Id"  // In component markup
    ```
@@ -249,16 +275,19 @@ dotnet test --verbosity=detailed
 ## Debugging Tests
 
 ### Enable Console Output
+
 ```csharp
 System.Diagnostics.Debug.WriteLine(cut.Markup);
 ```
 
 ### Take Snapshot of Component
+
 ```csharp
 var snapshot = cut.GetChangesSinceFirstRender();
 ```
 
 ### Find Element Details
+
 ```csharp
 var element = cut.Find("selector");
 Console.WriteLine(element.GetAttribute("class"));

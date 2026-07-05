@@ -30,6 +30,19 @@
 - **File changed**: `tests/AppHost.Tests/Infrastructure/AspireManager.cs`
 - **Commit**: `ff74721` — Fixed AppHost.Tests CI failures
 
+### Workflow Optimization: Eliminate Redundant Builds (2026-05-04)
+- **Issue**: PR #274's `squad-preview.yml` had 4 full solution builds: 1 shared `build` job + 3 test jobs each rebuilding everything
+- **Problem pattern**: Separate build job with `needs: build` dependencies = sequential execution + redundant work
+- **Efficient pattern** (from `squad-test.yml`): Each test job restores once → builds only specific test projects → runs tests with `--no-build`
+- **Benefits**: 
+  - Eliminates 3 redundant full-solution builds
+  - Jobs run in parallel (no `needs:` dependencies)
+  - Each job only compiles what it tests (faster)
+- **Concurrency cancellation**: Added `concurrency: { group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true }` to allow newer pushes to cancel in-progress 45-minute AppHost runs
+- **Squad hygiene**: Reverted unrelated `.squad/` file pollution (PR #276 Azurite work) using `git checkout dev -- .squad/`
+- **Key files**: `.github/workflows/squad-preview.yml`, `.github/workflows/squad-test.yml` (reference)
+- **Commit**: `11d6ba8` — PR #274 review blockers fixed
+
 ---
 
 ## Notes
@@ -236,3 +249,30 @@
 **Output:** Technical feasibility document filed to `.squad/orchestration-log/2026-04-12T20-17-00Z-boromir-workflows.md` and `.squad/decisions.md`.
 
 **Status:** ✅ Complete — Recommendation merged to team decisions.
+
+---
+
+### 2026-05-01 — squad-preview Root Cause: Missing Playwright Browser Install
+
+**By:** Boromir (DevOps)
+
+**Workflow:** `.github/workflows/squad-preview.yml`
+
+**Failure investigated:** GitHub Actions run `25228006800` on `dev` (`9dbf2c8`).
+
+**Root cause:** The preview workflow built and tested the full solution, which includes
+`tests/AppHost.Tests`, but it never installed the Playwright Chromium browser first.
+The failed job log showed `Microsoft.Playwright.PlaywrightException: Executable doesn't exist`
+for `chrome-headless-shell`, causing 38 AppHost tests to fail immediately.
+
+**Fix applied:** Added the same Playwright browser install step already used by
+`.github/workflows/squad-test.yml`:
+- `pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps`
+
+**Validation:** Local preview-equivalent commands succeeded after the workflow update:
+- `dotnet restore IssueTrackerApp.slnx`
+- `dotnet build IssueTrackerApp.slnx --configuration Release --no-restore -p:TreatWarningsAsErrors=true`
+- `pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium`
+- `dotnet test IssueTrackerApp.slnx --configuration Release --no-build --verbosity minimal`
+
+**Key path:** `.github/workflows/squad-preview.yml`

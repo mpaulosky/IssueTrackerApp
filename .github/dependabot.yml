@@ -6,7 +6,7 @@
 
 version: 2
 updates:
-  
+
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -39,6 +39,10 @@ updates:
       - "dependencies"
     reviewers:
       - "mpaulosky"
+    ignore:
+      # ImageSharp 4.x requires a paid commercial license
+      - dependency-name: "SixLabors.ImageSharp"
+        versions: ["[4,)"]
     groups:
       all-actions:
         patterns: [ "*" ]

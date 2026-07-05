@@ -5,25 +5,95 @@ on:
   push:
     branches: [dev]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
-  validate:
+  test-fast:
+    name: Fast Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
 
-      - name: Restore
-        run: dotnet restore IssueTrackerApp.slnx
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Build
-        run: dotnet build IssueTrackerApp.slnx --configuration Release --no-restore -p:TreatWarningsAsErrors=true
+      - name: Build test projects
+        run: |
+          dotnet build tests/Architecture.Tests --configuration Release --no-restore
+          dotnet build tests/Domain.Tests --configuration Release --no-restore
+          dotnet build tests/Web.Tests.Bunit --configuration Release --no-restore
+          dotnet build tests/Persistence.MongoDb.Tests --configuration Release --no-restore
+          dotnet build tests/Web.Tests --configuration Release --no-restore
 
-      - name: Run unit tests
-        run: dotnet test IssueTrackerApp.slnx --configuration Release --no-build --verbosity normal
+      - name: Run fast unit tests
+        run: |
+          dotnet test tests/Architecture.Tests/Architecture.Tests.csproj --configuration Release --no-build --verbosity minimal
+          dotnet test tests/Domain.Tests/Domain.Tests.csproj --configuration Release --no-build --verbosity minimal
+          dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --configuration Release --no-build --verbosity minimal
+          dotnet test tests/Persistence.MongoDb.Tests/Persistence.MongoDb.Tests.csproj --configuration Release --no-build --verbosity minimal
+          dotnet test tests/Web.Tests/Web.Tests.csproj --configuration Release --no-build --verbosity minimal
+
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build test projects
+        run: |
+          dotnet build tests/Persistence.MongoDb.Tests.Integration --configuration Release --no-restore
+          dotnet build tests/Web.Tests.Integration --configuration Release --no-restore
+          dotnet build tests/Persistence.MongoDb.Tests.GridFs.Integration --configuration Release --no-restore
+
+      - name: Run integration tests
+        run: |
+          dotnet test tests/Persistence.MongoDb.Tests.Integration/Persistence.MongoDb.Tests.Integration.csproj --configuration Release --no-build --verbosity minimal
+          dotnet test tests/Web.Tests.Integration/Web.Tests.Integration.csproj --configuration Release --no-build --verbosity minimal
+          dotnet test tests/Persistence.MongoDb.Tests.GridFs.Integration/Persistence.MongoDb.Tests.GridFs.Integration.csproj --configuration Release --no-build --verbosity minimal
+
+  test-apphost:
+    name: AppHost Tests (Aspire + Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ASPIRE_ALLOW_UNSECURED_TRANSPORT: "true"
+      ConnectionStrings__mongodb: "mongodb://localhost:27017"
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build AppHost test project
+        run: dotnet build tests/AppHost.Tests --configuration Release --no-restore
+
+      - name: Install Playwright browsers
+        run: pwsh tests/AppHost.Tests/bin/Release/net10.0/playwright.ps1 install chromium --with-deps
+
+      - name: Run AppHost tests
+        run: dotnet test tests/AppHost.Tests/AppHost.Tests.csproj --configuration Release --no-build --verbosity normal

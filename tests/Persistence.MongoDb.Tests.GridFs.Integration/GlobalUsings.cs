@@ -4,22 +4,20 @@
 // Company :       mpaulosky
 // Author :        Matthew Paulosky
 // Solution Name : IssueTrackerApp
-// Project Name :  Persistence.AzureStorage
+// Project Name :  Persistence.MongoDb.Tests.GridFs.Integration
 // =======================================================
 
 global using System;
 global using System.IO;
+global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
-
-global using Azure.Storage.Blobs;
-global using Azure.Storage.Blobs.Models;
-
-global using Domain.Abstractions;
 global using Domain.Models;
-
-global using Microsoft.Extensions.Logging;
-global using Microsoft.Extensions.Options;
-
+global using FluentAssertions;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using MongoDB.Driver;
+global using Persistence.MongoDb.Services;
 global using SixLabors.ImageSharp;
-global using SixLabors.ImageSharp.Processing;
+global using SixLabors.ImageSharp.PixelFormats;
+global using Testcontainers.MongoDb;
+global using Xunit;
