@@ -1,26 +1,32 @@
 # Theme Components bUnit Tests
 
 ## Overview
+
 This test suite provides comprehensive testing for the Theme-related Blazor components in the IssueTrackerApp. The tests cover component rendering, user interactions, state management, and theme persistence.
 
 ## Test File Location
+
 `tests/Web.Tests.Bunit/Theme/ThemeComponentTests.cs`
 
 ## Components Tested
 
 ### 1. ThemeProvider Component
+
 **Purpose:** Manages theme state (dark/light mode, color scheme) and provides cascading values to child components.
 
 **Tests (4 tests):**
+
 - `ThemeProvider_RendersSuccessfully` - Verifies component renders with child content
 - `ThemeProvider_InitializesThemeOnFirstRender` - Tests theme initialization on first render
 - `ThemeProvider_CascadesValueToChildren` - Validates cascading of provider to child components
 - `ThemeProvider_HandlesJSException_DuringInitialization` - Tests error handling for prerendering scenario
 
 ### 2. ThemeToggle Component
+
 **Purpose:** Provides a dropdown menu for switching between light, dark, and system theme modes.
 
 **Tests (8 tests):**
+
 - `ThemeToggle_RendersWithButton` - Confirms button renders with correct attributes
 - `ThemeToggle_ShowsSunIcon_InLightMode` - Verifies sun icon displays in light mode
 - `ThemeToggle_ShowsMoonIcon_InDarkMode` - Verifies moon icon displays in dark mode
@@ -33,9 +39,11 @@ This test suite provides comprehensive testing for the Theme-related Blazor comp
 - `ThemeToggle_DisposesEventHandler` - Tests proper cleanup on disposal
 
 ### 3. ColorSchemeSelector Component
+
 **Purpose:** Allows users to select accent color scheme (Blue, Red, Green, Yellow).
 
 **Tests (9 tests):**
+
 - `ColorSchemeSelector_RendersWithButton` - Confirms button renders with correct attributes
 - `ColorSchemeSelector_DropdownOpens_OnButtonClick` - Tests dropdown open/close functionality
 - `ColorSchemeSelector_DropdownContains_AllColorSchemes` - Validates all four color options
@@ -47,9 +55,11 @@ This test suite provides comprehensive testing for the Theme-related Blazor comp
 - `ColorSchemeSelector_DisposesEventHandler` - Tests proper cleanup on disposal
 
 ### 4. Integration Tests
+
 **Purpose:** Tests theme components working together and theme state persistence.
 
 **Tests (8 tests):**
+
 - `Theme_BothComponents_RenderTogether` - Verifies both toggle and selector render together
 - `Theme_StateIsShared_BetweenComponents` - Validates theme state is shared across components
 - `Theme_OnThemeChanged_TriggeredOnThemeChange` - Tests event triggering on theme change
@@ -59,6 +69,7 @@ This test suite provides comprehensive testing for the Theme-related Blazor comp
 - `Theme_SystemPreferenceChanged_IgnoredInNonSystemMode` - Validates proper system preference handling
 
 ## Test Statistics
+
 - **Total Test Classes:** 4
 - **Total Test Methods:** 29
 - **File Size:** 27,605 bytes
@@ -66,6 +77,7 @@ This test suite provides comprehensive testing for the Theme-related Blazor comp
 ## Key Testing Patterns
 
 ### JavaScript Interop Mocking
+
 ```csharp
 // For methods returning values
 JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
@@ -79,12 +91,14 @@ JSInterop.Setup<string>("method").SetException(new JSException("error"));
 ```
 
 ### Component Rendering with Cascading Values
+
 ```csharp
 var themeProvider = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 
 ### Dropdown and Event Testing
+
 ```csharp
 var button = component.Find("button");
 await button.ClickAsync(new());
@@ -94,30 +108,35 @@ var menuItems = component.FindAll("button[role='menuitem']");
 ## Coverage Areas
 
 ### Component Lifecycle
+
 - ✅ Initial render and initialization
 - ✅ Parameter changes
 - ✅ Disposal and cleanup
 - ✅ Event subscription/unsubscription
 
 ### User Interactions
+
 - ✅ Button clicks
 - ✅ Dropdown toggle
 - ✅ Menu item selection
 - ✅ State updates via user actions
 
 ### State Management
+
 - ✅ Theme mode changes (light/dark/system)
 - ✅ Color scheme changes
 - ✅ State persistence across component boundaries
 - ✅ Event triggering and handling
 
 ### JavaScript Interop
+
 - ✅ localStorage integration
 - ✅ System preference detection
 - ✅ Error handling during JS interop
 - ✅ Exception scenarios (prerendering)
 
 ### UI Rendering
+
 - ✅ Icon display based on mode
 - ✅ Menu items rendering
 - ✅ Color swatches display
@@ -126,17 +145,20 @@ var menuItems = component.FindAll("button[role='menuitem']");
 
 ## Running the Tests
 
-### Run all theme tests:
+### Run all theme tests
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --logger "console" -v normal
 ```
 
-### Run specific test class:
+### Run specific test class
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --filter "ClassName"
 ```
 
-### Run with code coverage:
+### Run with code coverage
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 ```
@@ -144,6 +166,7 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 ## Dependencies
 
 ### Using Global
+
 - Xunit
 - FluentAssertions
 - NSubstitute
@@ -154,6 +177,7 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 - Microsoft.AspNetCore.Components.Rendering
 
 ### Base Class
+
 - `BunitTestBase` - Provides JSInterop mocking and service setup
 
 ## Notes

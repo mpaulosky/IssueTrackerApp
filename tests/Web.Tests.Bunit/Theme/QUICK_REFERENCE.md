@@ -2,7 +2,7 @@
 
 ## Test File Structure
 
-```
+```text
 tests/Web.Tests.Bunit/Theme/
 ├── ThemeComponentTests.cs       # Main test file (29 tests)
 └── TEST_SUMMARY.md              # This summary document
@@ -13,20 +13,25 @@ tests/Web.Tests.Bunit/Theme/
 The tests are organized into 4 main test classes:
 
 ### 1. **ThemeProviderTests** (4 tests)
+
 Tests the core theme management component that handles state and cascading.
 
 ### 2. **ThemeToggleTests** (9 tests) 
+
 Tests the theme mode toggle component (light/dark/system).
 
 ### 3. **ColorSchemeSelectorTests** (9 tests)
+
 Tests the color scheme selector component (blue/red/green/yellow).
 
 ### 4. **ThemeIntegrationTests** (8 tests)
+
 Tests how theme components work together and state persistence.
 
 ## Common Test Patterns
 
 ### Setup JavaScript Interop (All Tests)
+
 ```csharp
 // String returns
 JSInterop.Setup<string>("themeManager.getThemeMode").SetResult("light");
@@ -42,12 +47,14 @@ JSInterop.Setup<string>("method").SetException(new JSException("error"));
 ```
 
 ### Render Component with Theme Provider
+
 ```csharp
 var themeProvider = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 
 ### Test User Interactions
+
 ```csharp
 // Click a button
 var button = component.Find("button");
@@ -58,6 +65,7 @@ var menuItems = component.FindAll("button[role='menuitem']");
 ```
 
 ### Verify JavaScript Calls
+
 ```csharp
 JSInterop.VerifyInvoke("themeManager.setThemeMode", calledTimes: 1);
 ```
@@ -77,6 +85,7 @@ JSInterop.VerifyInvoke("themeManager.setThemeMode", calledTimes: 1);
 `[Component]_[Scenario]_[ExpectedResult]`
 
 Examples:
+
 - `ThemeToggle_DropdownOpens_OnButtonClick`
 - `ColorSchemeSelector_HighlightsCurrentScheme`
 - `Theme_StateIsShared_BetweenComponents`
@@ -84,16 +93,19 @@ Examples:
 ## Components Tested
 
 ### ThemeProvider.razor
+
 - **Location**: src/Web/Components/Theme/ThemeProvider.razor.cs
 - **Role**: Manages theme state and cascading values
 - **Key Methods**: SetThemeModeAsync, SetColorSchemeAsync, OnSystemPreferenceChanged
 
 ### ThemeToggle.razor
+
 - **Location**: src/Web/Components/Theme/ThemeToggle.razor
 - **Role**: UI for switching between light/dark/system modes
 - **Key Features**: Dropdown menu, icon changes, accessibility attributes
 
 ### ColorSchemeSelector.razor
+
 - **Location**: src/Web/Components/Theme/ColorSchemeSelector.razor
 - **Role**: UI for selecting accent color scheme
 - **Key Features**: Color swatches, dropdown menu, selection highlighting
@@ -128,6 +140,7 @@ using Web.Components.Theme;
 ## Test Base Class
 
 All tests inherit from `BunitTestBase` which provides:
+
 - `JSInterop` - Mock JavaScript interop setup
 - `Render<T>()` - Render Blazor components
 - `FindAll()`, `Find()`, `FindComponent<T>()` - Query rendered components
@@ -144,15 +157,19 @@ All tests inherit from `BunitTestBase` which provides:
 ## Common Issues & Solutions
 
 **Issue**: "No matching JSInterop setup"
+
 - **Solution**: Add `JSInterop.Setup<T>()` or `JSInterop.SetupVoid()` for the method
 
 **Issue**: "CascadingParameter is null"
+
 - **Solution**: Wrap child component in ThemeProvider when rendering
 
 **Issue**: "Elements not found"
+
 - **Solution**: Ensure components have rendered; use `Render()` if needed
 
 **Issue**: "Async context error"
+
 - **Solution**: Use `await component.InvokeAsync()` for state changes
 
 ## Testing Checklist for New Theme Tests

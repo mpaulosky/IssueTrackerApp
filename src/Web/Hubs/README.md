@@ -5,10 +5,12 @@ This document describes the SignalR infrastructure for real-time issue updates i
 ## Architecture
 
 ### Hub Endpoint
+
 - **Path:** `/hubs/issues`
 - **Hub Class:** `Web.Hubs.IssueHub`
 
 ### Client Events
+
 The following events are broadcast to connected clients:
 
 1. **IssueCreated** - When a new issue is created
@@ -28,6 +30,7 @@ The following events are broadcast to connected clients:
    - Groups: `issue-{issueId}`, `all`
 
 ### Client Methods
+
 Clients can call these methods to manage group subscriptions:
 
 - `JoinIssueGroup(issueId)` - Subscribe to updates for a specific issue
@@ -36,6 +39,7 @@ Clients can call these methods to manage group subscriptions:
 ## Development
 
 ### Local Development
+
 In development mode, SignalR uses the built-in ASP.NET Core SignalR server with WebSockets transport.
 
 No additional configuration is required for local development.
@@ -43,7 +47,9 @@ No additional configuration is required for local development.
 ## Production Deployment with Azure SignalR Service
 
 ### Why Azure SignalR Service?
+
 For production environments, it is recommended to use Azure SignalR Service for:
+
 - **Scalability:** Handle thousands of concurrent connections
 - **Reliability:** High availability and automatic failover
 - **Performance:** Optimized message delivery
@@ -51,6 +57,7 @@ For production environments, it is recommended to use Azure SignalR Service for:
 ### Setup Steps
 
 #### 1. Create Azure SignalR Service
+
 ```bash
 # Create a resource group
 az group create --name IssueTrackerRG --location eastus
@@ -65,6 +72,7 @@ az signalr create \
 ```
 
 #### 2. Get Connection String
+
 ```bash
 # Get the connection string
 az signalr key list \
@@ -76,11 +84,13 @@ az signalr key list \
 #### 3. Configure Application
 
 Add the NuGet package to `Web.csproj`:
+
 ```xml
 <PackageReference Include="Microsoft.Azure.SignalR" />
 ```
 
 Update `appsettings.Production.json`:
+
 ```json
 {
   "Azure": {
@@ -93,6 +103,7 @@ Update `appsettings.Production.json`:
 ```
 
 #### 4. Update Program.cs
+
 Add configuration to use Azure SignalR Service in production:
 
 ```csharp
@@ -115,6 +126,7 @@ if (builder.Environment.IsProduction())
 ```
 
 #### 5. Configure in Azure App Service
+
 Set the connection string as an environment variable or in Azure Key Vault:
 
 ```bash
@@ -127,6 +139,7 @@ az webapp config appsettings set \
 ### Monitoring
 
 Enable diagnostic logging in Azure SignalR Service:
+
 ```bash
 az monitor diagnostic-settings create \
   --name SignalRDiagnostics \
@@ -148,6 +161,7 @@ var web = builder.AddProject<Projects.Web>("web")
 ```
 
 This requires the Aspire Azure SignalR component:
+
 ```bash
 dotnet add package Aspire.Hosting.Azure.SignalR
 ```
@@ -155,6 +169,7 @@ dotnet add package Aspire.Hosting.Azure.SignalR
 ## Testing SignalR
 
 ### Browser Console Test
+
 ```javascript
 // Connect to the hub
 const connection = new signalR.HubConnectionBuilder()
@@ -180,9 +195,11 @@ await connection.invoke("JoinIssueGroup", "507f1f77bcf86cd799439011");
 ## Security Considerations
 
 ### Authentication
+
 SignalR connections automatically inherit the authentication context from the HTTP request. No additional configuration is needed.
 
 ### Authorization
+
 To restrict hub access:
 
 ```csharp
@@ -194,6 +211,7 @@ public sealed class IssueHub : Hub
 ```
 
 Or add specific policies:
+
 ```csharp
 [Authorize(Policy = AuthorizationPolicies.UserPolicy)]
 public sealed class IssueHub : Hub
@@ -205,14 +223,18 @@ public sealed class IssueHub : Hub
 ## Performance Tuning
 
 ### Connection Limits
+
 For Azure SignalR Service:
+
 - **Free tier:** 20 concurrent connections
 - **Standard tier:** 1,000 connections per unit (scalable)
 
 ### Message Size
+
 Keep event payloads under 32KB for optimal performance.
 
 ### Reconnection
+
 SignalR clients automatically reconnect on network interruptions. Configure retry policy in client:
 
 ```javascript
@@ -225,16 +247,19 @@ const connection = new signalR.HubConnectionBuilder()
 ## Troubleshooting
 
 ### Connection Issues
+
 1. Check WebSocket support is enabled in App Service
 2. Verify CORS configuration allows SignalR
 3. Check firewall rules allow SignalR ports (443 for HTTPS)
 
 ### Message Delivery
+
 1. Verify group subscriptions: `JoinIssueGroup` must be called
 2. Check hub context is correctly injected
 3. Ensure notification methods are called after successful operations
 
 ### Logging
+
 Enable detailed SignalR logging:
 
 ```json

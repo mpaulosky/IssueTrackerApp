@@ -4,7 +4,7 @@ This document describes the solution architecture of IssueTrackerApp, including 
 
 ## Solution Structure
 
-```
+```text
 IssueTrackerApp/
 ├── src/
 │   ├── AppHost/                  # .NET Aspire Orchestration
@@ -130,7 +130,7 @@ IssueTrackerApp/
 
 ## Data Flow Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                  AppHost                                     │
 │                        (.NET Aspire Orchestration)                          │
@@ -273,7 +273,7 @@ public class Comment
 
 ### Authentication Flow
 
-```
+```text
 ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
 │ Browser │───►│  /login │───►│  Auth0  │───►│/callback│
 └─────────┘    └─────────┘    └─────────┘    └─────────┘
@@ -307,7 +307,7 @@ public class Comment
 
 ### OpenTelemetry Integration
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                     ServiceDefaults                              │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐ │
@@ -392,7 +392,7 @@ The application uses MediatR to implement the Command Query Responsibility Segre
 
 ### Feature Structure
 
-```
+```text
 Domain/Features/
 ├── Issues/
 │   ├── Commands/
@@ -488,6 +488,7 @@ public record IssueSearchRequest
 ### Filter Pipeline
 
 The search handler applies filters in sequence:
+
 1. Archive filter (exclude archived by default)
 2. Text search (title and description, case-insensitive)
 3. Status filter (exact match)
@@ -499,6 +500,7 @@ The search handler applies filters in sequence:
 ### URL Parameter Persistence
 
 Search state is synchronized with URL query parameters, enabling:
+
 - Bookmarkable search results
 - Browser back/forward navigation
 - Shareable filtered views

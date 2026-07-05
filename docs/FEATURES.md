@@ -47,7 +47,7 @@ Full CRUD (Create, Read, Update, Delete) functionality for tracking issues.
 
 ### CQRS Commands & Queries
 
-```
+```text
 Domain/Features/Issues/
 ├── Commands/
 │   ├── CreateIssueCommand.cs      # Create new issue
@@ -215,7 +215,7 @@ Comments are displayed inline on the issue details page:
 
 ### CQRS Commands & Queries
 
-```
+```text
 Domain/Features/Comments/
 ├── Commands/
 │   ├── AddCommentCommand.cs       # Add new comment to issue
@@ -275,7 +275,7 @@ Admin functionality for managing issue categories.
 
 ### CQRS Commands & Queries
 
-```
+```text
 Domain/Features/Categories/
 ├── Commands/
 │   ├── CreateCategoryCommand.cs
@@ -330,7 +330,7 @@ Admin functionality for managing issue statuses and workflows.
 
 ### CQRS Commands & Queries
 
-```
+```text
 Domain/Features/Statuses/
 ├── Commands/
 │   ├── CreateStatusCommand.cs

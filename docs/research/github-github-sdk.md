@@ -9,7 +9,8 @@
 
 There is no single repository at `github/github-sdk`. Instead, GitHub maintains **two distinct SDK ecosystems** for different purposes:
 
-1. **Octokit** — The official GitHub REST/GraphQL API client libraries, maintained under the [`octokit`](https://github.com/octokit) organization. These are the traditional SDKs for interacting with GitHub's platform APIs (repos, issues, PRs, users, etc.). Available in JavaScript/TypeScript, Ruby, .NET, Go, and Objective-C. The newer Go and .NET SDKs are **auto-generated** from GitHub's OpenAPI spec using Microsoft's Kiota tool[^1].
+1. **Octokit** — The official GitHub REST/GraphQL API client libraries, maintained under the [`octokit`](https://github.com/octokit) organization. These are the traditional SDKs for interacting with GitHub's platform APIs (repos, issues, PRs, users, etc.). Available in JavaScript/TypeScript, Ruby, .NET, Go, and Objective-C. The newer Go and .NET SDKs are **auto-generated** from GitHub's OpenAPI
+spec using Microsoft's Kiota tool[^1].
 
 2. **Copilot SDK** — A newer, fast-growing SDK at [`github/copilot-sdk`](https://github.com/github/copilot-sdk) (8k stars) for embedding GitHub Copilot's agentic AI workflows into applications. Available in TypeScript, Python, Go, .NET, and Java. Currently in **Technical Preview**[^2].
 
@@ -269,7 +270,7 @@ The foundation for generated SDKs is [`github/rest-api-description`](https://git
 
 The [`octokit/source-generator`](https://github.com/octokit/source-generator) repository contains the code generation pipeline[^13]:
 
-```
+```text
 github/rest-api-description (OpenAPI spec)
          │
          ▼
@@ -296,7 +297,7 @@ The [**GitHub Copilot SDK**](https://github.com/github/copilot-sdk) (8k ⭐, 1k 
 
 **Status:** Technical Preview (not yet production-ready)
 
-```
+```text
 ┌─────────────────────────┐
 │   Your Application      │
 │   (Python/TS/Go/.NET)   │
@@ -499,7 +500,7 @@ const result = await generateText({
 
 ## Choosing the Right SDK
 
-```
+```text
 What do you need?
        │
        ├─► Interact with GitHub API (repos, issues, PRs, users)?

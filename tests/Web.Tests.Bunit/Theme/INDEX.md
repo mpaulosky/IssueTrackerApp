@@ -38,15 +38,19 @@ This directory contains comprehensive bUnit tests for the Theme components in Is
 ## 🎯 Quick Navigation
 
 ### For Running Tests
+
 → See **QUICK_REFERENCE.md** section "Running Tests"
 
 ### For Understanding Tests
+
 → See **TEST_SUMMARY.md** or **TEST_COVERAGE_MAP.md**
 
 ### For Test Patterns
+
 → See **QUICK_REFERENCE.md** section "Common Test Patterns"
 
 ### For Troubleshooting
+
 → See **QUICK_REFERENCE.md** section "Common Issues & Solutions"
 
 ---
@@ -66,23 +70,27 @@ This directory contains comprehensive bUnit tests for the Theme components in Is
 ## 🧪 Test Classes
 
 ### 1. ThemeProviderTests (4 tests)
+
 - Component rendering and initialization
 - Cascading parameter functionality
 - Error handling
 
 ### 2. ThemeToggleTests (9 tests)
+
 - Theme mode switching (light/dark/system)
 - Dropdown menu behavior
 - UI icon rendering
 - State management
 
 ### 3. ColorSchemeSelectorTests (9 tests)
+
 - Color scheme selection (4 colors)
 - Dropdown functionality
 - Color swatches display
 - State management
 
 ### 4. ThemeIntegrationTests (8 tests)
+
 - Component interaction
 - State sharing between components
 - Event handling
@@ -93,11 +101,13 @@ This directory contains comprehensive bUnit tests for the Theme components in Is
 ## 🧠 Key Concepts
 
 ### Components Tested
+
 1. **ThemeProvider.razor** - State management and cascading
 2. **ThemeToggle.razor** - Theme mode selection UI
 3. **ColorSchemeSelector.razor** - Color scheme selection UI
 
 ### Testing Patterns
+
 - Component rendering with `Render<T>()`
 - JavaScript interop mocking with `JSInterop.Setup<T>()`
 - DOM querying with `Find()`, `FindAll()`
@@ -105,6 +115,7 @@ This directory contains comprehensive bUnit tests for the Theme components in Is
 - State assertions with `Should().Be()`
 
 ### Coverage Areas
+
 - Component lifecycle
 - User interactions
 - State management
@@ -119,21 +130,25 @@ This directory contains comprehensive bUnit tests for the Theme components in Is
 ## 🚀 Getting Started
 
 ### Build
+
 ```bash
 dotnet build tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj
 ```
 
 ### Run All Tests
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj
 ```
 
 ### Run Specific Test
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj --filter "ThemeToggleTests"
 ```
 
 ### Run with Coverage
+
 ```bash
 dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 ```
@@ -143,21 +158,25 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 ## 📖 Reading Guide
 
 ### First Time?
+
 1. Start with **QUICK_REFERENCE.md**
 2. Then read **TEST_SUMMARY.md**
 3. Examine **ThemeComponentTests.cs**
 
 ### Want to Add Tests?
+
 1. Review **QUICK_REFERENCE.md** - "Testing Checklist"
 2. Look at examples in **ThemeComponentTests.cs**
 3. Follow naming conventions from **QUICK_REFERENCE.md**
 
 ### Troubleshooting?
+
 1. Check **QUICK_REFERENCE.md** - "Common Issues & Solutions"
 2. Review test examples for similar scenario
 3. Check test setup patterns
 
 ### Need Details?
+
 1. Check **TEST_COVERAGE_MAP.md** for organization
 2. Check **TEST_SUMMARY.md** for descriptions
 3. Review source code comments in test file
@@ -167,29 +186,34 @@ dotnet test tests/Web.Tests.Bunit/Web.Tests.Bunit.csproj /p:CollectCoverage=true
 ## 💡 Key Testing Patterns
 
 ### Setup JavaScript Interop
+
 ```csharp
 JSInterop.Setup<string>("method").SetResult("value");
 JSInterop.SetupVoid("method");
 ```
 
 ### Render Component with Provider
+
 ```csharp
 var component = Render<ThemeProvider>(parameters =>
     parameters.AddChildContent<ThemeToggle>());
 ```
 
 ### Query DOM
+
 ```csharp
 var button = component.Find("button");
 var items = component.FindAll("button[role='menuitem']");
 ```
 
 ### Simulate User Action
+
 ```csharp
 await button.ClickAsync(new());
 ```
 
 ### Assert State
+
 ```csharp
 component.Instance.ThemeMode.Should().Be("dark");
 ```
@@ -216,6 +240,7 @@ component.Instance.ThemeMode.Should().Be("dark");
 **Format**: `[Component]_[Scenario]_[Expected Result]`
 
 **Examples**:
+
 - `ThemeProvider_RendersSuccessfully`
 - `ThemeToggle_DropdownOpens_OnButtonClick`
 - `ColorSchemeSelector_HighlightsCurrentScheme`
@@ -244,6 +269,7 @@ component.Instance.ThemeMode.Should().Be("dark");
 ## ✨ Summary
 
 This test suite provides **comprehensive coverage** of the Theme components with:
+
 - ✅ Clear organization
 - ✅ Well-documented tests
 - ✅ Reusable patterns

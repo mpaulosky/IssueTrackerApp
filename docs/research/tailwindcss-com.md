@@ -2,7 +2,9 @@
 
 ## Executive Summary
 
-Tailwind CSS is a **utility-first CSS framework** created by Adam Wathan and maintained by [Tailwind Labs](https://github.com/tailwindlabs). It provides low-level, single-purpose utility classes (like `flex`, `pt-4`, `text-center`, `rotate-90`) that are composed directly in markup to build any design. The latest version, **v4.2.2** (as of March 2026), represents a ground-up rewrite of the framework engine — now a TypeScript + Rust hybrid — delivering up to 5× faster full builds and 100× faster incremental builds compared to v3.x[^1][^2]. The framework is MIT-licensed, has **94,000+ GitHub stars**, and its npm package sees millions of downloads weekly[^3]. The official documentation and interactive playground live at [tailwindcss.com](https://tailwindcss.com), which is itself a Next.js site hosted from the [tailwindlabs/tailwindcss.com](https://github.com/tailwindlabs/tailwindcss.com) repository[^4].
+Tailwind CSS is a **utility-first CSS framework** created by Adam Wathan and maintained by [Tailwind Labs](https://github.com/tailwindlabs). It provides low-level, single-purpose utility classes (like `flex`, `pt-4`, `text-center`, `rotate-90`) that are composed directly in markup to build any design. The latest version, **v4.2.2** (as of March 2026), represents a ground-up rewrite of the
+framework engine — now a TypeScript + Rust hybrid — delivering up to 5× faster full builds and 100× faster incremental builds compared to v3.x[^1][^2]. The framework is MIT-licensed, has **94,000+ GitHub stars**, and its npm package sees millions of downloads weekly[^3]. The official documentation and interactive playground live at [tailwindcss.com](https://tailwindcss.com), which is itself a
+Next.js site hosted from the [tailwindlabs/tailwindcss.com](https://github.com/tailwindlabs/tailwindcss.com) repository[^4].
 
 ---
 
