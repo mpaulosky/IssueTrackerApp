@@ -17,7 +17,8 @@
     <!-- Azure Key Vault -->
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
-    <PackageVersion Include="SixLabors.ImageSharp" Version="4.0.0" />
+    <!-- Pinned: v4.0.0+ requires a paid Six Labors commercial license (see https://sixlabors.com/pricing/); stay on the last free v3.x release -->
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <!-- MediatR -->
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <!-- FluentValidation -->
