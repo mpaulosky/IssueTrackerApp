@@ -1,5 +1,6 @@
 name: Lint YAML
 # Validates all workflow and config YAML files
+# This workflow emits the required `yamllint` status check on pull requests.
 
 on:
   push:
