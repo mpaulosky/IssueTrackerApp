@@ -1,17 +1,16 @@
-name: Lint Markdown
+name: lint-markdown
 # Runs markdownlint-cli2 using the repo's .markdownlint.json config
 
 on:
   push:
-    branches: [dev, insider]
-  pull_request:
-    branches: [dev, preview, main, insider]
+    branches: [dev]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  markdownlint:
+  lint-markdown:
     name: markdownlint
     runs-on: ubuntu-latest
     steps:

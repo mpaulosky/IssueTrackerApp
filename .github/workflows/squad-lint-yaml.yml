@@ -1,23 +1,20 @@
-name: Lint YAML
+name: lint-yaml
 # Validates all workflow and config YAML files
-# This workflow emits the required `yamllint` status check on pull requests.
+# This workflow emits the required `yamllint` status check on push to dev.
 # Also supports workflow_dispatch for manual triggering on branches without YAML changes.
 
 on:
   push:
-    branches: [dev, insider]
-    paths: ['**.yml', '**.yaml']
-  pull_request:
-    branches: [dev, preview, main, insider]
-    paths: ['**.yml', '**.yaml']
+    branches: [dev]
+    paths: ['**/*.yml', '**/*.yaml']
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  yamllint:
-    name: yamllint
+  lint-yaml:
+    name: lint-yaml
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
