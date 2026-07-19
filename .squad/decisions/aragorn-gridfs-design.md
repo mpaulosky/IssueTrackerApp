@@ -28,6 +28,7 @@ Draft — awaiting Matthew's approval
 - `Results.Stream()` with explicit `fileLength`
 - Comprehensive testing for transaction rollback
 
+Draft — awaiting Matthew's approval
 ## Summary
 This design proposes a MongoDB GridFS-backed implementation of `IFileStorageService` that will replace the existing Azure Blob Storage and LocalFileStorage implementations. GridFS will store both original files and thumbnails in a single `attachments` bucket with metadata tags for differentiation. The service will return app-owned routes (e.g., `/api/attachments/{id}` and `/api/attachments/{id}/thumbnail`) instead of external URLs, providing a clean abstraction that eliminates external storage dependencies while maintaining the existing `IFileStorageService` contract.
 

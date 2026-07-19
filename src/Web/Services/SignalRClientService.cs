@@ -94,12 +94,12 @@ public sealed class SignalRClientService : IAsyncDisposable
 			return;
 		}
 
-		if (_hostEnvironment.IsEnvironment("IntegrationTesting"))
+		if (_hostEnvironment.IsEnvironment("Testing") || _hostEnvironment.IsEnvironment("IntegrationTesting"))
 		{
 			if (!_startupSkipped)
 			{
 				_startupSkipped = true;
-				_logger.LogInformation("Skipping SignalR client startup in IntegrationTesting");
+				_logger.LogInformation("Skipping SignalR client startup in testing environments");
 			}
 
 			return;
