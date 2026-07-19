@@ -215,6 +215,26 @@ public sealed class SignalRClientServiceTests : IAsyncDisposable
 	}
 
 	[Fact]
+	public async Task StartAsync_WhenTesting_SkipsConnectionAttempt()
+	{
+		// Arrange
+		var service = new SignalRClientService(
+			NullLogger<SignalRClientService>.Instance,
+			_toastService,
+			CreateHostEnvironment("Testing"),
+			_navigationManager);
+
+		// Act
+		await service.StartAsync();
+
+		// Assert
+		service.ConnectionState.Should().Be(HubConnectionState.Disconnected);
+		_toastService.Toasts.Should().BeEmpty();
+
+		await service.DisposeAsync();
+	}
+
+	[Fact]
 	public async Task StartAsync_WhenCalledTwice_ReturnsEarlyOnSecondCall()
 	{
 		// Arrange
